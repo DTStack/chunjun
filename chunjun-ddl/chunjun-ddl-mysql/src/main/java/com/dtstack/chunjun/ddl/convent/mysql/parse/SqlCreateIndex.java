@@ -28,8 +28,6 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlCreateIndex extends SqlCreate {
@@ -47,7 +45,6 @@ public class SqlCreateIndex extends SqlCreate {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(tableName, sqlIndex);
     }

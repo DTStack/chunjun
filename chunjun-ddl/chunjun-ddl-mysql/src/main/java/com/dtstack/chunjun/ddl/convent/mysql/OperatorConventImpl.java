@@ -43,8 +43,6 @@ import com.dtstack.chunjun.ddl.convent.mysql.parse.enums.AlterTableRenameTypeEnu
 import com.dtstack.chunjun.ddl.convent.mysql.util.SqlNodeParseUtil;
 import com.dtstack.chunjun.ddl.parse.util.SqlNodeUtil;
 
-import org.apache.flink.util.StringUtils;
-
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlIdentifier;
@@ -53,6 +51,7 @@ import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.dialect.MysqlSqlDialect;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -124,7 +123,7 @@ public class OperatorConventImpl implements OperatorConvent, Serializable {
         if (operator.getTableDefinition().isIfNotExists()) {
             sb.append("IF NOT EXISTS ");
         }
-        if (!StringUtils.isNullOrWhitespaceOnly(
+        if (StringUtils.isNotBlank(
                 operator.getTableDefinition().getTableIdentifier().getDataBase())) {
             sb.append(
                             sqlDialect.quoteIdentifier(
@@ -309,8 +308,7 @@ public class OperatorConventImpl implements OperatorConvent, Serializable {
                                         null,
                                         null,
                                         null,
-                                        !StringUtils.isNullOrWhitespaceOnly(
-                                                        operator.getIndex().getComment())
+                                        StringUtils.isNotBlank(operator.getIndex().getComment())
                                                 ? SqlLiteral.createCharString(
                                                         operator.getIndex().getComment(),
                                                         "UTF-8",

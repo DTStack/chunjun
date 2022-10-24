@@ -28,8 +28,6 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterTableOrderBy extends SqlAlterTableOperator {
@@ -37,7 +35,7 @@ public class SqlAlterTableOrderBy extends SqlAlterTableOperator {
     public static final SqlSpecialOperator OPERATOR =
             new SqlSpecialOperator("ALTER TABLE ORDER BY", SqlKind.ALTER_TABLE);
 
-    private final SqlNodeList orderByColumnList;
+    private SqlNodeList orderByColumnList;
 
     public SqlAlterTableOrderBy(
             SqlParserPos pos, SqlIdentifier tableIdentifier, SqlNodeList orderByColumnList) {
@@ -46,19 +44,19 @@ public class SqlAlterTableOrderBy extends SqlAlterTableOperator {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(tableIdentifier, orderByColumnList);
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
     public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
+        //        writer.keyword("ALTER TABLE");
+        //        tableIdentifier.unparse(writer, leftPrec, rightPrec);
         writer.keyword("ORDER BY");
         List<SqlNode> list = orderByColumnList.getList();
         for (int i = 0; i < list.size(); i++) {

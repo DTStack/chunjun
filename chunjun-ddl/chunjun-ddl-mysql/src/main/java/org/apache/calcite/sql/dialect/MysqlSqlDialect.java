@@ -46,6 +46,8 @@ import org.apache.calcite.sql.type.OperandTypes;
 import org.apache.calcite.sql.type.ReturnTypes;
 import org.apache.calcite.sql.type.SqlTypeName;
 
+import static org.apache.calcite.sql.type.SqlTypeName.TIMESTAMP;
+
 /** A <code>SqlDialect</code> implementation for the MySQL database. */
 public class MysqlSqlDialect extends SqlDialect {
 
@@ -67,9 +69,9 @@ public class MysqlSqlDialect extends SqlDialect {
                 }
             };
 
-    public static final Context DEFAULT_CONTEXT =
+    public static final SqlDialect.Context DEFAULT_CONTEXT =
             SqlDialect.EMPTY_CONTEXT
-                    .withDatabaseProduct(DatabaseProduct.MYSQL)
+                    .withDatabaseProduct(SqlDialect.DatabaseProduct.MYSQL)
                     .withIdentifierQuoteString("`")
                     .withDataTypeSystem(MYSQL_TYPE_SYSTEM)
                     .withUnquotedCasing(Casing.UNCHANGED)

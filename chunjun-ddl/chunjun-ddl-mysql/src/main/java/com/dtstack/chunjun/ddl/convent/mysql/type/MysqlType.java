@@ -65,7 +65,7 @@ public enum MysqlType implements ColumnType {
     GEOMCOLLECTION("GEOMCOLLECTION"),
     ;
 
-    private final String sourceName;
+    private String sourceName;
 
     MysqlType(String sourceName) {
         this.sourceName = sourceName;

@@ -28,46 +28,44 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterTableConstraint extends SqlAlterTableOperator {
     public static final SqlSpecialOperator OPERATOR =
             new SqlSpecialOperator("ALTER TABLE ALTER CONSTRNINT", SqlKind.ALTER_TABLE);
 
-    public SqlLiteral alterType;
+    public SqlLiteral altertType;
     public SqlIdentifier symbol;
     public SqlLiteral enforced;
 
     public SqlAlterTableConstraint(
             SqlParserPos pos,
             SqlIdentifier tableIdentifier,
-            SqlLiteral alterType,
+            SqlLiteral altertType,
             SqlIdentifier symbol,
             SqlLiteral enforced) {
         super(pos, tableIdentifier);
-        this.alterType = alterType;
+        this.altertType = altertType;
         this.symbol = symbol;
         this.enforced = enforced;
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
-        return ImmutableNullableList.of(tableIdentifier, alterType, symbol, enforced);
+        return ImmutableNullableList.of(tableIdentifier, altertType, symbol, enforced);
     }
 
     @Override
     public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
+        //        writer.keyword("ALTER TABLE");
+        //        tableIdentifier.unparse(writer, leftPrec, rightPrec);
         writer.keyword("ALTER");
-        alterType.unparse(writer, leftPrec, rightPrec);
+        altertType.unparse(writer, leftPrec, rightPrec);
         symbol.unparse(writer, leftPrec, rightPrec);
         enforced.unparse(writer, leftPrec, rightPrec);
     }

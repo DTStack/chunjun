@@ -29,8 +29,6 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterTable extends SqlCall {
@@ -50,24 +48,22 @@ public class SqlAlterTable extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(tableIdentifier, alterTableOperatorList);
     }
 
     @Override
-    public void unparse(SqlWriter writer, int leftPre, int rightPre) {
+    public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
         writer.keyword("ALTER TABLE");
-        tableIdentifier.unparse(writer, leftPre, rightPre);
+        tableIdentifier.unparse(writer, leftPrec, rightPrec);
 
         for (int i = 0; i < alterTableOperatorList.getList().size(); i++) {
-            alterTableOperatorList.getList().get(i).unparse(writer, leftPre, rightPre);
+            alterTableOperatorList.getList().get(i).unparse(writer, leftPrec, rightPrec);
             if (i != alterTableOperatorList.getList().size() - 1) {
                 writer.keyword(",");
             }

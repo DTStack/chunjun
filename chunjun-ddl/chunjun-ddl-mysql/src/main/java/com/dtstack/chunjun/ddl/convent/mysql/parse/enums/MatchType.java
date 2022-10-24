@@ -27,7 +27,7 @@ public enum MatchType {
     MATCH_SIMPLE("MATCH SIMPLE"),
     ;
 
-    private final String digest;
+    private String digest;
 
     MatchType(String digest) {
         this.digest = digest;

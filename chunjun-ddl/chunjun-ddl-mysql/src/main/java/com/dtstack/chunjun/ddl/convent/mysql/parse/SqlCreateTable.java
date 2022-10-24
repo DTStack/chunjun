@@ -29,8 +29,6 @@ import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 import org.apache.commons.collections.CollectionUtils;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlCreateTable extends SqlCreate {
@@ -80,7 +78,6 @@ public class SqlCreateTable extends SqlCreate {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(
                 name,
@@ -112,9 +109,9 @@ public class SqlCreateTable extends SqlCreate {
                 SqlWriter.Frame frame =
                         writer.startList(SqlWriter.FrameTypeEnum.create("sds"), "(", ")");
 
-                unParseSqlNodeList(columnList, writer, leftPrec, rightPrec);
-                unParseSqlNodeList(indexList, writer, leftPrec, rightPrec);
-                unParseSqlNodeList(constraintList, writer, leftPrec, rightPrec);
+                unPaseSqlNodeList(columnList, writer, leftPrec, rightPrec);
+                unPaseSqlNodeList(indexList, writer, leftPrec, rightPrec);
+                unPaseSqlNodeList(constraintList, writer, leftPrec, rightPrec);
 
                 writer.newlineAndIndent();
                 writer.endList(frame);
@@ -129,7 +126,7 @@ public class SqlCreateTable extends SqlCreate {
         }
     }
 
-    protected void unParseSqlNodeList(
+    protected void unPaseSqlNodeList(
             SqlNodeList sqlNodes, SqlWriter writer, int leftPrec, int rightPrec) {
         if (CollectionUtils.isEmpty(sqlNodes.getList())) {
             return;

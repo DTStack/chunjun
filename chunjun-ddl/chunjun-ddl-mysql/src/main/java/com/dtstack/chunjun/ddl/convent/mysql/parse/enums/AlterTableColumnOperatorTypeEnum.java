@@ -27,7 +27,7 @@ public enum AlterTableColumnOperatorTypeEnum {
     DROP_DEFAULT("DROP DEFAULT"),
     ;
 
-    private final String digest;
+    private String digest;
 
     AlterTableColumnOperatorTypeEnum(String digest) {
         this.digest = digest;

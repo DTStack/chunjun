@@ -24,13 +24,11 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterTableCharacterAndCollate extends SqlAlterTableOperator {
-    private final SqlNode character;
-    private final SqlNode collate;
+    private SqlNode character;
+    private SqlNode collate;
 
     public SqlAlterTableCharacterAndCollate(
             SqlParserPos pos, SqlIdentifier tableIdentifier, SqlNode character, SqlNode collate) {
@@ -40,13 +38,14 @@ public class SqlAlterTableCharacterAndCollate extends SqlAlterTableOperator {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(tableIdentifier, character, collate);
     }
 
     @Override
     public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
+        //        writer.keyword("ALTER TABLE");
+        //        tableIdentifier.unparse(writer, leftPrec, rightPrec);
         writer.keyword("CONVERT TO");
 
         if (character != null) {

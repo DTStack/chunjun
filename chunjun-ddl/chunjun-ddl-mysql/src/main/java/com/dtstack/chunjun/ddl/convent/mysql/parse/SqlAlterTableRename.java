@@ -30,8 +30,6 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterTableRename extends SqlAlterTableOperator {
@@ -56,13 +54,11 @@ public class SqlAlterTableRename extends SqlAlterTableOperator {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(tableIdentifier, oldName, newName, renameType);
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }

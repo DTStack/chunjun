@@ -21,4 +21,5 @@ package com.dtstack.chunjun.ddl.convent.mysql.parse.enums;
 public enum IndexStorageType {
     BTREE,
     HASH,
+    ;
 }

@@ -31,9 +31,6 @@ import org.apache.calcite.sql.SqlSpecialOperator;
 import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
-import javax.annotation.Nonnull;
-
-import java.util.Collections;
 import java.util.List;
 
 public class SqlGeneralColumn extends SqlCall {
@@ -45,7 +42,7 @@ public class SqlGeneralColumn extends SqlCall {
     public final SqlNode expression;
     public final SqlNode defaultValue;
     public final SqlLiteral nullAble;
-    public final SqlLiteral visible;
+    public final SqlLiteral visiable;
     public final SqlLiteral autoIncreMent;
     public final SqlLiteral uniqueKey;
     public final SqlLiteral primary;
@@ -66,7 +63,7 @@ public class SqlGeneralColumn extends SqlCall {
             SqlNode expression,
             SqlNode defaultValue,
             SqlLiteral nullAble,
-            SqlLiteral visible,
+            SqlLiteral visiable,
             SqlLiteral autoIncreMent,
             SqlLiteral uniqueKey,
             SqlLiteral primary,
@@ -85,7 +82,7 @@ public class SqlGeneralColumn extends SqlCall {
         this.expression = expression;
         this.defaultValue = defaultValue;
         this.nullAble = nullAble;
-        this.visible = visible;
+        this.visiable = visiable;
         this.autoIncreMent = autoIncreMent;
         this.uniqueKey = uniqueKey;
         this.primary = primary;
@@ -101,15 +98,13 @@ public class SqlGeneralColumn extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
-        return Collections.emptyList();
+        return null;
     }
 
     @Override
@@ -124,7 +119,7 @@ public class SqlGeneralColumn extends SqlCall {
                 defaultValue.unparse(writer, leftPrec, rightPrec);
             }
         }
-        unparseNode(visible, writer, leftPrec, rightPrec);
+        unparseNode(visiable, writer, leftPrec, rightPrec);
         unparseNode(autoIncreMent, writer, leftPrec, rightPrec);
         unparseNode(uniqueKey, writer, leftPrec, rightPrec);
         if (primary != null) {

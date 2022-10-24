@@ -248,6 +248,10 @@ public class MysqlTypeConvent implements ColumnTypeConvent {
     }
 
     private static void initAllColumnType() {
-        Arrays.stream(MysqlType.values()).forEach(i -> MYSQL_COLUMN_TYPE.add(i.name()));
+        Arrays.stream(MysqlType.values())
+                .forEach(
+                        i -> {
+                            MYSQL_COLUMN_TYPE.add(i.name());
+                        });
     }
 }

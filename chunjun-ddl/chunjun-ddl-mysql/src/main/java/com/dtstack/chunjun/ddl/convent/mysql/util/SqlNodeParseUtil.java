@@ -54,14 +54,13 @@ import com.dtstack.chunjun.ddl.parse.type.SqlTypeConventedNameSpec;
 import com.dtstack.chunjun.ddl.parse.util.SqlNodeUtil;
 import com.dtstack.chunjun.mapping.MappingRule;
 
-import org.apache.flink.util.StringUtils;
-
 import com.google.common.collect.Lists;
 import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.dialect.MysqlSqlDialect;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
@@ -92,6 +91,12 @@ public class SqlNodeParseUtil {
                         && SqlMysqlConstraintEnable.UNIQUE.equals(column.uniqueKey.getValue());
 
         boolean autoIncrement = false;
+
+        //        if (MysqlType.SERIAL.getSourceName().equalsIgnoreCase(columnTypeName)) {
+        //            nullAble = false;
+        //            uniqueKey = true;
+        //            autoIncrement = true;
+        //        }
 
         Pair<Integer, Integer> precisionAndScale =
                 SqlNodeUtil.getTypePrecisionAndScale(column.type.getTypeNameSpec());
@@ -154,12 +159,13 @@ public class SqlNodeParseUtil {
             }
         }
 
-        Boolean isVisible = null;
+        Boolean isVisiable = null;
         String comment = null;
         if (index.getIndexOption() != null) {
             SqlIndexOption indexOption = (SqlIndexOption) index.getIndexOption();
-            if (indexOption.visible != null) {
-                isVisible = indexOption.visible.getValue().equals(SqlMysqlConstraintEnable.VISIBLE);
+            if (indexOption.visiable != null) {
+                isVisiable =
+                        indexOption.visiable.getValue().equals(SqlMysqlConstraintEnable.VISIBLE);
             }
 
             if (indexOption.comment != null) {
@@ -169,7 +175,7 @@ public class SqlNodeParseUtil {
             }
         }
         return new IndexDefinition(
-                indexType, index.getName().getSimple(), comment, columnInfos, isVisible);
+                indexType, index.getName().getSimple(), comment, columnInfos, isVisiable);
     }
 
     public static ConstraintDefinition parseConstraint(SqlTableConstraint constraint) {
@@ -527,7 +533,7 @@ public class SqlNodeParseUtil {
             sb.append("UNIQUE KEY").append(" ");
         }
 
-        if (!StringUtils.isNullOrWhitespaceOnly(columnDefinition.getCheck())) {
+        if (StringUtils.isNotBlank(columnDefinition.getCheck())) {
             sb.append("check").append(" (").append(columnDefinition.getCheck()).append(") ");
         }
 
@@ -593,7 +599,15 @@ public class SqlNodeParseUtil {
         StringBuilder sb = new StringBuilder(256);
         if (constraintDefinition instanceof ForeignKeyDefinition) {
             sb.append("FOREIGN KEY").append(" ");
-            buildColumns(constraintDefinition, sqlDialect, sb);
+            if (StringUtils.isNotBlank(constraintDefinition.getName())) {
+                sb.append(sqlDialect.quoteIdentifier(constraintDefinition.getName())).append(" ");
+            }
+            sb.append("(").append(" ");
+            sb.append(
+                    constraintDefinition.getColumns().stream()
+                            .map(sqlDialect::quoteIdentifier)
+                            .collect(Collectors.joining(",")));
+            sb.append(")").append(" ");
             ForeignKeyDefinition foreignKeyDefinition = (ForeignKeyDefinition) constraintDefinition;
             sb.append("REFERENCES")
                     .append(" ")
@@ -623,9 +637,9 @@ public class SqlNodeParseUtil {
             return sb.toString();
         }
 
-        if (!StringUtils.isNullOrWhitespaceOnly(constraintDefinition.getCheck())) {
+        if (StringUtils.isNotBlank(constraintDefinition.getCheck())) {
             sb.append("CONSTRAINT").append(" ");
-            if (!StringUtils.isNullOrWhitespaceOnly(constraintDefinition.getName())) {
+            if (StringUtils.isNotBlank(constraintDefinition.getName())) {
                 sb.append(sqlDialect.quoteIdentifier(constraintDefinition.getName())).append(" ");
             }
             sb.append("CHECK").append(" ").append("(");
@@ -639,7 +653,15 @@ public class SqlNodeParseUtil {
             sb.append("UNIQUE INDEX").append(" ");
         }
 
-        buildColumns(constraintDefinition, sqlDialect, sb);
+        if (StringUtils.isNotBlank(constraintDefinition.getName())) {
+            sb.append(sqlDialect.quoteIdentifier(constraintDefinition.getName())).append(" ");
+        }
+        sb.append("(").append(" ");
+        sb.append(
+                constraintDefinition.getColumns().stream()
+                        .map(sqlDialect::quoteIdentifier)
+                        .collect(Collectors.joining(",")));
+        sb.append(")").append(" ");
 
         if (constraintDefinition.getComment() != null) {
             sb.append("COMMENT")
@@ -650,19 +672,6 @@ public class SqlNodeParseUtil {
         }
 
         return sb.toString();
-    }
-
-    private static void buildColumns(
-            ConstraintDefinition constraintDefinition, SqlDialect sqlDialect, StringBuilder sb) {
-        if (!StringUtils.isNullOrWhitespaceOnly(constraintDefinition.getName())) {
-            sb.append(sqlDialect.quoteIdentifier(constraintDefinition.getName())).append(" ");
-        }
-        sb.append("(").append(" ");
-        sb.append(
-                constraintDefinition.getColumns().stream()
-                        .map(sqlDialect::quoteIdentifier)
-                        .collect(Collectors.joining(",")));
-        sb.append(")").append(" ");
     }
 
     public static String parseCreateDefinition(

@@ -29,8 +29,6 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterDataBase extends SqlCall {
@@ -54,7 +52,6 @@ public class SqlAlterDataBase extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(databaseName, propertyList);
     }
@@ -64,23 +61,22 @@ public class SqlAlterDataBase extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    public void unparse(SqlWriter writer, int leftPre, int rightPre) {
+    public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
         if (isDataBase) {
             writer.keyword("ALTER DATABASE");
         } else {
             writer.keyword("ALTER SCHEMA");
         }
 
-        databaseName.unparse(writer, leftPre, rightPre);
+        databaseName.unparse(writer, leftPrec, rightPrec);
         List<SqlNode> list = propertyList.getList();
         for (int i = 0; i < list.size(); i++) {
-            list.get(i).unparse(writer, leftPre, rightPre);
+            list.get(i).unparse(writer, leftPrec, rightPrec);
             if (i != list.size() - 1) {
                 writer.print(" ");
             }

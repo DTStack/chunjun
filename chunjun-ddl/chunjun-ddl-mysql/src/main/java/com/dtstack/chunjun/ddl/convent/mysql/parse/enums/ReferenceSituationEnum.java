@@ -26,7 +26,7 @@ public enum ReferenceSituationEnum {
     ON_UPDATE("ON UPDATE"),
     ;
 
-    private final String digest;
+    private String digest;
 
     ReferenceSituationEnum(String digest) {
         this.digest = digest;

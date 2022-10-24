@@ -25,8 +25,6 @@ import org.apache.calcite.sql.SqlOperator;
 import org.apache.calcite.sql.SqlSpecialOperator;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
-import javax.annotation.Nonnull;
-
 public abstract class SqlAlterTableOperator extends SqlCall {
 
     public static final SqlSpecialOperator OPERATOR =
@@ -40,7 +38,6 @@ public abstract class SqlAlterTableOperator extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }

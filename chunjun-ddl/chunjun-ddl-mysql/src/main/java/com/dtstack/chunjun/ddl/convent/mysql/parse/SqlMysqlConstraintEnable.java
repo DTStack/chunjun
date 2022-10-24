@@ -37,7 +37,7 @@ public enum SqlMysqlConstraintEnable {
     REPLACE("REPLACE"),
     ;
 
-    private final String digest;
+    private String digest;
 
     SqlMysqlConstraintEnable(String digest) {
         this.digest = digest;

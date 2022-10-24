@@ -27,17 +27,14 @@ import org.apache.calcite.sql.SqlSpecialOperator;
 import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
-import javax.annotation.Nonnull;
-
-import java.util.Collections;
 import java.util.List;
 
 public class SqlTableSpace extends SqlCall {
     private static final SqlSpecialOperator OPERATOR =
             new SqlSpecialOperator("TABLE_SPACE", SqlKind.OTHER);
 
-    private final SqlIdentifier tableSpaceName;
-    private final SqlNode storageTYpe;
+    private SqlIdentifier tableSpaceName;
+    private SqlNode storageTYpe;
 
     public SqlTableSpace(SqlParserPos pos, SqlIdentifier tableSpaceName, SqlNode storageTYpe) {
         super(pos);
@@ -46,15 +43,13 @@ public class SqlTableSpace extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
-        return Collections.emptyList();
+        return null;
     }
 
     @Override

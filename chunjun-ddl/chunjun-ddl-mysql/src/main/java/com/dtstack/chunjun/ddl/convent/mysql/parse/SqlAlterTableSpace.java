@@ -25,28 +25,27 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterTableSpace extends SqlAlterTableOperator {
-    private final SqlLiteral tableSpaceOperator;
+    private SqlLiteral tableSpacheOperator;
 
     public SqlAlterTableSpace(
-            SqlParserPos pos, SqlIdentifier tableIdentifier, SqlLiteral tableSpaceOperator) {
+            SqlParserPos pos, SqlIdentifier tableIdentifier, SqlLiteral tableSpacheOperator) {
         super(pos, tableIdentifier);
-        this.tableSpaceOperator = tableSpaceOperator;
+        this.tableSpacheOperator = tableSpacheOperator;
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(tableIdentifier);
     }
 
     @Override
     public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
-        tableSpaceOperator.unparse(writer, leftPrec, rightPrec);
+        //        writer.keyword("ALTER TABLE");
+        //        tableIdentifier.unparse(writer, leftPrec, rightPrec);
+        tableSpacheOperator.unparse(writer, leftPrec, rightPrec);
         writer.keyword("TABLESPACE");
     }
 }

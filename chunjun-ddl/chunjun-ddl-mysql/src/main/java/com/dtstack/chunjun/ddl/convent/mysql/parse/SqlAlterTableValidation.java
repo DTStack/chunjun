@@ -25,12 +25,10 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterTableValidation extends SqlAlterTableOperator {
-    private final SqlLiteral withAble;
+    private SqlLiteral withAble;
 
     public SqlAlterTableValidation(
             SqlParserPos pos, SqlIdentifier tableIdentifier, SqlLiteral withAble) {
@@ -39,13 +37,14 @@ public class SqlAlterTableValidation extends SqlAlterTableOperator {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(tableIdentifier, withAble);
     }
 
     @Override
     public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
+        //        writer.keyword("ALTER TABLE");
+        //        tableIdentifier.unparse(writer, leftPrec, rightPrec);
         withAble.unparse(writer, leftPrec, rightPrec);
         writer.keyword("VALIDATION");
     }

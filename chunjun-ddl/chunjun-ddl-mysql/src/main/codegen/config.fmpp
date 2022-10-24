@@ -36,7 +36,7 @@ data: {
   parser: {
             # Generated parser implementation package and class name.
             package: "com.dtstack.chunjun.ddl.convent.mysql.parse.impl",
-            class: "ChunJunMySqlParserImpl",
+            class: "ChunjunMySqlParserImpl",
 
             # List of additional classes and packages to import.
             # Example. "org.apache.calcite.sql.*", "java.util.List".

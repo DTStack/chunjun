@@ -28,8 +28,6 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterInstance extends SqlCall {
@@ -37,7 +35,7 @@ public class SqlAlterInstance extends SqlCall {
     public static final SqlSpecialOperator OPERATOR =
             new SqlSpecialOperator("ALTER INSTANCE", SqlKind.ALTER_TABLE);
 
-    private final SqlNodeList instanceActionList;
+    private SqlNodeList instanceActionList;
 
     public SqlAlterInstance(SqlParserPos pos, SqlNodeList instanceActionList) {
         super(pos);
@@ -45,22 +43,20 @@ public class SqlAlterInstance extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(instanceActionList);
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    public void unparse(SqlWriter writer, int leftPre, int rightPre) {
+    public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
         writer.keyword(getOperator().getName());
         for (SqlNode instanceAction : instanceActionList) {
-            instanceAction.unparse(writer, leftPre, rightPre);
+            instanceAction.unparse(writer, leftPrec, rightPrec);
         }
     }
 }

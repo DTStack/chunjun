@@ -29,9 +29,6 @@ import org.apache.calcite.sql.SqlSpecialOperator;
 import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
-import javax.annotation.Nonnull;
-
-import java.util.Collections;
 import java.util.List;
 
 public class SqlIndexOption extends SqlCall {
@@ -42,7 +39,7 @@ public class SqlIndexOption extends SqlCall {
     public SqlNode indexType;
     public SqlNode withParse;
     public SqlNode comment;
-    public SqlLiteral visible;
+    public SqlLiteral visiable;
     public SqlNode engineAttribute;
     public SqlNode secondEngineAttribute;
 
@@ -52,7 +49,7 @@ public class SqlIndexOption extends SqlCall {
             SqlNode indexType,
             SqlNode withParse,
             SqlNode comment,
-            SqlLiteral visible,
+            SqlLiteral visiable,
             SqlNode engineAttribute,
             SqlNode secondEngineAttribute) {
         super(pos);
@@ -60,21 +57,19 @@ public class SqlIndexOption extends SqlCall {
         this.indexType = indexType;
         this.withParse = withParse;
         this.comment = comment;
-        this.visible = visible;
+        this.visiable = visiable;
         this.engineAttribute = engineAttribute;
         this.secondEngineAttribute = secondEngineAttribute;
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
-        return Collections.emptyList();
+        return null;
     }
 
     @Override
@@ -98,8 +93,8 @@ public class SqlIndexOption extends SqlCall {
                 comment.unparse(writer, leftPrec, rightPrec);
             }
         }
-        if (visible != null) {
-            visible.unparse(writer, leftPrec, rightPrec);
+        if (visiable != null) {
+            visiable.unparse(writer, leftPrec, rightPrec);
         }
         if (engineAttribute != null) {
             writer.keyword("ENGINE_ATTRIBUTE");

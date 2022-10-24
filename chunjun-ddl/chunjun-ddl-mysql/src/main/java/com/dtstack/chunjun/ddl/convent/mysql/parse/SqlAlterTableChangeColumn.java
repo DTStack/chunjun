@@ -28,8 +28,6 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterTableChangeColumn extends SqlAlterTableOperator {
@@ -57,20 +55,20 @@ public class SqlAlterTableChangeColumn extends SqlAlterTableOperator {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(
                 tableIdentifier, column, oldColumnName, order, coordinateColumn);
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
     public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
+        //        writer.keyword("ALTER TABLE");
+        //        tableIdentifier.unparse(writer, leftPrec, rightPrec);
         if (oldColumnName != null) {
             writer.keyword("CHANGE");
             writer.keyword("COLUMN");

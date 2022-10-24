@@ -29,8 +29,6 @@ import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 import org.apache.calcite.util.NlsString;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
@@ -67,13 +65,11 @@ public class SqlServerOption extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(key, value);
     }

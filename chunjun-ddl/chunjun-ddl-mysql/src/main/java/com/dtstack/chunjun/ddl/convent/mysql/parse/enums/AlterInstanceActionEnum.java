@@ -32,7 +32,7 @@ public enum AlterInstanceActionEnum {
     RELOAD_KEYRING("RELOAD KEYRING"),
     ;
 
-    private final String digest;
+    private String digest;
 
     AlterInstanceActionEnum(String digest) {
         this.digest = digest;

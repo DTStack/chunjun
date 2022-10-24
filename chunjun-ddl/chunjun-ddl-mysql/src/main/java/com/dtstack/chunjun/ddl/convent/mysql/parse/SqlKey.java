@@ -28,8 +28,6 @@ import org.apache.calcite.sql.SqlSpecialOperator;
 import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
-import javax.annotation.Nonnull;
-
 public class SqlKey extends SqlIndex {
     private static final SqlSpecialOperator OPERATOR =
             new SqlSpecialOperator("CREATE_KEY", SqlKind.CREATE_INDEX);
@@ -71,7 +69,6 @@ public class SqlKey extends SqlIndex {
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }

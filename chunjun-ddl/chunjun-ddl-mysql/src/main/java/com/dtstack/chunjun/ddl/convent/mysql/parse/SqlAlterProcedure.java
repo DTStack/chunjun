@@ -28,8 +28,6 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterProcedure extends SqlCall {
@@ -37,8 +35,8 @@ public class SqlAlterProcedure extends SqlCall {
     public static final SqlSpecialOperator OPERATOR =
             new SqlSpecialOperator("ALTER PROCEDURE", SqlKind.OTHER);
 
-    private final SqlIdentifier procName;
-    private final SqlNode sqlProcedureCharacteristic;
+    private SqlIdentifier procName;
+    private SqlNode sqlProcedureCharacteristic;
 
     public SqlAlterProcedure(
             SqlParserPos pos, SqlIdentifier procName, SqlNode sqlProcedureCharacteristic) {
@@ -48,25 +46,23 @@ public class SqlAlterProcedure extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(procName, sqlProcedureCharacteristic);
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    public void unparse(SqlWriter writer, int leftPre, int rightPre) {
+    public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
         writer.keyword("ALTER PROCEDURE");
 
-        procName.unparse(writer, leftPre, rightPre);
+        procName.unparse(writer, leftPrec, rightPrec);
 
         if (sqlProcedureCharacteristic != null) {
-            sqlProcedureCharacteristic.unparse(writer, leftPre, rightPre);
+            sqlProcedureCharacteristic.unparse(writer, leftPrec, rightPrec);
         }
     }
 }

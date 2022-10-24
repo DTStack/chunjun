@@ -29,8 +29,6 @@ import org.apache.calcite.sql.SqlSpecialOperator;
 import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 /** Parse tree for {@code DROP VIEW} statement. */
@@ -40,7 +38,7 @@ public class SqlDropTableSpace extends SqlDrop {
 
     public SqlIdentifier name;
     public boolean isUndo;
-    private final SqlLiteral engineName;
+    private SqlLiteral engineName;
 
     public SqlDropTableSpace(
             SqlParserPos pos, SqlIdentifier name, boolean isUndo, SqlLiteral engineName) {
@@ -51,7 +49,6 @@ public class SqlDropTableSpace extends SqlDrop {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableList.of(this.name, this.engineName);
     }

@@ -28,8 +28,6 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterTableIndex extends SqlAlterTableOperator {
@@ -37,35 +35,35 @@ public class SqlAlterTableIndex extends SqlAlterTableOperator {
             new SqlSpecialOperator("ALTER TABLE ALTER INDEX", SqlKind.ALTER_TABLE);
 
     SqlIdentifier symbol;
-    SqlLiteral visible;
+    SqlLiteral visiable;
 
     public SqlAlterTableIndex(
             SqlParserPos pos,
             SqlIdentifier tableIdentifier,
             SqlIdentifier symbol,
-            SqlLiteral visible) {
+            SqlLiteral visiable) {
         super(pos, tableIdentifier);
         this.symbol = symbol;
-        this.visible = visible;
+        this.visiable = visiable;
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
-        return ImmutableNullableList.of(tableIdentifier, symbol, visible);
+        return ImmutableNullableList.of(tableIdentifier, symbol, visiable);
     }
 
     @Override
     public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
+        //        writer.keyword("ALTER TABLE");
+        //        tableIdentifier.unparse(writer, leftPrec, rightPrec);
         writer.keyword("ALTER");
         writer.keyword("INDEX");
         symbol.unparse(writer, leftPrec, rightPrec);
-        visible.unparse(writer, leftPrec, rightPrec);
+        visiable.unparse(writer, leftPrec, rightPrec);
     }
 }

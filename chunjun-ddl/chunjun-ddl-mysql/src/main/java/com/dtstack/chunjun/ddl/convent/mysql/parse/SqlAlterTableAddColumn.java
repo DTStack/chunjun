@@ -26,8 +26,6 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterTableAddColumn extends SqlAlterTableOperator {
@@ -48,26 +46,27 @@ public class SqlAlterTableAddColumn extends SqlAlterTableOperator {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(tableIdentifier, columns, order, coordinateColumn);
     }
 
     @Override
-    public void unparse(SqlWriter writer, int leftPre, int rightPre) {
+    public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
+        //        writer.keyword("ALTER TABLE");
+        //        tableIdentifier.unparse(writer, leftPrec, rightPrec);
         writer.keyword("ADD");
         writer.keyword("COLUMN");
 
         SqlWriter.Frame frame = writer.startList(SqlWriter.FrameTypeEnum.create("sds"), "(", ")");
         for (SqlNode column : columns) {
             printIndent(writer);
-            column.unparse(writer, leftPre, rightPre);
+            column.unparse(writer, leftPrec, rightPrec);
         }
         writer.newlineAndIndent();
         writer.endList(frame);
         if (order != null) {
-            order.unparse(writer, leftPre, rightPre);
-            coordinateColumn.unparse(writer, leftPre, rightPre);
+            order.unparse(writer, leftPrec, rightPrec);
+            coordinateColumn.unparse(writer, leftPrec, rightPrec);
         }
     }
 

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.ddl.parse;
 
-import com.dtstack.chunjun.ddl.convent.mysql.parse.impl.ChunJunMySqlParserImpl;
+import com.dtstack.chunjun.ddl.convent.mysql.parse.impl.ChunjunMySqlParserImpl;
 
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.sql.SqlNode;
@@ -250,7 +250,7 @@ public class TestCreate {
         SqlParser.Config mysqlConfig =
                 SqlParser.configBuilder()
                         // 定义解析工厂
-                        .setParserFactory(ChunJunMySqlParserImpl.FACTORY)
+                        .setParserFactory(ChunjunMySqlParserImpl.FACTORY)
                         .setConformance(SqlConformanceEnum.MYSQL_5)
                         .setLex(Lex.MYSQL)
                         .build();

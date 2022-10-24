@@ -29,8 +29,6 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterServer extends SqlCall {
@@ -38,8 +36,8 @@ public class SqlAlterServer extends SqlCall {
     public static final SqlSpecialOperator OPERATOR =
             new SqlSpecialOperator("ALTER SERVER", SqlKind.OTHER);
 
-    private final SqlIdentifier serverName;
-    private final SqlNodeList options;
+    private SqlIdentifier serverName;
+    private SqlNodeList options;
 
     public SqlAlterServer(SqlParserPos pos, SqlIdentifier serverName, SqlNodeList options) {
         super(pos);
@@ -48,29 +46,27 @@ public class SqlAlterServer extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(serverName, options);
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    public void unparse(SqlWriter writer, int leftPre, int rightPre) {
+    public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
         writer.keyword("ALTER SERVER");
 
-        serverName.unparse(writer, leftPre, rightPre);
+        serverName.unparse(writer, leftPrec, rightPrec);
 
         writer.keyword("OPTIONS");
 
         SqlWriter.Frame frame = writer.startList(SqlWriter.FrameTypeEnum.create("sds"), "(", ")");
         for (SqlNode option : options) {
             printIndent(writer);
-            option.unparse(writer, leftPre, rightPre);
+            option.unparse(writer, leftPrec, rightPrec);
         }
         writer.newlineAndIndent();
         writer.endList(frame);

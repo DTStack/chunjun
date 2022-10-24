@@ -29,9 +29,6 @@ import org.apache.calcite.sql.SqlSpecialOperator;
 import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
-import javax.annotation.Nonnull;
-
-import java.util.Collections;
 import java.util.List;
 
 public class ReferenceDefinition extends SqlCall {
@@ -63,39 +60,37 @@ public class ReferenceDefinition extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
-        return Collections.emptyList();
+        return null;
     }
 
     @Override
-    public void unparse(SqlWriter writer, int leftPre, int rightPre) {
+    public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
 
         writer.keyword("REFERENCES");
-        tableName.unparse(writer, leftPre, rightPre);
+        tableName.unparse(writer, leftPrec, rightPrec);
 
         SqlWriter.Frame frame = writer.startList(SqlWriter.FrameTypeEnum.create("sds"), "(", ")");
         for (SqlNode keyPart : keyPartList) {
             printIndent(writer);
-            keyPart.unparse(writer, leftPre, rightPre);
+            keyPart.unparse(writer, leftPrec, rightPrec);
         }
 
         writer.newlineAndIndent();
         writer.endList(frame);
 
         if (match != null) {
-            match.unparse(writer, leftPre, rightPre);
+            match.unparse(writer, leftPrec, rightPrec);
         }
 
         if (referenceSituation != null) {
-            referenceSituation.unparse(writer, leftPre, rightPre);
-            referenceOption.unparse(writer, leftPre, rightPre);
+            referenceSituation.unparse(writer, leftPrec, rightPrec);
+            referenceOption.unparse(writer, leftPrec, rightPrec);
         }
     }
 

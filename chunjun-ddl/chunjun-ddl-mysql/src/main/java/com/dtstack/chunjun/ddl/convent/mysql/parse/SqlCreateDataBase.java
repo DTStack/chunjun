@@ -29,8 +29,6 @@ import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 import org.apache.commons.collections.CollectionUtils;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlCreateDataBase extends SqlCreate {
@@ -42,7 +40,7 @@ public class SqlCreateDataBase extends SqlCreate {
 
     public SqlIdentifier name;
 
-    private final SqlNodeList dataBaseOptions;
+    private SqlNodeList dataBaseOptions;
 
     public SqlCreateDataBase(
             SqlParserPos pos,
@@ -57,7 +55,6 @@ public class SqlCreateDataBase extends SqlCreate {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(name, dataBaseOptions);
     }

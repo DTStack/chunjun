@@ -73,7 +73,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SqlNodeParseImpl implements SqlNodeParse {
-    private final ColumnTypeConvent columnTypeConvent = new MysqlTypeConvent();
+    private ColumnTypeConvent columnTypeConvent = new MysqlTypeConvent();
 
     @Override
     public TableOperator parse(SqlCreateTable sqlCreate) {
@@ -383,10 +383,10 @@ public class SqlNodeParseImpl implements SqlNodeParse {
                 new ConstraintDefinition(
                         sqlAlterTableConstraint.symbol.getSimple(),
                         AlterTableTargetTypeEnum.PRIMARY_kEY.equals(
-                                sqlAlterTableConstraint.alterType.getValue()),
+                                sqlAlterTableConstraint.altertType.getValue()),
                         false,
                         AlterTableTargetTypeEnum.CHECK.equals(
-                                sqlAlterTableConstraint.alterType.getValue()),
+                                sqlAlterTableConstraint.altertType.getValue()),
                         null,
                         null,
                         null);

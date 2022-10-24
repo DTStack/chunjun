@@ -31,7 +31,7 @@ public enum AlterTableTargetTypeEnum {
     FOREIGN_kEY("FOREIGN kEY"),
     ;
 
-    private final String digest;
+    private String digest;
 
     AlterTableTargetTypeEnum(String digest) {
         this.digest = digest;

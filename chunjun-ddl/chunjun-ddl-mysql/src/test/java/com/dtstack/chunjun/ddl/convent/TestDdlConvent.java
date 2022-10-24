@@ -22,7 +22,7 @@ import com.dtstack.chunjun.cdc.ddl.DdlConvent;
 import com.dtstack.chunjun.cdc.ddl.definition.DdlOperator;
 import com.dtstack.chunjun.cdc.ddl.definition.TableOperator;
 import com.dtstack.chunjun.ddl.convent.mysql.MysqlDdlConventImpl;
-import com.dtstack.chunjun.ddl.convent.mysql.parse.impl.ChunJunMySqlParserImpl;
+import com.dtstack.chunjun.ddl.convent.mysql.parse.impl.ChunjunMySqlParserImpl;
 import com.dtstack.chunjun.mapping.MappingConf;
 import com.dtstack.chunjun.throwable.ConventException;
 
@@ -44,7 +44,7 @@ public class TestDdlConvent {
     private final SqlParser.Config mysqlConfig =
             SqlParser.config()
                     // 定义解析工厂
-                    .withParserFactory(ChunJunMySqlParserImpl.FACTORY)
+                    .withParserFactory(ChunjunMySqlParserImpl.FACTORY)
                     .withConformance(SqlConformanceEnum.MYSQL_5)
                     .withLex(Lex.MYSQL);
 

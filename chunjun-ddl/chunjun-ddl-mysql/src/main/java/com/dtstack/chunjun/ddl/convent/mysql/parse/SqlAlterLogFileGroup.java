@@ -29,8 +29,6 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterLogFileGroup extends SqlCall {
@@ -38,48 +36,46 @@ public class SqlAlterLogFileGroup extends SqlCall {
     public static final SqlSpecialOperator OPERATOR =
             new SqlSpecialOperator("ALTER LOGFILE GROUP", SqlKind.ALTER_TABLE);
 
-    private final SqlIdentifier logfileGroup;
-    private final SqlNode fileName;
-    private final SqlNode size;
-    private final SqlLiteral engineName;
+    private SqlIdentifier logfileGroup;
+    private SqlNode fileNmae;
+    private SqlNode size;
+    private SqlLiteral engineName;
 
     public SqlAlterLogFileGroup(
             SqlParserPos pos,
             SqlIdentifier logfileGroup,
-            SqlNode fileName,
+            SqlNode fileNmae,
             SqlNode size,
             SqlLiteral engineName) {
         super(pos);
         this.logfileGroup = logfileGroup;
-        this.fileName = fileName;
+        this.fileNmae = fileNmae;
         this.size = size;
         this.engineName = engineName;
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
-        return ImmutableNullableList.of(logfileGroup, fileName, size, engineName);
+        return ImmutableNullableList.of(logfileGroup, fileNmae, size, engineName);
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    public void unparse(SqlWriter writer, int leftPre, int rightPre) {
+    public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
         writer.keyword(getOperator().getName());
-        logfileGroup.unparse(writer, leftPre, rightPre);
+        logfileGroup.unparse(writer, leftPrec, rightPrec);
         writer.keyword("ADD");
         writer.keyword("UNDOFILE");
-        fileName.unparse(writer, leftPre, rightPre);
+        fileNmae.unparse(writer, leftPrec, rightPrec);
         if (size != null) {
             writer.keyword("INITIAL_SIZE");
-            size.unparse(writer, leftPre, rightPre);
+            size.unparse(writer, leftPrec, rightPrec);
         }
         writer.keyword("ENGINE");
-        engineName.unparse(writer, leftPre, rightPre);
+        engineName.unparse(writer, leftPrec, rightPrec);
     }
 }

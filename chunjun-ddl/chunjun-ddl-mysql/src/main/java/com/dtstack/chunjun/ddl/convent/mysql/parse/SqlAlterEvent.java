@@ -31,8 +31,6 @@ import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.util.ImmutableNullableList;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 
 public class SqlAlterEvent extends SqlCall {
@@ -40,14 +38,14 @@ public class SqlAlterEvent extends SqlCall {
     public static final SqlSpecialOperator OPERATOR =
             new SqlSpecialOperator("ALTER EVENT", SqlKind.ALTER_TABLE);
 
-    private final SqlIdentifier eventName;
-    private final SqlNode schedule;
-    private final Boolean isPreserve;
-    private final SqlIdentifier user;
-    private final SqlIdentifier newEventName;
-    private final SqlNode doLiteral;
-    private final SqlNode comment;
-    private final SqlLiteral enable;
+    private SqlIdentifier eventName;
+    private SqlNode schedule;
+    private Boolean isPreserve;
+    private SqlIdentifier user;
+    private SqlIdentifier newEventName;
+    private SqlNode doLiteral;
+    private SqlNode comment;
+    private SqlLiteral enable;
 
     public SqlAlterEvent(
             SqlParserPos pos,
@@ -71,29 +69,27 @@ public class SqlAlterEvent extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
         return ImmutableNullableList.of(
                 eventName, schedule, user, newEventName, doLiteral, comment, enable);
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    public void unparse(SqlWriter writer, int leftPre, int rightPre) {
+    public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
         writer.keyword("ALTER");
         if (user != null) {
-            user.unparse(writer, leftPre, rightPre);
+            user.unparse(writer, leftPrec, rightPrec);
         }
         writer.keyword("EVENT");
-        eventName.unparse(writer, leftPre, rightPre);
+        eventName.unparse(writer, leftPrec, rightPrec);
         if (schedule != null) {
             writer.keyword("ON SCHEDULE");
-            schedule.unparse(writer, leftPre, rightPre);
+            schedule.unparse(writer, leftPrec, rightPrec);
         }
         if (isPreserve != null) {
             if (isPreserve) {
@@ -105,19 +101,19 @@ public class SqlAlterEvent extends SqlCall {
 
         if (newEventName != null) {
             writer.keyword("RENAME TO");
-            newEventName.unparse(writer, leftPre, rightPre);
+            newEventName.unparse(writer, leftPrec, rightPrec);
         }
         if (enable != null) {
-            enable.unparse(writer, leftPre, rightPre);
+            enable.unparse(writer, leftPrec, rightPrec);
         }
         if (comment != null) {
-            if (!SqlNodeUtil.unparseSqlCharStringLiteral(comment, writer, leftPre, rightPre)) {
-                comment.unparse(writer, leftPre, rightPre);
+            if (!SqlNodeUtil.unparseSqlCharStringLiteral(comment, writer, leftPrec, rightPrec)) {
+                comment.unparse(writer, leftPrec, rightPrec);
             }
         }
         if (doLiteral != null) {
             writer.keyword("DO");
-            doLiteral.unparse(writer, leftPre, rightPre);
+            doLiteral.unparse(writer, leftPrec, rightPrec);
         }
     }
 }

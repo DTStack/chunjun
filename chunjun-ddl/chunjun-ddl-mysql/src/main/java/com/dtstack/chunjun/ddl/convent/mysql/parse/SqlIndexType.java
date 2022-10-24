@@ -27,9 +27,6 @@ import org.apache.calcite.sql.SqlSpecialOperator;
 import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
-import javax.annotation.Nonnull;
-
-import java.util.Collections;
 import java.util.List;
 
 public class SqlIndexType extends SqlCall {
@@ -44,15 +41,13 @@ public class SqlIndexType extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         return OPERATOR;
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
-        return Collections.emptyList();
+        return null;
     }
 
     @Override

@@ -31,14 +31,14 @@ public class MysqlSqlTableOption extends SqlTableOption {
     }
 
     @Override
-    public void unparse(SqlWriter writer, int leftPre, int rightPre) {
+    public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
         if (key.toString().equals("TABLESPACE")) {
-            key.unparse(writer, leftPre, rightPre);
-            if (!SqlNodeUtil.unparseSqlCharStringLiteral(value, writer, leftPre, rightPre)) {
-                value.unparse(writer, leftPre, rightPre);
+            key.unparse(writer, leftPrec, rightPrec);
+            if (!SqlNodeUtil.unparseSqlCharStringLiteral(value, writer, leftPrec, rightPrec)) {
+                value.unparse(writer, leftPrec, rightPrec);
             }
         } else {
-            super.unparse(writer, leftPre, rightPre);
+            super.unparse(writer, leftPrec, rightPrec);
         }
     }
 }

@@ -31,9 +31,6 @@ import org.apache.calcite.sql.SqlSpecialOperator;
 import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
-import javax.annotation.Nonnull;
-
-import java.util.Collections;
 import java.util.List;
 
 public class SqlTableConstraint extends SqlCall {
@@ -78,7 +75,6 @@ public class SqlTableConstraint extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public SqlOperator getOperator() {
         if (SqlConstraintSpec.UNIQUE.name().equalsIgnoreCase(uniqueSpec.toValue())
                 | SqlConstraintSpec.UNIQUE_KEY.name().equalsIgnoreCase(uniqueSpec.toValue())
@@ -95,9 +91,8 @@ public class SqlTableConstraint extends SqlCall {
     }
 
     @Override
-    @Nonnull
     public List<SqlNode> getOperandList() {
-        return Collections.emptyList();
+        return null;
     }
 
     @Override
