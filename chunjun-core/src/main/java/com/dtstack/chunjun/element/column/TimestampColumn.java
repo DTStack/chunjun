@@ -85,6 +85,11 @@ public class TimestampColumn extends AbstractBaseColumn {
     }
 
     @Override
+    public String type() {
+        return "TIMESTAMP";
+    }
+
+    @Override
     public Boolean asBoolean() {
         if (null == data) {
             return null;

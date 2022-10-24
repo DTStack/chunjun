@@ -111,6 +111,7 @@ public class LogMinerHelper {
         this.logMinerSelectSql =
                 SqlUtil.buildSelectSql(
                         config.getCat(),
+                        config.isDdlSkip(),
                         config.getListenerTables(),
                         activeConnectionList.get(0).oracleInfo.isCdbMode());
         currentConnection = null;

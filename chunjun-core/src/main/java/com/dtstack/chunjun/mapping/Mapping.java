@@ -34,14 +34,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.dtstack.chunjun.constants.CDCConstantValue.DATABASE;
 import static com.dtstack.chunjun.constants.CDCConstantValue.SCHEMA;
 import static com.dtstack.chunjun.constants.CDCConstantValue.TABLE;
 
 /** @author shitou */
-public interface Mapping<T> {
+public interface Mapping<IN, OUT> {
 
     Set<String> META_HEADER =
-            Stream.of("schema", "table", "type", "opTime", "ts", "scn")
+            Stream.of("schema", "database", "table", "type", "opTime", "ts", "scn")
                     .collect(Collectors.toCollection(HashSet::new));
 
     /**
@@ -50,7 +51,7 @@ public interface Mapping<T> {
      * @param value RowData
      * @return RowData
      */
-    T map(T value);
+    List<OUT> map(IN value);
 
     /**
      * 获取RowData中table、schema的index
@@ -68,6 +69,10 @@ public interface Mapping<T> {
 
             if (SCHEMA.equalsIgnoreCase(headers[i])) {
                 identityIndex.put(SCHEMA, i);
+            }
+
+            if (DATABASE.equalsIgnoreCase(headers[i])) {
+                identityIndex.put(DATABASE, i);
             }
         }
         return identityIndex;

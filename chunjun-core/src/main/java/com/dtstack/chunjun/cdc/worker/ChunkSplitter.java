@@ -20,6 +20,8 @@
 
 package com.dtstack.chunjun.cdc.worker;
 
+import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
+
 import com.google.common.collect.Iterables;
 
 import java.util.ArrayList;
@@ -41,16 +43,16 @@ public class ChunkSplitter {
      * @param chunkNum how many chunks want.
      * @return Chunk[]
      */
-    public static Chunk[] createChunk(Set<String> tableIdentities, int chunkNum) {
+    public static Chunk[] createChunk(Set<TableIdentifier> tableIdentities, int chunkNum) {
         final int size =
                 tableIdentities.size() % chunkNum == 0
                         ? tableIdentities.size() / chunkNum
                         : tableIdentities.size() / chunkNum + 1;
-        Iterable<List<String>> partition = Iterables.partition(tableIdentities, size);
+        Iterable<List<TableIdentifier>> partition = Iterables.partition(tableIdentities, size);
         List<Chunk> chunkList = new ArrayList<>();
         int id = 0;
-        for (List<String> list : partition) {
-            String[] identities = list.toArray(new String[0]);
+        for (List<TableIdentifier> list : partition) {
+            TableIdentifier[] identities = list.toArray(new TableIdentifier[0]);
             Chunk chunk = new Chunk(id++, identities);
             chunkList.add(chunk);
         }

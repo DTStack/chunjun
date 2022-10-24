@@ -51,6 +51,11 @@ public class SqlArrayColumn extends AbstractBaseColumn {
     }
 
     @Override
+    public String type() {
+        return "BIGDECIMAL";
+    }
+
+    @Override
     public byte[] asBytes() {
         return new byte[0];
     }

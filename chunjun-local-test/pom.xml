@@ -365,5 +365,12 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<version>8.0.30</version>
 		</dependency>
+
+
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-ddl-oracle</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 </project>

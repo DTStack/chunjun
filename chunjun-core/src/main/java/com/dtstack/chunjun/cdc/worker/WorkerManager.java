@@ -22,11 +22,11 @@ package com.dtstack.chunjun.cdc.worker;
 
 import com.dtstack.chunjun.cdc.CdcConf;
 import com.dtstack.chunjun.cdc.QueuesChamberlain;
-import com.dtstack.chunjun.cdc.WrapCollector;
 import com.dtstack.chunjun.cdc.exception.LogExceptionHandler;
 import com.dtstack.chunjun.cdc.utils.ExecutorUtils;
 
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.Collector;
 
 import java.io.Serializable;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -51,7 +51,7 @@ public class WorkerManager implements Serializable {
 
     private WorkerOverseer overseer;
 
-    private WrapCollector<RowData> collector;
+    private Collector<RowData> collector;
 
     /** worker的核心线程数 */
     private final int workerNum;
@@ -78,12 +78,12 @@ public class WorkerManager implements Serializable {
                         0,
                         workerSize,
                         "worker-pool-%d",
-                        false,
+                        true,
                         new LogExceptionHandler());
 
         overseerExecutor =
                 ExecutorUtils.singleThreadExecutor(
-                        "overseer-pool-%d", false, new LogExceptionHandler());
+                        "overseer-pool-%d", true, new LogExceptionHandler());
     }
 
     /** 资源关闭 */
@@ -100,11 +100,11 @@ public class WorkerManager implements Serializable {
         }
     }
 
-    public WrapCollector<RowData> getCollector() {
+    public Collector<RowData> getCollector() {
         return collector;
     }
 
-    public void setCollector(WrapCollector<RowData> collector) {
+    public void setCollector(Collector<RowData> collector) {
         this.collector = collector;
         // collector赋值后才能通知Overseer启动worker线程
         openOverseer();
@@ -114,5 +114,13 @@ public class WorkerManager implements Serializable {
     private void openOverseer() {
         overseer = new WorkerOverseer(workerExecutor, chamberlain, collector, workerSize);
         overseerExecutor.execute(overseer);
+    }
+
+    public boolean isAlive() {
+        return overseer.isAlive();
+    }
+
+    public Exception getException() {
+        return overseer.getException();
     }
 }

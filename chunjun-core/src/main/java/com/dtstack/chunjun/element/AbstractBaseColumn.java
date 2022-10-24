@@ -32,11 +32,20 @@ public abstract class AbstractBaseColumn implements Serializable {
     private static final long serialVersionUID = 1L;
     protected Object data;
     protected int byteSize;
+    protected String type;
 
     public AbstractBaseColumn(final Object data, int byteSize) {
         this.data = data;
         this.byteSize = byteSize;
+        this.type = type();
     }
+
+    /**
+     * Type of column now.
+     *
+     * @return
+     */
+    public abstract String type();
 
     /**
      * Convert data to Boolean type

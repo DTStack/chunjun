@@ -17,11 +17,16 @@
  */
 package com.dtstack.chunjun.connector.binlog.listener;
 
+import com.dtstack.chunjun.cdc.DdlRowData;
+import com.dtstack.chunjun.cdc.DdlRowDataBuilder;
+import com.dtstack.chunjun.cdc.EventType;
 import com.dtstack.chunjun.connector.binlog.inputformat.BinlogInputFormat;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
 import com.dtstack.chunjun.element.ErrorMsgRowData;
 import com.dtstack.chunjun.throwable.WriteRecordException;
+import com.dtstack.chunjun.util.ClassUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
+import com.dtstack.chunjun.util.RetryUtil;
 
 import org.apache.flink.table.data.RowData;
 
@@ -30,14 +35,26 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /** @author toutian */
 public class BinlogEventSink extends AbstractCanalLifeCycle
@@ -49,10 +66,93 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
     private final LinkedBlockingDeque<RowData> queue;
     private final AbstractCDCRowConverter rowConverter;
 
+    private final String OFFSET_LENGTH;
+
     public BinlogEventSink(BinlogInputFormat format) {
         this.format = format;
         this.queue = new LinkedBlockingDeque<>();
         this.rowConverter = format.getRowConverter();
+        this.OFFSET_LENGTH = "%0" + this.format.getBinlogConf().getOffsetLength() + "d";
+    }
+
+    public void initialTableStructData(List<String> pattern) {
+
+        if (CollectionUtils.isNotEmpty(pattern)) {
+
+            Set<String> schemas = new HashSet<>();
+
+            pattern.forEach(
+                    i -> {
+                        String[] split = i.split("\\.");
+                        if (split.length == 2) {
+                            schemas.add(split[0]);
+                        }
+                    });
+
+            List<Pattern> patterns =
+                    pattern.stream().map(Pattern::compile).collect(Collectors.toList());
+
+            Connection connection = getConnection();
+
+            ArrayList<Pair<String, String>> tables = new ArrayList<>();
+            schemas.forEach(
+                    i -> {
+                        try (final ResultSet rs =
+                                connection
+                                        .getMetaData()
+                                        .getTables(i, null, null, new String[] {"TABLE"})) {
+                            while (rs.next()) {
+                                final String catalogName = rs.getString(1);
+                                final String tableName = rs.getString(3);
+                                if (patterns.stream()
+                                        .anyMatch(
+                                                f ->
+                                                        f.matcher(catalogName + "." + tableName)
+                                                                .matches())) {
+                                    tables.add(Pair.of(catalogName, tableName));
+                                }
+                            }
+                        } catch (SQLException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+
+            tables.forEach(
+                    i -> {
+                        try {
+                            PreparedStatement preparedStatement =
+                                    connection.prepareStatement(
+                                            String.format(
+                                                    "show create table %s.%s",
+                                                    i.getLeft(), i.getRight()));
+                            ResultSet resultSet = preparedStatement.executeQuery();
+                            resultSet.next();
+                            String ddl = resultSet.getString(2);
+                            DdlRowData ddlData =
+                                    DdlRowDataBuilder.builder()
+                                            .setDatabaseName(null)
+                                            .setSchemaName(i.getLeft())
+                                            .setTableName(i.getRight())
+                                            .setContent(ddl)
+                                            .setType(EventType.CREATE_TABLE.name())
+                                            .setLsn("")
+                                            .setLsnSequence("0")
+                                            .setSnapShot(true)
+                                            .build();
+                            queue.put(ddlData);
+
+                        } catch (SQLException | InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+            if (CollectionUtils.isNotEmpty(tables)) {
+                LOG.info(
+                        "snapshot table struct {}",
+                        tables.stream()
+                                .map(i -> "[" + i.getLeft() + "." + i.getRight() + "]")
+                                .collect(Collectors.joining(",")));
+            }
+        }
     }
 
     @Override
@@ -79,8 +179,9 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
             String schema = header.getSchemaName();
             String table = header.getTableName();
             long executeTime = header.getExecuteTime();
+            String lsn = buildLastPosition(entry);
             try {
-                processRowChange(rowChange, schema, table, executeTime);
+                processRowChange(rowChange, schema, table, executeTime, lsn);
             } catch (WriteRecordException e) {
                 // todo 脏数据记录
                 if (LOG.isDebugEnabled()) {
@@ -104,14 +205,19 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
      */
     @SuppressWarnings("unchecked")
     private void processRowChange(
-            CanalEntry.RowChange rowChange, String schema, String table, long executeTime)
+            CanalEntry.RowChange rowChange,
+            String schema,
+            String table,
+            long executeTime,
+            String lsn)
             throws WriteRecordException {
         String eventType = rowChange.getEventType().toString();
         List<String> categories = format.getCategories();
         if (CollectionUtils.isNotEmpty(categories) && !categories.contains(eventType)) {
             return;
         }
-        BinlogEventRow binlogEventRow = new BinlogEventRow(rowChange, schema, table, executeTime);
+        BinlogEventRow binlogEventRow =
+                new BinlogEventRow(rowChange, schema, table, executeTime, lsn);
         LinkedList<RowData> rowDatalist = null;
         try {
             rowDatalist = rowConverter.toInternal(binlogEventRow);
@@ -167,8 +273,34 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
         }
     }
 
+    protected String buildLastPosition(CanalEntry.Entry entry) {
+        String pos = String.format(OFFSET_LENGTH, entry.getHeader().getLogfileOffset());
+        return entry.getHeader().getLogfileName() + "/" + pos;
+    }
+
     @Override
     public void interrupt() {
         LOG.warn("BinlogEventSink is interrupted");
+    }
+
+    private Connection getConnection() {
+        String jdbcUrl = format.getBinlogConf().getJdbcUrl();
+        String username = format.getBinlogConf().getUsername();
+        String password = format.getBinlogConf().getPassword();
+        Properties prop = new Properties();
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(username)) {
+            prop.put("user", username);
+        }
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(password)) {
+            prop.put("password", password);
+        }
+
+        Connection connection;
+        synchronized (ClassUtil.LOCK_STR) {
+            connection =
+                    RetryUtil.executeWithRetry(
+                            () -> DriverManager.getConnection(jdbcUrl, prop), 3, 2000, false);
+        }
+        return connection;
     }
 }

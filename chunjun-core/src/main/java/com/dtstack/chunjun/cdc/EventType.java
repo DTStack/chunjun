@@ -5,166 +5,145 @@ package com.dtstack.chunjun.cdc;
  * @since 19/11/2021 Friday
  */
 public enum EventType {
-    UNKNOWN("UNKNOWN", -1),
+    UNKNOWN,
 
-    CREATE_SCHEMA("CREATE_SCHEMA", 1),
+    CREATE_DATABASE,
+    DROP_DATABASE,
 
-    DROP_SCHEMA("DROP_SCHEMA", 2),
+    CREATE_SCHEMA,
 
-    CREATE_TABLE("CREATE_TABLE", 3),
+    DROP_SCHEMA,
 
-    DROP_TABLE("DROP_TABLE", 4),
+    CREATE_TABLE,
 
-    ADD_COLUMN("ADD_COLUMN", 5),
+    DROP_TABLE,
 
-    DROP_COLUMN("DROP_COLUMN", 6),
+    ADD_COLUMN,
 
-    ADD_INDEX("ADD_INDEX", 7),
+    DROP_COLUMN,
 
-    DROP_INDEX("DROP_INDEX", 8),
+    RENAME_COLUMN,
 
-    ADD_FOREIGN_KEY("ADD_FOREIGN_KEY", 9),
+    ADD_INDEX,
 
-    DROP_FOREIGN_KEY("DROP_FOREIGN_KEY", 10),
+    DROP_INDEX,
 
-    TRUNCATE_TABLE("TRUNCATE_TABLE", 11),
+    ADD_FOREIGN_KEY,
 
-    MODIFY_COLUMN("MODIFY_COLUMN", 12),
+    DROP_FOREIGN_KEY,
 
-    REBASE_AUTO_ID("REBASE_AUTO_ID", 13),
+    TRUNCATE_TABLE,
 
-    RENAME_TABLE("RENAME_TABLE", 14),
+    MODIFY_COLUMN,
 
-    SET_DEFAULT_VALUE("SET_DEFAULT_VALUE", 15),
+    REBASE_AUTO_ID,
 
-    SHARD_ROW_ID("SHARD_ROW_ID", 16),
+    RENAME_TABLE,
 
-    MODIFY_TABLE_COMMENT("MODIFY_TABLE_COMMENT", 17),
+    SET_DEFAULT_VALUE,
 
-    RENAME_INDEX("RENAME_INDEX", 18),
+    SHARD_ROW_ID,
 
-    ADD_TABLE_PARTITION("ADD_TABLE_PARTITION", 19),
+    ALTER_TABLE_COMMENT,
 
-    DROP_TABLE_PARTITION("DROP_TABLE_PARTITION", 20),
+    RENAME_INDEX,
 
-    CREATE_VIEW("CREATE_VIEW", 21),
+    RENAME_CONSTRAINT,
 
-    MODIFY_TABLE_CHARSET_AND_COLLATE("MODIFY_TABLE_CHARSET_AND_COLLATE", 22),
+    ADD_TABLE_PARTITION,
 
-    TRUNCATE_TABLE_PARTITION("TRUNCATE_TABLE_PARTITION", 23),
+    DROP_TABLE_PARTITION,
 
-    DROP_VIEW("DROP_VIEW", 24),
+    CREATE_VIEW,
 
-    RECOVER_TABLE("RECOVER_TABLE", 25),
+    MODIFY_TABLE_CHARSET_AND_COLLATE,
 
-    MODIFY_SCHEMA_CHARSET_AND_COLLATE("MODIFY_SCHEMA_CHARSET_AND_COLLATE", 26),
+    TRUNCATE_TABLE_PARTITION,
 
-    LOCK_TABLE("LOCK_TABLE", 27),
+    DROP_VIEW,
 
-    UNLOCK_TABLE("UNLOCK_TABLE", 28),
+    RECOVER_TABLE,
 
-    REPAIR_TABLE("REPAIR_TABLE", 29),
+    MODIFY_SCHEMA_CHARSET_AND_COLLATE,
 
-    SET_TIFLASH_REPLICA("SET_TIFLASH_REPLICA", 30),
+    LOCK_TABLE,
 
-    UPDATE_TIFLASH_REPLICA_STATUS("UPDATE_TIFLASH_REPLICA_STATUS", 31),
+    UNLOCK_TABLE,
 
-    ADD_PRIMARY_KEY("ADD_PRIMARY_KEY", 32),
+    REPAIR_TABLE,
 
-    DROP_PRIMARY_KEY("DROP_PRIMARY_KEY", 33),
+    SET_TIFLASH_REPLICA,
 
-    CREATE_SEQUENCE("CREATE_SEQUENCE", 34),
+    UPDATE_TIFLASH_REPLICA_STATUS,
 
-    ALTER_SEQUENCE("ALTER_SEQUENCE", 35),
+    ADD_PRIMARY_KEY,
 
-    DROP_SEQUENCE("DROP_SEQUENCE", 36),
+    DROP_PRIMARY_KEY,
 
-    ALTER_TABLE("ALTER_TABLE", 37),
+    CREATE_SEQUENCE,
 
-    CREATE_INDEX("CREATE_INDEX", 38),
+    ALTER_SEQUENCE,
 
-    CREATE_USER("CREATE_USER", 39),
+    DROP_SEQUENCE,
 
-    DROP_USER("DROP_USER", 40),
+    ALTER_TABLE,
+
+    ALTER_COLUMN,
+
+    CREATE_INDEX,
+
+    CREATE_USER,
+
+    DROP_USER,
+
+    DROP_CONSTRAINT,
+
+    ADD_CONSTRAINT,
+
+    ALTER_CONSTRAINT_ENFORCED,
 
     // DML
-    INSERT("INSERT", 101),
+    INSERT,
 
-    DELETE("DELETE", 102),
+    DELETE,
 
-    UPDATE("UPDATE", 103),
+    UPDATE,
 
-    QUERY("QUERY", 104),
+    ALTER,
 
-    ALTER("ALTER", 105),
+    RENAME,
 
-    TRUNCATE("TRUNCATE", 106),
+    QUERY,
 
-    DROP("DROP", 107),
+    TRUNCATE,
 
-    RENAME("RENAME", 108),
+    DROP,
 
-    CREATE("CREATE", 109),
+    CREATE,
 
-    ERASE("ERASE", 110),
+    ERASE,
 
-    CINDEX("CINDEX", 111),
+    CINDEX,
 
-    DINDEX("DINDEX", 112),
+    DINDEX,
 
-    GTID("GTID", 113),
+    GTID,
 
-    XACOMMIT("XACOMMIT", 114),
+    XACOMMIT,
 
-    XAROLLBACK("XAROLLBACK", 115),
+    XAROLLBACK,
 
-    MHEARTBEAT("MHEARTBEAT", 116),
+    MHEARTBEAT,
     ;
-
-    private final String value;
-    private final int index;
-
-    EventType(String type, int index) {
-        this.value = type;
-        this.index = index;
-    }
-
-    public static EventType valueOf(int type) {
-        EventType[] eventTypes = values();
-        for (EventType eventType : eventTypes) {
-            if (eventType.getIndex() == type) {
-                return eventType;
-            }
-        }
-        return UNKNOWN;
-    }
-
-    public static EventType valuesOf(String value) {
-        EventType[] eventTypes = values();
-        for (EventType eventType : eventTypes) {
-            if (eventType.value.equalsIgnoreCase(value)) {
-                return eventType;
-            }
-        }
-        return UNKNOWN;
-    }
 
     public static boolean contains(String type) {
         EventType[] eventTypes = values();
         for (EventType eventType : eventTypes) {
-            if (eventType.value.equalsIgnoreCase(type)) {
+            if (eventType.name().equalsIgnoreCase(type)) {
                 return true;
             }
         }
         return false;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public int getIndex() {
-        return index;
     }
 
     public boolean isDelete() {

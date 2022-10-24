@@ -19,15 +19,20 @@
 package com.dtstack.chunjun.cdc.ddl;
 
 import com.dtstack.chunjun.cdc.DdlRowData;
-import com.dtstack.chunjun.cdc.ddl.entity.DdlData;
+import com.dtstack.chunjun.cdc.ddl.definition.DdlOperator;
+import com.dtstack.chunjun.mapping.Mapping;
+import com.dtstack.chunjun.throwable.ConventException;
 
 import java.io.Serializable;
+import java.util.List;
 
-public interface DdlConvent extends Serializable {
+public interface DdlConvent extends Mapping<DdlRowData, String>, Serializable {
+    public static final long serialVersionUID = 1L;
+    /** ddlRowData convent to DdlOperator* */
+    List<DdlOperator> rowConventToDdlData(DdlRowData row) throws ConventException;
 
-    DdlData rowConventToDdlData(DdlRowData row) throws ConventException;
-
-    String ddlDataConventToSql(DdlData ddldata) throws ConventException;
+    /** ddlOperator convent to string* */
+    List<String> ddlDataConventToSql(DdlOperator ddlOperator) throws ConventException;
 
     String getDataSourceType();
 }

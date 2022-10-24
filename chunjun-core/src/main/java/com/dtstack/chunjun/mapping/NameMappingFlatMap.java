@@ -20,89 +20,32 @@
 
 package com.dtstack.chunjun.mapping;
 
-import com.dtstack.chunjun.cdc.DdlRowData;
-import com.dtstack.chunjun.cdc.DdlRowDataConvented;
-import com.dtstack.chunjun.cdc.ddl.ConventException;
-import com.dtstack.chunjun.cdc.ddl.ConventExceptionProcessHandler;
 import com.dtstack.chunjun.cdc.ddl.DdlConvent;
-import com.dtstack.chunjun.cdc.ddl.entity.DdlData;
-import com.dtstack.chunjun.element.ColumnRowData;
 
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
-/**
- * 根据配置中的映射关系将RowData中的表名等信息映射到sink端
- *
- * @author shitou
- * @date 2021/12/14
- */
-public class NameMappingFlatMap extends RichFlatMapFunction<RowData, RowData> {
+import java.io.Serializable;
+import java.util.List;
 
-    private final MappingClient client;
-    private final DdlConvent source;
-    private final DdlConvent sink;
-    private final boolean turnOff;
-    private final ConventExceptionProcessHandler conventExceptionProcessHandler;
+public class NameMappingFlatMap extends RichFlatMapFunction<RowData, RowData>
+        implements Serializable {
+    public static final long serialVersionUID = 1L;
+
+    private final NameMapping client;
 
     public NameMappingFlatMap(
-            NameMappingConf conf,
-            DdlConvent source,
-            DdlConvent sink,
-            ConventExceptionProcessHandler conventExceptionProcessHandler) {
-        this.turnOff = conf == null || conf.isEmpty();
-        this.client = new MappingClient(conf);
-        this.source = source;
-        this.sink = sink;
-        this.conventExceptionProcessHandler = conventExceptionProcessHandler;
-        check(source, sink, conventExceptionProcessHandler);
+            MappingConf conf,
+            Boolean useDdlConvent,
+            DdlConvent sourceDdlConvent,
+            DdlConvent sinkDdlConvent) {
+        this.client = new NameMapping(conf, useDdlConvent, sourceDdlConvent, sinkDdlConvent);
     }
 
     @Override
     public void flatMap(RowData value, Collector<RowData> collector) {
-        if (turnOff) {
-            collector.collect(value);
-            return;
-        }
-        RowData rowData = client.map(value);
-        if (rowData instanceof ColumnRowData) {
-            collector.collect(rowData);
-        } else if (rowData instanceof DdlRowData) {
-            if (source != null) {
-                try {
-                    DdlData data = source.rowConventToDdlData((DdlRowData) rowData);
-                    data = client.map(data);
-                    String s = sink.ddlDataConventToSql(data);
-                    ((DdlRowData) rowData).replaceData("content", s);
-                    collector.collect(new DdlRowDataConvented((DdlRowData) rowData, null));
-                } catch (ConventException e) {
-                    conventExceptionProcessHandler.process((DdlRowData) rowData, e, collector);
-                }
-            } else {
-                // 没有转换 就直接传递下游
-                collector.collect(value);
-            }
-        }
-    }
-
-    private void check(DdlConvent source, DdlConvent sink, ConventExceptionProcessHandler handler) {
-        if (source != null || sink != null || handler != null) {
-            if (source != null && sink != null && handler != null) {
-                return;
-            }
-            StringBuilder s = new StringBuilder();
-            if (source == null) {
-                s.append("source convent not allow null");
-            }
-            if (sink == null) {
-                s.append("sink convent not allow null");
-            }
-
-            if (handler == null) {
-                s.append("handler not allow null");
-            }
-            throw new IllegalArgumentException(s.toString());
-        }
+        List<RowData> rowData = client.map(value);
+        rowData.forEach(collector::collect);
     }
 }
