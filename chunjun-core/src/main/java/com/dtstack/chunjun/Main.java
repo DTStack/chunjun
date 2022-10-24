@@ -187,7 +187,9 @@ public class Main {
 
         dataStreamSource = addMappingOperator(config, dataStreamSource);
 
-        if (null != config.getCdcConf()) {
+        if (null != config.getCdcConf()
+                && (null != config.getCdcConf().getDdl()
+                        && null != config.getCdcConf().getCache())) {
             CdcConf cdcConf = config.getCdcConf();
             DDLHandler ddlHandler = DataSyncFactoryUtil.discoverDdlHandler(cdcConf, config);
 
