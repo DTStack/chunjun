@@ -23,6 +23,7 @@ import com.dtstack.chunjun.util.RetryUtil;
 import com.dtstack.chunjun.util.TelnetUtil;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
