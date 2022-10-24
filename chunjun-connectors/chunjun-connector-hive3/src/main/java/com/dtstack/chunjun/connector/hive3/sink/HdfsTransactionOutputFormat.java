@@ -116,8 +116,7 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
         openKerberos = Hive3Util.isOpenKerberos(hdfsConf.getHadoopConfig());
         String currentUser = UserGroupInformation.getCurrentUser().getUserName();
         Object hadoopUser = hdfsConf.getHadoopConfig().get(HADOOP_USER_NAME);
-        if (hadoopUser != null
-                && org.apache.commons.lang3.StringUtils.isNotEmpty(hadoopUser.toString())) {
+        if (hadoopUser != null && StringUtils.isNotEmpty(hadoopUser.toString())) {
             currentUser = hadoopUser.toString();
         }
         if (openKerberos) {
