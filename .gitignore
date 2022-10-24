@@ -50,3 +50,4 @@ chunjun-dist/
 /website/public/page-data/
 
 chunjun-dev/data/**
+output/*

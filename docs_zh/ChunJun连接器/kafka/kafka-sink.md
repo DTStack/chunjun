@@ -25,14 +25,14 @@ kafka主流版本
     - 字段类型：String
     - 默认值：无
 -  **consumerSettings**
-    - 描述：kafka连接配置，支持所有`kafka.consumer.ConsumerConfig.ConsumerConfig`中定义的配置
+    - 描述：kafka连接配置，支持所有`kafka.producer.ProducerConfig.ProducerConfig`中定义的配置
     - 必选：是
     - 字段类型：Map
     - 默认值：无
     - 如：
 ```json
 {
-    "consumerSettings":{
+    "producerSettings":{
         "bootstrap.servers":"host1:9092,host2:9092,host3:9092"
     }
 }

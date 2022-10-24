@@ -25,7 +25,7 @@ import com.dtstack.chunjun.options.Options;
 
 import org.apache.flink.configuration.Configuration;
 
-import com.sun.tools.javac.util.Assert;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -92,11 +92,11 @@ public class KafkaSourceFactoryTest {
                 Main.parseConf(
                         String.format(job, "  \"mode\": \"earliest-offset\""), new Options());
         factory = new KafkaSourceFactory(config, env);
-        Assert.checkNonNull(factory.createSource());
+        Assert.assertNotNull(factory.createSource());
 
         config = Main.parseConf(String.format(job, "  \"mode\": \"latest-offset\""), new Options());
         factory = new KafkaSourceFactory(config, env);
-        Assert.checkNonNull(factory.createSource());
+        Assert.assertNotNull(factory.createSource());
 
         config =
                 Main.parseConf(
@@ -106,7 +106,7 @@ public class KafkaSourceFactoryTest {
                                         + System.currentTimeMillis()),
                         new Options());
         factory = new KafkaSourceFactory(config, env);
-        Assert.checkNonNull(factory.createSource());
+        Assert.assertNotNull(factory.createSource());
 
         config =
                 Main.parseConf(
@@ -115,6 +115,6 @@ public class KafkaSourceFactoryTest {
                                 " \"mode\": \"specific-offsets\",\"offset\":\"partition:0,offset:42;partition:1,offset:300\""),
                         new Options());
         factory = new KafkaSourceFactory(config, env);
-        Assert.checkNonNull(factory.createSource());
+        Assert.assertNotNull(factory.createSource());
     }
 }

@@ -21,6 +21,7 @@ import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.jdbc.JdbcDialectWrapper;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -619,5 +620,24 @@ public class JdbcUtil {
             }
         }
         return Pair.of(columnNameList, columnTypeList);
+    }
+
+    public static void setStarLocationForSplits(JdbcInputSplit[] splits, String startLocation) {
+        if (StringUtils.isNotBlank(startLocation)) {
+            String[] locations = startLocation.split(ConstantValue.COMMA_SYMBOL);
+            if (locations.length != 1 && splits.length != locations.length) {
+                throw new IllegalArgumentException(
+                        "The number of startLocations is not equal to the number of channels");
+            }
+            if (locations.length == 1) {
+                for (JdbcInputSplit split : splits) {
+                    split.setStartLocation(locations[0]);
+                }
+            } else {
+                for (int i = 0; i < splits.length; i++) {
+                    splits[i].setStartLocation(locations[i]);
+                }
+            }
+        }
     }
 }
