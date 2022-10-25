@@ -112,8 +112,19 @@ After execute, you can perform a task locally.
 Standalone mode depend on the Flink Standalone environment and does not depend on the Hadoop environment.
 
 #### Steps
+##### 1. add jars of chunjun 
+1) Find directory of jars:
+   if you build this project using maven, the directory name is 'chunjun-dist' ;
+   if you download tar.gz file from release page, after decompression, the directory name would be like 'chunjun-assembly-1.12-SNAPSHOT-chunjun-dist'.
 
-##### 1. Start Flink Standalone Cluster
+2) Copy jars to directory of Flink lib, command example:
+```shell
+cp -r chunjun-dist $FLINK_HOME/lib
+```
+Notice: this operation should be executed in all machines of Flink cluster, otherwise some jobs will fail because of ClassNotFoundException.
+
+
+##### 2. Start Flink Standalone Cluster
 
 ```shell
 sh $FLINK_HOME/bin/start-cluster.sh
@@ -121,7 +132,7 @@ sh $FLINK_HOME/bin/start-cluster.sh
 
 After the startup is successful, the default port of Flink Web is 8081, which you can configure in the file of 'flink-conf.yaml'. We can access the 8081 port of the current machine to enter the flink web of standalone cluster.
 
-##### 2. Submit task
+##### 3. Submit task
 
 Go to the directory of 'chunjun-dist' and execute the command below:
 
