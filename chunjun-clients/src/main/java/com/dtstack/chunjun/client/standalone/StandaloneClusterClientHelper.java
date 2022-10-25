@@ -21,6 +21,7 @@ import com.dtstack.chunjun.client.ClusterClientHelper;
 import com.dtstack.chunjun.client.JobDeployer;
 import com.dtstack.chunjun.client.util.JobGraphUtil;
 import com.dtstack.chunjun.client.yarn.YarnSessionClusterClientHelper;
+import com.dtstack.chunjun.enums.ClusterMode;
 import com.dtstack.chunjun.options.Options;
 
 import org.apache.flink.api.common.JobID;
@@ -60,6 +61,12 @@ public class StandaloneClusterClientHelper implements ClusterClientHelper {
             JobGraph jobGraph =
                     JobGraphUtil.buildJobGraph(launcherOptions, programArgs.toArray(new String[0]));
             JobID jobID = (JobID) clusterClient.submitJob(jobGraph).get();
+            if (!ClusterMode.standalone.name().equals(jobDeployer.getLauncherOptions().getMode())) {
+                jobGraph.getClasspaths().clear();
+                jobGraph.getUserJars().clear();
+                jobGraph.getUserArtifacts().clear();
+            }
+
             LOG.info("submit job successfully, jobID = {}", jobID);
             return clusterClient;
         }
