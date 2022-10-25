@@ -135,7 +135,18 @@ Standalone模式依赖Flink Standalone环境，不依赖Hadoop环境。
 
 #### 提交步骤
 
-##### 1. 启动Flink Standalone环境
+##### 1. 添加chunjun依赖包
+1) 根据实际情况找到依赖文件:
+   通过maven编译的方式构建项目时，依赖文件目录为'chunjun-dist';
+   通过官网下载压缩包解压使用时，依赖文件目录为解压后的目录，例如'chunjun-assembly-1.12-SNAPSHOT-chunjun-dist'
+
+2) 将依赖文件复制到Flink lib目录下,例如
+```shell
+cp -r chunjun-dist $FLINK_HOME/lib
+```
+注意: 这个复制操作需要在所有Flink cluster机器上执行，否则部分任务会出现类找不到的错误。
+
+##### 2. 启动Flink Standalone环境
 
 ```shell
 sh $FLINK_HOME/bin/start-cluster.sh
@@ -143,7 +154,7 @@ sh $FLINK_HOME/bin/start-cluster.sh
 
 启动成功后默认端口为8081，我们可以访问当前机器的8081端口进入standalone的flink web ui
 
-##### 2. 提交任务
+##### 3. 提交任务
 
 进入到本地chunjun-dist目录，执行命令
 
