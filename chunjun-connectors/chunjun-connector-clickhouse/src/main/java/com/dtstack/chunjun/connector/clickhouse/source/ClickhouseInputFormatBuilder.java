@@ -26,7 +26,7 @@ import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.enums.Semantic;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 

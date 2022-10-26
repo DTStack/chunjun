@@ -28,7 +28,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.ql.io.orc.OrcFile;
 import org.apache.hadoop.hive.ql.io.orc.OrcInputFormat;
@@ -65,7 +65,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
     public HdfsOrcInputSplit[] createHdfsSplit(int minNumSplits) throws IOException {
         super.initHadoopJobConf();
         String path;
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(hdfsConf.getFileName())) {
+        if (StringUtils.isNotBlank(hdfsConf.getFileName())) {
             // 兼容平台逻辑
             path = hdfsConf.getPath() + ConstantValue.SINGLE_SLASH_SYMBOL + hdfsConf.getFileName();
         } else {

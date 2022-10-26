@@ -26,8 +26,8 @@ import com.dtstack.chunjun.security.KerberosConfig;
 import com.dtstack.chunjun.security.KerberosUtil;
 import com.dtstack.chunjun.throwable.NoRestartException;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kudu.ColumnSchema;
 import org.apache.kudu.Type;

@@ -30,7 +30,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.SynchronousQueue;
 
@@ -50,8 +50,7 @@ public class SocketInputFormat extends BaseRichInputFormat {
 
     public void setSocketConfig(SocketConfig socketConfig) {
         String[] hostPort =
-                org.apache.commons.lang.StringUtils.split(
-                        socketConfig.getAddress(), ConstantValue.COLON_SYMBOL);
+                StringUtils.split(socketConfig.getAddress(), ConstantValue.COLON_SYMBOL);
         socketConfig.setHost(hostPort[0]);
         socketConfig.setPort(Integer.parseInt(hostPort[1]));
         this.socketConfig = socketConfig;

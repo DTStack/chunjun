@@ -21,7 +21,7 @@ package com.dtstack.chunjun.util;
 import org.apache.flink.api.common.JobExecutionResult;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

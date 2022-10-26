@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hive3.enums;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Date: 2021/06/09 Company: www.dtstack.com

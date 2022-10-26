@@ -22,7 +22,7 @@ import com.dtstack.chunjun.connector.jdbc.conf.DataSourceConf;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 

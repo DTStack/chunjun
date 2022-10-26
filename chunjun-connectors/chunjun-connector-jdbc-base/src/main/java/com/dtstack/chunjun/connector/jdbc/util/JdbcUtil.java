@@ -155,7 +155,7 @@ public class JdbcUtil {
                 tableRs.close();
 
                 String tableInfo;
-                if (org.apache.commons.lang3.StringUtils.isNotBlank(schema)) {
+                if (StringUtils.isNotBlank(schema)) {
                     tableInfo = String.format("%s.%s", schema, tableName);
                 } else {
                     // schema is null, use default schema to get metadata

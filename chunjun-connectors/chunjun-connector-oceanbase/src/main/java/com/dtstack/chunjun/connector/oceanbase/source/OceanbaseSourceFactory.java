@@ -23,7 +23,7 @@ import com.dtstack.chunjun.connector.oceanbase.dialect.OceanbaseDialect;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class OceanbaseSourceFactory extends JdbcSourceFactory {
     public OceanbaseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {

@@ -29,7 +29,7 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 
 import org.apache.flink.table.data.RowData;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -182,7 +182,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         String currentFilePath = "";
         try {
             for (String filePath : this.preCommitFilePathList) {
-                if (org.apache.commons.lang3.StringUtils.equals(path, outputFilePath)) {
+                if (StringUtils.equals(path, outputFilePath)) {
                     ftpHandler.deleteFile(filePath);
                     LOG.info("delete file:{}", currentFilePath);
                 }

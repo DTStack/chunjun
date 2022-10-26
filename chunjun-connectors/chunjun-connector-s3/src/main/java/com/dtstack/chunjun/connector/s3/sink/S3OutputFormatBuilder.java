@@ -22,7 +22,7 @@ import com.dtstack.chunjun.conf.SpeedConf;
 import com.dtstack.chunjun.connector.s3.conf.S3Conf;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * The builder of FtpOutputFormat
