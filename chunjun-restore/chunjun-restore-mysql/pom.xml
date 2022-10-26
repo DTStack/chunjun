@@ -19,6 +19,7 @@
 		<mysql.version>5.1.46</mysql.version>
 		<sharding.jdbc.version>4.1.1</sharding.jdbc.version>
 		<druid.version>1.2.8</druid.version>
+		<fastjson.version>1.2.83</fastjson.version>
 	</properties>
 
 	<dependencies>
@@ -38,6 +39,12 @@
 			<groupId>com.alibaba</groupId>
 			<artifactId>druid</artifactId>
 			<version>${druid.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>${fastjson.version}</version>
 		</dependency>
 
 	</dependencies>

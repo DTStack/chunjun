@@ -18,7 +18,7 @@
 package com.dtstack.chunjun.conf;
 
 import com.dtstack.chunjun.cdc.CdcConf;
-import com.dtstack.chunjun.mapping.NameMappingConf;
+import com.dtstack.chunjun.mapping.MappingConf;
 import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.util.Preconditions;
@@ -29,11 +29,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Date: 2021/01/18 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class SyncConf implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -227,7 +222,7 @@ public class SyncConf implements Serializable {
         this.syncJarList = syncJarList;
     }
 
-    public NameMappingConf getNameMappingConf() {
+    public MappingConf getNameMappingConf() {
         return job.getNameMapping();
     }
 

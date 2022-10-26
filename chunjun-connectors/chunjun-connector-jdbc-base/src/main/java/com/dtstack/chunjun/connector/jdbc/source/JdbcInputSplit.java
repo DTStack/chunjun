@@ -56,6 +56,18 @@ public class JdbcInputSplit extends GenericInputSplit {
             int partitionNumber,
             int totalNumberOfPartitions,
             int mod,
+            String splitStrategy,
+            boolean isPolling) {
+        super(partitionNumber, totalNumberOfPartitions);
+        this.mod = mod;
+        this.splitStrategy = splitStrategy;
+        this.isPolling = isPolling;
+    }
+
+    public JdbcInputSplit(
+            int partitionNumber,
+            int totalNumberOfPartitions,
+            int mod,
             String startLocation,
             String endLocation,
             String startLocationOfSplit,

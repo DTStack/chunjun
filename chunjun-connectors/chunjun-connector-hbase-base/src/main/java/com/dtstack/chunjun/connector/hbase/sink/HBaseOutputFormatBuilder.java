@@ -22,7 +22,7 @@ import com.dtstack.chunjun.connector.hbase.conf.HBaseConfigConstants;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 

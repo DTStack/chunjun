@@ -21,6 +21,7 @@ package com.dtstack.chunjun.connector.starrocks.connection;
 import com.dtstack.chunjun.util.ClassUtil;
 import com.dtstack.chunjun.util.RetryUtil;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,12 +59,10 @@ public class StarRocksJdbcConnectionProvider
                         Class.forName(jdbcOptions.getDriverName());
                     }
                     Properties prop = new Properties();
-                    if (org.apache.commons.lang3.StringUtils.isNotBlank(
-                            jdbcOptions.getUsername().orElse(null))) {
+                    if (StringUtils.isNotBlank(jdbcOptions.getUsername().orElse(null))) {
                         prop.put("user", jdbcOptions.getUsername().get());
                     }
-                    if (org.apache.commons.lang3.StringUtils.isNotBlank(
-                            jdbcOptions.getPassword().orElse(null))) {
+                    if (StringUtils.isNotBlank(jdbcOptions.getPassword().orElse(null))) {
                         prop.put("password", jdbcOptions.getPassword().get());
                     }
                     synchronized (ClassUtil.LOCK_STR) {

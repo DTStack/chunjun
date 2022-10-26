@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.jdbc.conf;
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
 
 import com.google.gson.annotations.SerializedName;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.List;
@@ -64,6 +64,12 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
     private boolean increment = false;
     /** 是否为增量轮询 */
     private boolean polling = false;
+
+    /**
+     * Whether to take the maximum value of incrementColumn in db as startLocation in polling mode
+     */
+    private boolean pollingFromMax = false;
+
     /** 字段名称 */
     private String increColumn;
     /** Whether an OrderBy sort is required,increment mode need set to true. */
@@ -287,6 +293,10 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
 
     public void setPolling(boolean polling) {
         this.polling = polling;
+    }
+
+    public boolean isPollingFromMax() {
+        return pollingFromMax;
     }
 
     public String getIncreColumn() {

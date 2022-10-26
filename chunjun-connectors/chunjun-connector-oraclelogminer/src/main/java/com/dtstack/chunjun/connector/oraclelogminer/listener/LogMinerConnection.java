@@ -18,6 +18,8 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.listener;
 
+import com.dtstack.chunjun.cdc.DdlRowDataBuilder;
+import com.dtstack.chunjun.cdc.EventType;
 import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.OracleInfo;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.QueueData;
@@ -35,8 +37,8 @@ import com.google.common.collect.Sets;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -712,6 +714,22 @@ public class LogMinerConnection {
                     sqlUndo.append(sqlUndoValue);
                 }
                 isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
+            }
+
+            if (operationCode == 5) {
+                result =
+                        new QueueData(
+                                scn,
+                                DdlRowDataBuilder.builder()
+                                        .setDatabaseName(null)
+                                        .setSchemaName(logMinerData.getString(KEY_SEG_OWNER))
+                                        .setTableName(tableName)
+                                        .setContent(sqlRedo.toString())
+                                        .setType(EventType.UNKNOWN.name())
+                                        .setLsn(String.valueOf(scn))
+                                        .setLsnSequence("0")
+                                        .build());
+                return true;
             }
 
             // delete from "table"."ID" where ROWID = 'AAADcjAAFAAAABoAAC' delete语句需要rowid条件需要替换

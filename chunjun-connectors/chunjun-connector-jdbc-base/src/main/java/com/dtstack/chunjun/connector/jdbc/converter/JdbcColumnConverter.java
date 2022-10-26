@@ -30,6 +30,7 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -77,7 +78,8 @@ public class JdbcColumnConverter
             wrapIntoNullableExternalConverter(
                     ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, statement) -> {
-            if (val == null || val.isNullAt(index)) {
+            if (((ColumnRowData) val).getField(index) == null
+                    || ((ColumnRowData) val).getField(index) instanceof NullColumn) {
                 statement.setObject(index, null);
             } else {
                 serializationConverter.serialize(val, index, statement);

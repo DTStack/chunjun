@@ -27,7 +27,7 @@ import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -102,6 +102,11 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
                         .append("];\n");
             }
         }
+
+        if (conf.isPolling() && conf.isUseMaxFunc()) {
+            sb.append("polling and useMaxFunc can't be true at the same time;\n");
+        }
+
         try {
             Semantic.getByName(conf.getSemantic());
         } catch (Exception e) {

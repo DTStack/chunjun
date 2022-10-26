@@ -53,6 +53,11 @@ public class BooleanColumn extends AbstractBaseColumn {
     }
 
     @Override
+    public String type() {
+        return "BIGDECIMAL";
+    }
+
+    @Override
     public byte[] asBytes() {
         if (null == data) {
             return null;

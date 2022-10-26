@@ -21,6 +21,7 @@ import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.jdbc.JdbcDialectWrapper;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -34,7 +35,7 @@ import com.dtstack.chunjun.util.TelnetUtil;
 import org.apache.flink.table.types.logical.LogicalType;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,10 +102,10 @@ public class JdbcUtil {
         if (prop == null) {
             prop = new Properties();
         }
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(jdbcConf.getUsername())) {
+        if (StringUtils.isNotBlank(jdbcConf.getUsername())) {
             prop.put("user", jdbcConf.getUsername());
         }
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(jdbcConf.getPassword())) {
+        if (StringUtils.isNotBlank(jdbcConf.getPassword())) {
             prop.put("password", jdbcConf.getPassword());
         }
         Properties finalProp = prop;
@@ -154,7 +155,7 @@ public class JdbcUtil {
                 tableRs.close();
 
                 String tableInfo;
-                if (org.apache.commons.lang3.StringUtils.isNotBlank(schema)) {
+                if (StringUtils.isNotBlank(schema)) {
                     tableInfo = String.format("%s.%s", schema, tableName);
                 } else {
                     // schema is null, use default schema to get metadata
@@ -619,5 +620,24 @@ public class JdbcUtil {
             }
         }
         return Pair.of(columnNameList, columnTypeList);
+    }
+
+    public static void setStarLocationForSplits(JdbcInputSplit[] splits, String startLocation) {
+        if (StringUtils.isNotBlank(startLocation)) {
+            String[] locations = startLocation.split(ConstantValue.COMMA_SYMBOL);
+            if (locations.length != 1 && splits.length != locations.length) {
+                throw new IllegalArgumentException(
+                        "The number of startLocations is not equal to the number of channels");
+            }
+            if (locations.length == 1) {
+                for (JdbcInputSplit split : splits) {
+                    split.setStartLocation(locations[0]);
+                }
+            } else {
+                for (int i = 0; i < splits.length; i++) {
+                    splits[i].setStartLocation(locations[i]);
+                }
+            }
+        }
     }
 }

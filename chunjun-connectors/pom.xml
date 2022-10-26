@@ -74,6 +74,7 @@
 		<module>chunjun-connector-oraclelogminer</module>
 		<module>chunjun-connector-sqlservercdc</module>
 		<module>chunjun-connector-pgwal</module>
+		<module>chunjun-connector-mysqlcdc</module>
 
 		<!--Network-->
 		<module>chunjun-connector-http</module>
@@ -104,6 +105,13 @@
 					<artifactId>flink-shaded-guava</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/commons-collections/commons-collections -->
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.2</version>
 		</dependency>
 	</dependencies>
 	<build>

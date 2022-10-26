@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.alibaba.otter.canal.parse.inbound.mysql.ddl;
 
 import com.alibaba.fastsql.sql.SQLUtils;
@@ -34,7 +52,8 @@ import com.alibaba.fastsql.sql.dialect.mysql.ast.statement.MySqlRenameTableState
 import com.alibaba.fastsql.sql.parser.ParserException;
 import com.alibaba.fastsql.util.JdbcConstants;
 import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,6 +86,16 @@ public class DruidDdlParser {
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLAlterTableStatement) {
                 SQLAlterTableStatement alterTable = (SQLAlterTableStatement) statement;
+                if (CollectionUtils.isEmpty(alterTable.getItems())
+                        && CollectionUtils.isNotEmpty(alterTable.getTableOptions())) {
+                    DdlResultExtend ddlResult = new DdlResultExtend();
+                    processName(ddlResult, schmeaName, alterTable.getName(), false);
+                    ddlResult.setType(EventType.QUERY);
+                    ddlResult.setChunjunEventType(
+                            com.dtstack.chunjun.cdc.EventType.ALTER_TABLE_COMMENT);
+                    ddlResults.add(ddlResult);
+                }
+
                 for (SQLAlterTableItem item : alterTable.getItems()) {
                     if (item instanceof SQLAlterTableRename) {
                         DdlResult ddlResult = new DdlResult();
@@ -172,14 +201,16 @@ public class DruidDdlParser {
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLCreateDatabaseStatement) {
                 SQLCreateDatabaseStatement create = (SQLCreateDatabaseStatement) statement;
-                DdlResult ddlResult = new DdlResult();
+                DdlResultExtend ddlResult = new DdlResultExtend();
                 ddlResult.setType(EventType.QUERY);
+                ddlResult.setChunjunEventType(com.dtstack.chunjun.cdc.EventType.CREATE_SCHEMA);
                 processName(ddlResult, create.getDatabaseName(), null, false);
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLDropDatabaseStatement) {
                 SQLDropDatabaseStatement drop = (SQLDropDatabaseStatement) statement;
-                DdlResult ddlResult = new DdlResult();
+                DdlResultExtend ddlResult = new DdlResultExtend();
                 ddlResult.setType(EventType.QUERY);
+                ddlResult.setChunjunEventType(com.dtstack.chunjun.cdc.EventType.DROP_SCHEMA);
                 processName(ddlResult, drop.getDatabaseName(), null, false);
                 ddlResults.add(ddlResult);
             }

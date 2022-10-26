@@ -20,6 +20,8 @@
 
 package com.dtstack.chunjun.cdc.worker;
 
+import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
+
 import java.io.Serializable;
 
 /**
@@ -36,14 +38,14 @@ public class Chunk implements Serializable {
     private final Integer chunkNum;
 
     /** 表标识 */
-    private final String[] tableIdentities;
+    private final TableIdentifier[] tableIdentities;
 
-    public Chunk(Integer chunkNum, String[] tableIdentities) {
+    public Chunk(Integer chunkNum, TableIdentifier[] tableIdentities) {
         this.chunkNum = chunkNum;
         this.tableIdentities = tableIdentities;
     }
 
-    public String[] getTableIdentities() {
+    public TableIdentifier[] getTableIdentities() {
         return tableIdentities;
     }
 

@@ -20,9 +20,8 @@ package com.dtstack.chunjun;
 import com.dtstack.chunjun.cdc.CdcConf;
 import com.dtstack.chunjun.cdc.RestorationFlatMap;
 import com.dtstack.chunjun.cdc.ddl.DdlConvent;
-import com.dtstack.chunjun.cdc.ddl.SendProcessHandler;
-import com.dtstack.chunjun.cdc.monitor.fetch.FetcherBase;
-import com.dtstack.chunjun.cdc.monitor.store.StoreBase;
+import com.dtstack.chunjun.cdc.handler.CacheHandler;
+import com.dtstack.chunjun.cdc.handler.DDLHandler;
 import com.dtstack.chunjun.conf.OperatorConf;
 import com.dtstack.chunjun.conf.SpeedConf;
 import com.dtstack.chunjun.conf.SyncConf;
@@ -32,6 +31,7 @@ import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
 import com.dtstack.chunjun.enums.EJobType;
 import com.dtstack.chunjun.environment.EnvFactory;
 import com.dtstack.chunjun.environment.MyLocalStreamEnvironment;
+import com.dtstack.chunjun.mapping.MappingConf;
 import com.dtstack.chunjun.mapping.NameMappingFlatMap;
 import com.dtstack.chunjun.options.OptionParser;
 import com.dtstack.chunjun.options.Options;
@@ -41,13 +41,13 @@ import com.dtstack.chunjun.sql.parser.SqlParser;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.JobConfigException;
 import com.dtstack.chunjun.util.DataSyncFactoryUtil;
-import com.dtstack.chunjun.util.DdlConventNameConvertUtil;
 import com.dtstack.chunjun.util.ExecuteProcessHelper;
 import com.dtstack.chunjun.util.FactoryHelper;
 import com.dtstack.chunjun.util.JobUtil;
 import com.dtstack.chunjun.util.PluginUtil;
 import com.dtstack.chunjun.util.PrintUtil;
 import com.dtstack.chunjun.util.PropertiesUtil;
+import com.dtstack.chunjun.util.RealTimeDataSourceNameUtil;
 import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.api.common.JobExecutionResult;
@@ -71,7 +71,6 @@ import org.apache.flink.table.types.DataType;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,11 +81,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
-
-import static com.dtstack.chunjun.util.PluginUtil.READER_SUFFIX;
-import static com.dtstack.chunjun.util.PluginUtil.SINK_SUFFIX;
-import static com.dtstack.chunjun.util.PluginUtil.SOURCE_SUFFIX;
-import static com.dtstack.chunjun.util.PluginUtil.WRITER_SUFFIX;
 
 /**
  * The main class entry
@@ -184,23 +178,25 @@ public class Main {
 
         SourceFactory sourceFactory = DataSyncFactoryUtil.discoverSource(config, env);
         DataStream<RowData> dataStreamSource = sourceFactory.createSource();
-
-        dataStreamSource = addNameMapping(config, dataStreamSource);
-        if (!config.getCdcConf().isSkipDDL()) {
-            CdcConf cdcConf = config.getCdcConf();
-            Pair<FetcherBase, StoreBase> monitorPair =
-                    DataSyncFactoryUtil.discoverFetchBase(cdcConf.getMonitor(), config);
-            dataStreamSource =
-                    dataStreamSource.flatMap(
-                            new RestorationFlatMap(
-                                    monitorPair.getLeft(), monitorPair.getRight(), cdcConf));
-        }
-
         SpeedConf speed = config.getSpeed();
-        if (speed.getReaderChannel() > 1) {
+        if (speed.getReaderChannel() > 0) {
             dataStreamSource =
                     ((DataStreamSource<RowData>) dataStreamSource)
                             .setParallelism(speed.getReaderChannel());
+        }
+
+        dataStreamSource = addMappingOperator(config, dataStreamSource);
+
+        if (null != config.getCdcConf()
+                && (null != config.getCdcConf().getDdl()
+                        && null != config.getCdcConf().getCache())) {
+            CdcConf cdcConf = config.getCdcConf();
+            DDLHandler ddlHandler = DataSyncFactoryUtil.discoverDdlHandler(cdcConf, config);
+
+            CacheHandler cacheHandler = DataSyncFactoryUtil.discoverCacheHandler(cdcConf, config);
+            dataStreamSource =
+                    dataStreamSource.flatMap(
+                            new RestorationFlatMap(ddlHandler, cacheHandler, cdcConf));
         }
 
         DataStream<RowData> dataStream;
@@ -211,7 +207,6 @@ public class Main {
         if (transformer) {
             dataStream = syncStreamToTable(tableEnv, config, dataStreamSource);
         } else {
-            env.disableOperatorChaining();
             dataStream = dataStreamSource;
         }
 
@@ -354,54 +349,60 @@ public class Main {
         }
     }
 
-    private static DataStream<RowData> addNameMapping(
+    private static DataStream<RowData> addMappingOperator(
             SyncConf config, DataStream<RowData> dataStreamSource) {
-        boolean executeDdlAble =
-                (boolean) config.getWriter().getParameter().getOrDefault("executeDdlAble", false);
 
-        if (config.getNameMappingConf() != null || executeDdlAble) {
-            boolean needSqlConvent = executeDdlAble;
-
-            // 相同类型数据源且没有映射关系 此时不需要ddl转换
-            if (needSqlConvent
-                    && config.getWriter().getName().equals(config.getReader().getName())
-                    && config.getNameMappingConf() == null) {
-                needSqlConvent = false;
-            }
-
-            if (config.getNameMappingConf() != null
-                    && config.getNameMappingConf().getSqlConevnt() != null) {
-                needSqlConvent = config.getNameMappingConf().getSqlConevnt();
-            }
-
-            if (needSqlConvent) {
-                String readerName = config.getReader().getName();
-                String writerName = config.getWriter().getName();
-
-                readerName =
-                        DdlConventNameConvertUtil.convertPackageName(
-                                readerName.replace(READER_SUFFIX, "").replace(SOURCE_SUFFIX, ""));
-                writerName =
-                        DdlConventNameConvertUtil.convertPackageName(
-                                writerName.replace(WRITER_SUFFIX, "").replace(SINK_SUFFIX, ""));
-
-                DdlConvent sourceConvent = DataSyncFactoryUtil.discoverDdlConvent(readerName);
-                DdlConvent sinkConvent = DataSyncFactoryUtil.discoverDdlConvent(writerName);
-                dataStreamSource =
-                        dataStreamSource.flatMap(
-                                new NameMappingFlatMap(
-                                        config.getNameMappingConf(),
-                                        sourceConvent,
-                                        sinkConvent,
-                                        new SendProcessHandler()));
-            } else {
-                dataStreamSource =
-                        dataStreamSource.flatMap(
-                                new NameMappingFlatMap(
-                                        config.getNameMappingConf(), null, null, null));
-            }
+        String sourceName =
+                RealTimeDataSourceNameUtil.getDataSourceName(
+                        PluginUtil.replaceReaderAndWriterSuffix(config.getReader().getName()));
+        // if source is kafka, need to specify the data source in mappingConf
+        if (config.getNameMappingConf() != null
+                && StringUtils.isNotBlank(config.getNameMappingConf().getSourceName())) {
+            sourceName = config.getNameMappingConf().getSourceName();
         }
+        // 如果是实时任务 则sourceName 会和脚本里的名称不一致 例如 oraclelogminer 会转为oracle，binlogreader转为mysql
+        if (PluginUtil.replaceReaderAndWriterSuffix(config.getReader().getName())
+                .equals(sourceName)) {
+            return dataStreamSource;
+        }
+        String sinkName = PluginUtil.replaceReaderAndWriterSuffix(config.getWriter().getName());
 
+        // 异构数据源 或者 需要进行元数据替换
+        boolean ddlSkip = config.getReader().getBooleanVal("ddlSkip", true);
+        boolean useDdlConvent =
+                !sourceName.equals(sinkName) && !ddlSkip
+                        || (config.getNameMappingConf() != null
+                                && config.getNameMappingConf().needReplaceMetaData());
+
+        if (useDdlConvent) {
+            DdlConvent sourceDdlConvent = null;
+            DdlConvent sinkDdlConvent = null;
+            MappingConf mappingConf = config.getNameMappingConf();
+
+            try {
+                sourceDdlConvent =
+                        DataSyncFactoryUtil.discoverDdlConventHandler(
+                                mappingConf, sourceName, config);
+            } catch (Throwable e) {
+                // ignore
+            }
+
+            if (sourceDdlConvent == null || sourceName.equals(sinkName)) {
+                sinkDdlConvent = sourceDdlConvent;
+            } else {
+                try {
+                    sinkDdlConvent =
+                            DataSyncFactoryUtil.discoverDdlConventHandler(
+                                    mappingConf, sinkName, config);
+                } catch (Throwable e) {
+                    // ignore
+                }
+            }
+
+            return dataStreamSource.flatMap(
+                    new NameMappingFlatMap(
+                            mappingConf, useDdlConvent, sourceDdlConvent, sinkDdlConvent));
+        }
         return dataStreamSource;
     }
 }

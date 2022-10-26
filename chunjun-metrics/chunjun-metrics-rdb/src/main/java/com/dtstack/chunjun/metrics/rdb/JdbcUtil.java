@@ -23,6 +23,7 @@ import com.dtstack.chunjun.util.RetryUtil;
 import com.dtstack.chunjun.util.TelnetUtil;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,10 +62,10 @@ public class JdbcUtil {
                 prop.setProperty(entry.getKey(), entry.getValue());
             }
         }
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(jdbcConf.getUsername())) {
+        if (StringUtils.isNotBlank(jdbcConf.getUsername())) {
             prop.put("user", jdbcConf.getUsername());
         }
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(jdbcConf.getPassword())) {
+        if (StringUtils.isNotBlank(jdbcConf.getPassword())) {
             prop.put("password", jdbcConf.getPassword());
         }
         Properties finalProp = prop;

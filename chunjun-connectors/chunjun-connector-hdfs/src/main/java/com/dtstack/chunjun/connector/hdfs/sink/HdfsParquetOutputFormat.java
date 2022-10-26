@@ -48,7 +48,6 @@ import org.apache.parquet.schema.OriginalType;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Types;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
@@ -95,7 +94,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         }
 
         try {
-            String currentBlockTmpPath = tmpPath + File.separatorChar + currentFileName;
+            String currentBlockTmpPath = tmpPath + getHdfsPathChar() + currentFileName;
             Path writePath = new Path(currentBlockTmpPath);
 
             // Compatible with old code

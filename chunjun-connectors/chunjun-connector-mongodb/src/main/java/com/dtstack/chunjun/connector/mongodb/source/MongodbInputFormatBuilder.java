@@ -24,7 +24,7 @@ import com.dtstack.chunjun.connector.mongodb.datasync.MongodbDataSyncConf;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import com.mongodb.BasicDBObject;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.conversions.Bson;
 
 /**

@@ -114,8 +114,8 @@ public class HBaseFlatRowConverter
             columnNames.add(name);
             String[] cfAndQualifier = name.split(":");
             if (cfAndQualifier.length == 2
-                    && org.apache.commons.lang.StringUtils.isNotBlank(cfAndQualifier[0])
-                    && org.apache.commons.lang.StringUtils.isNotBlank(cfAndQualifier[1])) {
+                    && StringUtils.isNotBlank(cfAndQualifier[0])
+                    && StringUtils.isNotBlank(cfAndQualifier[1])) {
 
                 byte[][] qualifierKeys = new byte[2][];
                 qualifierKeys[0] = Bytes.toBytes(cfAndQualifier[0]);

@@ -50,11 +50,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * Date: 2021/04/13 Company: www.dtstack.com
- *
- * @author tudou
- */
 public abstract class JdbcSinkFactory extends SinkFactory {
 
     protected JdbcConf jdbcConf;
@@ -102,12 +97,12 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         JdbcOutputFormatBuilder builder = getBuilder();
         initColumnInfo();
         builder.setJdbcConf(jdbcConf);
+        builder.setDdlConf(ddlConf);
         builder.setJdbcDialect(jdbcDialect);
-        builder.setMonitorConfig(monitor);
         builder.setColumnNameList(columnNameList);
         builder.setColumnTypeList(columnTypeList);
 
-        AbstractRowConverter rowConverter = null;
+        AbstractRowConverter rowConverter;
         final RowType rowType =
                 TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
         // 同步任务使用transform

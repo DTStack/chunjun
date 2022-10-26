@@ -110,6 +110,11 @@ public class BigDecimalColumn extends AbstractBaseColumn {
     }
 
     @Override
+    public String type() {
+        return "BIGDECIMAL";
+    }
+
+    @Override
     public Boolean asBoolean() {
         if (null == data) {
             return null;

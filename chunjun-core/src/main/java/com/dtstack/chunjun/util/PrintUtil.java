@@ -23,7 +23,7 @@ import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.constants.ConfigConstant;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -20,13 +20,17 @@
 
 package com.dtstack.chunjun.cdc;
 
+import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
+import com.dtstack.chunjun.cdc.handler.CacheHandler;
+import com.dtstack.chunjun.cdc.handler.DDLHandler;
+
 import org.apache.flink.table.data.RowData;
 
+import com.google.common.collect.Sets;
+
 import java.io.Serializable;
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -40,110 +44,120 @@ public class QueuesChamberlain implements Serializable {
 
     private static final long serialVersionUID = 2L;
 
-    private final ConcurrentHashMap<String, Deque<RowData>> blockedQueues;
-
-    private final ConcurrentHashMap<String, Deque<RowData>> unblockQueues;
-
     private final Lock lock = new ReentrantLock();
 
-    public QueuesChamberlain(
-            ConcurrentHashMap<String, Deque<RowData>> blockedQueues,
-            ConcurrentHashMap<String, Deque<RowData>> unblockQueues) {
-        this.blockedQueues = blockedQueues;
-        this.unblockQueues = unblockQueues;
+    private final CacheHandler cacheHandler;
+
+    private final DDLHandler ddlHandler;
+
+    public QueuesChamberlain(DDLHandler ddlHandler, CacheHandler cacheHandler) {
+        this.ddlHandler = ddlHandler;
+        this.cacheHandler = cacheHandler;
+    }
+
+    public void open() throws Exception {
+        ddlHandler.setChamberlain(this);
+
+        ddlHandler.open();
+        cacheHandler.open();
+    }
+
+    public void close() throws Exception {
+        if (null != ddlHandler) {
+            ddlHandler.close();
+        }
+
+        if (null != cacheHandler) {
+            cacheHandler.close();
+        }
+    }
+
+    public void setCollector(WrapCollector<RowData> wrapCollector) {
+        ddlHandler.setCollector(wrapCollector);
     }
 
     /**
-     * 将RowData放入队列中，如果队列中没有对应的数据队列，那么创建一个
+     * 将RowData放入缓存cache中
      *
      * @param data row data.
      * @param tableIdentifier table identifier.
      */
-    public void add(RowData data, String tableIdentifier) {
+    public void add(RowData data, TableIdentifier tableIdentifier) {
         lock.lock();
         try {
-            if (unblockQueues.containsKey(tableIdentifier)) {
-                unblockQueues.get(tableIdentifier).add(data);
-            } else if (blockedQueues.containsKey(tableIdentifier)) {
-                blockedQueues.get(tableIdentifier).add(data);
-            } else {
-                // 说明此时不存在该tableIdentifier的数据队列
-                Deque<RowData> dataDeque = new LinkedList<>();
-                dataDeque.add(data);
-                unblockQueues.put(tableIdentifier, dataDeque);
+            cacheHandler.add(tableIdentifier, data);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void block(List<TableIdentifier> tableIdentifiers) {
+        lock.lock();
+        try {
+            for (TableIdentifier tableIdentifier : tableIdentifiers) {
+                if (cacheHandler.isBlock(tableIdentifier)) {
+                    return;
+                }
+
+                cacheHandler.addNewBlockCache(tableIdentifier);
             }
         } finally {
             lock.unlock();
         }
     }
 
-    public void removeEmptyQueue(String tableIdentifier) {
-        unblockQueues.remove(tableIdentifier);
-    }
-
-    public void block(String tableIdentity, RowData rowData) {
+    public void block(TableIdentifier tableIdentity, RowData rowData) {
         lock.lock();
         try {
-            if (blockedQueues.containsKey(tableIdentity)) {
-                Deque<RowData> rowDataDeque = blockedQueues.get(tableIdentity);
-                rowDataDeque.add(rowData);
-                return;
-            }
-
-            Deque<RowData> dataDeque = new LinkedList<>();
-            dataDeque.add(rowData);
-            blockedQueues.put(tableIdentity, dataDeque);
+            cacheHandler.add(tableIdentity, rowData);
         } finally {
             lock.unlock();
         }
     }
 
-    public void block(String tableIdentity, Deque<RowData> queue) {
-        // 将该队列放到blockQueues
+    public void block(TableIdentifier tableIdentity) {
         lock.lock();
         try {
-            blockedQueues.put(tableIdentity, queue);
-            unblockQueues.remove(tableIdentity);
+            cacheHandler.block(tableIdentity);
         } finally {
             lock.unlock();
         }
     }
 
-    public void unblock(String tableIdentity, Deque<RowData> queue) {
-        // 将该队列放到unblockQueues
+    public void unblock(TableIdentifier tableIdentity) {
+        // 将对应的cache置为unblock状态
         lock.lock();
         try {
-            unblockQueues.put(tableIdentity, queue);
-            blockedQueues.remove(tableIdentity);
+            cacheHandler.unblock(tableIdentity);
         } finally {
             lock.unlock();
         }
     }
 
-    /**
-     * 从unblockQueues中取出表名为tableIdentity的队列
-     *
-     * @param tableIdentity table identifier.
-     */
-    public Deque<RowData> fromUnblock(String tableIdentity) {
-        return unblockQueues.get(tableIdentity);
+    public RowData dataFromCache(TableIdentifier tableIdentifier) {
+        lock.lock();
+        try {
+            return cacheHandler.get(tableIdentifier);
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public Deque<RowData> fromBlock(String tableIdentity) {
-        return blockedQueues.get(tableIdentity);
+    public void remove(TableIdentifier tableIdentifier, RowData data) {
+        cacheHandler.remove(tableIdentifier, data);
     }
 
     /** 从unblockQueues中获取所有key集. */
-    public Set<String> unblockTableIdentities() {
-        return unblockQueues.keySet();
+    public Set<TableIdentifier> unblockTableIdentities() {
+        return Sets.newHashSet(cacheHandler.getUnblockedTableIdentifiers());
     }
 
     /** 从blockedQueues中获取所有key集. */
-    public Set<String> blockTableIdentities() {
-        return blockedQueues.keySet();
+    public Set<TableIdentifier> blockTableIdentities() {
+        return Sets.newHashSet(cacheHandler.getBlockedTableIdentifiers());
     }
 
     public boolean unblockQueuesIsEmpty() {
-        return unblockQueues.isEmpty();
+        return cacheHandler.getUnblockedTableIdentifiers().isEmpty();
     }
 }

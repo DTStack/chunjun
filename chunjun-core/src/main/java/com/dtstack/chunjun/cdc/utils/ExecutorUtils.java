@@ -22,17 +22,16 @@ import com.dtstack.chunjun.cdc.exception.LogExceptionHandler;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/**
- * @author tiezhu@dtstack.com
- * @since 2021/12/8 星期三
- */
 public class ExecutorUtils {
 
-    private static final int DEFAULT_SINGLE = 1;
+    public static final int DEFAULT_SINGLE = 1;
 
     private static final String DEFAULT_NAME_PATTERN = "chunjun-thread-pool-%d";
 
@@ -92,6 +91,10 @@ public class ExecutorUtils {
                 DEFAULT_NAME_PATTERN, DEFAULT_IS_DAEMON, DEFAULT_EXCEPTION_HANDLE);
     }
 
+    public static ThreadPoolExecutor singleThreadExecutor(String namePattern) {
+        return singleThreadExecutor(namePattern, DEFAULT_IS_DAEMON, DEFAULT_EXCEPTION_HANDLE);
+    }
+
     public static ThreadPoolExecutor singleThreadExecutor(
             String namePattern,
             boolean isDaemon,
@@ -118,5 +121,46 @@ public class ExecutorUtils {
 
         throw new UnsupportedOperationException(
                 "Create single-thread-executor failed! Name pattern:" + namePattern);
+    }
+
+    public static ScheduledThreadPoolExecutor scheduleThreadExecutor(
+            int corePoolSize,
+            String namePattern,
+            boolean isDaemon,
+            Thread.UncaughtExceptionHandler exceptionHandler) {
+        BasicThreadFactory threadFactory =
+                new BasicThreadFactory.Builder()
+                        .namingPattern(namePattern)
+                        .uncaughtExceptionHandler(exceptionHandler)
+                        .daemon(isDaemon)
+                        .build();
+        ScheduledThreadPoolExecutor executor =
+                new ScheduledThreadPoolExecutor(corePoolSize, threadFactory);
+
+        if (!executor.isTerminated()) {
+            return executor;
+        }
+
+        throw new UnsupportedOperationException(
+                "Create schedule-thread-executor failed! Name pattern:" + namePattern);
+    }
+
+    public static ScheduledExecutorService scheduleThreadExecutor(
+            int corePoolSize, String namePattern) {
+        BasicThreadFactory threadFactory =
+                new BasicThreadFactory.Builder()
+                        .namingPattern(namePattern)
+                        .uncaughtExceptionHandler(DEFAULT_EXCEPTION_HANDLE)
+                        .daemon(DEFAULT_IS_DAEMON)
+                        .build();
+
+        ScheduledExecutorService scheduledExecutorService =
+                Executors.newScheduledThreadPool(corePoolSize, threadFactory);
+
+        if (!scheduledExecutorService.isTerminated()) {
+            return scheduledExecutorService;
+        }
+
+        throw new UnsupportedOperationException("Create schedule-thread-executor failed!");
     }
 }

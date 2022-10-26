@@ -12,7 +12,7 @@
 
 ## Introduce
 
-ChunJun(formerly known as FlinkX), is a data integration tool based on Flink, which is **stable**, **easy to use**, **efficient**, and **integrated with DataStream/DataSet API**. It can realize data synchronization and calculation between various heterogeneous data sources. ChunJun has been deployed and running stably in thousands of companies so far.
+ChunJun is a distributed integration framework, and currently is based on Apache Flink. It was initially known as FlinkX and renamed ChunJun on February 22, 2022. It can realize data synchronization and calculation between various heterogeneous data sources. ChunJun has been deployed and running stably in thousands of companies so far.
 
 Official website of ChunJun: https://dtstack.github.io/chunjun/
 
@@ -62,7 +62,7 @@ sh build/build.sh
 Error message：
 
 ```java
-[ERROR]Failed to execute goal com.diffplug.spotless:spotless-maven-plugin:2.4.2:check(spotless-check)on project flinkx-core:
+[ERROR]Failed to execute goal com.diffplug.spotless:spotless-maven-plugin:2.4.2:check(spotless-check)on project chunjun-core:
         Execution spotless-check of goal com.diffplug.spotless:spotless-maven-plugin:2.4.2:check failed:Unable to resolve dependencies:
         Failed to collect dependencies at com.google.googlejavaformat:google-java-format:jar:1.7->com.google.errorprone:javac-shaded:jar:9+181-r4173-1:
         Failed to read artifact descriptor for com.google.errorprone:javac-shaded:jar:9+181-r4173-1:Could not transfer artifact
@@ -112,8 +112,19 @@ After execute, you can perform a task locally.
 Standalone mode depend on the Flink Standalone environment and does not depend on the Hadoop environment.
 
 #### Steps
+##### 1. add jars of chunjun 
+1) Find directory of jars:
+   if you build this project using maven, the directory name is 'chunjun-dist' ;
+   if you download tar.gz file from release page, after decompression, the directory name would be like 'chunjun-assembly-1.12-SNAPSHOT-chunjun-dist'.
 
-##### 1. Start Flink Standalone Cluster
+2) Copy jars to directory of Flink lib, command example:
+```shell
+cp -r chunjun-dist $FLINK_HOME/lib
+```
+Notice: this operation should be executed in all machines of Flink cluster, otherwise some jobs will fail because of ClassNotFoundException.
+
+
+##### 2. Start Flink Standalone Cluster
 
 ```shell
 sh $FLINK_HOME/bin/start-cluster.sh
@@ -121,7 +132,7 @@ sh $FLINK_HOME/bin/start-cluster.sh
 
 After the startup is successful, the default port of Flink Web is 8081, which you can configure in the file of 'flink-conf.yaml'. We can access the 8081 port of the current machine to enter the flink web of standalone cluster.
 
-##### 2. Submit task
+##### 3. Submit task
 
 Go to the directory of 'chunjun-dist' and execute the command below:
 
@@ -190,3 +201,8 @@ Thanks to all contributors! We are very happy that you can contribute Chunjun.
 ## License
 
 ChunJun is under the Apache 2.0 license. Please visit [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) for details.
+
+## Contact Us
+
+Join ChunJun Slack.
+https://join.slack.com/t/chunjun/shared_invite/zt-1hzmvh0o3-qZ726NXmhClmLFRMpEDHYw

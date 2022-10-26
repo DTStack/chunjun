@@ -1,24 +1,17 @@
 <assembly>
-    <id>${project.version}</id>
-    <formats>
-        <format>tar.gz</format>
-    </formats>
-    <includeBaseDirectory>false</includeBaseDirectory>
+	<id>${project.version}</id>
+	<formats>
+		<format>tar.gz</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
 
-    <fileSets>
-        <fileSet>
-            <directory>${project.parent.basedir}</directory>
-            <outputDirectory>/</outputDirectory>
-            <includes>
-                <include>README*</include>
-            </includes>
-        </fileSet>
-        <fileSet>
-            <directory>
-                ${project.parent.basedir}/bin
-            </directory>
-            <outputDirectory>bin</outputDirectory>
-        </fileSet>
+	<fileSets>
+		<fileSet>
+			<directory>
+				${project.parent.basedir}/bin
+			</directory>
+			<outputDirectory>bin</outputDirectory>
+		</fileSet>
 		<fileSet>
 			<directory>
 				${project.parent.basedir}/chunjun-dist
@@ -40,15 +33,15 @@
 			</directory>
 			<outputDirectory>lib</outputDirectory>
 		</fileSet>
-    </fileSets>
+	</fileSets>
 
-    <dependencySets>
-        <dependencySet>
-            <outputDirectory>lib</outputDirectory>
-            <useTransitiveDependencies>true</useTransitiveDependencies>
-            <unpack>false</unpack>
-            <scope>runtime</scope>
-            <useProjectArtifact>false</useProjectArtifact>
-        </dependencySet>
-    </dependencySets>
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>lib</outputDirectory>
+			<useTransitiveDependencies>true</useTransitiveDependencies>
+			<unpack>false</unpack>
+			<scope>package</scope>
+			<useProjectArtifact>false</useProjectArtifact>
+		</dependencySet>
+	</dependencySets>
 </assembly>
