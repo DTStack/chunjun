@@ -47,13 +47,7 @@ import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,6 +59,7 @@ import java.util.regex.Pattern;
 public class HiveUtil {
     public static final String TABLE_COLUMN_KEY = "key";
     public static final String TABLE_COLUMN_TYPE = "type";
+    public static final String TABLE_COLUMN_INDEX = "index";
     public static final String DECIMAL_KEY = "DECIMAL";
     public static final String DECIMAL_FORMAT = "DECIMAL(%s, %s)";
     public static final String DECIMAL_PATTERN_STR = "DECIMAL(\\((\\s*\\d+\\s*),(\\s*\\d+\\s*)\\))";
@@ -287,10 +282,13 @@ public class HiveUtil {
                 tableInfo.setDelimiter(fieldDelimiter);
                 tableInfo.setStore(fileType);
                 tableInfo.setTableName(tableName);
-                for (Map<String, Object> column : tableColumns) {
-                    tableInfo.addColumnAndType(
-                            MapUtils.getString(column, HiveUtil.TABLE_COLUMN_KEY),
-                            convertType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE)));
+                for (int i = 0; i < tableColumns.size(); i++) {
+                    Map<String, Object> column = tableColumns.get(i);
+                    tableInfo.addColumnAndTypeAndIndex(
+                        MapUtils.getString(column, HiveUtil.TABLE_COLUMN_KEY),
+                        convertType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE)),
+                        Optional.ofNullable(MapUtils.getInteger(column, HiveUtil.TABLE_COLUMN_INDEX)).orElse(i)
+                    );
                 }
                 String createTableSql = HiveUtil.getCreateTableHql(tableInfo);
                 tableInfo.setCreateTableSql(createTableSql);

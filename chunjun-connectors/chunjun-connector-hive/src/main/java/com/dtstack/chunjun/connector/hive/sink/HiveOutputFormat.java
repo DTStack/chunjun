@@ -304,10 +304,12 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             copyHiveConf.setFileName(null);
             List<String> columnNameList = tableInfo.getColumnNameList();
             List<String> columnTypeList = tableInfo.getColumnTypeList();
+            //获取indexList
+            List<Integer> columnIndexList = tableInfo.getColumnIndexList();
             List<FieldConf> fieldConfList = new ArrayList<>(columnNameList.size());
             for (int i = 0; i < columnNameList.size(); i++) {
                 FieldConf fieldConf = new FieldConf();
-                fieldConf.setIndex(i);
+                fieldConf.setIndex(columnIndexList.get(i));
                 fieldConf.setName(columnNameList.get(i));
                 fieldConf.setType(columnTypeList.get(i));
                 fieldConfList.add(fieldConf);

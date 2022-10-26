@@ -30,6 +30,7 @@ public class TableInfo implements Serializable {
     private static final long serialVersionUID = 1L;
     private List<String> columnNameList;
     private List<String> columnTypeList;
+    private List<Integer> columnIndexList;
     private String createTableSql;
     private String tableName;
     private String tablePath;
@@ -38,15 +39,30 @@ public class TableInfo implements Serializable {
     private String delimiter;
     private List<String> partitionList;
 
+    public List<Integer> getColumnIndexList() {
+        return columnIndexList;
+    }
+
+    public void setColumnIndexList(List<Integer> columnIndexList) {
+        this.columnIndexList = columnIndexList;
+    }
+
     public TableInfo(int columnSize) {
         columnNameList = new ArrayList<>(columnSize);
         columnTypeList = new ArrayList<>(columnSize);
+        columnIndexList = new ArrayList<>(columnSize);
         partitionList = new ArrayList<>();
     }
 
     public void addColumnAndType(String columnName, String columnType) {
         columnNameList.add(columnName);
         columnTypeList.add(columnType);
+    }
+
+    public void addColumnAndTypeAndIndex(String columnName, String columnType, Integer index) {
+        columnNameList.add(columnName);
+        columnTypeList.add(columnType);
+        columnIndexList.add(index);
     }
 
     public List<String> getColumnNameList() {
@@ -128,30 +144,30 @@ public class TableInfo implements Serializable {
     @Override
     public String toString() {
         return "TableInfo{"
-                + "columnNameList="
-                + columnNameList
-                + ", columnTypeList="
-                + columnTypeList
-                + ", createTableSql='"
-                + createTableSql
-                + '\''
-                + ", tableName='"
-                + tableName
-                + '\''
-                + ", tablePath='"
-                + tablePath
-                + '\''
-                + ", path='"
-                + path
-                + '\''
-                + ", store='"
-                + store
-                + '\''
-                + ", delimiter='"
-                + delimiter
-                + '\''
-                + ", partitionList="
-                + partitionList
-                + '}';
+            + "columnNameList="
+            + columnNameList
+            + ", columnTypeList="
+            + columnTypeList
+            + ", createTableSql='"
+            + createTableSql
+            + '\''
+            + ", tableName='"
+            + tableName
+            + '\''
+            + ", tablePath='"
+            + tablePath
+            + '\''
+            + ", path='"
+            + path
+            + '\''
+            + ", store='"
+            + store
+            + '\''
+            + ", delimiter='"
+            + delimiter
+            + '\''
+            + ", partitionList="
+            + partitionList
+            + '}';
     }
 }
