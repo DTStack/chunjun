@@ -21,10 +21,6 @@ package com.dtstack.chunjun.connector.doris.rest.module;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * @author tiezhu@dtstack.com
- * @since 08/10/2021 Friday
- */
 public class QueryPlan {
     private int status;
     private String opaqued_query_plan;

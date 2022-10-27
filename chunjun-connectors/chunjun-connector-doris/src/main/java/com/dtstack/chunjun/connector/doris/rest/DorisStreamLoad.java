@@ -53,10 +53,6 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * @author tiezhu@dtstack.com
- * @since 08/10/2021 Friday
- */
 public class DorisStreamLoad implements Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(DorisStreamLoad.class);
@@ -64,8 +60,8 @@ public class DorisStreamLoad implements Serializable {
     private static final List<String> DORIS_SUCCESS_STATUS =
             new ArrayList<>(Arrays.asList("Success", "Publish Timeout"));
     private static final String LOAD_URL_PATTERN = "http://%s/api/%s/%s/_stream_load?";
-    private String authEncoding;
-    private Properties streamLoadProp;
+    private final String authEncoding;
+    private final Properties streamLoadProp;
     private String hostPort;
     private DorisConf options;
 

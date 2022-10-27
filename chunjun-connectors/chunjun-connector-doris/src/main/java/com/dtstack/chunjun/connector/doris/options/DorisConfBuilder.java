@@ -22,11 +22,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.StringJoiner;
 
-/**
- * @author tiezhu@dtstack
- * @date 2021/9/17 星期五
- */
 public class DorisConfBuilder {
+
     private final DorisConf dorisConf;
 
     public DorisConfBuilder() {
@@ -55,11 +52,6 @@ public class DorisConfBuilder {
 
     public DorisConfBuilder setPassword(String password) {
         this.dorisConf.setPassword(password);
-        return this;
-    }
-
-    public DorisConfBuilder setWriteMode(String writeMode) {
-        this.dorisConf.setWriteMode(writeMode);
         return this;
     }
 
@@ -100,10 +92,6 @@ public class DorisConfBuilder {
 
     public DorisConf build() {
         StringJoiner errorMessage = new StringJoiner("\n");
-
-        if (dorisConf.getFeNodes() == null || dorisConf.getFeNodes().isEmpty()) {
-            errorMessage.add("Doris FeNodes can not be empty!");
-        }
 
         if (dorisConf.getUsername() == null || dorisConf.getUsername().isEmpty()) {
             errorMessage.add("Doris Username can not be empty!");

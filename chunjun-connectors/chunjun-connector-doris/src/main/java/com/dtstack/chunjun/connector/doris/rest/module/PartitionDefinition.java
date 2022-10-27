@@ -27,10 +27,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 
-/**
- * @author tiezhu@dtstack
- * @date 2021/9/18 星期六
- */
 public class PartitionDefinition implements Serializable, Comparable<PartitionDefinition> {
     private final String database;
     private final String table;

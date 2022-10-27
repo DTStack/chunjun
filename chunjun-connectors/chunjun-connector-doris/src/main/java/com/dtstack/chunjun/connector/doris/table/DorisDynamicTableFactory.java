@@ -56,14 +56,7 @@ import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.DRUID
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.VERTX_PREFIX;
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.getLibConfMap;
 
-/**
- * declare doris table factory info.
- *
- * <p>Company: www.dtstack.com
- *
- * @author xuchao
- * @date 2021-11-21
- */
+/** declare doris table factory info. */
 public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
         implements DynamicTableSinkFactory {
 
@@ -185,7 +178,7 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
         dorisConf.setLoadConf(loadConf);
         dorisConf.setLoadProperties(new Properties());
         dorisConf.setMaxRetries(config.get(DorisOptions.MAX_RETRIES));
-        dorisConf.setWriteMode(config.get(DorisOptions.WRITE_MODE));
+        dorisConf.setMode(config.get(DorisOptions.WRITE_MODE));
         dorisConf.setBatchSize(config.get(DorisOptions.BATCH_SIZE));
 
         return dorisConf;

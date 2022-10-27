@@ -22,10 +22,6 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Objects;
 
-/**
- * @author tiezhu@dtstack.com
- * @since 08/10/2021 Friday
- */
 public class Field {
     private String name;
     private String type;

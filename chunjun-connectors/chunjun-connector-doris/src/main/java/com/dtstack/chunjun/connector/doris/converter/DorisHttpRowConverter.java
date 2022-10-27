@@ -29,12 +29,6 @@ import org.apache.flink.table.types.logical.RowType;
 
 import java.util.StringJoiner;
 
-/**
- * Company: www.dtstack.com
- *
- * @author xuchao
- * @date 2021-11-21
- */
 public class DorisHttpRowConverter
         extends AbstractRowConverter<RowData, RowData, StringJoiner, LogicalType> {
 
