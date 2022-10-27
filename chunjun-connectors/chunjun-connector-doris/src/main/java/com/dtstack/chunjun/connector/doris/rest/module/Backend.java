@@ -23,10 +23,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-/**
- * @author tiezhu@dtstack.com
- * @since 08/10/2021 Friday
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Backend {
 

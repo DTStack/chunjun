@@ -18,10 +18,6 @@
 
 package com.dtstack.chunjun.connector.doris.options;
 
-/**
- * @author tiezhu@dtstack
- * @date 2021/9/18 星期六
- */
 public class LoadConfBuilder {
     private final LoadConf loadConf;
 

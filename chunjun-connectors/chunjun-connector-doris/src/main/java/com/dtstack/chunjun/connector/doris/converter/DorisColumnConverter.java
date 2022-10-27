@@ -29,12 +29,6 @@ import org.apache.flink.table.data.RowData;
 import java.util.List;
 import java.util.StringJoiner;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2021/11/10
- */
 public class DorisColumnConverter
         extends AbstractRowConverter<RowData, RowData, StringJoiner, String> {
 

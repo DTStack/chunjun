@@ -43,68 +43,68 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
     protected String nullDelim;
 
     /** for sqlserver */
-    private boolean withNoLock;
+    protected boolean withNoLock;
     // common
-    private Properties properties;
+    protected Properties properties;
     // reader
-    private String username;
-    private String password;
-    private List<ConnectionConf> connection;
-    private String where;
-    private String customSql;
-    private String orderByColumn;
-    private String querySql;
-    private String splitPk;
-    private String splitStrategy;
-    private int fetchSize = 0;
-    private int queryTimeOut = 0;
+    protected String username;
+    protected String password;
+    protected List<ConnectionConf> connection;
+    protected String where;
+    protected String customSql;
+    protected String orderByColumn;
+    protected String querySql;
+    protected String splitPk;
+    protected String splitStrategy;
+    protected int fetchSize = 0;
+    protected int queryTimeOut = 0;
     // 连接超时时间
-    private int connectTimeOut = 0;
+    protected int connectTimeOut = 0;
     /** 是否为增量任务 */
-    private boolean increment = false;
+    protected boolean increment = false;
     /** 是否为增量轮询 */
-    private boolean polling = false;
+    protected boolean polling = false;
 
     /**
      * Whether to take the maximum value of incrementColumn in db as startLocation in polling mode
      */
-    private boolean pollingFromMax = false;
+    protected boolean pollingFromMax = false;
 
     /** 字段名称 */
-    private String increColumn;
+    protected String increColumn;
     /** Whether an OrderBy sort is required,increment mode need set to true. */
-    private boolean isOrderBy = true;
+    protected boolean isOrderBy = true;
     /** 字段索引 */
-    private int increColumnIndex = -1;
+    protected int increColumnIndex = -1;
     /** 字段类型 */
-    private String increColumnType;
+    protected String increColumnType;
     /** 字段初始值 */
-    private String startLocation;
+    protected String startLocation;
     /** 轮询时间间隔 */
-    private long pollingInterval = 5000;
+    protected long pollingInterval = 5000;
     /** restore字段名称 */
-    private String restoreColumn;
+    protected String restoreColumn;
     /** restore字段类型 */
-    private String restoreColumnType;
+    protected String restoreColumnType;
     /** restore字段索引 */
-    private int restoreColumnIndex = -1;
+    protected int restoreColumnIndex = -1;
     /** 用于标记是否保存endLocation位置的一条或多条数据 true：不保存 false(默认)：保存 某些情况下可能出现最后几条数据被重复记录的情况，可以将此参数配置为true */
-    private boolean useMaxFunc = false;
+    protected boolean useMaxFunc = false;
     // writer
 
     /** 增量同步或者间隔轮询时，是否初始化外部存储 */
-    private Boolean initReporter = true;
+    protected Boolean initReporter = true;
 
     @SerializedName(value = "mode", alternate = "writeMode")
-    private String mode = "INSERT";
+    protected String mode = "INSERT";
 
-    private List<String> preSql;
-    private List<String> postSql;
-    private List<String> uniqueKey;
-    @Deprecated private Map<String, List<String>> updateKey;
+    protected List<String> preSql;
+    protected List<String> postSql;
+    protected List<String> uniqueKey;
+    @Deprecated protected Map<String, List<String>> updateKey;
 
     /** upsert 写数据库时，是否null覆盖原来的值 */
-    private boolean allReplace = false;
+    protected boolean allReplace = false;
 
     public Boolean getInitReporter() {
         return initReporter;

@@ -50,12 +50,6 @@ import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2021/12/21
- */
 public class DorisLoadClient implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(DorisLoadClient.class);

@@ -25,10 +25,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * @author xuchao
- * @date 2021-11-21
- */
 public class DorisRowTypeConverter {
 
     public static DataType apply(String type) {
@@ -38,31 +34,41 @@ public class DorisRowTypeConverter {
                 return DataTypes.BOOLEAN();
             case "TINYINT":
                 return DataTypes.TINYINT();
+            case "TINYINT UNSIGNED":
             case "SMALLINT":
+                return DataTypes.SMALLINT();
+            case "SMALLINT UNSIGNED":
             case "MEDIUMINT":
+            case "MEDIUMINT UNSIGNED":
             case "INT":
             case "INTEGER":
             case "INT24":
                 return DataTypes.INT();
+            case "INT UNSIGNED":
             case "BIGINT":
                 return DataTypes.BIGINT();
+            case "BIGINT UNSIGNED":
+                return DataTypes.DECIMAL(20, 0);
             case "REAL":
             case "FLOAT":
+            case "FLOAT UNSIGNED":
                 return DataTypes.FLOAT();
             case "DECIMAL":
+            case "DECIMAL UNSIGNED":
             case "NUMERIC":
             case "DECIMALV2":
                 return DataTypes.DECIMAL(38, 18);
             case "DOUBLE":
+            case "DOUBLE UNSIGNED":
                 return DataTypes.DOUBLE();
             case "CHAR":
             case "VARCHAR":
             case "STRING":
-            case "JSON":
             case "TINYTEXT":
             case "TEXT":
             case "MEDIUMTEXT":
             case "LONGTEXT":
+            case "JSON":
             case "ENUM":
             case "SET":
                 return DataTypes.STRING();
@@ -81,8 +87,8 @@ public class DorisRowTypeConverter {
             case "LONGBLOB":
             case "BINARY":
             case "VARBINARY":
-                // BYTES 底层调用的是VARBINARY最大长度
             case "GEOMETRY":
+                // BYTES 底层调用的是VARBINARY最大长度
                 return DataTypes.BYTES();
             case "NULL_TYPE":
             case "NULL":
