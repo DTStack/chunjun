@@ -23,12 +23,6 @@ import org.apache.flink.configuration.ConfigOptions;
 
 import java.util.List;
 
-/**
- * Company: www.dtstack.com
- *
- * @author xuchao
- * @date 2021-11-21
- */
 public class DorisOptions {
     public static final ConfigOption<List<String>> FENODES =
             ConfigOptions.key("feNodes")
