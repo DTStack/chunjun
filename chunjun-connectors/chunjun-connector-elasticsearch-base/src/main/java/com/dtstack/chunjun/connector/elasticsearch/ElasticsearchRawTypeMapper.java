@@ -54,9 +54,10 @@ public class ElasticsearchRawTypeMapper {
             case "DOUBLE":
                 return DataTypes.DOUBLE();
             case "TEXT":
-                return DataTypes.STRING();
+            case "STRING":
             case "BINARY":
-                return DataTypes.BYTES();
+            case "KEYWORD":
+                return DataTypes.STRING();
             case "DATE":
                 return DataTypes.TIMESTAMP();
             case "OBJECT":
