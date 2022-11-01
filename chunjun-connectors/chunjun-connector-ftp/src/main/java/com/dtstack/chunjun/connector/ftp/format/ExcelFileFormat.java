@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,57 +16,62 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.client;
+package com.dtstack.chunjun.connector.ftp.format;
 
+import com.dtstack.chunjun.connector.ftp.client.File;
 import com.dtstack.chunjun.connector.ftp.client.excel.ExcelReadListener;
-import com.dtstack.chunjun.connector.ftp.client.excel.ExcelReaderExceptionHandler;
 import com.dtstack.chunjun.connector.ftp.client.excel.ExcelReaderExecutor;
+import com.dtstack.chunjun.connector.ftp.client.excel.ExcelSubExceptionCarrier;
 import com.dtstack.chunjun.connector.ftp.client.excel.Row;
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.read.builder.ExcelReaderBuilder;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.rmi.RemoteException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
-/** @author by dujie @Description @Date 2021/12/20 */
-public class ExcelFileReadClient extends AbstractFileReader {
+public class ExcelFileFormat implements IFileReadFormat {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ExcelFileFormat.class);
     private BlockingQueue<Row> queue;
-
     private ThreadPoolExecutor executorService;
-
-    private int sheetNum;
-
-    private Row row;
-
     /** The number of cells per row in the Excel file. */
     private Integer cellCount = 0;
+    /** The number of sheet in the Excel file. */
+    private int sheetNum;
+
+    private ExcelSubExceptionCarrier ec;
+    private Row row;
 
     @Override
-    public void open(InputStream inputStream, FtpConfig ftpConfig) throws IOException {
-
-        cellCount = ftpConfig.getColumn().size();
+    public void open(File file, InputStream inputStream, IFormatConfig config) {
+        LOG.info("open file : {}", file.getFileName());
+        this.cellCount = config.getFields().length;
         ExcelReadListener listener = new ExcelReadListener();
-        queue = listener.getQueue();
+        this.queue = listener.getQueue();
+        this.ec = new ExcelSubExceptionCarrier();
 
         ExcelReaderBuilder builder = EasyExcel.read(inputStream, listener);
-        if (!ftpConfig.getIsFirstLineHeader()) {
+        if (!config.isFirstLineHeader()) {
             builder.headRowNumber(0);
         }
         builder.ignoreEmptyRow(true);
+        builder.autoCloseStream(true);
         ExcelReader reader = builder.build();
 
-        sheetNum = reader.excelExecutor().sheetList().size();
-        executorService =
+        this.sheetNum = reader.excelExecutor().sheetList().size();
+        this.executorService =
                 new ThreadPoolExecutor(
                         1,
                         1,
@@ -75,17 +80,24 @@ public class ExcelFileReadClient extends AbstractFileReader {
                         new LinkedBlockingDeque<>(2),
                         new BasicThreadFactory.Builder()
                                 .namingPattern("excel-schedule-pool-%d")
-                                .uncaughtExceptionHandler(new ExcelReaderExceptionHandler())
                                 .daemon(false)
                                 .build());
-        ExcelReaderExecutor executor = new ExcelReaderExecutor(reader);
+        ExcelReaderExecutor executor = new ExcelReaderExecutor(reader, ec);
         executorService.execute(executor);
     }
 
     @Override
     public boolean hasNext() throws IOException {
+        if (ec.getThrowable() != null) {
+            throw new RemoteException("Read file error.", ec.getThrowable());
+        }
         try {
-            row = queue.take();
+            row = queue.poll(3000L, TimeUnit.MILLISECONDS);
+
+            if (row == null) {
+                return false;
+            }
+
             if (row.isEnd()) {
                 return row.getSheetIndex() < sheetNum - 1;
             } else {
@@ -98,11 +110,16 @@ public class ExcelFileReadClient extends AbstractFileReader {
     }
 
     @Override
-    public String[] nextRecord() throws IOException {
+    public String[] nextRecord() {
         String[] data;
         if (row.isEnd()) {
             try {
-                data = queue.take().getData();
+                Row head = queue.poll(3000L, TimeUnit.MILLISECONDS);
+                if (head != null) {
+                    data = head.getData();
+                } else {
+                    return null;
+                }
             } catch (InterruptedException e) {
                 throw new RuntimeException(
                         "cannot get data from the queue because the current thread is interrupted.",
@@ -129,16 +146,16 @@ public class ExcelFileReadClient extends AbstractFileReader {
     }
 
     private String[] formatValue(String[] data) {
-        String[] record = initDataContainer(cellCount, "");
+        String[] record = initDataContainer(cellCount);
         // because cellCount is always >= data.length
         System.arraycopy(data, 0, record, 0, data.length);
         return record;
     }
 
-    private String[] initDataContainer(int capacity, String defValue) {
+    private String[] initDataContainer(int capacity) {
         String[] container = new String[capacity];
         for (int i = 0; i < capacity; i++) {
-            container[i] = defValue;
+            container[i] = "";
         }
         return container;
     }

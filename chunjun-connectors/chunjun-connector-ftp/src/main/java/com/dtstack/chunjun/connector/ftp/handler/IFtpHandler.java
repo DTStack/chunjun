@@ -25,13 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-/**
- * The skeleton of Ftp Utility class
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+/** The skeleton of Ftp Utility class */
 public interface IFtpHandler extends AutoCloseable {
 
     /**
@@ -62,7 +56,7 @@ public interface IFtpHandler extends AutoCloseable {
      * @param filePath 要检查的文件路径
      * @return true:存在,false:不存在
      */
-    boolean isFileExist(String filePath);
+    boolean isFileExist(String filePath) throws IOException;
 
     /**
      * 获取文件输入流
@@ -73,12 +67,13 @@ public interface IFtpHandler extends AutoCloseable {
     InputStream getInputStream(String filePath);
 
     /**
-     * 列出指定路径下的目录
+     * 指定起始位置，获取文件输入流
      *
-     * @param path 路径
-     * @return 目录列表
+     * @param filePath 文件路径
+     * @param startPosition 指定的位置
+     * @return input stream.
      */
-    List<String> listDirs(String path);
+    InputStream getInputStreamByPosition(String filePath, long startPosition);
 
     /**
      * 列出指定路径下的目录
@@ -94,7 +89,7 @@ public interface IFtpHandler extends AutoCloseable {
      * @param path 路径
      * @return 文件列表
      */
-    List<String> getFiles(String path);
+    List<String> getFiles(String path) throws IOException;
 
     /**
      * 递归创建目录
@@ -117,14 +112,14 @@ public interface IFtpHandler extends AutoCloseable {
      * @param dir 指定的目录
      * @param exclude 要排除的文件
      */
-    void deleteAllFilesInDir(String dir, List<String> exclude);
+    void deleteAllFilesInDir(String dir, List<String> exclude) throws IOException;
 
     /**
      * 删除文件
      *
      * @param filePath 文件路径
      */
-    boolean deleteFile(String filePath) throws IOException;
+    void deleteFile(String filePath) throws IOException;
 
     /**
      * 重命名路径
@@ -134,11 +129,4 @@ public interface IFtpHandler extends AutoCloseable {
      * @throws Exception 可能会出现文件不存在，连接异常等
      */
     void rename(String oldPath, String newPath) throws Exception;
-
-    /**
-     * 关闭ftp输入流
-     *
-     * @throws IOException 文件句柄操作异常
-     */
-    void completePendingCommand() throws IOException;
 }
