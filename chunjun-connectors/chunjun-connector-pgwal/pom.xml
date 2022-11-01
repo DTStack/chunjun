@@ -45,99 +45,6 @@
 
 	<build>
 		<plugins>
-<!--			<plugin>-->
-<!--				<groupId>org.apache.maven.plugins</groupId>-->
-<!--				<artifactId>maven-enforcer-plugin</artifactId>-->
-<!--				<version>1.4.1-dp-SNAPSHOT</version>-->
-<!--				<executions>-->
-<!--					<execution>-->
-<!--						<id>default-cli</id>-->
-<!--						<phase>validate</phase>-->
-<!--						<goals>-->
-<!--							<goal>enforce</goal>-->
-<!--						</goals>-->
-<!--					</execution>-->
-<!--				</executions>-->
-<!--				<dependencies>-->
-<!--					<dependency>-->
-<!--						<groupId>org.codehaus.mojo</groupId>-->
-<!--						<artifactId>extra-enforcer-rules</artifactId>-->
-<!--						<version>1.0-beta-4</version>-->
-<!--					</dependency>-->
-<!--				</dependencies>-->
-<!--				<configuration>-->
-<!--					&lt;!&ndash;规则检查不通过就构建失败;Default:false. &ndash;&gt;-->
-<!--					&lt;!&ndash;<failFast>true</failFast>&ndash;&gt;-->
-<!--					<rules>-->
-<!--						&lt;!&ndash;<requireMavenVersion>-->
-<!--							<version>3.0.4</version>-->
-<!--						</requireMavenVersion>&ndash;&gt;-->
-<!--						<requireJavaVersion>-->
-<!--							<version>1.6.0</version>-->
-<!--						</requireJavaVersion>-->
-<!--						<banDuplicateClasses>-->
-<!--							<ignoreClasses>-->
-<!--								<ignoreClass>javax.*</ignoreClass>-->
-<!--								<ignoreClass>org.junit.*</ignoreClass>-->
-<!--								<ignoreClass>junit.*</ignoreClass>-->
-<!--								<ignoreClass>org.apache.xbean.recipe.*</ignoreClass>-->
-<!--								<ignoreClass>org.hamcrest.*</ignoreClass>-->
-<!--								<ignoreClass>org.slf4j.*</ignoreClass>-->
-<!--								<ignoreClass>org.antlr.runtime.*</ignoreClass>-->
-<!--								<ignoreClass>org.apache.commons.lang.*</ignoreClass>-->
-<!--								<ignoreClass>org.apache.commons.codec.*</ignoreClass>-->
-<!--								<ignoreClass>org.apache.commons.logging.*</ignoreClass>-->
-<!--								<ignoreClass>org.codehaus.plexus.component.builder.*</ignoreClass>-->
-<!--							</ignoreClasses>-->
-<!--							<findAllDuplicates>true</findAllDuplicates>-->
-<!--						</banDuplicateClasses>-->
-<!--						<bannedDependencies>-->
-<!--							&lt;!&ndash;是否检查传递性依赖(间接依赖)&ndash;&gt;-->
-<!--							<searchTransitive>true</searchTransitive>-->
-<!--							<excludes>-->
-<!--								<exclude>org.apache:libthrift</exclude>-->
-<!--								<exclude>org.jboss.netty:netty</exclude>-->
-<!--								<exclude>org.apache.thrift:libthrift:(,0.8.0),(0.8.0,)</exclude>-->
-<!--								<exclude>io.netty:netty:(,3.9.2.Final)</exclude>-->
-<!--								<exclude>com.sankuai.octo:mns-invoker:(,1.7.5)</exclude>-->
-<!--								<exclude>com.fasterxml.jackson.core:*:(,2.6.0)</exclude>-->
-<!--								<exclude>com.google.guava:guava:(,15.0)</exclude>-->
-<!--							</excludes>-->
-<!--							<message>some dependency must exclude</message>-->
-<!--						</bannedDependencies>-->
-<!--					</rules>-->
-<!--				</configuration>-->
-<!--			</plugin>-->
-			<plugin>
-				<groupId>com.diffplug.spotless</groupId>
-				<artifactId>spotless-maven-plugin</artifactId>
-				<version>2.4.2</version>
-				<configuration>
-					<java>
-						<googleJavaFormat>
-							<version>1.7</version>
-							<style>AOSP</style>
-						</googleJavaFormat>
-
-						<!-- \# refers to the static imports -->
-						<importOrder>
-							<order>com.dtstack,org.apache.flink,org.apache.flink.shaded,,javax,java,scala,\#</order>
-						</importOrder>
-
-						<removeUnusedImports />
-					</java>
-				</configuration>
-				<executions>
-					<execution>
-						<id>spotless-check</id>
-						<phase>validate</phase>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -154,11 +61,9 @@
 								<filter>
 									<artifact>*:*</artifact>
 									<excludes>
-										<exclude>support/**</exclude>
-										<exclude>tpcds/**</exclude>
-										<exclude>tpch/**</exclude>
-										<exclude>ddl/**</exclude>
-										<exclude>google/**</exclude>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
 									</excludes>
 								</filter>
 							</filters>
