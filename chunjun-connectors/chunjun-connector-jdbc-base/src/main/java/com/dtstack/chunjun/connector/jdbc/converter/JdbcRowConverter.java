@@ -22,16 +22,23 @@ import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
+import com.dtstack.chunjun.util.ExternalDataUtil;
+import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
+import org.apache.flink.table.data.ArrayData;
 import org.apache.flink.table.data.DecimalData;
+import org.apache.flink.table.data.GenericArrayData;
+import org.apache.flink.table.data.GenericMapData;
 import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.MapData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
+import org.apache.flink.table.types.logical.MapType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.utils.TypeConversions;
@@ -40,12 +47,17 @@ import io.vertx.core.json.JsonArray;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Array;
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
 public class JdbcRowConverter
@@ -56,13 +68,13 @@ public class JdbcRowConverter
 
     public JdbcRowConverter(RowType rowType) {
         super(rowType);
-        for (int i = 0; i < rowType.getFieldCount(); i++) {
+        List<RowType.RowField> fields = rowType.getFields();
+        for (int i = 0; i < fields.size(); i++) {
             toInternalConverters.add(
-                    wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i))));
+                    wrapIntoNullableInternalConverter(createInternalConverter(fields.get(i))));
             toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
+                            createExternalConverter(fields.get(i)), fields.get(i).getType()));
         }
     }
 
@@ -71,15 +83,22 @@ public class JdbcRowConverter
             wrapIntoNullableExternalConverter(
                     ISerializationConverter<FieldNamedPreparedStatement> serializationConverter,
                     LogicalType type) {
-        final int sqlType =
-                JdbcTypeUtil.typeInformationToSqlType(
-                        TypeConversions.fromDataTypeToLegacyInfo(
-                                TypeConversions.fromLogicalToDataType(type)));
+        int sqlType = 0;
+        try {
+            // Exclude nested data types, such as ROW(id int,data ROW(id string))
+            sqlType =
+                    JdbcTypeUtil.typeInformationToSqlType(
+                            TypeConversions.fromDataTypeToLegacyInfo(
+                                    TypeConversions.fromLogicalToDataType(type)));
+        } catch (IllegalArgumentException e) {
+            LOG.warn(e.getMessage());
+        }
+        int finalSqlType = sqlType;
         return (val, index, statement) -> {
             if (val == null
                     || val.isNullAt(index)
                     || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
-                statement.setNull(index, sqlType);
+                statement.setNull(index, finalSqlType);
             } else {
                 serializationConverter.serialize(val, index, statement);
             }
@@ -115,8 +134,8 @@ public class JdbcRowConverter
         return statement;
     }
 
-    @Override
-    protected IDeserializationConverter createInternalConverter(LogicalType type) {
+    protected IDeserializationConverter createInternalConverter(RowType.RowField rowField) {
+        LogicalType type = rowField.getType();
         switch (type.getTypeRoot()) {
             case NULL:
                 return val -> null;
@@ -159,23 +178,73 @@ public class JdbcRowConverter
                 return val -> TimestampData.fromTimestamp((Timestamp) val);
             case CHAR:
             case VARCHAR:
-                return val -> StringData.fromString(val.toString());
+                return val -> val == null ? null : StringData.fromString(val.toString());
             case BINARY:
             case VARBINARY:
                 return val -> (byte[]) val;
             case ARRAY:
+                return (val) -> {
+                    Array val1 = (Array) val;
+                    Object[] array = (Object[]) val1.getArray();
+                    Object[] result = new Object[array.length];
+                    LogicalType logicalType = type.getChildren().get(0);
+                    RowType.RowField rowField1 = new RowType.RowField("", logicalType, "");
+                    IDeserializationConverter internalConverter =
+                            createInternalConverter(rowField1);
+                    for (int i = 0; i < array.length; i++) {
+                        Object value = internalConverter.deserialize(array[i]);
+                        result[i] = value;
+                    }
+                    return new GenericArrayData(result);
+                };
+
             case ROW:
+                return val -> {
+                    List<RowType.RowField> childrenFields = ((RowType) type).getFields();
+                    HashMap childrenData = GsonUtil.GSON.fromJson(val.toString(), HashMap.class);
+                    GenericRowData genericRowData = new GenericRowData(childrenFields.size());
+                    for (int i = 0; i < childrenFields.size(); i++) {
+                        Object value =
+                                createInternalConverter(childrenFields.get(i))
+                                        .deserialize(
+                                                childrenData.get(childrenFields.get(i).getName()));
+                        genericRowData.setField(i, value);
+                    }
+                    return genericRowData;
+                };
             case MAP:
-            case MULTISET:
+                return val -> {
+                    if (val == null) {
+                        return null;
+                    }
+                    HashMap<Object, Object> resultMap = new HashMap<>();
+                    Map map = GsonUtil.GSON.fromJson(val.toString(), Map.class);
+                    LogicalType keyType = ((MapType) type).getKeyType();
+                    LogicalType valueType = ((MapType) type).getValueType();
+                    RowType.RowField keyRowField = new RowType.RowField("", keyType, "");
+                    RowType.RowField valueRowField = new RowType.RowField("", valueType, "");
+                    IDeserializationConverter keyInternalConverter =
+                            createInternalConverter(keyRowField);
+                    IDeserializationConverter valueInternalConverter =
+                            createInternalConverter(valueRowField);
+                    for (Object key : map.keySet()) {
+                        resultMap.put(
+                                keyInternalConverter.deserialize(key),
+                                valueInternalConverter.deserialize(map.get(key)));
+                    }
+
+                    return new GenericMapData(resultMap);
+                };
+            case STRUCTURED_TYPE:
             case RAW:
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
     }
 
-    @Override
     protected ISerializationConverter<FieldNamedPreparedStatement> createExternalConverter(
-            LogicalType type) {
+            RowType.RowField rowField) {
+        LogicalType type = rowField.getType();
         switch (type.getTypeRoot()) {
             case BOOLEAN:
                 return (val, index, statement) ->
@@ -226,10 +295,57 @@ public class JdbcRowConverter
                                 index,
                                 val.getDecimal(index, decimalPrecision, decimalScale)
                                         .toBigDecimal());
-            case ARRAY:
-            case MAP:
-            case MULTISET:
             case ROW:
+                return (val, index, statement) -> {
+                    List<RowType.RowField> fields = ((RowType) type).getFields();
+                    HashMap<String, Object> map = new HashMap<>();
+                    for (int i = 0; i < fields.size(); i++) {
+                        ExternalDataUtil.rowDataToExternal(
+                                val.getRow(index, fields.size()),
+                                i,
+                                fields.get(i).getType(),
+                                map,
+                                fields.get(i).getName());
+                    }
+
+                    statement.setObject(index, GsonUtil.GSON.toJson(map));
+                };
+
+            case ARRAY:
+                return (val, index, statement) -> {
+                    Connection connection = statement.getConnection();
+                    ArrayData array = val.getArray(index);
+                    Object[] obj = new Object[array.size()];
+                    ExternalDataUtil.arrayDataToExternal(type.getChildren().get(0), obj, array);
+                    Array result =
+                            connection.createArrayOf(
+                                    type.getChildren().get(0).getTypeRoot().name(), obj);
+                    statement.setArray(index, result);
+                };
+            case MULTISET:
+                return (val, index, statement) -> {
+                    Connection connection = statement.getConnection();
+                    MapData map = val.getMap(index);
+                    ArrayData arrayData = map.keyArray();
+                    Object[] obj = new Object[arrayData.size()];
+                    ExternalDataUtil.arrayDataToExternal(type.getChildren().get(0), obj, arrayData);
+                    Array result =
+                            connection.createArrayOf(
+                                    type.getChildren().get(0).getTypeRoot().name(), obj);
+                    statement.setArray(index, result);
+                };
+            case MAP:
+                return (val, index, statement) -> {
+                    MapData map = val.getMap(index);
+                    Map<Object, Object> resultMap = new HashMap<>();
+                    ExternalDataUtil.mapDataToExternal(
+                            map,
+                            ((MapType) type).getKeyType(),
+                            ((MapType) type).getValueType(),
+                            resultMap);
+                    statement.setObject(index, resultMap);
+                };
+            case STRUCTURED_TYPE:
             case RAW:
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);

@@ -20,10 +20,6 @@ package com.dtstack.chunjun.connector.doris.options;
 
 import java.io.Serializable;
 
-/**
- * @author tiezhu@dtstack
- * @date 2021/9/18 星期六
- */
 public class LoadConf implements Serializable {
 
     private static final Long serialVersionUID = 1L;

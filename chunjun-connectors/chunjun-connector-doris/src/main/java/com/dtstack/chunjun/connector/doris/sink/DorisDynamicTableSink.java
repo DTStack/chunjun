@@ -41,12 +41,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Company: www.dtstack.com
- *
- * @author xuchao
- * @date 2021-11-21
- */
 public class DorisDynamicTableSink extends JdbcDynamicTableSink {
 
     private final TableSchema physicalSchema;

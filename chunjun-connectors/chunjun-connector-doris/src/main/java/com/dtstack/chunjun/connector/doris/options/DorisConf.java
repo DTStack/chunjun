@@ -30,21 +30,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 
-/**
- * @author tiezhu@dtstack
- * @date 2021/9/16 星期四
- */
 public class DorisConf extends JdbcConf {
 
     private String database;
 
     private String table;
-
-    private String username;
-
-    private String password;
-
-    private String writeMode;
 
     private List<String> feNodes;
 
@@ -100,14 +90,6 @@ public class DorisConf extends JdbcConf {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getWriteMode() {
-        return writeMode;
-    }
-
-    public void setWriteMode(String writeMode) {
-        this.writeMode = writeMode;
     }
 
     public List<String> getFeNodes() {

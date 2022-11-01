@@ -71,10 +71,6 @@ import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_TABLET
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.ILLEGAL_ARGUMENT_MESSAGE;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.SHOULD_NOT_HAPPEN_MESSAGE;
 
-/**
- * @author tiezhu@dtstack
- * @date 2021/9/17 星期五
- */
 public class FeRestService implements Serializable {
 
     public static final int REST_RESPONSE_STATUS_OK = 200;

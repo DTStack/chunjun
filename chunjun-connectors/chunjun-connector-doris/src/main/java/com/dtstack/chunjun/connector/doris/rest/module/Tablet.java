@@ -21,10 +21,6 @@ package com.dtstack.chunjun.connector.doris.rest.module;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * @author tiezhu@dtstack.com
- * @since 08/10/2021 Friday
- */
 public class Tablet {
     private List<String> routing;
     private int version;
