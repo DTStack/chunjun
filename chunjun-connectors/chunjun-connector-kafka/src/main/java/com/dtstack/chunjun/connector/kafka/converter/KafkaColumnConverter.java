@@ -26,6 +26,7 @@ import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.decoder.IDecode;
 import com.dtstack.chunjun.decoder.JsonDecoder;
 import com.dtstack.chunjun.decoder.TextDecoder;
+import com.dtstack.chunjun.decoder.ValueDecoder;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
@@ -60,6 +61,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.kafka.option.KafkaOptions.DEFAULT_CODEC;
+import static com.dtstack.chunjun.connector.kafka.option.KafkaOptions.VALUE_CODEC;
 
 /**
  * @author chuixue
@@ -69,7 +71,7 @@ import static com.dtstack.chunjun.connector.kafka.option.KafkaOptions.DEFAULT_CO
 public class KafkaColumnConverter extends AbstractRowConverter<String, Object, byte[], String> {
 
     /** source kafka msg decode */
-    private final IDecode decode;
+    private final IDecode decoder;
     /** kafka Conf */
     private final KafkaConf kafkaConf;
     /** kafka sink out fields */
@@ -79,18 +81,22 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
         this.kafkaConf = kafkaConf;
         this.outList = keyTypeList;
         if (DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
-            this.decode = new JsonDecoder();
+            this.decoder = new JsonDecoder();
+        } else if (VALUE_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
+            this.decoder = new ValueDecoder();
         } else {
-            this.decode = new TextDecoder();
+            this.decoder = new TextDecoder();
         }
     }
 
     public KafkaColumnConverter(KafkaConf kafkaConf) {
         this.commonConf = this.kafkaConf = kafkaConf;
         if (DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
-            this.decode = new JsonDecoder();
+            this.decoder = new JsonDecoder();
+        } else if (VALUE_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
+            this.decoder = new ValueDecoder();
         } else {
-            this.decode = new TextDecoder();
+            this.decoder = new TextDecoder();
         }
 
         // Only json need to extract the fields
@@ -110,12 +116,13 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
 
     @Override
     public RowData toInternal(String input) throws Exception {
-        Map<String, Object> map = decode.decode(input);
+        Map<String, Object> map = decoder.decode(input);
         ColumnRowData result;
         if (toInternalConverters == null || toInternalConverters.size() == 0) {
             result = new ColumnRowData(1);
             result.addField(new MapColumn(map));
         } else {
+            // Only json decoder will fill toInternalConverters
             List<FieldConf> fieldConfList = kafkaConf.getColumn();
             result = new ColumnRowData(fieldConfList.size());
             for (int i = 0; i < fieldConfList.size(); i++) {
@@ -181,7 +188,7 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
                 for (int i = 0; i < row.getArity(); i++) {
                     values.add(row.getField(i) == null ? "" : row.getField(i).asString());
                 }
-                map = decode.decode(String.join(",", values));
+                map = decoder.decode(String.join(",", values));
             }
         }
 
@@ -196,7 +203,12 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
             map = keyPartitionMap;
         }
 
-        return MapUtil.writeValueAsString(map).getBytes(StandardCharsets.UTF_8);
+        if (VALUE_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
+            return MapUtil.writeValueAsStringWithoutQuote(map.get(ValueDecoder.KEY_MESSAGE))
+                    .getBytes(StandardCharsets.UTF_8);
+        } else {
+            return MapUtil.writeValueAsBytes(map);
+        }
     }
 
     @Override

@@ -32,4 +32,10 @@ public class KafkaOptions {
                     .stringType()
                     .defaultValue("json")
                     .withDescription("default.codec");
+
+    public static final ConfigOption<String> VALUE_CODEC =
+            ConfigOptions.key("value.codec")
+                    .stringType()
+                    .defaultValue("value")
+                    .withDescription("value.codec");
 }
