@@ -88,10 +88,16 @@ public class LogMinerConf extends ChunJunCommonConf {
     /** 缓存的日志数 * */
     private long transactionCacheNumSize = 1000;
 
+    /** 每个事务缓存的事件总数 * */
+    private long transactionEventSize = 5000;
+
     private Properties properties;
 
     /** 缓存的日志时间 * */
     private long transactionExpireTime = 20;
+
+    /** 是否开启全量同步 * */
+    private boolean enableFetchAll = false;
 
     public boolean getSupportAutoAddLog() {
         return supportAutoAddLog;
@@ -277,6 +283,14 @@ public class LogMinerConf extends ChunJunCommonConf {
         this.properties = properties;
     }
 
+    public long getTransactionEventSize() {
+        return transactionEventSize;
+    }
+
+    public void setTransactionEventSize(long transactionEventSize) {
+        this.transactionEventSize = transactionEventSize;
+    }
+
     public boolean isDdlSkip() {
         return ddlSkip;
     }
@@ -291,6 +305,14 @@ public class LogMinerConf extends ChunJunCommonConf {
 
     public void setInitialTableStructure(boolean initialTableStructure) {
         this.initialTableStructure = initialTableStructure;
+    }
+
+    public void setEnableFetchAll(boolean isFetchAll) {
+        this.enableFetchAll = isFetchAll;
+    }
+
+    public boolean getEnableFetchAll() {
+        return this.enableFetchAll;
     }
 
     @Override
@@ -351,6 +373,8 @@ public class LogMinerConf extends ChunJunCommonConf {
                 + retryTimes
                 + ", transactionCacheNumSize="
                 + transactionCacheNumSize
+                + ", transactionEventSize="
+                + transactionEventSize
                 + ", transactionExpireTime="
                 + transactionExpireTime
                 + ", properties="

@@ -92,6 +92,14 @@ public class OracleLogMinerInputFormatBuilder
             sb.append("fetchSize must bigger than 0;\n");
         }
 
+        if (config.getTransactionEventSize() <= 1) {
+            sb.append("transactionEventSize must bigger than 1;\n");
+        }
+
+        if (config.getTransactionCacheNumSize() <= 1) {
+            sb.append("transactionCacheNumSize must bigger than 1;\n");
+        }
+
         if (config.getPavingData() && config.isSplit()) {
             throw new IllegalArgumentException("can't use pavingData and split at the same time");
         }
