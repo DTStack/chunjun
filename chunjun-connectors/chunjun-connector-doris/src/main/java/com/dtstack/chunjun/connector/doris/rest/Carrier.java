@@ -30,12 +30,6 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.IntStream;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/1/17
- */
 public class Carrier implements Serializable {
     private static final long serialVersionUID = 1L;
     private final List<Map<String, Object>> insertContent;

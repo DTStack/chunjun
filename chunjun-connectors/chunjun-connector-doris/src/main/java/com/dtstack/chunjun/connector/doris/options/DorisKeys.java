@@ -18,10 +18,6 @@
 
 package com.dtstack.chunjun.connector.doris.options;
 
-/**
- * @author tiezhu@dtstack
- * @date 2021/9/17 星期五
- */
 public final class DorisKeys {
 
     public static final String FIELD_DELIMITER_KEY = "fieldDelimiter";
