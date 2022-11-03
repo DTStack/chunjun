@@ -21,7 +21,6 @@ package com.dtstack.chunjun.connector.jdbc.sink;
 import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
-import com.dtstack.chunjun.enums.EWriteMode;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.table.api.TableSchema;
@@ -70,7 +69,6 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
                 .addContainedKind(RowKind.INSERT)
                 .addContainedKind(RowKind.DELETE)
                 .addContainedKind(RowKind.UPDATE_AFTER)
-                .addContainedKind(RowKind.UPDATE_BEFORE)
                 .build();
     }
 
@@ -104,10 +102,6 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
             columnList.add(field);
         }
         jdbcConf.setColumn(columnList);
-        jdbcConf.setMode(
-                (CollectionUtil.isNullOrEmpty(jdbcConf.getUniqueKey()))
-                        ? EWriteMode.INSERT.name()
-                        : EWriteMode.UPDATE.name());
 
         builder.setColumnNameList(columnNameList);
         builder.setColumnTypeList(columnTypeList);
@@ -115,9 +109,28 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConf);
         builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
+        setKeyRowConverter(builder, rowType);
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction(builder.finish()), jdbcConf.getParallelism());
+    }
+
+    protected void setKeyRowConverter(JdbcOutputFormatBuilder builder, RowType rowType) {
+        if (!CollectionUtil.isNullOrEmpty(jdbcConf.getUniqueKey())) {
+            List<RowType.RowField> fields = rowType.getFields();
+            List<RowType.RowField> keyRowFields = new ArrayList<>(jdbcConf.getUniqueKey().size());
+            for (String name : jdbcConf.getUniqueKey()) {
+                for (RowType.RowField field : fields) {
+                    if (Objects.equals(name, field.getName())) {
+                        keyRowFields.add(field);
+                        break;
+                    }
+                }
+            }
+            RowType keyRowType = new RowType(keyRowFields);
+            builder.setKeyRowType(keyRowType);
+            builder.setKeyRowConverter(jdbcDialect.getRowConverter(keyRowType));
+        }
     }
 
     @Override

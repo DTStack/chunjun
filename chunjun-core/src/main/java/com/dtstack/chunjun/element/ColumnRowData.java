@@ -37,6 +37,7 @@ import com.google.common.collect.Maps;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -317,5 +318,71 @@ public final class ColumnRowData implements RowData, Serializable {
         }
         sb.append(")");
         return sb.toString();
+    }
+
+    // sort rowData by field header name
+    public ColumnRowData sortColumnRowData() {
+        String[] oldHeaders = this.getHeaders();
+
+        // mode: sync
+        if (oldHeaders == null) {
+            return this;
+        }
+
+        ColumnRowData newRowData = new ColumnRowData(this.getArity());
+        String[] newHeaders = Arrays.stream(oldHeaders).sorted().toArray(String[]::new);
+
+        newRowData.setRowKind(this.getRowKind());
+        Arrays.stream(newHeaders)
+                .forEach(
+                        header -> {
+                            AbstractBaseColumn column = this.getField(header);
+                            newRowData.addHeader(header);
+                            newRowData.addField(column);
+                        });
+
+        Set<String> extHeaders = this.getExtHeader();
+        extHeaders.forEach(extHeader -> newRowData.addExtHeader(extHeader));
+        return newRowData;
+    }
+
+    @Override
+    public int hashCode() {
+        if (columnList == null) {
+            return 0;
+        }
+        int result = 1;
+        for (AbstractBaseColumn column : columnList) {
+            result = 31 * result + (column.data == null ? 0 : column.data.hashCode());
+        }
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o instanceof ColumnRowData) {
+            ColumnRowData that = (ColumnRowData) o;
+            if (this.columnList.size() != that.columnList.size()) {
+                return false;
+            }
+            Object thisData;
+            Object thatData;
+            for (int i = 0; i < this.columnList.size(); i++) {
+                thisData = this.columnList.get(i).data;
+                thatData = that.columnList.get(i).data;
+                if (thisData == null) {
+                    if (thatData != null) {
+                        return false;
+                    }
+                } else if (!thisData.equals(thatData)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 }

@@ -23,8 +23,14 @@ import com.dtstack.chunjun.cdc.ddl.DdlRowDataConvented;
 import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.chunjun.connector.jdbc.sink.wrapper.InsertOrUpdateStatementWrapper;
+import com.dtstack.chunjun.connector.jdbc.sink.wrapper.JdbcBatchStatementWrapper;
+import com.dtstack.chunjun.connector.jdbc.sink.wrapper.SimpleStatementWrapper;
+import com.dtstack.chunjun.connector.jdbc.sink.wrapper.buffer.UpsertDeleteCompactionWrapper;
+import com.dtstack.chunjun.connector.jdbc.sink.wrapper.proxy.RestoreWrapperProxy;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
+import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.enums.EWriteMode;
 import com.dtstack.chunjun.enums.Semantic;
@@ -36,6 +42,7 @@ import com.dtstack.chunjun.util.JsonUtil;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +54,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -67,9 +75,12 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected transient Connection dbConn;
 
-    protected transient PreparedStmtProxy stmtProxy;
+    protected transient JdbcBatchStatementWrapper<RowData> statementWrapper;
 
     protected Set<TableIdentifier> createTableOnSnapShot = new HashSet<>();
+
+    private AbstractRowConverter keyRowConverter;
+    private RowType keyRowType;
 
     @Override
     public void initializeGlobal(int parallelism) {
@@ -98,7 +109,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 }
             }
 
-            buildStmtProxy();
+            buildStatementWrapper();
             LOG.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
@@ -107,30 +118,95 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    public void buildStmtProxy() throws SQLException {
+    public void buildStatementWrapper() throws SQLException {
         String tableInfo = jdbcConf.getTable();
 
         if ("*".equalsIgnoreCase(tableInfo)) {
-            stmtProxy = new PreparedStmtProxy(dbConn, jdbcDialect, false);
+            // restoration
+            statementWrapper = new RestoreWrapperProxy(dbConn, jdbcDialect, false);
         } else {
-            FieldNamedPreparedStatement fieldNamedPreparedStatement =
-                    FieldNamedPreparedStatement.prepareStatement(
-                            dbConn, prepareTemplates(), this.columnNameList.toArray(new String[0]));
-            stmtProxy =
-                    new PreparedStmtProxy(
-                            fieldNamedPreparedStatement,
-                            rowConverter,
-                            dbConn,
-                            jdbcConf,
-                            jdbcDialect);
+            if (useAbstractColumn || CollectionUtils.isEmpty(jdbcConf.getUniqueKey())) {
+                // sync or sql appendOnly
+                FieldNamedPreparedStatement fieldNamedPreparedStatement =
+                        FieldNamedPreparedStatement.prepareStatement(
+                                dbConn,
+                                prepareTemplates(),
+                                this.columnNameList.toArray(new String[0]));
+                statementWrapper =
+                        new SimpleStatementWrapper(fieldNamedPreparedStatement, rowConverter);
+            } else {
+                // sql retract
+                buildRetractStatementExecutor();
+            }
         }
+    }
+
+    private void buildRetractStatementExecutor() throws SQLException {
+        SimpleStatementWrapper deleteExecutor =
+                new SimpleStatementWrapper(
+                        FieldNamedPreparedStatement.prepareStatement(
+                                dbConn,
+                                jdbcDialect.getKeyedDeleteStatement(
+                                        jdbcConf.getSchema(),
+                                        jdbcConf.getTable(),
+                                        jdbcConf.getUniqueKey()),
+                                jdbcConf.getUniqueKey().toArray(new String[0])),
+                        keyRowConverter);
+        JdbcBatchStatementWrapper<RowData> upsertExecutor;
+        if (jdbcDialect.supportUpsert()) {
+            upsertExecutor =
+                    new SimpleStatementWrapper(
+                            FieldNamedPreparedStatement.prepareStatement(
+                                    dbConn,
+                                    getUpsertStatement(),
+                                    this.columnNameList.toArray(new String[0])),
+                            rowConverter);
+        } else {
+            upsertExecutor = getInsertOrUpdateExecutor();
+        }
+        statementWrapper =
+                new UpsertDeleteCompactionWrapper(
+                        upsertExecutor,
+                        deleteExecutor,
+                        JdbcUtil.getKeyExtractor(
+                                columnNameList, jdbcConf.getUniqueKey(), keyRowType, false));
+    }
+
+    private JdbcBatchStatementWrapper<RowData> getInsertOrUpdateExecutor() throws SQLException {
+        FieldNamedPreparedStatement insertStatement =
+                FieldNamedPreparedStatement.prepareStatement(
+                        dbConn,
+                        getInsertPrepareTemplate(),
+                        this.columnNameList.toArray(new String[0]));
+        FieldNamedPreparedStatement updateStatement =
+                FieldNamedPreparedStatement.prepareStatement(
+                        dbConn,
+                        getUpdatePrepareTemplate(),
+                        this.columnNameList.toArray(new String[0]));
+        FieldNamedPreparedStatement selectStatement =
+                FieldNamedPreparedStatement.prepareStatement(
+                        dbConn,
+                        jdbcDialect.getSelectFromStatement(
+                                jdbcConf.getSchema(),
+                                jdbcConf.getTable(),
+                                jdbcConf.getUniqueKey().toArray(new String[0])),
+                        jdbcConf.getUniqueKey().toArray(new String[0]));
+        return new InsertOrUpdateStatementWrapper(
+                insertStatement,
+                updateStatement,
+                selectStatement,
+                JdbcUtil.getKeyExtractor(
+                        columnNameList, jdbcConf.getUniqueKey(), keyRowType, false),
+                rowConverter,
+                rowConverter,
+                keyRowConverter);
     }
 
     @Override
     protected void writeSingleRecordInternal(RowData row) throws WriteRecordException {
         int index = 0;
         try {
-            stmtProxy.writeSingleRecordInternal(row);
+            statementWrapper.writeSingleRecord(row);
             if (Semantic.EXACTLY_ONCE == semantic) {
                 rowsOfCurrentTransaction += rows.size();
             } else {
@@ -157,11 +233,10 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         try {
             for (RowData row : rows) {
-                stmtProxy.convertToExternal(row);
-                stmtProxy.addBatch();
+                statementWrapper.addToBatch(row);
                 lastRow = row;
             }
-            stmtProxy.executeBatch();
+            statementWrapper.executeBatch();
             // 开启了cp，但是并没有使用2pc方式让下游数据可见
             if (Semantic.EXACTLY_ONCE == semantic) {
                 rowsOfCurrentTransaction += rows.size();
@@ -178,7 +253,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             throw e;
         } finally {
             // 执行完后清空batch
-            stmtProxy.clearBatch();
+            statementWrapper.clearBatch();
         }
     }
 
@@ -203,7 +278,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         if (rows != null && rows.size() > 0) {
             super.writeRecordInternal();
         } else {
-            stmtProxy.executeBatch();
+            statementWrapper.executeBatch();
         }
     }
 
@@ -224,7 +299,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             }
             snapshotWriteCounter.add(rowsOfCurrentTransaction);
             rowsOfCurrentTransaction = 0;
-            stmtProxy.clearStatementCache();
+            statementWrapper.clearStatementCache();
         } catch (Exception e) {
             dbConn.rollback();
             throw e;
@@ -258,32 +333,55 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         }
     }
 
+    protected String getInsertPrepareTemplate() {
+        return jdbcDialect.getInsertIntoStatement(
+                jdbcConf.getSchema(), jdbcConf.getTable(), columnNameList.toArray(new String[0]));
+    }
+
+    protected String getUpdatePrepareTemplate() {
+        return jdbcDialect.getUpdateStatement(
+                jdbcConf.getSchema(),
+                jdbcConf.getTable(),
+                columnNameList.toArray(new String[0]),
+                jdbcConf.getUniqueKey().toArray(new String[0]));
+    }
+
+    protected String getReplacePrepareTemplate() {
+        Optional<String> replaceStatement =
+                jdbcDialect.getReplaceStatement(
+                        jdbcConf.getSchema(),
+                        jdbcConf.getTable(),
+                        columnNameList.toArray(new String[0]));
+        if (replaceStatement.isPresent()) {
+            return replaceStatement.get();
+        } else {
+            throw new IllegalArgumentException("Unknown write mode:" + jdbcConf.getMode());
+        }
+    }
+
+    protected String getUpsertStatement() {
+        Optional<String> upsertStatement =
+                jdbcDialect.getUpsertStatement(
+                        jdbcConf.getSchema(),
+                        jdbcConf.getTable(),
+                        columnNameList.toArray(new String[0]),
+                        jdbcConf.getUniqueKey().toArray(new String[0]),
+                        jdbcConf.isAllReplace());
+        if (upsertStatement.isPresent()) {
+            return upsertStatement.get();
+        } else {
+            throw new IllegalArgumentException("Unknown write mode:" + jdbcConf.getMode());
+        }
+    }
+
     protected String prepareTemplates() {
         String singleSql;
         if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
-            singleSql =
-                    jdbcDialect.getInsertIntoStatement(
-                            jdbcConf.getSchema(),
-                            jdbcConf.getTable(),
-                            columnNameList.toArray(new String[0]));
+            singleSql = getInsertPrepareTemplate();
         } else if (EWriteMode.REPLACE.name().equalsIgnoreCase(jdbcConf.getMode())) {
-            singleSql =
-                    jdbcDialect
-                            .getReplaceStatement(
-                                    jdbcConf.getSchema(),
-                                    jdbcConf.getTable(),
-                                    columnNameList.toArray(new String[0]))
-                            .get();
+            singleSql = getReplacePrepareTemplate();
         } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())) {
-            singleSql =
-                    jdbcDialect
-                            .getUpsertStatement(
-                                    jdbcConf.getSchema(),
-                                    jdbcConf.getTable(),
-                                    columnNameList.toArray(new String[0]),
-                                    jdbcConf.getUniqueKey().toArray(new String[0]),
-                                    jdbcConf.isAllReplace())
-                            .get();
+            singleSql = getUpsertStatement();
         } else {
             throw new IllegalArgumentException("Unknown write mode:" + jdbcConf.getMode());
         }
@@ -396,8 +494,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     public void closeInternal() {
         snapshotWriteCounter.add(rowsOfCurrentTransaction);
         try {
-            if (stmtProxy != null) {
-                stmtProxy.close();
+            if (statementWrapper != null) {
+                statementWrapper.close();
             }
         } catch (SQLException e) {
             LOG.error(ExceptionUtil.getErrorMessage(e));
@@ -441,5 +539,13 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     public void setColumnTypeList(List<String> columnTypeList) {
         this.columnTypeList = columnTypeList;
+    }
+
+    public void setKeyRowType(RowType keyRowType) {
+        this.keyRowType = keyRowType;
+    }
+
+    public void setKeyRowConverter(AbstractRowConverter keyRowConverter) {
+        this.keyRowConverter = keyRowConverter;
     }
 }

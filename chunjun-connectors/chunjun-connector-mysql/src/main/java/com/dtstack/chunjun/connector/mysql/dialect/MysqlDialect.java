@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.connector.mysql.dialect;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.mysql.converter.MysqlRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -27,7 +26,6 @@ import org.apache.flink.api.java.tuple.Tuple3;
 
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -60,6 +58,11 @@ public class MysqlDialect implements JdbcDialect {
     @Override
     public String quoteIdentifier(String identifier) {
         return "`" + identifier + "`";
+    }
+
+    @Override
+    public boolean supportUpsert() {
+        return true;
     }
 
     /**
@@ -123,7 +126,7 @@ public class MysqlDialect implements JdbcDialect {
     }
 
     @Override
-    public Function<JdbcConf, Tuple3<String, String, String>> getTableIdentify() {
-        return conf -> Tuple3.of(conf.getSchema(), null, conf.getTable());
+    public Tuple3<String, String, String> getTableIdentify(String confSchema, String confTable) {
+        return Tuple3.of(confSchema, null, confTable);
     }
 }

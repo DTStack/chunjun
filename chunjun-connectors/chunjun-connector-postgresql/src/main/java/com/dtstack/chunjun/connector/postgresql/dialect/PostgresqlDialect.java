@@ -78,6 +78,11 @@ public class PostgresqlDialect implements JdbcDialect {
         return Optional.of(DRIVER);
     }
 
+    @Override
+    public boolean supportUpsert() {
+        return true;
+    }
+
     /** Postgres upsert query. It use ON CONFLICT ... DO UPDATE SET.. to replace into Postgres. */
     @Override
     public Optional<String> getUpsertStatement(
