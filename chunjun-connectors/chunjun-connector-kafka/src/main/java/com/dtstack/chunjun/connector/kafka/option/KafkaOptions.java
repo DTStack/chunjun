@@ -18,24 +18,13 @@
 
 package com.dtstack.chunjun.connector.kafka.option;
 
-import org.apache.flink.configuration.ConfigOption;
-import org.apache.flink.configuration.ConfigOptions;
-
 /**
  * @author chuixue
  * @create 2021-06-07 15:53
  * @description
  */
 public class KafkaOptions {
-    public static final ConfigOption<String> DEFAULT_CODEC =
-            ConfigOptions.key("default.codec")
-                    .stringType()
-                    .defaultValue("json")
-                    .withDescription("default.codec");
+    public static final String DEFAULT_CODEC = "json";
 
-    public static final ConfigOption<String> VALUE_CODEC =
-            ConfigOptions.key("value.codec")
-                    .stringType()
-                    .defaultValue("value")
-                    .withDescription("value.codec");
+    public static final String VALUE_CODEC = "value";
 }

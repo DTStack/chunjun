@@ -80,28 +80,34 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
     public KafkaColumnConverter(KafkaConf kafkaConf, List<String> keyTypeList) {
         this.kafkaConf = kafkaConf;
         this.outList = keyTypeList;
-        if (DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
-            this.decoder = new JsonDecoder();
-        } else if (VALUE_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
-            this.decoder = new ValueDecoder();
-        } else {
-            this.decoder = new TextDecoder();
+        switch (kafkaConf.getCodec()) {
+            case DEFAULT_CODEC:
+                this.decoder = new JsonDecoder();
+                break;
+            case VALUE_CODEC:
+                this.decoder = new ValueDecoder();
+                break;
+            default:
+                this.decoder = new TextDecoder();
         }
     }
 
     public KafkaColumnConverter(KafkaConf kafkaConf) {
         this.commonConf = this.kafkaConf = kafkaConf;
-        if (DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
-            this.decoder = new JsonDecoder();
-        } else if (VALUE_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
-            this.decoder = new ValueDecoder();
-        } else {
-            this.decoder = new TextDecoder();
+        switch (kafkaConf.getCodec()) {
+            case DEFAULT_CODEC:
+                this.decoder = new JsonDecoder();
+                break;
+            case VALUE_CODEC:
+                this.decoder = new ValueDecoder();
+                break;
+            default:
+                this.decoder = new TextDecoder();
         }
 
         // Only json need to extract the fields
         if (!CollectionUtils.isEmpty(kafkaConf.getColumn())
-                && DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
+                && DEFAULT_CODEC.equals(kafkaConf.getCodec())) {
             List<String> typeList =
                     kafkaConf.getColumn().stream()
                             .map(FieldConf::getType)
@@ -203,7 +209,7 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
             map = keyPartitionMap;
         }
 
-        if (VALUE_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
+        if (VALUE_CODEC.equals(kafkaConf.getCodec())) {
             return MapUtil.writeValueAsStringWithoutQuote(map.get(ValueDecoder.KEY_MESSAGE))
                     .getBytes(StandardCharsets.UTF_8);
         } else {
