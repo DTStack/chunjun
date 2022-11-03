@@ -76,8 +76,12 @@ public class MapUtil {
         return objectMapper.readValue(jsonStr, clazz);
     }
 
-    public static String writeValueAsString(Object obj) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(obj);
+    public static String writeValueAsStringWithoutQuote(Object obj) throws JsonProcessingException {
+        return objectMapper.writeValueAsString(obj).replace("\"", "");
+    }
+
+    public static byte[] writeValueAsBytes(Object obj) throws JsonProcessingException {
+        return objectMapper.writeValueAsBytes(obj);
     }
 
     /**
