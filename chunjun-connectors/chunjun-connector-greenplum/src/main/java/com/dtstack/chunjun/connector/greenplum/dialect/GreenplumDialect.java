@@ -54,6 +54,11 @@ public class GreenplumDialect extends PostgresqlDialect {
     }
 
     @Override
+    public boolean supportUpsert() {
+        return false;
+    }
+
+    @Override
     public Optional<String> getUpsertStatement(
             String schema,
             String tableName,

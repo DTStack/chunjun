@@ -48,6 +48,7 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -156,6 +157,10 @@ public interface JdbcDialect extends Serializable {
         return Optional.empty();
     }
 
+    default boolean supportUpsert() {
+        return false;
+    }
+
     default Optional<String> getReplaceStatement(
             String schema, String tableName, String[] fieldNames) {
         return Optional.empty();
@@ -221,11 +226,12 @@ public interface JdbcDialect extends Serializable {
             String schema, String tableName, String[] fieldNames, String[] conditionFields) {
         String setClause =
                 Arrays.stream(fieldNames)
-                        .map(f -> format("%s = ?", quoteIdentifier(f)))
+                        .filter(f -> !Arrays.asList(conditionFields).contains(f))
+                        .map(f -> format("%s = :%s", quoteIdentifier(f), f))
                         .collect(Collectors.joining(", "));
         String conditionClause =
                 Arrays.stream(conditionFields)
-                        .map(f -> format("%s = ?", quoteIdentifier(f)))
+                        .map(f -> format("%s = :%s", quoteIdentifier(f), f))
                         .collect(Collectors.joining(" AND "));
         return "UPDATE "
                 + buildTableInfoWithSchema(schema, tableName)
@@ -235,19 +241,65 @@ public interface JdbcDialect extends Serializable {
                 + conditionClause;
     }
 
-    /**
-     * Get delete one row statement by condition fields, default not use limit 1, because limit 1 is
-     * a sql dialect.
-     */
-    default String getDeleteStatement(String schema, String tableName, String[] conditionFields) {
+    default String getKeyedDeleteStatement(
+            String schema, String tableName, List<String> conditionFieldList) {
         String conditionClause =
-                Arrays.stream(conditionFields)
+                conditionFieldList.stream()
                         .map(f -> format("%s = :%s", quoteIdentifier(f), f))
                         .collect(Collectors.joining(" AND "));
         return "DELETE FROM "
                 + buildTableInfoWithSchema(schema, tableName)
                 + " WHERE "
                 + conditionClause;
+    }
+
+    /**
+     * Get delete one row statement by condition fields, default not use limit 1, because limit 1 is
+     * a sql dialect.
+     */
+    default String getDeleteStatement(
+            String schema,
+            String tableName,
+            String[] conditionFields,
+            String[] nullConditionFields) {
+        ArrayList<String> nullFields = new ArrayList<>();
+        nullFields.addAll(Arrays.asList(nullConditionFields));
+
+        List<String> conditions =
+                Arrays.stream(conditionFields)
+                        .filter(i -> !nullFields.contains(i))
+                        .map(f -> format("%s = :%s", quoteIdentifier(f), f))
+                        .collect(Collectors.toList());
+
+        Arrays.stream(nullConditionFields)
+                .map(f -> format("%s IS NULL", quoteIdentifier(f)))
+                .forEach(i -> conditions.add(i));
+
+        String conditionClause = String.join(" AND ", conditions);
+        return "DELETE FROM "
+                + buildTableInfoWithSchema(schema, tableName)
+                + " WHERE "
+                + conditionClause;
+    }
+
+    /** Get select fields statement by condition fields. Default use SELECT. */
+    default String getSelectFromStatement(String schema, String tableName, String[] fields) {
+        if (fields == null || fields.length == 0) {
+            throw new IllegalArgumentException("fields can not be null or empty");
+        }
+
+        String selectExpressions =
+                Arrays.stream(fields).map(this::quoteIdentifier).collect(Collectors.joining(", "));
+        String fieldExpressions =
+                Arrays.stream(fields)
+                        .map(f -> format("%s = :%s", quoteIdentifier(f), f))
+                        .collect(Collectors.joining(" AND "));
+        return "SELECT "
+                + selectExpressions
+                + " FROM "
+                + buildTableInfoWithSchema(schema, tableName)
+                + " WHERE "
+                + fieldExpressions;
     }
 
     /** Get select fields statement by condition fields. Default use SELECT. */

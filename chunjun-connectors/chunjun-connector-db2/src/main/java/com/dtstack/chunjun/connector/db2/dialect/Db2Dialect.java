@@ -131,6 +131,11 @@ public class Db2Dialect implements JdbcDialect {
         return Optional.of(mergeIntoSql.toString());
     }
 
+    @Override
+    public boolean supportUpsert() {
+        return true;
+    }
+
     /** build T1."A"=T2."A" or T1."A"=nvl(T2."A",T1."A") */
     private String buildUpdateConnection(
             String[] fieldNames, String[] uniqueKeyFields, boolean allReplace) {

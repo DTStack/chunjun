@@ -122,6 +122,7 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConfig);
         builder.setRowConverter(new DorisJdbcSqlConverter(rowType));
+        setKeyRowConverter(builder, rowType);
         return builder;
     }
 

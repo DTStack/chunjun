@@ -22,6 +22,7 @@ import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRawTypeConverterTest;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcSyncConverter;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.chunjun.connector.jdbc.sink.wrapper.JdbcBatchStatementWrapper;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
@@ -52,7 +53,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -72,7 +72,7 @@ import static org.powermock.reflect.Whitebox.setInternalState;
     SqlUtil.class,
     TableUtil.class,
     JdbcUtil.class,
-    PreparedStmtProxy.class,
+    JdbcBatchStatementWrapper.class,
     FieldNamedPreparedStatement.class,
     LongCounter.class
 })
@@ -85,7 +85,7 @@ public class JdbcOutputFormatTest {
     BigIntegerAccumulator endLocationAccumulator;
     FormatState formatState;
     JdbcSyncConverter rowConverter;
-    PreparedStmtProxy stmtProxy;
+    JdbcBatchStatementWrapper<RowData> statementWrapper;
     LongCounter snapshotWriteCounter;
 
     Connection connection = mock(Connection.class);
@@ -105,14 +105,14 @@ public class JdbcOutputFormatTest {
         endLocationAccumulator = mock(BigIntegerAccumulator.class);
         formatState = mock(FormatState.class);
         rowConverter = mock(JdbcSyncConverter.class);
-        stmtProxy = mock(PreparedStmtProxy.class);
+        statementWrapper = mock(JdbcBatchStatementWrapper.class);
         snapshotWriteCounter = mock(LongCounter.class);
 
         setInternalState(jdbcOutputFormat, "dbConn", connection);
         setInternalState(jdbcOutputFormat, "formatState", formatState);
         setInternalState(jdbcOutputFormat, "jdbcConfig", jdbcConfig);
         setInternalState(jdbcOutputFormat, "jdbcDialect", jdbcDialect);
-        setInternalState(jdbcOutputFormat, "stmtProxy", stmtProxy);
+        setInternalState(jdbcOutputFormat, "statementWrapper", statementWrapper);
         setInternalState(jdbcOutputFormat, "snapshotWriteCounter", snapshotWriteCounter);
     }
 
@@ -136,14 +136,14 @@ public class JdbcOutputFormatTest {
 
     @Test
     public void buildStmtProxyTest() throws SQLException {
-        doCallRealMethod().when(jdbcOutputFormat).buildStmtProxy();
+        doCallRealMethod().when(jdbcOutputFormat).buildStatementWrapper();
         setInternalState(jdbcOutputFormat, "columnNameList", Collections.singletonList("id"));
         when(jdbcConfig.getTable()).thenReturn("*");
-        jdbcOutputFormat.buildStmtProxy();
+        jdbcOutputFormat.buildStatementWrapper();
 
         when(jdbcConfig.getTable()).thenReturn("test_sink");
         when(jdbcDialect.getRawTypeConverter()).thenReturn(JdbcRawTypeConverterTest::apply);
-        jdbcOutputFormat.buildStmtProxy();
+        jdbcOutputFormat.buildStatementWrapper();
     }
 
     /** -------------------------------- write test -------------------------------- */
@@ -154,8 +154,8 @@ public class JdbcOutputFormatTest {
         jdbcOutputFormat.writeSingleRecordInternal(new ColumnRowData(1));
 
         doThrow(new SQLException("No operations allowed"))
-                .when(stmtProxy)
-                .writeSingleRecordInternal(any(RowData.class));
+                .when(statementWrapper)
+                .writeSingleRecord(any(RowData.class));
         doCallRealMethod()
                 .when(jdbcOutputFormat)
                 .processWriteException(any(), anyInt(), any(RowData.class));
@@ -193,7 +193,7 @@ public class JdbcOutputFormatTest {
         setInternalState(jdbcOutputFormat, "semantic", Semantic.EXACTLY_ONCE);
         jdbcOutputFormat.writeMultipleRecordsInternal();
 
-        when(stmtProxy.executeBatch()).thenThrow(new SQLException());
+        doThrow(new SQLException()).when(statementWrapper).executeBatch();
         Assert.assertThrows(
                 SQLException.class, () -> jdbcOutputFormat.writeMultipleRecordsInternal());
     }
@@ -216,7 +216,7 @@ public class JdbcOutputFormatTest {
         setInternalState(jdbcOutputFormat, "rowsOfCurrentTransaction", 1);
         jdbcOutputFormat.commit(1);
 
-        doThrow(new ChunJunRuntimeException("")).when(stmtProxy).clearStatementCache();
+        doThrow(new ChunJunRuntimeException("")).when(statementWrapper).clearStatementCache();
         Assert.assertThrows(Exception.class, () -> jdbcOutputFormat.commit(1));
     }
 
@@ -250,20 +250,23 @@ public class JdbcOutputFormatTest {
         // insert
         when(jdbcConfig.getMode()).thenReturn(EWriteMode.INSERT.name());
         when(jdbcDialect.getInsertIntoStatement(any(), any(), any())).thenCallRealMethod();
+        when(jdbcOutputFormat.getInsertPrepareTemplate()).thenCallRealMethod();
         expect = "INSERT INTO null(null, null) VALUES (:id, :name)";
         Assert.assertEquals(expect, jdbcOutputFormat.prepareTemplates());
         // replace
         when(jdbcConfig.getMode()).thenReturn(EWriteMode.REPLACE.name());
         when(jdbcDialect.getReplaceStatement(any(), any(), any())).thenCallRealMethod();
+        when(jdbcOutputFormat.getReplacePrepareTemplate()).thenCallRealMethod();
         Assert.assertThrows(
-                NoSuchElementException.class, () -> jdbcOutputFormat.prepareTemplates());
+                IllegalArgumentException.class, () -> jdbcOutputFormat.prepareTemplates());
         // update
         when(jdbcConfig.getMode()).thenReturn(EWriteMode.UPDATE.name());
         when(jdbcDialect.getUpdateStatement(any(), any(), any(), any())).thenCallRealMethod();
         when(jdbcConfig.getUniqueKey()).thenReturn(Collections.singletonList("id"));
         when(jdbcConfig.isAllReplace()).thenReturn(true);
+        when(jdbcOutputFormat.getUpsertStatement()).thenCallRealMethod();
         Assert.assertThrows(
-                NoSuchElementException.class, () -> jdbcOutputFormat.prepareTemplates());
+                IllegalArgumentException.class, () -> jdbcOutputFormat.prepareTemplates());
         // exception
         when(jdbcConfig.getMode()).thenReturn("asd");
         Assert.assertThrows(
@@ -276,7 +279,7 @@ public class JdbcOutputFormatTest {
         setInternalState(jdbcOutputFormat, "rowsOfCurrentTransaction", 1);
         jdbcOutputFormat.closeInternal();
 
-        doThrow(new SQLException("")).when(stmtProxy).close();
+        doThrow(new SQLException("")).when(statementWrapper).close();
         jdbcOutputFormat.closeInternal();
     }
 }

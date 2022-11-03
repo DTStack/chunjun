@@ -23,12 +23,19 @@ import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
+import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.ClassUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.RetryUtil;
 import com.dtstack.chunjun.util.TelnetUtil;
+
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.DistinctType;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -49,8 +56,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getFieldCount;
+import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getPrecision;
+import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getScale;
 
 /** Utilities for relational database connection and sql execution */
 @Slf4j
@@ -593,5 +606,126 @@ public class JdbcUtil {
                 }
             }
         }
+    }
+
+    public static Function<RowData, RowData> getKeyExtractor(
+            List<String> columnList,
+            List<String> keyList,
+            RowType keyRowType,
+            boolean useAbstractBaseColumn) {
+        List<LogicalType> keyLogicalTypeList =
+                keyRowType.getFields().stream()
+                        .map(RowType.RowField::getType)
+                        .collect(Collectors.toList());
+        int[] keyIndices = new int[keyList.size()];
+        for (int i = 0; i < keyList.size(); i++) {
+            keyIndices[i] = columnList.indexOf(keyList.get(i));
+        }
+        if (useAbstractBaseColumn) {
+            return row -> {
+                ColumnRowData pkRow = new ColumnRowData(keyList.size());
+                for (int i = 0; i < keyList.size(); i++) {
+                    pkRow.addField(((ColumnRowData) row).getField(keyIndices[i]));
+                }
+                return pkRow;
+            };
+        } else {
+            final RowData.FieldGetter[] fieldGetters = new RowData.FieldGetter[keyList.size()];
+            for (int i = 0; i < keyList.size(); i++) {
+                fieldGetters[i] = createFieldGetter(keyLogicalTypeList.get(i), keyIndices[i]);
+            }
+            return row -> {
+                GenericRowData pkRow = new GenericRowData(fieldGetters.length);
+                for (int i = 0; i < fieldGetters.length; i++) {
+                    pkRow.setField(i, fieldGetters[i].getFieldOrNull(row));
+                }
+                return pkRow;
+            };
+        }
+    }
+
+    static RowData.FieldGetter createFieldGetter(LogicalType fieldType, int fieldPos) {
+        final RowData.FieldGetter fieldGetter;
+        // ordered by type root definition
+        switch (fieldType.getTypeRoot()) {
+            case CHAR:
+            case VARCHAR:
+                fieldGetter = row -> row.getString(fieldPos);
+                break;
+            case BOOLEAN:
+                fieldGetter = row -> row.getBoolean(fieldPos);
+                break;
+            case BINARY:
+            case VARBINARY:
+                fieldGetter = row -> row.getBinary(fieldPos);
+                break;
+            case DECIMAL:
+                final int decimalPrecision = getPrecision(fieldType);
+                final int decimalScale = getScale(fieldType);
+                fieldGetter = row -> row.getDecimal(fieldPos, decimalPrecision, decimalScale);
+                break;
+            case TINYINT:
+                fieldGetter = row -> row.getByte(fieldPos);
+                break;
+            case SMALLINT:
+                fieldGetter = row -> row.getShort(fieldPos);
+                break;
+            case INTEGER:
+            case DATE:
+            case TIME_WITHOUT_TIME_ZONE:
+            case INTERVAL_YEAR_MONTH:
+                fieldGetter = row -> row.getInt(fieldPos);
+                break;
+            case BIGINT:
+            case INTERVAL_DAY_TIME:
+                fieldGetter = row -> row.getLong(fieldPos);
+                break;
+            case FLOAT:
+                fieldGetter = row -> row.getFloat(fieldPos);
+                break;
+            case DOUBLE:
+                fieldGetter = row -> row.getDouble(fieldPos);
+                break;
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
+            case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
+                final int timestampPrecision = getPrecision(fieldType);
+                fieldGetter = row -> row.getTimestamp(fieldPos, timestampPrecision);
+                break;
+            case TIMESTAMP_WITH_TIME_ZONE:
+                throw new UnsupportedOperationException();
+            case ARRAY:
+                fieldGetter = row -> row.getArray(fieldPos);
+                break;
+            case MULTISET:
+            case MAP:
+                fieldGetter = row -> row.getMap(fieldPos);
+                break;
+            case ROW:
+            case STRUCTURED_TYPE:
+                final int rowFieldCount = getFieldCount(fieldType);
+                fieldGetter = row -> row.getRow(fieldPos, rowFieldCount);
+                break;
+            case DISTINCT_TYPE:
+                fieldGetter =
+                        createFieldGetter(((DistinctType) fieldType).getSourceType(), fieldPos);
+                break;
+            case RAW:
+                fieldGetter = row -> row.getRawValue(fieldPos);
+                break;
+            case NULL:
+            case SYMBOL:
+            case UNRESOLVED:
+            default:
+                throw new IllegalArgumentException();
+        }
+        if (!fieldType.isNullable()) {
+            return fieldGetter;
+        }
+        return row -> {
+            if (row.isNullAt(fieldPos)) {
+                return null;
+            }
+            return fieldGetter.getFieldOrNull(row);
+        };
     }
 }

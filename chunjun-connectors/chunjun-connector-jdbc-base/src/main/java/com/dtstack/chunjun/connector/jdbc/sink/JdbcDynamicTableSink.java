@@ -30,6 +30,7 @@ import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
+import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.CollectionUtil;
 
@@ -66,7 +67,6 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
                 .addContainedKind(RowKind.INSERT)
                 .addContainedKind(RowKind.DELETE)
                 .addContainedKind(RowKind.UPDATE_AFTER)
-                .addContainedKind(RowKind.UPDATE_BEFORE)
                 .build();
     }
 
@@ -80,8 +80,8 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
     @Override
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
-        final InternalTypeInfo<?> typeInformation =
-                InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType());
+        final RowType rowType = (RowType) tableSchema.toPhysicalRowDataType().getLogicalType();
+        final InternalTypeInfo<?> typeInformation = InternalTypeInfo.of(rowType);
 
         JdbcOutputFormatBuilder builder = this.builder;
 
@@ -116,9 +116,28 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConfig);
         builder.setRowConverter(jdbcDialect.getRowConverter(typeInformation.toRowType()));
+        setKeyRowConverter(builder, rowType);
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction<>(builder.finish()), jdbcConfig.getParallelism());
+    }
+
+    protected void setKeyRowConverter(JdbcOutputFormatBuilder builder, RowType rowType) {
+        if (!CollectionUtil.isNullOrEmpty(jdbcConfig.getUniqueKey())) {
+            List<RowType.RowField> fields = rowType.getFields();
+            List<RowType.RowField> keyRowFields = new ArrayList<>(jdbcConfig.getUniqueKey().size());
+            for (String name : jdbcConfig.getUniqueKey()) {
+                for (RowType.RowField field : fields) {
+                    if (Objects.equals(name, field.getName())) {
+                        keyRowFields.add(field);
+                        break;
+                    }
+                }
+            }
+            RowType keyRowType = new RowType(keyRowFields);
+            builder.setKeyRowType(keyRowType);
+            builder.setKeyRowConverter(jdbcDialect.getRowConverter(keyRowType));
+        }
     }
 
     @Override
