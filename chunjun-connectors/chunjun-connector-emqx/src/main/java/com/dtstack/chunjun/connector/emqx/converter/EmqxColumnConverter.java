@@ -105,7 +105,7 @@ public class EmqxColumnConverter
             map = Collections.singletonMap("message", row.getString());
         }
 
-        output.setPayload(MapUtil.writeValueAsString(map).getBytes());
+        output.setPayload(MapUtil.writeValueAsBytes(map));
         return output;
     }
 }

@@ -16,15 +16,31 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.kafka.option;
+package com.dtstack.chunjun.decoder;
 
-/**
- * @author chuixue
- * @create 2021-06-07 15:53
- * @description
- */
-public class KafkaOptions {
-    public static final String DEFAULT_CODEC = "json";
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-    public static final String VALUE_CODEC = "value";
+import java.util.Collections;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class ValueDecoderTest {
+
+    private ValueDecoder valueDecoder;
+
+    @BeforeEach
+    void setUp() {
+        valueDecoder = new ValueDecoder();
+    }
+
+    @Test
+    @DisplayName("Should return a map with the message")
+    void decodeShouldReturnAMapWithTheMessage() {
+        final String message = "Hello World";
+        final Map<String, Object> result = valueDecoder.decode(message);
+        assertEquals(Collections.singletonMap("value", message), result);
+    }
 }
