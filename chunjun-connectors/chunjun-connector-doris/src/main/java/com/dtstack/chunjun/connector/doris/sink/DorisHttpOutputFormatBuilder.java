@@ -24,12 +24,6 @@ import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import java.util.List;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2021/11/8
- */
 public class DorisHttpOutputFormatBuilder
         extends BaseRichOutputFormatBuilder<DorisHttpOutputFormat> {
 

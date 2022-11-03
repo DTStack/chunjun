@@ -22,7 +22,6 @@ import com.dtstack.chunjun.connector.doris.options.DorisConf;
 import com.dtstack.chunjun.connector.doris.rest.Carrier;
 import com.dtstack.chunjun.connector.doris.rest.DorisLoadClient;
 import com.dtstack.chunjun.connector.doris.rest.DorisStreamLoad;
-import com.dtstack.chunjun.connector.doris.rest.FeRestService;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 
@@ -35,12 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * use DorisStreamLoad to write data into doris
- *
- * @author tiezhu@dtstack
- * @date 2021/9/16 星期四
- */
+/** use DorisStreamLoad to write data into doris */
 public class DorisHttpOutputFormat extends BaseRichOutputFormat {
     private DorisConf options;
     private DorisLoadClient client;
@@ -57,16 +51,6 @@ public class DorisHttpOutputFormat extends BaseRichOutputFormat {
         this.columns = columns;
     }
 
-    private String getBackend() throws IOException {
-        try {
-            // get be url from fe
-            return FeRestService.randomBackend(options);
-        } catch (IOException e) {
-            LOG.error("get backends info fail");
-            throw new IOException(e);
-        }
-    }
-
     @Override
     public void open(int taskNumber, int numTasks) throws IOException {
         DorisStreamLoad dorisStreamLoad = new DorisStreamLoad(options);
@@ -76,12 +60,12 @@ public class DorisHttpOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+    protected void openInternal(int taskNumber, int numTasks) {
         LOG.info("task number : {} , number task : {}", taskNumber, numTasks);
     }
 
     @Override
-    protected void closeInternal() throws IOException {}
+    protected void closeInternal() {}
 
     @Override
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {

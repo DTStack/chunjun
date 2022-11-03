@@ -16,10 +16,24 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.doris.exception;
+package com.dtstack.chunjun.connector.doris.source;
 
-public class DorisConnectFailedException extends RuntimeException {
-    public DorisConnectFailedException(String username, String hostUrl, Throwable cause) {
-        super(String.format("User [%s] connect to [%s] failed.", username, hostUrl), cause);
+import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.connector.doris.converter.DorisRowTypeConverter;
+import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
+import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
+import com.dtstack.chunjun.converter.RawTypeConverter;
+
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+public class DorisSourceFactory extends JdbcSourceFactory {
+
+    public DorisSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+        super(syncConf, env, new MysqlDialect());
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return DorisRowTypeConverter::apply;
     }
 }

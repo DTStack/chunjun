@@ -21,13 +21,13 @@ Official website of ChunJun: https://dtstack.github.io/chunjun/
 ChunJun abstracts different databases into reader/source plugins, writer/sink plugins and lookup plugins, and it has the following features:
 
 - Based on the real-time computing engine--Flink, and supports JSON template and SQL script configuration tasks. The SQL script is compatible with Flink SQL syntax;
-- Support distributed operation, support flink-standalone, yarn-session, yarn-per job and other submission methods;
-- Support Docker one-click deployment, support deploy and run on k8s;
+- Supports distributed operation, support flink-standalone, yarn-session, yarn-per job and other submission methods;
+- Supports Docker one-click deployment, support deploy and run on k8s;
 - Supports a variety of heterogeneous data sources, and supports synchronization and calculation of more than 20 data sources such as MySQL, Oracle, SQLServer, Hive, Kudu, etc.
 - Easy to expand, highly flexible, newly expanded data source plugins can integrate with existing data source plugins instantly, plugin developers do not need to care about the code logic of other plugins;
 - Not only supports full synchronization, but also supports incremental synchronization and interval training;
 - Not only supports offline synchronization and calculation, but also compatible with real-time scenarios;
-- Support dirty data storage, and provide indicator monitoring, etc.;
+- Supports dirty data storage, and provide indicator monitoring, etc.;
 - Cooperate with the flink checkpoint mechanism to achieve breakpoint resuming, task disaster recovery;
 - Not only supports synchronizing DML data, but also supports DDL synchronization, like 'CREATE TABLE', 'ALTER COLUMN', etc.;
 
@@ -112,8 +112,19 @@ After execute, you can perform a task locally.
 Standalone mode depend on the Flink Standalone environment and does not depend on the Hadoop environment.
 
 #### Steps
+##### 1. add jars of chunjun 
+1) Find directory of jars:
+   if you build this project using maven, the directory name is 'chunjun-dist' ;
+   if you download tar.gz file from release page, after decompression, the directory name would be like 'chunjun-assembly-1.12-SNAPSHOT-chunjun-dist'.
 
-##### 1. Start Flink Standalone Cluster
+2) Copy jars to directory of Flink lib, command example:
+```shell
+cp -r chunjun-dist $FLINK_HOME/lib
+```
+Notice: this operation should be executed in all machines of Flink cluster, otherwise some jobs will fail because of ClassNotFoundException.
+
+
+##### 2. Start Flink Standalone Cluster
 
 ```shell
 sh $FLINK_HOME/bin/start-cluster.sh
@@ -121,7 +132,7 @@ sh $FLINK_HOME/bin/start-cluster.sh
 
 After the startup is successful, the default port of Flink Web is 8081, which you can configure in the file of 'flink-conf.yaml'. We can access the 8081 port of the current machine to enter the flink web of standalone cluster.
 
-##### 2. Submit task
+##### 3. Submit task
 
 Go to the directory of 'chunjun-dist' and execute the command below:
 

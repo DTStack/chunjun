@@ -279,4 +279,9 @@ public class FieldNamedPreparedStatementImpl implements FieldNamedPreparedStatem
         statement = null;
         statement = connection.prepareStatement(parsedSQL);
     }
+
+    @Override
+    public Connection getConnection() throws SQLException {
+        return statement.getConnection();
+    }
 }

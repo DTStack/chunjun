@@ -140,6 +140,9 @@ public class JdbcUtil {
     public static Pair<List<String>, List<String>> getTableMetaData(
             String cataLog, String schema, String tableName, Connection dbConn, String querySql) {
         try {
+            if (StringUtils.isEmpty(schema)) {
+                schema = cataLog;
+            }
             if (StringUtils.isBlank(querySql)) {
                 // check table exists
                 if (ALL_TABLE.equalsIgnoreCase(tableName.trim())) {
