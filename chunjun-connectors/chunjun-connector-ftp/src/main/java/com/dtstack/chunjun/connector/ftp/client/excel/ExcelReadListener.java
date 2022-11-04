@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-/** @author by dujie @Description @Date 2021/12/20 */
 public class ExcelReadListener implements ReadListener<Map<Integer, String>> {
 
     private final BlockingQueue<Row> queue = new LinkedBlockingQueue<>(4096);

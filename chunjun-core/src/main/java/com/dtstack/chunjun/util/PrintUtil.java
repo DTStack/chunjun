@@ -30,13 +30,9 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author jiangbo
- * @date 2019/7/18
- */
 public class PrintUtil {
 
-    private static Logger LOG = LoggerFactory.getLogger(PrintUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PrintUtil.class);
 
     public static void printResult(Map<String, Object> result) {
         List<String> names = Lists.newArrayList();
@@ -57,8 +53,10 @@ public class PrintUtil {
         builder.append("\n*********************************************\n");
         for (int i = 0; i < names.size(); i++) {
             String name = names.get(i);
-            builder.append(name + StringUtils.repeat(" ", maxLength - name.length()));
-            builder.append("|  ").append(values.get(i));
+            builder.append(name)
+                    .append(StringUtils.repeat(" ", maxLength - name.length()))
+                    .append("|  ")
+                    .append(values.get(i));
 
             if (i + 1 < names.size()) {
                 builder.append("\n");

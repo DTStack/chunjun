@@ -16,27 +16,25 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.source;
+package com.dtstack.chunjun.connector.ftp.client.excel;
 
-import org.apache.flink.core.io.InputSplit;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+public class ExcelSubExceptionCarrierTest {
 
-public class FtpInputSplit implements InputSplit {
+    private ExcelSubExceptionCarrier excelSubExceptionCarrierUnderTest;
 
-    private List<FtpFileSplit> fileSplits = new ArrayList<>();
-
-    @Override
-    public int getSplitNumber() {
-        return 0;
+    @Before
+    public void setUp() {
+        excelSubExceptionCarrierUnderTest = new ExcelSubExceptionCarrier();
     }
 
-    public List<FtpFileSplit> getFileSplits() {
-        return fileSplits;
-    }
+    @Test(expected = RuntimeException.class)
+    public void setExcelSubExceptionCarrierUnderTest() throws Exception {
+        RuntimeException test = new RuntimeException("Test");
+        excelSubExceptionCarrierUnderTest.setThrowable(test);
 
-    public void setFileSplits(List<FtpFileSplit> fileSplits) {
-        this.fileSplits = fileSplits;
+        throw excelSubExceptionCarrierUnderTest.getThrowable();
     }
 }
