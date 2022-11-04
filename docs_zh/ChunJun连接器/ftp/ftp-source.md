@@ -154,6 +154,11 @@ linux：[地址](https://yq.aliyun.com/articles/435356?spm=a2c4e.11163080.search
     - 字段类型：string
     - 默认值：无
 
+- **maxFetchSize**
+    - 描述：如果文件大小， 大于配置的这个值, 开启文件并发读功能， 目前只支持sftp协议, 以\n为行分隔符的文本(csv, txt)
+    - 必选：否 
+    - 字段类型：long 
+    - 默认值：1024 * 1024 * 1024
 
 - **compressType**
     - 描述：文件压缩类型,目前只支持ZIP压缩格式
@@ -183,7 +188,7 @@ linux：[地址](https://yq.aliyun.com/articles/435356?spm=a2c4e.11163080.search
     - 默认值：无
     - 示例：
         - csv文件是否进行trim：`"fileConfig":{"trimWhitespace":true}`
-
+        
 
 #### 2、sql
 
