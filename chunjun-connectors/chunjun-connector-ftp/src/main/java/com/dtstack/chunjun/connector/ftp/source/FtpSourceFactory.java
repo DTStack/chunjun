@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  */
 public class FtpSourceFactory extends SourceFactory {
 
-    private FtpConfig ftpConfig;
+    private final FtpConfig ftpConfig;
 
     public FtpSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);

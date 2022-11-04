@@ -20,22 +20,24 @@ package com.dtstack.chunjun.connector.ftp.client.excel;
 
 import com.alibaba.excel.ExcelReader;
 
-/** @author by dujie @Description @Date 2021/12/20 */
 public class ExcelReaderExecutor implements Runnable {
 
     private final ExcelReader reader;
+    private final ExcelSubExceptionCarrier ec;
 
-    public ExcelReaderExecutor(ExcelReader reader) {
+    public ExcelReaderExecutor(ExcelReader reader, ExcelSubExceptionCarrier ec) {
         this.reader = reader;
+        this.ec = ec;
     }
 
     @Override
     public void run() {
         try {
             reader.readAll();
-            close();
         } catch (Exception e) {
-            throw new RuntimeException("failed to read file.", e);
+            ec.setThrowable(e);
+        } finally {
+            close();
         }
     }
 
