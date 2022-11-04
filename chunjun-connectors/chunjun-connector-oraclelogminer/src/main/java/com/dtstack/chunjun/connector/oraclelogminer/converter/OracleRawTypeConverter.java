@@ -52,15 +52,14 @@ public class OracleRawTypeConverter {
             case "NCHAR":
             case "NVARCHAR2":
             case "LONG":
+            case "RAW":
+            case "LONG RAW":
             case "BLOB":
             case "CLOB":
             case "NCLOB":
             case "INTERVAL YEAR":
             case "INTERVAL DAY":
                 return DataTypes.STRING();
-            case "RAW":
-            case "LONG RAW":
-                return DataTypes.BYTES();
             case "INT":
             case "INTEGER":
                 return DataTypes.INT();

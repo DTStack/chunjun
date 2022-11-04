@@ -19,16 +19,31 @@ package com.dtstack.chunjun.connector.oraclelogminer.util;
 
 import com.dtstack.chunjun.connector.oraclelogminer.entity.ColumnInfo;
 import com.dtstack.chunjun.constants.ConstantValue;
+import com.dtstack.chunjun.element.AbstractBaseColumn;
+import com.dtstack.chunjun.element.ColumnRowData;
+import com.dtstack.chunjun.element.column.BigDecimalColumn;
+import com.dtstack.chunjun.element.column.StringColumn;
+import com.dtstack.chunjun.element.column.TimestampColumn;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
+import com.dtstack.chunjun.util.DateUtil;
+
+import org.apache.flink.types.RowKind;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -307,6 +322,7 @@ public class SqlUtil {
                     + "  and a.TABLE_NAME = c.TABLE_NAME\n"
                     + "  and a.COLUMN_NAME = b.COLUMN_NAME\n"
                     + "%s";
+
     // 查找加载到logminer的日志文件
     public static final String SQL_QUERY_ADDED_LOG =
             "select filename ,thread_id ,low_scn,next_scn,type,filesize,status,type from  V$LOGMNR_LOGS ";
@@ -319,7 +335,7 @@ public class SqlUtil {
     public static final String SQL_GET_MAX_SCN_IN_CONTENTS =
             "select max(scn) as scn  from  v$logmnr_contents";
     public static final String SQL_GET_LOG_FILE_START_POSITION =
-            "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log union select FIRST_CHANGE# from v$archived_log where standby_dest='NO' and name is not null)";
+            "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log l where l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE' union select FIRST_CHANGE# from v$archived_log where standby_dest='NO' and name is not null)";
     public static final String SQL_GET_LOG_FILE_START_POSITION_BY_TIME =
             "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NVL(NEXT_TIME, TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')) union select FIRST_CHANGE# from v$archived_log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NEXT_TIME and standby_dest='NO' and name is not null)";
     public static final String SQL_GET_LOG_FILE_START_POSITION_BY_TIME_10 =
@@ -353,34 +369,35 @@ public class SqlUtil {
     private static final List<String> SUPPORTED_OPERATIONS =
             Arrays.asList("UPDATE", "INSERT", "DELETE");
     public static Logger LOG = LoggerFactory.getLogger(SqlUtil.class);
-    /**
-     * 查找delete的rollback语句对应的insert语句 存在一个事务里rowid相同的其他语句
-     * 所以需要子查询过滤掉scn相同rowid相同的语句(这是一对rollback和DML)
-     */
+
+    /** 查找事务里 回滚数据（delete 和 update）对应的操作数据 */
     public static String queryDataForRollback =
             "SELECT\n"
-                    + "    scn,\n"
+                    + "    scn,"
                     +
                     // oracle 10 没有该字段
                     //            "    commit_scn,\n" +
-                    "    timestamp,\n"
-                    + "    operation,\n"
-                    + "    operation_code,\n"
-                    + "    seg_owner,\n"
-                    + "    table_name,\n"
-                    + "    sql_redo,\n"
-                    + "    sql_undo,\n"
-                    + "    xidusn,\n"
-                    + "    xidslt,\n"
-                    + "    xidsqn,\n"
-                    + "    row_id,\n"
-                    + "    rollback,\n"
+                    "    timestamp,"
+                    + "    operation,"
+                    + "    operation_code,"
+                    + "    seg_owner,"
+                    + "    table_name,"
+                    + "    sql_redo,"
+                    + "    sql_undo,"
+                    + "    xidusn,"
+                    + "    xidslt,"
+                    + "    xidsqn,"
+                    + "    row_id,"
+                    + "    rollback,"
                     + "    csf\n"
                     + "FROM\n"
                     + "   v$logmnr_contents a \n"
                     + "where \n"
-                    + "scn <=?  and row_id=?  and xidusn = ?  and xidslt = ? and xidsqn = ? and table_name = ?  and rollback =? and OPERATION_CODE in (?,?) \n"
-                    + "and scn not in (select scn from  v$logmnr_contents where row_id =  ?   and xidusn = ?  and xidslt = ?  and xidsqn = ?  and scn !=?  group by scn HAVING count(scn) >1 and sum(rollback)>0) \n";
+                    + " (  xidusn = ?  and xidslt = ? and xidsqn = ? and table_name = ?  and rollback =? and OPERATION_CODE in (?,?)) "
+                    + "AND \n"
+                    + "    (scn >= ? "
+                    + "    AND scn < ?) \n"
+                    + "    or (scn = ?) \n";
 
     public static List<String> EXCLUDE_SCHEMAS = Collections.singletonList("SYS");
 
@@ -394,7 +411,6 @@ public class SqlUtil {
     public static String buildSelectSql(
             String listenerOptions, boolean ddlSkip, String listenerTables, boolean isCdb) {
         StringBuilder sqlBuilder = new StringBuilder(SQL_SELECT_DATA);
-
         sqlBuilder.append(" and ( ");
         if (StringUtils.isNotEmpty(listenerTables)) {
             sqlBuilder.append(buildSchemaTableFilter(listenerTables, isCdb));
@@ -418,6 +434,7 @@ public class SqlUtil {
      * 构建需要采集操作类型字符串的过滤条件
      *
      * @param listenerOptions 需要采集操作类型字符串 delete,insert,update
+     * @param ddlSkip 需要采集ddl数据
      * @return
      */
     private static String buildOperationFilter(String listenerOptions, boolean ddlSkip) {
@@ -569,5 +586,112 @@ public class SqlUtil {
             where = append.toString();
         }
         return String.format(SQL_QUERY_TABLE_COLUMN_INFO_TEMPLATE, where);
+    }
+
+    public static String formatGetTableInfoSql(String schema, String table) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(" and ");
+        sb.append(" a.OWNER = ");
+        sb.append("'");
+        sb.append(schema);
+        sb.append("'");
+        sb.append(" and a.TABLE_NAME = ");
+        sb.append("'");
+        sb.append(table);
+        sb.append("'");
+        String where = sb.toString();
+        return String.format(SQL_QUERY_TABLE_COLUMN_INFO_TEMPLATE, where);
+    }
+
+    public static String formatLockTableWithRowShare(String table) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("lock table ");
+        sb.append(table);
+        sb.append(" IN ROW SHARE MODE");
+        return sb.toString();
+    }
+
+    public static String queryDataByScn(String tableWithSchema, BigInteger scn) {
+        String sql = "select * from %s as of scn %d";
+        return String.format(sql, tableWithSchema, scn);
+    }
+
+    public static String releaseTableLock() {
+        return "rollback";
+    }
+
+    /* convert resultSet to columnRowData */
+    public static List<ColumnRowData> jdbcColumnRowColumnConvert(
+            List<ColumnInfo> columnInfos, ResultSet rs) {
+        List<ColumnRowData> columnRowDatas = new ArrayList<>();
+        try {
+            while (rs.next()) {
+                ColumnRowData columnRowData = new ColumnRowData(RowKind.INSERT, columnInfos.size());
+                for (ColumnInfo columnInfo : columnInfos) {
+                    Object value = rs.getObject(columnInfo.getName());
+                    columnRowData.addHeader(columnInfo.getName());
+                    columnRowData.addField(convertJdbcType(columnInfo.getType(), value));
+                }
+                columnRowDatas.add(columnRowData);
+            }
+            return columnRowDatas;
+        } catch (Exception e) {
+            throw new ChunJunRuntimeException(e);
+        }
+    }
+
+    private static AbstractBaseColumn convertJdbcType(String tpe, Object val) {
+        String substring = tpe;
+        int index = tpe.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
+        if (index > 0) {
+            substring = tpe.substring(0, index);
+        }
+
+        switch (substring.toUpperCase(Locale.ENGLISH)) {
+            case "NUMBER":
+            case "SMALLINT":
+            case "INT":
+            case "INTEGER":
+            case "FLOAT":
+            case "DECIMAL":
+            case "NUMERIC":
+            case "BINARY_FLOAT":
+            case "BINARY_DOUBLE":
+                return new BigDecimalColumn((BigDecimal) val);
+
+            case "CHAR":
+            case "NCHAR":
+            case "NVARCHAR2":
+            case "ROWID":
+            case "VARCHAR2":
+            case "VARCHAR":
+            case "LONG":
+            case "RAW":
+            case "LONG RAW":
+            case "INTERVAL YEAR":
+            case "INTERVAL DAY":
+            case "BLOB":
+            case "CLOB":
+            case "NCLOB":
+                return new StringColumn((String) val);
+
+            case "DATE":
+                if (val instanceof Timestamp) {
+                    String formatTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:SS").format(val);
+                    return new TimestampColumn(DateUtil.getTimestampFromStr(formatTime), 0);
+                }
+
+                return new TimestampColumn(DateUtil.getTimestampFromStr((String) val), 0);
+
+            case "TIMESTAMP":
+                return new TimestampColumn(
+                        DateUtil.getTimestampFromStr(((oracle.sql.TIMESTAMP) val).stringValue()),
+                        0);
+
+            case "BFILE":
+            case "XMLTYPE":
+            default:
+                throw new UnsupportedOperationException("Unsupported type:" + tpe);
+        }
     }
 }
