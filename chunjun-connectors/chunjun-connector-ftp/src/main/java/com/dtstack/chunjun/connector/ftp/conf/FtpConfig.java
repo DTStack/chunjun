@@ -64,17 +64,6 @@ public class FtpConfig extends BaseFileConf {
     /** 压缩格式 * */
     public String compressType;
 
-    /** 连通支付需求, 文件为空时不抛错误 * */
-    private boolean filesNotExistsNotThrowError = false;
-
-    public void setFilesNotExistsNotThrowError(boolean filesNotExistsNotThrowError) {
-        this.filesNotExistsNotThrowError = filesNotExistsNotThrowError;
-    }
-
-    public boolean isFilesNotExistsNotThrowError() {
-        return filesNotExistsNotThrowError;
-    }
-
     public String getCustomFormatClassName() {
         return customFormatClassName;
     }
@@ -276,7 +265,6 @@ public class FtpConfig extends BaseFileConf {
                 .add("customFormatClassName='" + customFormatClassName + "'")
                 .add("fileType='" + fileType + "'")
                 .add("compressType='" + compressType + "'")
-                .add("filesNotExistsNotThrowError=" + filesNotExistsNotThrowError)
                 .toString();
     }
 }

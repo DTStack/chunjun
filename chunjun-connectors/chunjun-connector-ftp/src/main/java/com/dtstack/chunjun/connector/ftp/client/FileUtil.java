@@ -20,7 +20,6 @@ package com.dtstack.chunjun.connector.ftp.client;
 
 import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.handler.FtpHandler;
-import com.dtstack.chunjun.connector.ftp.handler.FtpHandlerFactory;
 import com.dtstack.chunjun.connector.ftp.handler.IFtpHandler;
 import com.dtstack.chunjun.connector.ftp.source.FtpFileSplit;
 
@@ -59,28 +58,24 @@ public class FileUtil {
                                     zipEntry.getName(),
                                     ftpConfig.getCompressType()));
                 }
-                closeWithFtpHandler(ftpHandler, ftpConfig, LOG);
+                closeWithFtpHandler(ftpHandler, LOG);
             }
         } else {
             throw new RuntimeException("not support compressType " + ftpConfig.getCompressType());
         }
     }
 
-    public static void closeWithFtpHandler(
-            IFtpHandler ftpHandler, FtpConfig ftpConfig, Logger log) {
+    public static void closeWithFtpHandler(IFtpHandler ftpHandler, Logger log) {
         if (ftpHandler instanceof FtpHandler) {
             try {
                 ((FtpHandler) ftpHandler).getFtpClient().completePendingCommand();
             } catch (Exception e) {
-                // 如果出现了超时异常，就直接获取一个新的ftpHandler
                 log.warn("FTPClient completePendingCommand has error ->", e);
                 try {
                     ftpHandler.logoutFtpServer();
                 } catch (Exception exception) {
                     log.warn("FTPClient logout has error ->", exception);
                 }
-                ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
-                ftpHandler.loginFtpServer(ftpConfig);
             }
         }
     }

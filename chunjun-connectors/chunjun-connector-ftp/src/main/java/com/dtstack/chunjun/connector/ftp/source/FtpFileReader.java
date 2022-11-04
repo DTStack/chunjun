@@ -29,10 +29,6 @@ import com.dtstack.chunjun.connector.ftp.format.IFormatConfig;
 import com.dtstack.chunjun.connector.ftp.format.IFormatFactory;
 import com.dtstack.chunjun.connector.ftp.handler.IFtpHandler;
 import com.dtstack.chunjun.connector.ftp.handler.Position;
-import com.dtstack.chunjun.metrics.BaseMetric;
-
-import org.apache.flink.api.common.accumulators.LongCounter;
-import org.apache.flink.api.common.functions.RuntimeContext;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -48,8 +44,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
-
-import static com.dtstack.chunjun.connector.ftp.conf.ConfigConstants.FTP_COUNTER_PREFIX;
 
 public class FtpFileReader {
 
@@ -69,10 +63,6 @@ public class FtpFileReader {
     private IFormatConfig iFormatConfig;
     private IFileReadFormat currentFileReadFormat;
     private final Map<FileType, IFileReadFormat> iFileReadFormatCache;
-    private RuntimeContext runtimeContext;
-    private Map<String, LongCounter> counterMap;
-    private BaseMetric baseMetric;
-    private boolean enableMetric = false;
 
     public FtpFileReader(
             IFtpHandler ftpHandler,
@@ -123,11 +113,6 @@ public class FtpFileReader {
 
         if (currentFileReadFormat != null) {
             if (currentFileSplitReadBytes >= currentFileSplit.getReadLimit()) {
-                if (enableMetric) {
-                    String readBytesMetricName = getMetricName("readBytes");
-                    LongCounter readBytesCounter = counterMap.get(readBytesMetricName);
-                    updateMetric(readBytesCounter, currentFileSplitReadBytes);
-                }
                 close();
                 return readLine();
             }
@@ -140,22 +125,10 @@ public class FtpFileReader {
             String[] record = currentFileReadFormat.nextRecord();
             addCurrentReadSize(record);
 
-            if (enableMetric) {
-                String metricName = getMetricName("readLines");
-                LongCounter counter = counterMap.get(metricName);
-                updateMetric(counter, 1);
-            }
-
             return new Data(record, new Position(currentFileSplitReadBytes, currentFileSplit));
-        } else {
-            if (enableMetric) {
-                //  tick end
-                String metricName = getMetricName("tickEnd");
-                LongCounter counter = counterMap.get(metricName);
-                tickEndMetric(counter);
-            }
-            return null;
         }
+
+        return null;
     }
 
     private void nextStream() throws IOException {
@@ -227,7 +200,7 @@ public class FtpFileReader {
             currentFileReadFormat.close();
             currentFileReadFormat = null;
 
-            FileUtil.closeWithFtpHandler(ftpHandler, ftpConfig, LOG);
+            FileUtil.closeWithFtpHandler(ftpHandler, LOG);
         }
     }
 
@@ -272,92 +245,6 @@ public class FtpFileReader {
 
     public void setIFormatConfig(IFormatConfig iFormatConfig) {
         this.iFormatConfig = iFormatConfig;
-    }
-
-    public void enableMetric(RuntimeContext runtimeContext, BaseMetric baseMetric) {
-        this.runtimeContext = runtimeContext;
-        this.baseMetric = baseMetric;
-        counterMap = new HashMap<>();
-        this.enableMetric = true;
-
-        ArrayList<FtpFileSplit> fileCache = new ArrayList<>();
-
-        int totalFiles = 0;
-        StringBuilder allFileNamesBuilder = new StringBuilder();
-        allFileNamesBuilder.append("ftp_read_files(");
-
-        for (Iterator<FtpFileSplit> it = iter; it.hasNext(); ) {
-            FtpFileSplit file = it.next();
-            String readLinesMetricName = getMetricName("readLines");
-            String readBytesMetricName = getMetricName("readBytes");
-
-            counterMap.put(readLinesMetricName, registerMetric(readLinesMetricName, true));
-            counterMap.put(readBytesMetricName, registerMetric(readBytesMetricName, false));
-
-            totalFiles += 1;
-            allFileNamesBuilder.append(file.getFileAbsolutePath());
-
-            if (it.hasNext()) {
-                allFileNamesBuilder.append(", ");
-            }
-            fileCache.add(file);
-        }
-
-        allFileNamesBuilder.append(')');
-        String totalFileMetricName = allFileNamesBuilder.toString();
-        LongCounter totalFileCounter = registerMetric(totalFileMetricName, false);
-        counterMap.put(totalFileMetricName, registerMetric(totalFileMetricName, false));
-        updateMetric(totalFileCounter, totalFiles);
-
-        // tick start
-        String tickStartMetric = getMetricName("tickStart");
-        LongCounter durationCounter = registerMetric(tickStartMetric, false);
-        counterMap.put(tickStartMetric, durationCounter);
-        tickStartMetric(durationCounter);
-
-        iter = fileCache.iterator();
-    }
-
-    private String getMetricName(String action) {
-        switch (action) {
-            case "tickStart":
-            case "tickEnd":
-                return FTP_COUNTER_PREFIX + "_read_duration";
-
-            case "readLines":
-                return FTP_COUNTER_PREFIX + "_read_lines";
-
-            case "readBytes":
-                return FTP_COUNTER_PREFIX + "_read_bytes";
-
-            default:
-                throw new RuntimeException("illegal parameter");
-        }
-    }
-
-    public LongCounter registerMetric(String metricName, boolean meterView) {
-        LongCounter counter = runtimeContext.getLongCounter(metricName);
-        baseMetric.addMetric(metricName, counter, meterView);
-        return counter;
-    }
-
-    public void updateMetric(LongCounter counter, long incr) {
-        counter.add(incr);
-    }
-
-    public void tickStartMetric(LongCounter counter) {
-        if (counter != null) {
-            counter.resetLocal();
-            counter.add(System.currentTimeMillis());
-        }
-    }
-
-    public void tickEndMetric(LongCounter counter) {
-        if (counter != null) {
-            Long startTime = counter.getLocalValue();
-            counter.resetLocal();
-            counter.add(System.currentTimeMillis() - startTime);
-        }
     }
 
     private void addCurrentReadSize(String[] value) {

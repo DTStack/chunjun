@@ -103,15 +103,6 @@ public class FtpInputFormat extends BaseRichInputFormat {
 
             List<FtpFileSplit> fileList = new ArrayList<>();
 
-            if (CollectionUtils.isEmpty(files)) {
-                if (ftpConfig.isFilesNotExistsNotThrowError()) {
-                    LOG.info(
-                            "There are no files in {}, but isFilesNotExistsNotThrowError is true.",
-                            path);
-                    return new InputSplit[] {};
-                }
-            }
-
             if (CollectionUtils.isNotEmpty(files)) {
                 for (String filePath : files) {
                     // add file with compressType
@@ -173,7 +164,6 @@ public class FtpInputFormat extends BaseRichInputFormat {
         }
 
         reader.setIFormatConfig(buildIFormatConfig(ftpConfig));
-        reader.enableMetric(getRuntimeContext(), inputMetric);
         reader.skipHasReadFiles();
     }
 
