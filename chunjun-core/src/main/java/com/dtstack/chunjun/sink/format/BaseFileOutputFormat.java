@@ -34,10 +34,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author jiangbo
- * @date 2019/8/28
- */
 public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     protected static final String TMP_DIR_NAME = ".data";
@@ -77,6 +73,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     public void finalizeGlobal(int parallelism) {
         initVariableFields();
         moveAllTmpDataFileToDir();
+        super.finalizeGlobal(parallelism);
     }
 
     @Override
@@ -117,7 +114,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeMultipleRecordsInternal() {
+    protected void writeMultipleRecordsInternal() throws Exception {
         throw new UnsupportedOperationException("Do not support batch write");
     }
 
@@ -130,7 +127,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         lastWriteTime = System.currentTimeMillis();
     }
 
-    private void checkCurrentFileSize() {
+    protected void checkCurrentFileSize() {
         if (numWriteCounter.getLocalValue() < nextNumForCheckDataSize) {
             return;
         }

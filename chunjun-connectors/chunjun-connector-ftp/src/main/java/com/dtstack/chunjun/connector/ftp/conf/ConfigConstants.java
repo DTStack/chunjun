@@ -18,13 +18,6 @@
 
 package com.dtstack.chunjun.connector.ftp.conf;
 
-/**
- * The class containing Ftp configuration constants
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public class ConfigConstants {
 
     public static final int DEFAULT_FTP_PORT = 21;
@@ -40,4 +33,8 @@ public class ConfigConstants {
     public static final String FTP_PROTOCOL = "ftp";
 
     public static final String DEFAULT_FIELD_DELIMITER = ",";
+
+    public static final String INTERNAL_FILENAME = "internal_file_name";
+
+    public static final String FTP_COUNTER_PREFIX = "ftp";
 }

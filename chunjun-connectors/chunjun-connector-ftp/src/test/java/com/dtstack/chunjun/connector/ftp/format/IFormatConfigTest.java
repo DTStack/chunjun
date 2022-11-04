@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,27 +16,24 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.client;
+package com.dtstack.chunjun.connector.ftp.format;
 
-import java.util.Locale;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2021/11/1
- */
-public enum FileType {
-    /** File types currently supported by ftp. */
-    TXT,
-    CSV,
-    EXCEL;
+public class IFormatConfigTest {
 
-    public static FileType fromString(String type) {
-        if (type == null) {
-            throw new RuntimeException("null FileType!");
-        }
-        type = type.toUpperCase(Locale.ENGLISH);
-        return valueOf(type);
+    private IFormatConfig iFormatConfigUnderTest;
+
+    @Before
+    public void setUp() {
+        iFormatConfigUnderTest = new IFormatConfig();
+    }
+
+    @Test
+    public void testToString() {
+        Assert.assertTrue(
+                iFormatConfigUnderTest.toString().contains(IFormatConfig.class.getSimpleName()));
     }
 }

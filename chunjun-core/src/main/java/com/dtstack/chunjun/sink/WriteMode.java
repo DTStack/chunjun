@@ -17,13 +17,9 @@
  */
 package com.dtstack.chunjun.sink;
 
-/**
- * @author jiangbo
- * @date 2018/6/6 14:05
- */
 public enum WriteMode {
 
-    /** 用于关系数据库的直接写入 */
+    /** 用于关系数据库的直接写入与ftp的文件追加写入 */
     INSERT("insert"),
 
     /** 用于关系数据库的更新操作 */
@@ -39,6 +35,8 @@ public enum WriteMode {
     APPEND("append"),
 
     UPSERT("upsert"),
+
+    NONCONFLICT("nonconflict"),
     ;
 
     private final String mode;

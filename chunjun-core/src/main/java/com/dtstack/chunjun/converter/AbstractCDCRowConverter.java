@@ -155,4 +155,8 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
         }
         return genericRowData;
     }
+
+    public void clearConverterCache() {
+        cdcConverterCacheMap.clear();
+    }
 }

@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,15 +16,25 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.kafka.option;
+package com.dtstack.chunjun.connector.ftp.enums;
 
-/**
- * @author chuixue
- * @create 2021-06-07 15:53
- * @description
- */
-public class KafkaOptions {
-    public static final String DEFAULT_CODEC = "json";
+import java.util.Locale;
+import java.util.Optional;
 
-    public static final String VALUE_CODEC = "value";
+public enum FileType {
+    /** File types currently supported by ftp. */
+    TXT,
+    CSV,
+    EXCEL,
+    /** For user-defined file types, the IFileReadFormat interface needs to be implemented.* */
+    CUSTOM,
+    ;
+
+    public static FileType getType(String type) {
+        try {
+            return Optional.of(Enum.valueOf(FileType.class, type.toUpperCase(Locale.ROOT))).get();
+        } catch (IllegalArgumentException var3) {
+            return TXT;
+        }
+    }
 }

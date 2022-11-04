@@ -16,15 +16,19 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.kafka.option;
+package com.dtstack.chunjun.connector.ftp.client.excel;
 
-/**
- * @author chuixue
- * @create 2021-06-07 15:53
- * @description
- */
-public class KafkaOptions {
-    public static final String DEFAULT_CODEC = "json";
+public class ExcelSubExceptionCarrier {
 
-    public static final String VALUE_CODEC = "value";
+    private Exception throwable;
+
+    public ExcelSubExceptionCarrier() {}
+
+    public Exception getThrowable() {
+        return throwable;
+    }
+
+    public void setThrowable(Exception throwable) {
+        this.throwable = throwable;
+    }
 }

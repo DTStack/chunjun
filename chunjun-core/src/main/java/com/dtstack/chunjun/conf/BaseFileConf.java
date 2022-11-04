@@ -21,14 +21,9 @@ import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.sink.WriteMode;
 
 import java.nio.charset.StandardCharsets;
+import java.util.StringJoiner;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class BaseFileConf extends ChunJunCommonConf {
-
     private int fromLine = 1;
 
     private String path;
@@ -41,6 +36,8 @@ public class BaseFileConf extends ChunJunCommonConf {
     private String encoding = StandardCharsets.UTF_8.name();
     private long maxFileSize = ConstantValue.STORE_SIZE_G;
     private long nextCheckRows = 5000;
+
+    private String suffix;
 
     public int getFromLine() {
         return fromLine;
@@ -106,28 +103,26 @@ public class BaseFileConf extends ChunJunCommonConf {
         this.nextCheckRows = nextCheckRows;
     }
 
+    public String getSuffix() {
+        return suffix;
+    }
+
+    public void setSuffix(String suffix) {
+        this.suffix = suffix;
+    }
+
     @Override
     public String toString() {
-        return "BaseFileConf{"
-                + "path='"
-                + path
-                + '\''
-                + ", fileName='"
-                + fileName
-                + '\''
-                + ", writeMode='"
-                + writeMode
-                + '\''
-                + ", compress='"
-                + compress
-                + '\''
-                + ", encoding='"
-                + encoding
-                + '\''
-                + ", maxFileSize="
-                + maxFileSize
-                + ", nextCheckRows="
-                + nextCheckRows
-                + '}';
+        return new StringJoiner(", ", BaseFileConf.class.getSimpleName() + "[", "]")
+                .add("fromLine=" + fromLine)
+                .add("path='" + path + "'")
+                .add("fileName='" + fileName + "'")
+                .add("writeMode='" + writeMode + "'")
+                .add("compress='" + compress + "'")
+                .add("encoding='" + encoding + "'")
+                .add("maxFileSize=" + maxFileSize)
+                .add("nextCheckRows=" + nextCheckRows)
+                .add("suffix='" + suffix + "'")
+                .toString();
     }
 }
