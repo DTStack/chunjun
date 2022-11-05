@@ -111,7 +111,6 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         }
         ftpConfig.setColumn(columnList);
 
-
         return new FtpDynamicTableSource(physicalSchema, ftpConfig, decodingFormat);
     }
 
