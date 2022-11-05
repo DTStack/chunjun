@@ -22,17 +22,16 @@ import com.dtstack.chunjun.connector.oraclelogminer.entity.RecordLog;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -45,26 +44,25 @@ public class TransactionManager {
 
     public static Logger LOG = LoggerFactory.getLogger(TransactionManager.class);
 
-    /** 缓存的结构为 xidUsn+xidSLt+xidSqn(事务id)+rowId,Transaction* */
-    private final Cache<String, List<Transaction>> recordCache;
+    /** 缓存的结构为 xidUsn+xidSLt+xidSqn(事务id),当前事务内数据 */
+    private final Cache<String, LinkedList<RecordLog>> recordCache;
 
     /**
-     * recordCache的二级缓存，缓存二级key，结构为： xidUsn+xidSLt+xidSqn(事务id)， xidUsn+xidSLt+xidSqn(事务id)+rowId列表
-     * *
+     * 缓存的结构为 xidUsn+xidSLt+xidSqn(事务id),最后一次处理回滚数据对应的业务操作scn以及rowid
+     * 回滚事务id以及最新回滚数据对应的业务操作scn和rowid的对应关系
      */
-    private final Cache<String, LinkedList<String>> secondKeyCache;
+    private final Map<String, Pair<BigInteger, String>> earliestResolveOperateForRollback;
 
-    public TransactionManager(Long transactionSize, long transactionExpireTime) {
+    private final Long eventSize;
+
+    public TransactionManager(Long transactionSize, Long eventSize, long transactionExpireTime) {
         this.recordCache =
                 CacheBuilder.newBuilder()
                         .maximumSize(transactionSize)
                         .expireAfterWrite(transactionExpireTime, TimeUnit.MINUTES)
                         .build();
-        this.secondKeyCache =
-                CacheBuilder.newBuilder()
-                        .maximumSize(transactionSize)
-                        .expireAfterWrite(transactionExpireTime, TimeUnit.MINUTES)
-                        .build();
+        this.eventSize = eventSize;
+        this.earliestResolveOperateForRollback = new HashMap<>();
     }
 
     /**
@@ -77,72 +75,33 @@ public class TransactionManager {
         if (recordLog.getOperationCode() == 2) {
             return;
         }
+        String key = recordLog.getXidUsn() + recordLog.getXidSlt() + recordLog.getXidSqn();
+        LinkedList<RecordLog> recordList = recordCache.getIfPresent(key);
+        if (Objects.isNull(recordList)) {
+            LinkedList<RecordLog> data = new LinkedList<RecordLog>();
+            recordCache.put(key, data);
+            recordList = data;
+        }
 
         recordLog.setSqlUndo(recordLog.getSqlUndo().replace("IS NULL", "= NULL"));
         recordLog.setSqlRedo(recordLog.getSqlRedo().replace("IS NULL", "= NULL"));
-
-        String key =
-                recordLog.getXidUsn()
-                        + recordLog.getXidSlt()
-                        + recordLog.getXidSqn()
-                        + recordLog.getRowId();
-        List<Transaction> transactionList = recordCache.getIfPresent(key);
-        if (CollectionUtils.isEmpty(transactionList)) {
-            List<Transaction> data = new ArrayList<>(32);
-            recordCache.put(key, data);
-            transactionList = data;
+        recordList.add(recordLog);
+        if (recordList.size() > eventSize) {
+            recordList.removeFirst();
         }
-        Optional<Transaction> transaction =
-                transactionList.stream()
-                        .filter(i -> i.getScn().compareTo(recordLog.getScn()) == 0)
-                        .findFirst();
-
-        if (!transaction.isPresent()) {
-            transactionList.add(new Transaction(recordLog.getScn(), Lists.newArrayList(recordLog)));
-        } else {
-            transaction.get().addRecord(recordLog);
-        }
-
-        String txId = recordLog.getXidUsn() + recordLog.getXidSlt() + recordLog.getXidSqn();
-        LinkedList<String> keyList = secondKeyCache.getIfPresent(txId);
-        if (Objects.isNull(keyList)) {
-            keyList = new LinkedList<>();
-        }
-        keyList.add(key);
-        LOG.debug(
-                "add cache，XidSqn = {}, RowId = {}, recordLog = {}",
-                recordLog.getXidSqn(),
-                recordLog.getRowId(),
-                recordLog);
-        secondKeyCache.put(txId, keyList);
-        LOG.debug(
-                "after add，recordCache size = {}, secondKeyCache size = {}",
-                recordCache.size(),
-                secondKeyCache.size());
     }
 
     /** 清理已提交事务的缓存 */
     public void cleanCache(String xidUsn, String xidSLt, String xidSqn) {
         String txId = xidUsn + xidSLt + xidSqn;
-        LinkedList<String> keyList = secondKeyCache.getIfPresent(txId);
-        if (Objects.isNull(keyList)) {
-            return;
-        }
-        for (String key : keyList) {
-            LOG.debug("clean recordCache，key = {}", key);
-            recordCache.invalidate(key);
-        }
         LOG.debug(
                 "clean secondKeyCache，xidSqn = {}, xidUsn = {} ,xidSLt = {} ",
                 xidSqn,
                 xidUsn,
                 xidSLt);
-        secondKeyCache.invalidate(txId);
-
-        LOG.debug(
-                "after clean，recordCache size = {}, secondKeyCache size = {}",
-                recordCache.size(),
-                secondKeyCache.size());
+        recordCache.invalidate(txId);
+        earliestResolveOperateForRollback.remove(xidUsn + xidSLt + xidSqn);
+        LOG.debug("after clean，current recordCache size = {}", recordCache.size());
     }
 
     /**
@@ -151,41 +110,22 @@ public class TransactionManager {
      * @param xidUsn
      * @param xidSlt
      * @param xidSqn
-     * @param rowId
-     * @param scn scn of rollback
      * @return dml Log
      */
-    public RecordLog queryUndoLogFromCache(
-            String xidUsn, String xidSlt, String xidSqn, String rowId, BigInteger scn) {
-        String key = xidUsn + xidSlt + xidSqn + rowId;
-        List<Transaction> transactionList = recordCache.getIfPresent(key);
-        if (CollectionUtils.isEmpty(transactionList)) {
+    public RecordLog queryUndoLogFromCache(String xidUsn, String xidSlt, String xidSqn) {
+        String key = xidUsn + xidSlt + xidSqn;
+        LinkedList<RecordLog> recordLogs = recordCache.getIfPresent(key);
+        if (CollectionUtils.isEmpty(recordLogs)) {
             return null;
         }
-        // 根据scn号查找 如果scn号相同 则取此对应的最后DML语句  dml按顺序添加，rollback倒序取对应的语句
-        Optional<Transaction> transactionOptional =
-                transactionList.stream().filter(i -> i.getScn().compareTo(scn) == 0).findFirst();
-        // 如果scn相同的DML语句没有 则取同一个事务里rowId相同的最后一个
-        Transaction transaction =
-                transactionOptional.orElse(transactionList.get(transactionList.size() - 1));
-        RecordLog recordLog = null;
-
-        if (!transaction.isEmpty()) {
-            recordLog = transaction.getLast();
-            transaction.removeLast();
-            LOG.info("query a insert sql for rollback in cache,rollback scn is {}", scn);
-        }
-
-        if (transaction.isEmpty()) {
-            transactionList.remove(transaction);
-        }
-
-        if (transactionList.isEmpty()) {
-            recordCache.invalidate(key);
-        }
-
-        secondKeyCache.invalidate(xidUsn + xidSlt + xidSqn);
-
+        RecordLog recordLog = recordLogs.removeLast();
+        earliestResolveOperateForRollback.put(
+                key, Pair.of(recordLog.getScn(), recordLog.getRowId()));
         return recordLog;
+    }
+
+    public Pair<BigInteger, String> getEarliestRollbackOperation(
+            String xidUsn, String xidSlt, String xidSqn) {
+        return earliestResolveOperateForRollback.get(xidUsn + xidSlt + xidSqn);
     }
 }

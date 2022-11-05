@@ -28,7 +28,9 @@ import com.dtstack.chunjun.connector.oraclelogminer.entity.QueueData;
 import com.dtstack.chunjun.connector.oraclelogminer.util.OraUtil;
 import com.dtstack.chunjun.connector.oraclelogminer.util.SqlUtil;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.ErrorMsgRowData;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.RetryUtil;
 
@@ -49,6 +51,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -75,6 +78,7 @@ import static com.dtstack.chunjun.connector.oraclelogminer.listener.LogMinerConn
  * @date 2020/3/27
  */
 public class LogMinerListener implements Runnable {
+    private final BigInteger MINUS_ONE = new BigInteger("-1");
 
     public static Logger LOG = LoggerFactory.getLogger(LogMinerListener.class);
     private final LogMinerConf logMinerConf;
@@ -115,16 +119,11 @@ public class LogMinerListener implements Runnable {
                         namedThreadFactory,
                         new ThreadPoolExecutor.AbortPolicy());
 
-        logParser = new LogParser();
+        logParser = new LogParser(logMinerConf);
     }
 
     public void start() {
-        BigInteger startScn = logMinerHelper.getStartScn(positionManager.getPosition());
-
-        positionManager.updatePosition(startScn);
-        logMinerHelper.setStartScn(startScn);
-        logMinerHelper.init();
-
+        BigInteger startScn;
         Connection connection =
                 RetryUtil.executeWithRetry(
                         () ->
@@ -135,13 +134,28 @@ public class LogMinerListener implements Runnable {
                         RETRY_TIMES,
                         SLEEP_TIME,
                         false);
+        if (logMinerConf.getEnableFetchAll()) {
+            BigInteger cacheScn = positionManager.getPosition();
+            if (null != cacheScn && cacheScn.compareTo(BigInteger.valueOf(-1)) != 0) {
+                startScn = cacheScn;
+            } else {
+                startScn = oracleFullSyncOperation(connection);
+            }
+        } else {
+            startScn = logMinerHelper.getStartScn(positionManager.getPosition());
+        }
+
+        positionManager.updatePosition(startScn);
+        logMinerHelper.setStartScn(startScn);
+        logMinerHelper.init();
+
         // LogMinerColumnConverter 需要connection获取元数据
         if (rowConverter instanceof LogMinerColumnConverter) {
             ((LogMinerColumnConverter) rowConverter).setConnection(connection);
         }
 
         // 初始化
-        if (logMinerConf.isInitialTableStructure()) {
+        if (logMinerConf.isInitialTableStructure() && !logMinerConf.getEnableFetchAll()) {
             initialTableStruct(connection);
         }
 
@@ -211,6 +225,11 @@ public class LogMinerListener implements Runnable {
     }
 
     private void processData(QueueData log) throws Exception {
+        if (log.getData() instanceof DdlRowData) {
+            rowConverter.clearConverterCache();
+            queue.put((new QueueData(log.getScn(), log.getData())));
+            return;
+        }
         LinkedList<RowData> rowDatalist = logParser.parse(log, rowConverter);
         RowData rowData;
         try {
@@ -249,7 +268,9 @@ public class LogMinerListener implements Runnable {
                     }
                     rowData = null;
                 } else {
-                    positionManager.updatePosition(poll.getScn());
+                    if (poll.getScn().compareTo(MINUS_ONE) != 0) {
+                        positionManager.updatePosition(poll.getScn());
+                    }
                     failedTimes = 0;
                 }
             }
@@ -257,10 +278,6 @@ public class LogMinerListener implements Runnable {
             LOG.warn("Get data from queue error:", e);
         }
         return rowData;
-    }
-
-    public BigInteger getCurrentPosition() {
-        return positionManager.getPosition();
     }
 
     private void initialTableStruct(Connection connection) {
@@ -448,6 +465,10 @@ public class LogMinerListener implements Runnable {
         }
     }
 
+    public BigInteger getCurrentPosition() {
+        return positionManager.getPosition();
+    }
+
     private List<String> readPrimaryKeyNames(DatabaseMetaData metadata, String schema, String table)
             throws SQLException {
         final List<String> pkColumnNames = new ArrayList<>();
@@ -458,5 +479,135 @@ public class LogMinerListener implements Runnable {
             }
         }
         return pkColumnNames;
+    }
+
+    /**
+     * lock table get current scn generate create table ddl release lock generate insert event by
+     * scn
+     */
+    public BigInteger oracleFullSyncOperation(Connection connection) {
+        try {
+            if (logMinerConf.getTable().size() != 1) {
+                throw new ChunJunRuntimeException(
+                        "oracle logminer full sync, only support one table");
+            }
+
+            String tbnWithSchema = logMinerConf.getTable().get(0);
+            BigInteger scn = getLockTableScn(connection, tbnWithSchema);
+
+            /* select data by scn, to columnRowData */
+            queryDataByScnToColumnRowData(connection, tbnWithSchema, scn);
+
+            return scn;
+        } catch (Exception e) {
+            throw new ChunJunRuntimeException(e);
+        }
+    }
+
+    private BigInteger getLockTableScn(Connection conn, String tbnWithSchema) {
+        try {
+            Statement stmt = conn.createStatement();
+            String lockTableSql = SqlUtil.formatLockTableWithRowShare(tbnWithSchema);
+
+            /* lock table */
+            stmt.execute(lockTableSql);
+
+            /* get current scn */
+            ResultSet rs = stmt.executeQuery(SqlUtil.SQL_GET_CURRENT_SCN);
+
+            String scn = null;
+            if (rs.next()) {
+                scn = rs.getString("CURRENT_SCN");
+            } else {
+                throw new ChunJunRuntimeException(
+                        String.format("can't get scn of [%s]", tbnWithSchema));
+            }
+
+            /* generate create table ddl */
+            initialTableStruct(conn);
+
+            /* release lock */
+            stmt.execute(SqlUtil.releaseTableLock());
+
+            if (stmt != null) {
+                stmt.close();
+            }
+            return new BigInteger(scn);
+        } catch (Exception e) {
+            throw new ChunJunRuntimeException(e);
+        }
+    }
+
+    private void queryDataByScnToColumnRowData(
+            Connection conn, String tbnWithSchema, BigInteger scn) {
+        try {
+            List<ColumnInfo> columnInfos = getColumnInfoByTable(conn, tbnWithSchema);
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(SqlUtil.queryDataByScn(tbnWithSchema, scn));
+            List<ColumnRowData> columnRowDatas =
+                    SqlUtil.jdbcColumnRowColumnConvert(columnInfos, rs);
+
+            for (ColumnRowData rowData : columnRowDatas) {
+                queue.put(new QueueData(new BigInteger("-1"), rowData));
+            }
+        } catch (Exception e) {
+            throw new ChunJunRuntimeException(e);
+        }
+    }
+
+    private List<ColumnInfo> getColumnInfoByTable(Connection conn, String tbnWithSchema) {
+        String schema = tbnWithSchema.substring(0, tbnWithSchema.indexOf('.'));
+        String tbn = tbnWithSchema.substring(tbnWithSchema.indexOf('.') + 1);
+        List<ColumnInfo> columnInfos = new ArrayList<>();
+
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet resultSet = stmt.executeQuery(SqlUtil.formatGetTableInfoSql(schema, tbn));
+
+            while (resultSet.next()) {
+                String columnName = resultSet.getString(3);
+                String dataType = resultSet.getString(4);
+                Object dataPrecision = resultSet.getObject(5);
+                Object charLength = resultSet.getObject(6);
+                Object dataLength = resultSet.getObject(7);
+                Object dataScale = resultSet.getObject(8);
+                Object defaultValue = resultSet.getObject(9);
+                String nullable = resultSet.getString(10);
+                String comment = resultSet.getString(11);
+
+                /* isPk is not useful, set false */
+                boolean isPk = false;
+
+                ColumnInfo columnInfo =
+                        new ColumnInfo(
+                                columnName,
+                                dataType,
+                                Objects.isNull(dataPrecision)
+                                        ? null
+                                        : Integer.valueOf(dataPrecision.toString()),
+                                Objects.isNull(charLength)
+                                        ? null
+                                        : Integer.valueOf(charLength.toString()),
+                                Objects.isNull(dataLength)
+                                        ? null
+                                        : Integer.valueOf(dataLength.toString()),
+                                Objects.isNull(dataScale)
+                                        ? null
+                                        : Integer.valueOf(dataScale.toString()),
+                                Objects.isNull(defaultValue) ? null : defaultValue.toString(),
+                                "Y".equalsIgnoreCase(nullable),
+                                comment,
+                                isPk);
+
+                columnInfos.add(columnInfo);
+            }
+
+            if (stmt != null) {
+                stmt.close();
+            }
+            return columnInfos;
+        } catch (Exception e) {
+            throw new ChunJunRuntimeException(e);
+        }
     }
 }

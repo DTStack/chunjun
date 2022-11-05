@@ -77,6 +77,7 @@ public class LogMinerHelper {
         this.transactionManager =
                 new TransactionManager(
                         logMinerConfig.getTransactionCacheNumSize(),
+                        logMinerConfig.getTransactionEventSize(),
                         logMinerConfig.getTransactionExpireTime());
         this.startScn = startScn;
         this.endScn = startScn;

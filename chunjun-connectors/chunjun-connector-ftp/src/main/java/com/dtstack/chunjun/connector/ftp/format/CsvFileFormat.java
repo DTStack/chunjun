@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,13 +16,15 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.client;
+package com.dtstack.chunjun.connector.ftp.format;
 
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.client.File;
 
 import com.csvreader.CsvReader;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,24 +32,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
 
-/**
- * @author dujie
- * @date 2021-09-23 csvReader
- */
-public class CsvFileReadClient extends AbstractFileReader {
-    private CsvReader csvReader;
+public class CsvFileFormat implements IFileReadFormat {
 
+    private static final Logger LOG = LoggerFactory.getLogger(CsvFileFormat.class);
+    private CsvReader csvReader;
     private BufferedReader bufferedReader;
 
     @Override
-    public void open(InputStream inputStream, FtpConfig ftpConfig) throws IOException {
+    public void open(File file, InputStream inputStream, IFormatConfig config) throws IOException {
+        LOG.info("open file : {}", file.getFileName());
         bufferedReader =
-                new BufferedReader(new InputStreamReader(inputStream, ftpConfig.getEncoding()));
+                new BufferedReader(new InputStreamReader(inputStream, config.getEncoding()));
         csvReader = new CsvReader(bufferedReader);
-        csvReader.setDelimiter(ftpConfig.getFieldDelimiter().charAt(0));
+        csvReader.setDelimiter(config.getFieldDelimiter().charAt(0));
 
-        if (MapUtils.isNotEmpty(ftpConfig.getFileConfig())) {
-            Map<String, Object> csvConfig = ftpConfig.getFileConfig();
+        if (MapUtils.isNotEmpty(config.getFileConfig())) {
+            Map<String, Object> csvConfig = config.getFileConfig();
             // 是否跳过空行
             csvReader.setSkipEmptyRecords(
                     (Boolean) csvConfig.getOrDefault("skipEmptyRecords", true));

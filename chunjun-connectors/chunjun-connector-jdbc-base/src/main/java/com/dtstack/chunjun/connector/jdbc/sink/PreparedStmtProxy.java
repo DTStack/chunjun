@@ -382,6 +382,11 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         }
     }
 
+    @Override
+    public Connection getConnection() throws SQLException {
+        return currentFieldNamedPstmt.getConnection();
+    }
+
     public void clearStatementCache() {
         pstmtCache.invalidateAll();
     }
