@@ -26,7 +26,7 @@ import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.utils.TypeConversions;
 
-import org.apache.flink.shaded.guava18.com.google.common.base.Splitter;
+import org.apache.flink.shaded.guava30.com.google.common.base.Splitter;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;

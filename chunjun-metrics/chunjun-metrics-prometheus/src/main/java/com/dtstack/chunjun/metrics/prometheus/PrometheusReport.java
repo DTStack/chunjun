@@ -33,6 +33,7 @@ import org.apache.flink.metrics.Meter;
 import org.apache.flink.metrics.Metric;
 import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.runtime.execution.Environment;
+import org.apache.flink.runtime.metrics.filter.MetricFilter;
 import org.apache.flink.runtime.metrics.groups.AbstractMetricGroup;
 import org.apache.flink.runtime.metrics.groups.FrontMetricGroup;
 import org.apache.flink.runtime.metrics.groups.ReporterScopedSettings;
@@ -143,7 +144,12 @@ public class PrometheusReport extends CustomReporter {
     public void registerMetric(Accumulator accumulator, String name) {
         name = Metrics.METRIC_GROUP_KEY_CHUNJUN + "_" + name;
         ReporterScopedSettings reporterScopedSettings =
-                new ReporterScopedSettings(0, ',', Collections.emptySet());
+                new ReporterScopedSettings(
+                        0,
+                        ',',
+                        MetricFilter.NO_OP_FILTER,
+                        Collections.emptySet(),
+                        Collections.emptyMap());
         FrontMetricGroup front =
                 new FrontMetricGroup<AbstractMetricGroup<?>>(
                         reporterScopedSettings, (AbstractMetricGroup) context.getMetricGroup());
