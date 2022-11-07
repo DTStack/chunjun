@@ -277,8 +277,8 @@ public class StreamingFileWriter<IN> extends AbstractStreamingWriter<IN, Partiti
     }
 
     @Override
-    public void dispose() throws Exception {
-        super.dispose();
+    public void close() throws Exception {
+        super.close();
         if (outputMetric != null) {
             outputMetric.waitForReportMetrics();
         }

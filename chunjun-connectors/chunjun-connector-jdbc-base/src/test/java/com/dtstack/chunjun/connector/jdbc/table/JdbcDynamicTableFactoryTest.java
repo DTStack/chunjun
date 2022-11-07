@@ -65,7 +65,7 @@ public class JdbcDynamicTableFactoryTest {
         catalogTable = mock(CatalogTable.class);
         ObjectIdentifier objectIdentifier = mock(ObjectIdentifier.class);
 
-        when(context.getCatalogTable()).thenReturn(catalogTable);
+        when(context.getCatalogTable().getOrigin()).thenReturn(catalogTable);
         when(context.getObjectIdentifier()).thenReturn(objectIdentifier);
         when(catalogTable.getOptions()).thenReturn(getOptions());
         when(catalogTable.getSchema()).thenReturn(getTableSchema());

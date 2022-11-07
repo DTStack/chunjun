@@ -47,8 +47,8 @@ public class LocalTest {
         //        confProperties.setProperty("state.checkpoints.dir", "file:///ck");
         String userDir = System.getProperty("user.dir");
 
-        String jobPath = userDir + "/chunjun-examples/json/stream/stream.json";
-        String chunjunDistDir = userDir + "/start-chunjun-dist";
+        String jobPath = userDir + "/chunjun-examples/sql/stream/stream.sql";
+        String chunjunDistDir = userDir + "/chunjun-dist";
         String s = "";
 
         // 任务配置参数

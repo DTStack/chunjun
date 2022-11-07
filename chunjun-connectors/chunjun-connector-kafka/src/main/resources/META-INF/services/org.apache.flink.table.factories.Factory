@@ -13,5 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-com.dtstack.chunjun.connector.kafka.table.KafkaDynamicTableFactory
-com.dtstack.chunjun.connector.upsertkafka.table.UpsertKafkaDynamicTableFactory
+org.apache.flink.streaming.connectors.kafka.table.ChunjunUpsertKafkaDynamicTableFactory
+org.apache.flink.streaming.connectors.kafka.table.ChunjunUpsertKafkaDynamicTableFactory
