@@ -35,6 +35,7 @@ import org.apache.flink.runtime.memory.MemoryManager;
 import org.apache.flink.runtime.operators.testutils.MockEnvironment;
 import org.apache.flink.runtime.operators.testutils.MockEnvironmentBuilder;
 import org.apache.flink.runtime.operators.testutils.MockInputSplitProvider;
+import org.apache.flink.runtime.scheduler.ExecutionGraphInfo;
 import org.apache.flink.runtime.taskexecutor.rpc.RpcGlobalAggregateManager;
 import org.apache.flink.util.FlinkException;
 
@@ -84,12 +85,17 @@ class BaseMetricTest {
                         false,
                         null,
                         null,
-                        "stateBackendName");
+                        "stateBackendName",
+                        "checkpointStorageName",
+                        null,
+                        "changelogStorageName");
 
         this.jobMasterGateway =
                 new TestingJobMasterGatewayBuilder()
                         .setRequestJobSupplier(
-                                () -> CompletableFuture.completedFuture(archivedExecutionGraph))
+                                () ->
+                                        CompletableFuture.completedFuture(
+                                                new ExecutionGraphInfo(archivedExecutionGraph)))
                         .build();
 
         MockEnvironment environment =
