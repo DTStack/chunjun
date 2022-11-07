@@ -40,7 +40,9 @@ import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
+import org.apache.flink.table.types.FieldsDataType;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.utils.DataTypeUtils;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
@@ -51,6 +53,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static org.apache.flink.util.Preconditions.checkArgument;
 
 /** A {@link DynamicTableSource} for JDBC. */
 public class JdbcDynamicTableSource
@@ -221,7 +225,20 @@ public class JdbcDynamicTableSource
 
     @Override
     public void applyProjection(int[][] projectedFields) {
-        this.physicalSchema = TableSchemaUtils.projectSchema(physicalSchema, projectedFields);
+        checkArgument(
+                TableSchemaUtils.containsPhysicalColumnsOnly(physicalSchema),
+                "Projection is only supported for physical columns.");
+        TableSchema.Builder builder = TableSchema.builder();
+
+        FieldsDataType fields =
+                (FieldsDataType)
+                        DataTypeUtils.projectRow(physicalSchema.toRowDataType(), projectedFields);
+        RowType topFields = (RowType) fields.getLogicalType();
+        for (int i = 0; i < topFields.getFieldCount(); i++) {
+            builder.field(topFields.getFieldNames().get(i), fields.getChildren().get(i));
+        }
+
+        this.physicalSchema = builder.build();
     }
 
     @Override

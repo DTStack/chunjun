@@ -93,8 +93,9 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
         YarnClusterDescriptor descriptor =
                 createPerJobClusterDescriptor(launcherOptions, flinkConfig);
 
+        // TODO job id
         ClusterClientProvider<ApplicationId> provider =
-                descriptor.deployJobCluster(clusterSpecification, new JobGraph(), true);
+                descriptor.deployJobCluster(clusterSpecification, new JobGraph("chunjun"), true);
         String applicationId = provider.getClusterClient().getClusterId().toString();
         String flinkJobId = clusterSpecification.getJobGraph().getJobID().toString();
         LOG.info("deploy per_job with appId: {}}, jobId: {}", applicationId, flinkJobId);

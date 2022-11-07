@@ -26,7 +26,7 @@ import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
-import org.apache.flink.shaded.curator4.com.google.common.util.concurrent.RateLimiter;
+import org.apache.flink.shaded.curator5.com.google.common.util.concurrent.RateLimiter;
 
 import org.apache.commons.collections.CollectionUtils;
 
