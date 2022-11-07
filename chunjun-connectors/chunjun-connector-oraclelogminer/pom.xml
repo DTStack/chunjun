@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.12-SNAPSHOT</version>
+		<version>1.16-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 

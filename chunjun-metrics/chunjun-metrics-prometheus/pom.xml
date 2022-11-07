@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>chunjun-metrics</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.12-SNAPSHOT</version>
+		<version>1.16-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -47,7 +47,7 @@
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-metrics-prometheus_${scala.binary.version}</artifactId>
+			<artifactId>flink-metrics-prometheus</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 	</dependencies>

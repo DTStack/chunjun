@@ -303,18 +303,22 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
 
     private ProcessingTimeService getProcessingTimeService() {
         try {
-            Field runtimeContextField =
-                    RichAsyncFunction.RichAsyncFunctionRuntimeContext.class.getDeclaredField(
-                            "runtimeContext");
+            Class<?>[] declaredClasses = RichAsyncFunction.class.getDeclaredClasses();
+
+            Class richAsyncFunctionClass = null;
+            for (Class cl : declaredClasses) {
+                if (cl.getSimpleName().equals("RichAsyncFunctionRuntimeContext")) {
+                    richAsyncFunctionClass = cl;
+                }
+            }
+
+            Field runtimeContextField = richAsyncFunctionClass.getDeclaredField("runtimeContext");
             runtimeContextField.setAccessible(true);
-            RichAsyncFunction.RichAsyncFunctionRuntimeContext functionRuntimeContext =
-                    (RichAsyncFunction.RichAsyncFunctionRuntimeContext)
-                            runtimeContextField.get(runtimeContext);
+            Object functionRuntimeContext = runtimeContextField.get(runtimeContext);
 
             Field streamingRuntimeContextField =
-                    RichAsyncFunction.RichAsyncFunctionRuntimeContext.class.getDeclaredField(
-                            "runtimeContext");
-            streamingRuntimeContextField.setAccessible(true);
+                    richAsyncFunctionClass.getDeclaredField("runtimeContext");
+            runtimeContextField.setAccessible(true);
             StreamingRuntimeContext streamingRuntimeContext =
                     (StreamingRuntimeContext)
                             streamingRuntimeContextField.get(functionRuntimeContext);
