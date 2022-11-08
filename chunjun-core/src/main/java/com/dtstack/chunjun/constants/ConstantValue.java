@@ -28,6 +28,8 @@ public class ConstantValue {
     public static final String SINGLE_QUOTE_MARK_SYMBOL = "'";
     public static final String DOUBLE_QUOTE_MARK_SYMBOL = "\"";
     public static final String COMMA_SYMBOL = ",";
+    public static final String PARAMS_SEP = "-M";
+    public static final String EMPTY_STR = "";
     public static final String SEMICOLON_SYMBOL = ";";
 
     public static final String SINGLE_SLASH_SYMBOL = "/";

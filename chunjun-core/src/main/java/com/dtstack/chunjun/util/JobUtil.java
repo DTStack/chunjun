@@ -48,13 +48,29 @@ public class JobUtil {
         return json;
     }
 
-    /** 将命令行中的修改命令转化为HashMap保存 */
+    /**
+     * @param command
+     * @return HashMap
+     * @description: convert params after '-p' in shell to hashmap
+     */
     public static HashMap<String, String> CommandTransform(String command) {
         HashMap<String, String> parameter = new HashMap<>();
         String[] split = StringUtils.split(command, ConstantValue.COMMA_SYMBOL);
-        for (String item : split) {
-            String[] temp = item.split(ConstantValue.EQUAL_SYMBOL);
-            parameter.put(temp[0].trim(), temp[1].trim());
+        for (int i = 0; i < split.length; i++) {
+            String[] params = split[i].split(ConstantValue.EQUAL_SYMBOL);
+            if (params[0].trim().startsWith(ConstantValue.PARAMS_SEP)) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(params[1]);
+                while (i + 1 < split.length && !split[i + 1].contains(ConstantValue.EQUAL_SYMBOL)) {
+                    sb.append(ConstantValue.COMMA_SYMBOL + split[i + 1]);
+                    i++;
+                }
+                String key =
+                        params[0].trim().replace(ConstantValue.PARAMS_SEP, ConstantValue.EMPTY_STR);
+                parameter.put(key, sb.toString());
+            } else {
+                parameter.put(params[0].trim(), params[1].trim());
+            }
         }
         return parameter;
     }
