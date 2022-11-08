@@ -1,3 +1,4 @@
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -14,9 +15,37 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+#
 
-FROM liaobaikai/dm7:dev-20210709
+header:
+  license:
+    spdx-id: Apache-2.0
+    copyright-owner: Apache Software Foundation
 
-LABEL maintainer="dtstack"
+    paths-ignore:
+      - 'website/**'
+      - 'docs/**'
+      - 'docs_zh/**'
+      - 'chunjun-example/**'
+      - '.github/ISSUE_TEMPLATE'
+      - '.github/workflows'
+      - '.mvn'
+      - 'mvnw.cmd'
+      - '**/*.md'
+      - '**/*.MD'
+      - '**/*.json'
+      - '**/*.sql'
+      - '**/*.ftl'
+      - '**/target/**'
+      - '**/*.iml'
+      - '**/*.ini'
+      - '**/*.crt'
+      - '**/*.pem'
+      - '**/*.svg'
+      - '**/.gitignore'
+      - '**/LICENSE'
+      - '**/NOTICE'
+      - 'LICENSE'
+      - 'NOTICE'
 
-# 默认账号密码 SYSDBA/SYSDBA
+  comment: on-failure
