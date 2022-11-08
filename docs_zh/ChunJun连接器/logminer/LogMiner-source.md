@@ -123,6 +123,12 @@ oracle10,oracle11,oracle12,oracle19，支持RAC,主备架构
     - 字段类型：boolean
     - 默认值：false
 
+- **enableFetchAll**
+    - 描述：是否同步表的历史数据
+    - 必选：否
+    - 字段类型：boolean
+    - 默认值：false
+
 ### 2、SQL
 
 - **url**

@@ -21,13 +21,13 @@ Official website of ChunJun: https://dtstack.github.io/chunjun/
 ChunJun abstracts different databases into reader/source plugins, writer/sink plugins and lookup plugins, and it has the following features:
 
 - Based on the real-time computing engine--Flink, and supports JSON template and SQL script configuration tasks. The SQL script is compatible with Flink SQL syntax;
-- Support distributed operation, support flink-standalone, yarn-session, yarn-per job and other submission methods;
-- Support Docker one-click deployment, support deploy and run on k8s;
+- Supports distributed operation, support flink-standalone, yarn-session, yarn-per job and other submission methods;
+- Supports Docker one-click deployment, support deploy and run on k8s;
 - Supports a variety of heterogeneous data sources, and supports synchronization and calculation of more than 20 data sources such as MySQL, Oracle, SQLServer, Hive, Kudu, etc.
 - Easy to expand, highly flexible, newly expanded data source plugins can integrate with existing data source plugins instantly, plugin developers do not need to care about the code logic of other plugins;
 - Not only supports full synchronization, but also supports incremental synchronization and interval training;
 - Not only supports offline synchronization and calculation, but also compatible with real-time scenarios;
-- Support dirty data storage, and provide indicator monitoring, etc.;
+- Supports dirty data storage, and provide indicator monitoring, etc.;
 - Cooperate with the flink checkpoint mechanism to achieve breakpoint resuming, task disaster recovery;
 - Not only supports synchronizing DML data, but also supports DDL synchronization, like 'CREATE TABLE', 'ALTER COLUMN', etc.;
 

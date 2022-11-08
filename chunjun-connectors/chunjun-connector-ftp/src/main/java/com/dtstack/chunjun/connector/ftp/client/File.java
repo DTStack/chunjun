@@ -19,8 +19,8 @@
 package com.dtstack.chunjun.connector.ftp.client;
 
 import java.io.Serializable;
+import java.util.StringJoiner;
 
-/** @author by dujie @Description @Date 2021/12/19 */
 public class File implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -79,19 +79,11 @@ public class File implements Serializable {
 
     @Override
     public String toString() {
-        return "File{"
-                + "fileCompressPath='"
-                + fileCompressPath
-                + '\''
-                + ", FileAbsolutePath='"
-                + fileAbsolutePath
-                + '\''
-                + ", fileName='"
-                + fileName
-                + '\''
-                + ", compressType='"
-                + compressType
-                + '\''
-                + '}';
+        return new StringJoiner(", ", File.class.getSimpleName() + "[", "]")
+                .add("fileCompressPath='" + fileCompressPath + "'")
+                .add("fileAbsolutePath='" + fileAbsolutePath + "'")
+                .add("fileName='" + fileName + "'")
+                .add("compressType='" + compressType + "'")
+                .toString();
     }
 }

@@ -266,4 +266,7 @@ public interface FieldNamedPreparedStatement extends AutoCloseable {
 
     /** *Reopen the Statement */
     void reOpen(Connection connection) throws SQLException;
+
+    /** get the connection */
+    Connection getConnection() throws SQLException;
 }

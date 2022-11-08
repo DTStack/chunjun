@@ -18,10 +18,6 @@
 
 package com.dtstack.chunjun.connector.ftp.enums;
 
-/**
- * @author jiangbo
- * @date 2020/2/12
- */
 public enum EFtpMode {
 
     /** 被动方式 */

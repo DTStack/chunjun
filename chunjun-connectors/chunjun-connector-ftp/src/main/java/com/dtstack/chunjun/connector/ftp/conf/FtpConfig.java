@@ -22,11 +22,8 @@ import com.dtstack.chunjun.conf.BaseFileConf;
 import com.dtstack.chunjun.constants.ConstantValue;
 
 import java.util.Map;
+import java.util.StringJoiner;
 
-/**
- * @author jiangbo
- * @date 2019/12/9
- */
 public class FtpConfig extends BaseFileConf {
 
     public Integer timeout = ConfigConstants.DEFAULT_TIMEOUT;
@@ -45,6 +42,9 @@ public class FtpConfig extends BaseFileConf {
     /** linux是否展示隐藏文件 * */
     private boolean listHiddenFiles = true;
 
+    /** 如果文件大小大于这个值, 开启文件切割 * */
+    private long maxFetchSize = ConstantValue.STORE_SIZE_G;
+
     private String ftpFileName;
 
     public String encoding = "UTF-8";
@@ -55,11 +55,22 @@ public class FtpConfig extends BaseFileConf {
     /** file config * */
     public Map<String, Object> fileConfig;
 
+    /** User defined format class name */
+    private String customFormatClassName;
+
     /** Get the specified fileReadClient according to the filetype * */
     public String fileType;
 
     /** 压缩格式 * */
     public String compressType;
+
+    public String getCustomFormatClassName() {
+        return customFormatClassName;
+    }
+
+    public void setCustomFormatClassName(String customFormatClassName) {
+        this.customFormatClassName = customFormatClassName;
+    }
 
     public String getUsername() {
         return username;
@@ -223,58 +234,37 @@ public class FtpConfig extends BaseFileConf {
         this.nullIsReplacedWithValue = nullIsReplacedWithValue;
     }
 
+    public void setMaxFetchSize(long fetchSize) {
+        this.maxFetchSize = fetchSize;
+    }
+
+    public long getMaxFetchSize() {
+        return this.maxFetchSize;
+    }
+
     @Override
     public String toString() {
-        return "FtpConfig{"
-                + "timeout="
-                + timeout
-                + ", username='"
-                + username
-                + '\''
-                + ", password='"
-                + password
-                + '\''
-                + ", privateKeyPath='"
-                + privateKeyPath
-                + '\''
-                + ", protocol='"
-                + protocol
-                + '\''
-                + ", fieldDelimiter='"
-                + fieldDelimiter
-                + '\''
-                + ", connectPattern='"
-                + connectPattern
-                + '\''
-                + ", host='"
-                + host
-                + '\''
-                + ", port="
-                + port
-                + ", isFirstLineHeader="
-                + isFirstLineHeader
-                + ", controlEncoding='"
-                + controlEncoding
-                + '\''
-                + ", listHiddenFiles="
-                + listHiddenFiles
-                + ", ftpFileName='"
-                + ftpFileName
-                + '\''
-                + ", encoding='"
-                + encoding
-                + '\''
-                + ", nullIsReplacedWithValue="
-                + nullIsReplacedWithValue
-                + ", fileConfig="
-                + fileConfig
-                + ", fileType='"
-                + fileType
-                + '\''
-                + ", compressType='"
-                + compressType
-                + '\''
-                + '}'
-                + super.toString();
+        return new StringJoiner(", ", FtpConfig.class.getSimpleName() + "[", "]")
+                .add("timeout=" + timeout)
+                .add("username='" + username + "'")
+                .add("password='" + password + "'")
+                .add("privateKeyPath='" + privateKeyPath + "'")
+                .add("protocol='" + protocol + "'")
+                .add("fieldDelimiter='" + fieldDelimiter + "'")
+                .add("connectPattern='" + connectPattern + "'")
+                .add("host='" + host + "'")
+                .add("port=" + port)
+                .add("isFirstLineHeader=" + isFirstLineHeader)
+                .add("controlEncoding='" + controlEncoding + "'")
+                .add("listHiddenFiles=" + listHiddenFiles)
+                .add("maxFetchSize=" + maxFetchSize)
+                .add("ftpFileName='" + ftpFileName + "'")
+                .add("encoding='" + encoding + "'")
+                .add("nullIsReplacedWithValue=" + nullIsReplacedWithValue)
+                .add("fileConfig=" + fileConfig)
+                .add("customFormatClassName='" + customFormatClassName + "'")
+                .add("fileType='" + fileType + "'")
+                .add("compressType='" + compressType + "'")
+                .toString();
     }
 }

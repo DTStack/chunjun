@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,31 +16,33 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.client;
+package com.dtstack.chunjun.connector.ftp.format;
 
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.client.File;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class TextFileReadClient extends AbstractFileReader {
+public class TextFileFormat implements IFileReadFormat {
 
+    private static final Logger LOG = LoggerFactory.getLogger(TextFileFormat.class);
     private BufferedReader bufferedReader;
-
-    private FtpConfig ftpConfig;
-
+    private String filedDelimiter;
     private String line;
 
     @Override
-    public void open(InputStream inputStream, FtpConfig ftpConfig) throws IOException {
+    public void open(File file, InputStream inputStream, IFormatConfig config) throws IOException {
+        LOG.info("open file : {}", file.getFileName());
         this.bufferedReader =
-                new BufferedReader(new InputStreamReader(inputStream, ftpConfig.getEncoding()));
-        this.ftpConfig = ftpConfig;
+                new BufferedReader(new InputStreamReader(inputStream, config.getEncoding()));
+        this.filedDelimiter = config.getFieldDelimiter();
     }
 
     @Override
@@ -50,9 +52,8 @@ public class TextFileReadClient extends AbstractFileReader {
     }
 
     @Override
-    public String[] nextRecord() throws IOException {
-        return StringUtils.splitByWholeSeparatorPreserveAllTokens(
-                line, ftpConfig.getFieldDelimiter());
+    public String[] nextRecord() {
+        return StringUtils.splitByWholeSeparatorPreserveAllTokens(line, filedDelimiter);
     }
 
     @Override
