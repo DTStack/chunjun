@@ -85,6 +85,8 @@
 		<flink.reuseForks>true</flink.reuseForks>
 		<flink.surefire.baseArgLine>-XX:+UseG1GC -Xms256m</flink.surefire.baseArgLine>
 		<test.unit.pattern>**/*Test.*</test.unit.pattern>
+
+		<maven-license-maven-plugin>1.20</maven-license-maven-plugin>
 	</properties>
 
 	<licenses>
@@ -481,6 +483,11 @@
 				<groupId>com.diffplug.spotless</groupId>
 				<artifactId>spotless-maven-plugin</artifactId>
 			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+			</plugin>
 		</plugins>
 
 		<pluginManagement>
@@ -575,6 +582,24 @@
 						</execution>
 					</executions>
 				</plugin>
+
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>license-maven-plugin</artifactId>
+					<version>${maven-license-maven-plugin}</version>
+					<configuration>
+						<outputDirectory>${project.basedir}/licenses/target</outputDirectory>
+						<thirdPartyFilename>THIRD-PARTY.txt</thirdPartyFilename>
+						<sortArtifactByName>false</sortArtifactByName>
+						<useMissingFile>false</useMissingFile>
+						<addJavaLicenseAfterPackage>true</addJavaLicenseAfterPackage>
+						<socketTimeout>30000</socketTimeout>
+						<connectTimeout>30000</connectTimeout>
+						<connectionRequestTimeout>30000</connectionRequestTimeout>
+						<excludedScopes>test,provided</excludedScopes>
+					</configuration>
+				</plugin>
+
 			</plugins>
 		</pluginManagement>
 	</build>
