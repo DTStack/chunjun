@@ -166,7 +166,7 @@ public class JdbcUtil {
                 }
                 querySql = String.format("select * from %s where 1=2", tableInfo);
             } else {
-                querySql = String.format("select * from ((%s) custom) where 1=2", querySql);
+                querySql = String.format("select * from (%s) custom where 1=2", querySql);
             }
 
             Statement statement = dbConn.createStatement();
