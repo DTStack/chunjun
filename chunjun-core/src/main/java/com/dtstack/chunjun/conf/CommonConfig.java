@@ -22,12 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Date: 2021/04/08 Company: www.dtstack.com
- *
- * @author tudou
- */
-public class ChunJunCommonConf implements Serializable {
+public class CommonConfig implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 速率上限，0代表不限速 */
@@ -47,7 +42,7 @@ public class ChunJunCommonConf implements Serializable {
     /** 并行度 */
     private Integer parallelism = 1;
     /** table field column conf */
-    private List<FieldConf> column;
+    private List<FieldConfig> column;
     /** Number of batches written */
     private int batchSize = 1;
     /** Time when the timer is regularly written to the database */
@@ -176,11 +171,11 @@ public class ChunJunCommonConf implements Serializable {
         this.parallelism = parallelism;
     }
 
-    public List<FieldConf> getColumn() {
+    public List<FieldConfig> getColumn() {
         return column;
     }
 
-    public void setColumn(List<FieldConf> column) {
+    public void setColumn(List<FieldConfig> column) {
         this.column = column;
     }
 

@@ -35,7 +35,7 @@ import java.util.Objects;
  *
  * @author tudou
  */
-public class FieldConf implements Serializable {
+public class FieldConfig implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 字段名称 */
@@ -65,8 +65,8 @@ public class FieldConf implements Serializable {
      * @param fieldList
      * @return
      */
-    public static List<FieldConf> getFieldList(List fieldList) {
-        List<FieldConf> list;
+    public static List<FieldConfig> getFieldList(List fieldList) {
+        List<FieldConfig> list;
         if (CollectionUtils.isNotEmpty(fieldList)) {
             list = new ArrayList<>(fieldList.size());
             if (fieldList.get(0) instanceof Map) {
@@ -76,13 +76,13 @@ public class FieldConf implements Serializable {
                 }
             } else if (fieldList.get(0) instanceof String) {
                 if (fieldList.size() == 1 && ConstantValue.STAR_SYMBOL.equals(fieldList.get(0))) {
-                    FieldConf field = new FieldConf();
+                    FieldConfig field = new FieldConfig();
                     field.setName(ConstantValue.STAR_SYMBOL);
                     field.setIndex(0);
                     list.add(field);
                 } else {
                     for (int i = 0; i < fieldList.size(); i++) {
-                        FieldConf field = new FieldConf();
+                        FieldConfig field = new FieldConfig();
                         field.setName(String.valueOf(fieldList.get(i)));
                         field.setIndex(i);
                         list.add(field);
@@ -105,8 +105,8 @@ public class FieldConf implements Serializable {
      * @param index 字段索引
      * @return
      */
-    public static FieldConf getField(Map map, int index) {
-        FieldConf field = new FieldConf();
+    public static FieldConfig getField(Map map, int index) {
+        FieldConfig field = new FieldConfig();
 
         Object name = map.get("name");
         field.setName(name != null ? String.valueOf(name) : null);
@@ -156,8 +156,8 @@ public class FieldConf implements Serializable {
      * @param name
      * @return
      */
-    public static FieldConf getSameNameMetaColumn(List<FieldConf> fieldList, String name) {
-        for (FieldConf field : fieldList) {
+    public static FieldConfig getSameNameMetaColumn(List<FieldConfig> fieldList, String name) {
+        for (FieldConfig field : fieldList) {
             if (StringUtils.isNotEmpty(field.getName()) && field.getName().equals(name)) {
                 return field;
             }

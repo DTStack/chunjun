@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 
 import org.junit.Assert;
@@ -33,16 +33,16 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 /** @author liuliu 2022/8/15 */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({JdbcInputFormat.class, JdbcConf.class, JdbcDialect.class})
+@PrepareForTest({JdbcInputFormat.class, JdbcConfig.class, JdbcDialect.class})
 public class JdbcInputFormatBuilderTest {
 
     private static JdbcInputFormatBuilder jdbcInputFormatBuilder;
-    private static JdbcConf jdbcConf;
+    private static JdbcConfig jdbcConf;
 
     @BeforeClass
     public static void setup() {
         JdbcInputFormat jdbcInputFormat = mock(JdbcInputFormat.class);
-        jdbcConf = mock(JdbcConf.class);
+        jdbcConf = mock(JdbcConfig.class);
         jdbcInputFormatBuilder = new JdbcInputFormatBuilder(jdbcInputFormat);
 
         when(jdbcInputFormat.getJdbcConf()).thenReturn(jdbcConf);

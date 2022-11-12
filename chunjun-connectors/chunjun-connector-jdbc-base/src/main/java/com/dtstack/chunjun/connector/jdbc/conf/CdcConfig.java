@@ -18,12 +18,12 @@
 
 package com.dtstack.chunjun.connector.jdbc.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 
 import java.io.Serializable;
 import java.util.List;
 
-public class CdcConf extends ChunJunCommonConf implements Serializable {
+public class CdcConfig extends CommonConfig implements Serializable {
     private static final long serialVersionUID = 1L;
 
     protected String host;

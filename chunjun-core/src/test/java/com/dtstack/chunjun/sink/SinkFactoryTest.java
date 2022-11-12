@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.sink;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 import com.dtstack.chunjun.conf.ContentConf;
 import com.dtstack.chunjun.conf.JobConfBuilder;
 import com.dtstack.chunjun.conf.OperatorConf;
@@ -65,9 +65,9 @@ public class SinkFactoryTest {
                                         .build())
                         .build();
         MockSinkFactory sinkFactory = new MockSinkFactory(syncConf);
-        ChunJunCommonConf chunJunCommonConf = new ChunJunCommonConf();
-        sinkFactory.initCommonConf(chunJunCommonConf);
-        assertEquals(5, chunJunCommonConf.getParallelism());
+        CommonConfig commonConfig = new CommonConfig();
+        sinkFactory.initCommonConf(commonConfig);
+        assertEquals(5, commonConfig.getParallelism());
     }
 
     @Test
@@ -97,9 +97,9 @@ public class SinkFactoryTest {
                         .build();
 
         MockSinkFactory sinkFactory = new MockSinkFactory(syncConf);
-        ChunJunCommonConf chunJunCommonConf = new ChunJunCommonConf();
-        sinkFactory.initCommonConf(chunJunCommonConf);
-        assertEquals(3, chunJunCommonConf.getParallelism());
+        CommonConfig commonConfig = new CommonConfig();
+        sinkFactory.initCommonConf(commonConfig);
+        assertEquals(3, commonConfig.getParallelism());
     }
 
     public void testCreateOutput() {

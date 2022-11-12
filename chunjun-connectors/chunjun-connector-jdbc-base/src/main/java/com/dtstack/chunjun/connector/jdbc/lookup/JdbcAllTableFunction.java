@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.lookup;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
@@ -50,11 +50,11 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(JdbcAllTableFunction.class);
     protected final JdbcDialect jdbcDialect;
-    private final JdbcConf jdbcConf;
+    private final JdbcConfig jdbcConf;
     private final String query;
 
     public JdbcAllTableFunction(
-            JdbcConf jdbcConf,
+            JdbcConfig jdbcConf,
             JdbcDialect jdbcDialect,
             LookupConf lookupConf,
             String[] fieldNames,

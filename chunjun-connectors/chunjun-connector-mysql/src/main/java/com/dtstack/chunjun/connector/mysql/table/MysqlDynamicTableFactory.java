@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.mysql.table;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
@@ -60,15 +60,15 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
     }
 
     @Override
-    protected JdbcConf getSourceConnectionConf(ReadableConfig readableConfig) {
-        JdbcConf jdbcConf = super.getSourceConnectionConf(readableConfig);
+    protected JdbcConfig getSourceConnectionConf(ReadableConfig readableConfig) {
+        JdbcConfig jdbcConf = super.getSourceConnectionConf(readableConfig);
         JdbcUtil.putExtParam(jdbcConf);
         return jdbcConf;
     }
 
     @Override
-    protected JdbcConf getSinkConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
-        JdbcConf jdbcConf = super.getSinkConnectionConf(readableConfig, schema);
+    protected JdbcConfig getSinkConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
+        JdbcConfig jdbcConf = super.getSinkConnectionConf(readableConfig, schema);
         JdbcUtil.putExtParam(jdbcConf);
         return jdbcConf;
     }

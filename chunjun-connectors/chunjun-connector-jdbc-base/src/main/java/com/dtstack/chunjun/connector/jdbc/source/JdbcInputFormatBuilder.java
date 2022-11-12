@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -46,7 +46,7 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
         super(format);
     }
 
-    public void setJdbcConf(JdbcConf jdbcConf) {
+    public void setJdbcConf(JdbcConfig jdbcConf) {
         super.setConfig(jdbcConf);
         format.setJdbcConf(jdbcConf);
     }
@@ -61,7 +61,7 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
 
     @Override
     protected void checkFormat() {
-        JdbcConf conf = format.getJdbcConf();
+        JdbcConfig conf = format.getJdbcConf();
         StringBuilder sb = new StringBuilder(256);
         if (StringUtils.isBlank(conf.getUsername())) {
             sb.append("No username supplied;\n");
@@ -80,8 +80,8 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
             if (StringUtils.isBlank(conf.getSplitPk())) {
                 sb.append("Must specify the split column when the channel is greater than 1;\n");
             } else {
-                FieldConf field =
-                        FieldConf.getSameNameMetaColumn(conf.getColumn(), conf.getSplitPk());
+                FieldConfig field =
+                        FieldConfig.getSameNameMetaColumn(conf.getColumn(), conf.getSplitPk());
                 if (field == null) {
                     sb.append("split column must in columns;\n");
                 } else if (!ColumnType.isNumberType(field.getType())) {

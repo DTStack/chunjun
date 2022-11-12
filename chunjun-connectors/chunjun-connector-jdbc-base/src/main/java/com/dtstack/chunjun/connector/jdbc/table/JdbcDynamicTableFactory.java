@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.table;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcLookupConf;
 import com.dtstack.chunjun.connector.jdbc.conf.SinkConnectionConf;
 import com.dtstack.chunjun.connector.jdbc.conf.SourceConnectionConf;
@@ -153,8 +153,8 @@ public abstract class JdbcDynamicTableFactory
                 getOutputFormatBuilder());
     }
 
-    protected JdbcConf getSinkConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
-        JdbcConf jdbcConf = new JdbcConf();
+    protected JdbcConfig getSinkConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
+        JdbcConfig jdbcConf = new JdbcConfig();
         SinkConnectionConf conf = new SinkConnectionConf();
         jdbcConf.setConnection(Collections.singletonList(conf));
 
@@ -196,8 +196,8 @@ public abstract class JdbcDynamicTableFactory
                 .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
     }
 
-    protected JdbcConf getSourceConnectionConf(ReadableConfig readableConfig) {
-        JdbcConf jdbcConf = new JdbcConf();
+    protected JdbcConfig getSourceConnectionConf(ReadableConfig readableConfig) {
+        JdbcConfig jdbcConf = new JdbcConfig();
         SourceConnectionConf conf = new SourceConnectionConf();
         jdbcConf.setConnection(Collections.singletonList(conf));
 
@@ -406,7 +406,7 @@ public abstract class JdbcDynamicTableFactory
     }
 
     /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段* */
-    protected void resetTableInfo(JdbcConf jdbcConf) {
+    protected void resetTableInfo(JdbcConfig jdbcConf) {
         if (StringUtils.isBlank(jdbcConf.getSchema())) {
             JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
         }

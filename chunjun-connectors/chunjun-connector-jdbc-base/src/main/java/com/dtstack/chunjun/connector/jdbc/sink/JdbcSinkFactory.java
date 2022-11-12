@@ -21,7 +21,7 @@ package com.dtstack.chunjun.connector.jdbc.sink;
 import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -52,7 +52,7 @@ import java.util.Properties;
 
 public abstract class JdbcSinkFactory extends SinkFactory {
 
-    protected JdbcConf jdbcConf;
+    protected JdbcConfig jdbcConf;
     protected JdbcDialect jdbcDialect;
 
     protected List<String> columnNameList;
@@ -142,8 +142,8 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         return jdbcDialect.getRawTypeConverter();
     }
 
-    protected Class<? extends JdbcConf> getConfClass() {
-        return JdbcConf.class;
+    protected Class<? extends JdbcConfig> getConfClass() {
+        return JdbcConfig.class;
     }
 
     /**
@@ -162,7 +162,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         }
     }
 
-    protected void rebuildJdbcConf(JdbcConf jdbcConf) {
+    protected void rebuildJdbcConf(JdbcConfig jdbcConf) {
         // updateKey has Deprecated，please use uniqueKey
         if (MapUtils.isNotEmpty(jdbcConf.getUpdateKey())
                 && CollectionUtils.isEmpty(jdbcConf.getUniqueKey())) {

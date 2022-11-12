@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.conf.FieldConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.typeutil.ColumnRowDataTypeInfo;
@@ -53,12 +53,15 @@ public class TableUtil {
      * @return TypeInformation
      */
     public static TypeInformation<RowData> getTypeInformation(
-            List<FieldConf> fieldList, RawTypeConverter converter, boolean useAbstractBaseColumn) {
+            List<FieldConfig> fieldList,
+            RawTypeConverter converter,
+            boolean useAbstractBaseColumn) {
         List<String> fieldName =
-                fieldList.stream().map(FieldConf::getName).collect(Collectors.toList());
-        String[] fieldTypes = fieldList.stream().map(FieldConf::getType).toArray(String[]::new);
-        String[] fieldFormat = fieldList.stream().map(FieldConf::getFormat).toArray(String[]::new);
-        String[] fieldNames = fieldList.stream().map(FieldConf::getName).toArray(String[]::new);
+                fieldList.stream().map(FieldConfig::getName).collect(Collectors.toList());
+        String[] fieldTypes = fieldList.stream().map(FieldConfig::getType).toArray(String[]::new);
+        String[] fieldFormat =
+                fieldList.stream().map(FieldConfig::getFormat).toArray(String[]::new);
+        String[] fieldNames = fieldList.stream().map(FieldConfig::getName).toArray(String[]::new);
         if (fieldName.size() == 0
                 || fieldName.get(0).equalsIgnoreCase(ConstantValue.STAR_SYMBOL)
                 || Arrays.stream(fieldTypes).anyMatch(Objects::isNull)) {
@@ -166,7 +169,7 @@ public class TableUtil {
      * @param fields List<FieldConf>, field information name, type etc.
      * @return
      */
-    public static RowType createRowType(List<FieldConf> fields, RawTypeConverter converter) {
+    public static RowType createRowType(List<FieldConfig> fields, RawTypeConverter converter) {
         return (RowType) createTableSchema(fields, converter).toRowDataType().getLogicalType();
     }
 
@@ -177,9 +180,9 @@ public class TableUtil {
      * @return
      */
     public static TableSchema createTableSchema(
-            List<FieldConf> fields, RawTypeConverter converter) {
-        String[] fieldNames = fields.stream().map(FieldConf::getName).toArray(String[]::new);
-        String[] fieldTypes = fields.stream().map(FieldConf::getType).toArray(String[]::new);
+            List<FieldConfig> fields, RawTypeConverter converter) {
+        String[] fieldNames = fields.stream().map(FieldConfig::getName).toArray(String[]::new);
+        String[] fieldTypes = fields.stream().map(FieldConfig::getType).toArray(String[]::new);
         TableSchema.Builder builder = TableSchema.builder();
         for (int i = 0; i < fieldTypes.length; i++) {
             DataType dataType = converter.apply(fieldTypes[i]);
