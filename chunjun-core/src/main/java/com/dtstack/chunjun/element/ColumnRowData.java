@@ -44,17 +44,12 @@ import java.util.Set;
 
 import static com.dtstack.chunjun.element.ClassSizeUtil.getStringSize;
 
-/**
- * Date: 2021/04/26 Company: www.dtstack.com
- *
- * @author tudou
- */
 public final class ColumnRowData implements RowData, Serializable {
 
     private static final long serialVersionUID = 1L;
     private final List<AbstractBaseColumn> columnList;
     private Map<String, Integer> header;
-    private Set<String> extHeader = new HashSet<>();
+    private final Set<String> extHeader = new HashSet<>();
     private int byteSize;
 
     private RowKind kind;

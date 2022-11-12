@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.conf.FieldConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
@@ -37,17 +37,17 @@ public class ColumnBuildUtilTest {
 
     @Test
     public void testHandleColumnList() {
-        List<FieldConf> fieldConfList =
-                ImmutableList.<FieldConf>builder()
+        List<FieldConfig> fieldConfigList =
+                ImmutableList.<FieldConfig>builder()
                         .add(
-                                FieldConf.getField(
+                                FieldConfig.getField(
                                         ImmutableMap.<String, Object>builder()
                                                 .put("name", "id")
                                                 .put("type", "int")
                                                 .build(),
                                         1))
                         .add(
-                                FieldConf.getField(
+                                FieldConfig.getField(
                                         ImmutableMap.<String, Object>builder()
                                                 .put("name", "name")
                                                 .put("type", "string")
@@ -56,7 +56,7 @@ public class ColumnBuildUtilTest {
                                                 .build(),
                                         2))
                         .add(
-                                FieldConf.getField(
+                                FieldConfig.getField(
                                         ImmutableMap.<String, Object>builder()
                                                 .put("name", "comment")
                                                 .put("type", "string")
@@ -68,7 +68,8 @@ public class ColumnBuildUtilTest {
         List<String> fullColumnList = ImmutableList.of("id", "name", "comment");
         List<String> fullColumnTypeList = ImmutableList.of("int", "string", "string");
         Pair<List<String>, List<String>> result =
-                ColumnBuildUtil.handleColumnList(fieldConfList, fullColumnList, fullColumnTypeList);
+                ColumnBuildUtil.handleColumnList(
+                        fieldConfigList, fullColumnList, fullColumnTypeList);
         List<String> columnList = result.getLeft();
         List<String> columnTypeList = result.getRight();
         assertTrue(columnList.contains("id"));
@@ -81,10 +82,10 @@ public class ColumnBuildUtilTest {
 
     @Test
     public void testHandleColumnListAndCanNotFindColumn() {
-        List<FieldConf> fieldConfList =
-                ImmutableList.<FieldConf>builder()
+        List<FieldConfig> fieldConfigList =
+                ImmutableList.<FieldConfig>builder()
                         .add(
-                                FieldConf.getField(
+                                FieldConfig.getField(
                                         ImmutableMap.<String, Object>builder()
                                                 .put("name", "data")
                                                 .put("type", "bytes")
@@ -99,7 +100,7 @@ public class ColumnBuildUtilTest {
                         ChunJunRuntimeException.class,
                         () ->
                                 ColumnBuildUtil.handleColumnList(
-                                        fieldConfList, fullColumnList, fullColumnTypeList),
+                                        fieldConfigList, fullColumnList, fullColumnTypeList),
                         "Expected handleColumnList() to throw, but it didn't");
 
         assertTrue(thrown.getMessage().contains("can not find field"));
@@ -107,10 +108,10 @@ public class ColumnBuildUtilTest {
 
     @Test
     public void testHandleColumnListWithStar() {
-        List<FieldConf> fieldConfList =
-                ImmutableList.<FieldConf>builder()
+        List<FieldConfig> fieldConfigList =
+                ImmutableList.<FieldConfig>builder()
                         .add(
-                                FieldConf.getField(
+                                FieldConfig.getField(
                                         ImmutableMap.<String, Object>builder()
                                                 .put("name", ConstantValue.STAR_SYMBOL)
                                                 .build(),
@@ -120,7 +121,8 @@ public class ColumnBuildUtilTest {
         List<String> fullColumnList = ImmutableList.of("id", "name", "comment");
         List<String> fullColumnTypeList = ImmutableList.of("int", "string", "string");
         Pair<List<String>, List<String>> result =
-                ColumnBuildUtil.handleColumnList(fieldConfList, fullColumnList, fullColumnTypeList);
+                ColumnBuildUtil.handleColumnList(
+                        fieldConfigList, fullColumnList, fullColumnTypeList);
         List<String> columnList = result.getLeft();
         List<String> columnTypeList = result.getRight();
 

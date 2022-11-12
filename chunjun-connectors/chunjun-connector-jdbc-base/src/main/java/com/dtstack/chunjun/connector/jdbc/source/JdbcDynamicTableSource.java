@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.chunjun.connector.jdbc.lookup.JdbcLruTableFunction;
@@ -60,7 +60,7 @@ import static org.apache.flink.util.Preconditions.checkArgument;
 public class JdbcDynamicTableSource
         implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
-    protected final JdbcConf jdbcConf;
+    protected final JdbcConfig jdbcConf;
     protected final LookupConf lookupConf;
     protected final String dialectName;
     protected final JdbcDialect jdbcDialect;
@@ -68,7 +68,7 @@ public class JdbcDynamicTableSource
     protected TableSchema physicalSchema;
 
     public JdbcDynamicTableSource(
-            JdbcConf jdbcConf,
+            JdbcConfig jdbcConf,
             LookupConf lookupConf,
             TableSchema physicalSchema,
             JdbcDialect jdbcDialect,
@@ -122,9 +122,9 @@ public class JdbcDynamicTableSource
 
         JdbcInputFormatBuilder builder = this.builder;
         String[] fieldNames = physicalSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
+        List<FieldConfig> columnList = new ArrayList<>(fieldNames.length);
         for (int i = 0; i < fieldNames.length; i++) {
-            FieldConf field = new FieldConf();
+            FieldConfig field = new FieldConfig();
             field.setName(fieldNames[i]);
             field.setType(rowType.getTypeAt(i).asSummaryString());
             field.setIndex(i);
@@ -142,12 +142,13 @@ public class JdbcDynamicTableSource
         // init restore info
         String restoreColumn = jdbcConf.getRestoreColumn();
         if (StringUtils.isNotBlank(restoreColumn)) {
-            FieldConf fieldConf =
-                    FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), restoreColumn);
-            if (fieldConf != null) {
-                jdbcConf.setRestoreColumnIndex(fieldConf.getIndex());
-                jdbcConf.setRestoreColumnType(fieldConf.getType());
-                restoreKeyUtil = jdbcDialect.initKeyUtil(fieldConf.getName(), fieldConf.getType());
+            FieldConfig fieldConfig =
+                    FieldConfig.getSameNameMetaColumn(jdbcConf.getColumn(), restoreColumn);
+            if (fieldConfig != null) {
+                jdbcConf.setRestoreColumnIndex(fieldConfig.getIndex());
+                jdbcConf.setRestoreColumnType(fieldConfig.getType());
+                restoreKeyUtil =
+                        jdbcDialect.initKeyUtil(fieldConfig.getName(), fieldConfig.getType());
             } else {
                 throw new IllegalArgumentException("unknown restore column name: " + restoreColumn);
             }
@@ -156,25 +157,27 @@ public class JdbcDynamicTableSource
         // init splitInfo
         String splitPk = jdbcConf.getSplitPk();
         if (StringUtils.isNotBlank(splitPk)) {
-            FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), splitPk);
-            if (fieldConf != null) {
-                jdbcConf.setSplitPk(fieldConf.getType());
-                splitKeyUtil = jdbcDialect.initKeyUtil(fieldConf.getName(), fieldConf.getType());
+            FieldConfig fieldConfig =
+                    FieldConfig.getSameNameMetaColumn(jdbcConf.getColumn(), splitPk);
+            if (fieldConfig != null) {
+                jdbcConf.setSplitPk(fieldConfig.getType());
+                splitKeyUtil =
+                        jdbcDialect.initKeyUtil(fieldConfig.getName(), fieldConfig.getType());
             }
         }
 
         // init incrementInfo
         String incrementColumn = jdbcConf.getIncreColumn();
         if (StringUtils.isNotBlank(incrementColumn)) {
-            FieldConf fieldConf =
-                    FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), incrementColumn);
+            FieldConfig fieldConfig =
+                    FieldConfig.getSameNameMetaColumn(jdbcConf.getColumn(), incrementColumn);
             int index;
             String name;
             String type;
-            if (fieldConf != null) {
-                index = fieldConf.getIndex();
-                name = fieldConf.getName();
-                type = fieldConf.getType();
+            if (fieldConfig != null) {
+                index = fieldConfig.getIndex();
+                name = fieldConfig.getName();
+                type = fieldConfig.getType();
                 incrementKeyUtil = jdbcDialect.initKeyUtil(name, type);
             } else {
                 throw new IllegalArgumentException(
@@ -200,7 +203,9 @@ public class JdbcDynamicTableSource
         builder.setIncrementKeyUtil(incrementKeyUtil);
 
         builder.setColumnNameList(
-                jdbcConf.getColumn().stream().map(FieldConf::getName).collect(Collectors.toList()));
+                jdbcConf.getColumn().stream()
+                        .map(FieldConfig::getName)
+                        .collect(Collectors.toList()));
 
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConf);

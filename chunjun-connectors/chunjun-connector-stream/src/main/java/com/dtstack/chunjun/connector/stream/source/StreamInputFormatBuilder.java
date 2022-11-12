@@ -18,25 +18,20 @@
 
 package com.dtstack.chunjun.connector.stream.source;
 
-import com.dtstack.chunjun.connector.stream.conf.StreamConf;
+import com.dtstack.chunjun.connector.stream.config.StreamConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import org.apache.commons.collections.CollectionUtils;
 
-/**
- * @Company: www.dtstack.com
- *
- * @author jiangbo
- */
 public class StreamInputFormatBuilder extends BaseRichInputFormatBuilder<StreamInputFormat> {
 
     public StreamInputFormatBuilder() {
         super(new StreamInputFormat());
     }
 
-    public void setStreamConf(StreamConf streamConf) {
-        super.setConfig(streamConf);
-        format.setStreamConf(streamConf);
+    public void setStreamConf(StreamConfig streamConfig) {
+        super.setConfig(streamConfig);
+        format.setStreamConf(streamConfig);
     }
 
     @Override

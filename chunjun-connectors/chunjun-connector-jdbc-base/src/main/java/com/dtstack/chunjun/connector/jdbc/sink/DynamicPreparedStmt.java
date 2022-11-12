@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.jdbc.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatementImpl;
@@ -58,7 +58,7 @@ public class DynamicPreparedStmt {
     protected List<String> columnTypeList = new ArrayList<>();
 
     protected transient FieldNamedPreparedStatement fieldNamedPreparedStatement;
-    protected JdbcConf jdbcConf;
+    protected JdbcConfig jdbcConf;
     private boolean writeExtInfo;
     private JdbcDialect jdbcDialect;
     private AbstractRowConverter<?, ?, ?, ?> rowConverter;
@@ -95,18 +95,18 @@ public class DynamicPreparedStmt {
             RowKind rowKind,
             Connection connection,
             JdbcDialect jdbcDialect,
-            List<FieldConf> fieldConfList,
+            List<FieldConfig> fieldConfigList,
             AbstractRowConverter<?, ?, ?, ?> rowConverter)
             throws SQLException {
         DynamicPreparedStmt dynamicPreparedStmt = new DynamicPreparedStmt();
         dynamicPreparedStmt.jdbcDialect = jdbcDialect;
         dynamicPreparedStmt.rowConverter = rowConverter;
-        String[] fieldNames = new String[fieldConfList.size()];
-        for (int i = 0; i < fieldConfList.size(); i++) {
-            FieldConf fieldConf = fieldConfList.get(i);
-            fieldNames[i] = fieldConf.getName();
-            dynamicPreparedStmt.columnNameList.add(fieldConf.getName());
-            dynamicPreparedStmt.columnTypeList.add(fieldConf.getType());
+        String[] fieldNames = new String[fieldConfigList.size()];
+        for (int i = 0; i < fieldConfigList.size(); i++) {
+            FieldConfig fieldConfig = fieldConfigList.get(i);
+            fieldNames[i] = fieldConfig.getName();
+            dynamicPreparedStmt.columnNameList.add(fieldConfig.getName());
+            dynamicPreparedStmt.columnTypeList.add(fieldConfig.getType());
         }
         String sql = dynamicPreparedStmt.prepareTemplates(rowKind, schemaName, tableName);
         dynamicPreparedStmt.fieldNamedPreparedStatement =
@@ -116,17 +116,17 @@ public class DynamicPreparedStmt {
 
     public static DynamicPreparedStmt buildStmt(
             JdbcDialect jdbcDialect,
-            List<FieldConf> fieldConfList,
+            List<FieldConfig> fieldConfigList,
             AbstractRowConverter<?, ?, ?, ?> rowConverter,
             FieldNamedPreparedStatement fieldNamedPreparedStatement) {
         DynamicPreparedStmt dynamicPreparedStmt = new DynamicPreparedStmt();
         dynamicPreparedStmt.jdbcDialect = jdbcDialect;
         dynamicPreparedStmt.rowConverter = rowConverter;
         dynamicPreparedStmt.fieldNamedPreparedStatement = fieldNamedPreparedStatement;
-        for (int i = 0; i < fieldConfList.size(); i++) {
-            FieldConf fieldConf = fieldConfList.get(i);
-            dynamicPreparedStmt.columnNameList.add(fieldConf.getName());
-            dynamicPreparedStmt.columnTypeList.add(fieldConf.getType());
+        for (int i = 0; i < fieldConfigList.size(); i++) {
+            FieldConfig fieldConfig = fieldConfigList.get(i);
+            dynamicPreparedStmt.columnNameList.add(fieldConfig.getName());
+            dynamicPreparedStmt.columnTypeList.add(fieldConfig.getType());
         }
         return dynamicPreparedStmt;
     }

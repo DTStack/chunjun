@@ -29,7 +29,7 @@ public class BaseFileConfTest {
     /** Should return a string with all the fields */
     @Test
     public void toStringShouldReturnAStringWithAllTheFields() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         baseFileConf.setPath("path");
         baseFileConf.setFileName("fileName");
         baseFileConf.setWriteMode("writeMode");
@@ -67,7 +67,7 @@ public class BaseFileConfTest {
     /** Should return the nextCheckRows when the nextCheckRows is set */
     @Test
     public void getNextCheckRowsWhenNextCheckRowsIsSet() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         baseFileConf.setNextCheckRows(100);
         assertEquals(100, baseFileConf.getNextCheckRows());
     }
@@ -75,14 +75,14 @@ public class BaseFileConfTest {
     /** Should return 5000 when the nextCheckRows is not set */
     @Test
     public void getNextCheckRowsWhenNextCheckRowsIsNotSet() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         assertEquals(5000, baseFileConf.getNextCheckRows());
     }
 
     /** Should return the maxFileSize when the maxFileSize is set */
     @Test
     public void getMaxFileSizeWhenMaxFileSizeIsSet() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         baseFileConf.setMaxFileSize(1024L);
         assertEquals(1024L, baseFileConf.getMaxFileSize());
     }
@@ -90,7 +90,7 @@ public class BaseFileConfTest {
     /** Should return the default value when the maxFileSize is not set */
     @Test
     public void getMaxFileSizeWhenMaxFileSizeIsNotSet() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         baseFileConf.setMaxFileSize(1024);
         assertEquals(1024, baseFileConf.getMaxFileSize());
     }
@@ -98,7 +98,7 @@ public class BaseFileConfTest {
     /** Should return the encoding when the encoding is set */
     @Test
     public void getEncodingWhenEncodingIsSet() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         baseFileConf.setEncoding("UTF-8");
         assertEquals("UTF-8", baseFileConf.getEncoding());
     }
@@ -106,14 +106,14 @@ public class BaseFileConfTest {
     /** Should return UTF_8 when the encoding is not set */
     @Test
     public void getEncodingWhenEncodingIsNotSet() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         assertEquals(StandardCharsets.UTF_8.name(), baseFileConf.getEncoding());
     }
 
     /** Should return the compress when the compress is not null */
     @Test
     public void getCompressWhenCompressIsNotNull() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         baseFileConf.setCompress("gzip");
         assertEquals("gzip", baseFileConf.getCompress());
     }
@@ -121,7 +121,7 @@ public class BaseFileConfTest {
     /** Should return null when the compress is null */
     @Test
     public void getCompressWhenCompressIsNull() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         baseFileConf.setCompress("gzip");
         assertEquals("gzip", baseFileConf.getCompress());
     }
@@ -129,7 +129,7 @@ public class BaseFileConfTest {
     /** Should return the write mode */
     @Test
     public void getWriteModeShouldReturnTheWriteMode() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         baseFileConf.setWriteMode("append");
         assertEquals("append", baseFileConf.getWriteMode());
     }
@@ -137,7 +137,7 @@ public class BaseFileConfTest {
     /** Should return the file name when the file name is not null */
     @Test
     public void getFileNameWhenFileNameIsNotNull() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         baseFileConf.setFileName("test.txt");
         assertEquals("test.txt", baseFileConf.getFileName());
     }
@@ -145,7 +145,7 @@ public class BaseFileConfTest {
     /** Should return the path */
     @Test
     public void getPathShouldReturnThePath() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         baseFileConf.setPath("/tmp/test");
         assertEquals("/tmp/test", baseFileConf.getPath());
     }
@@ -153,14 +153,14 @@ public class BaseFileConfTest {
     /** Should return 1 when fromLine is not set */
     @Test
     public void getFromLineWhenFromLineIsNotSetThenReturn1() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         assertEquals(1, baseFileConf.getFromLine());
     }
 
     /** Should return fromLine when fromLine is set */
     @Test
     public void getFromLineWhenFromLineIsSetThenReturnFromLine() {
-        BaseFileConf baseFileConf = new BaseFileConf();
+        BaseFileConfig baseFileConf = new BaseFileConfig();
         baseFileConf.setFromLine(2);
         assertEquals(2, baseFileConf.getFromLine());
     }

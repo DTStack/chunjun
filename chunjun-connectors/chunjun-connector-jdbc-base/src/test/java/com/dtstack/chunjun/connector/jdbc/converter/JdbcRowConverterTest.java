@@ -21,7 +21,7 @@ package com.dtstack.chunjun.connector.jdbc.converter;
 import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.util.GsonUtil;
@@ -62,8 +62,8 @@ public class JdbcRowConverterTest {
                                 new FieldNameExclusionStrategy("column"))
                         .create();
         GsonUtil.setTypeAdapter(gson);
-        JdbcConf jdbcConf =
-                gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), JdbcConf.class);
+        JdbcConfig jdbcConf =
+                gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), JdbcConfig.class);
         jdbcConf.setColumn(syncConf.getReader().getFieldList());
 
         RowType rowType =

@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.jdbc.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.enums.EWriteMode;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
@@ -45,14 +45,14 @@ import static org.apache.flink.util.Preconditions.checkState;
  */
 public class JdbcDynamicTableSink implements DynamicTableSink {
 
-    protected final JdbcConf jdbcConf;
+    protected final JdbcConfig jdbcConf;
     protected final JdbcDialect jdbcDialect;
     protected final TableSchema tableSchema;
     protected final String dialectName;
     protected final JdbcOutputFormatBuilder builder;
 
     public JdbcDynamicTableSink(
-            JdbcConf jdbcConf,
+            JdbcConfig jdbcConf,
             JdbcDialect jdbcDialect,
             TableSchema tableSchema,
             JdbcOutputFormatBuilder builder) {
@@ -91,11 +91,11 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         String[] fieldNames = tableSchema.getFieldNames();
         List<String> columnNameList = new ArrayList<>(fieldNames.length);
         List<String> columnTypeList = new ArrayList<>(fieldNames.length);
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
+        List<FieldConfig> columnList = new ArrayList<>(fieldNames.length);
         for (int i = 0; i < fieldNames.length; i++) {
             String name = fieldNames[i];
             String type = rowType.getTypeAt(i).asSummaryString();
-            FieldConf field = new FieldConf();
+            FieldConfig field = new FieldConfig();
             columnNameList.add(name);
             columnTypeList.add(type);
             field.setName(name);

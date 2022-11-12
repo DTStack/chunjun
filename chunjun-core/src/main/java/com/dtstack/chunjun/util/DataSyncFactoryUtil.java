@@ -25,7 +25,7 @@ import com.dtstack.chunjun.cdc.ddl.DdlConvent;
 import com.dtstack.chunjun.cdc.handler.CacheHandler;
 import com.dtstack.chunjun.cdc.handler.DDLHandler;
 import com.dtstack.chunjun.classloader.ClassLoaderManager;
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 import com.dtstack.chunjun.conf.MetricParam;
 import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.dirty.DirtyConf;
@@ -97,7 +97,7 @@ public class DataSyncFactoryUtil {
     }
 
     public static CustomReporter discoverMetric(
-            ChunJunCommonConf commonConf,
+            CommonConfig commonConf,
             RuntimeContext context,
             boolean makeTaskFailedWhenReportFailed) {
         try {

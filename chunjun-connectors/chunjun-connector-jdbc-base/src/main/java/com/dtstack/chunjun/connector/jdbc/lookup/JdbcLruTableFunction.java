@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.lookup;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcLookupConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.enums.ECacheContentType;
@@ -88,7 +88,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     /** jdbc Dialect */
     private final JdbcDialect jdbcDialect;
     /** jdbc conf */
-    private final JdbcConf jdbcConf;
+    private final JdbcConfig jdbcConf;
     /** vertx async pool size */
     protected int asyncPoolSize;
     /** query data thread */
@@ -99,7 +99,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     private transient SQLClient rdbSqlClient;
 
     public JdbcLruTableFunction(
-            JdbcConf jdbcConf,
+            JdbcConfig jdbcConf,
             JdbcDialect jdbcDialect,
             LookupConf lookupConf,
             String[] fieldNames,

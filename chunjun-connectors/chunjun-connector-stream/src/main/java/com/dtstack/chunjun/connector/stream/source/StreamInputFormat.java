@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.stream.source;
 
-import com.dtstack.chunjun.connector.stream.conf.StreamConf;
+import com.dtstack.chunjun.connector.stream.config.StreamConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
 
@@ -30,13 +30,8 @@ import org.apache.flink.shaded.curator5.com.google.common.util.concurrent.RateLi
 
 import org.apache.commons.collections.CollectionUtils;
 
-/**
- * @Company: www.dtstack.com
- *
- * @author jiangbo
- */
 public class StreamInputFormat extends BaseRichInputFormat {
-    private StreamConf streamConf;
+    private StreamConfig streamConfig;
     private RateLimiter rateLimiter;
     private long recordRead = 0;
     private long channelRecordNum;
@@ -53,12 +48,12 @@ public class StreamInputFormat extends BaseRichInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) {
-        if (CollectionUtils.isNotEmpty(streamConf.getSliceRecordCount())
-                && streamConf.getSliceRecordCount().size() > inputSplit.getSplitNumber()) {
-            channelRecordNum = streamConf.getSliceRecordCount().get(inputSplit.getSplitNumber());
+        if (CollectionUtils.isNotEmpty(streamConfig.getSliceRecordCount())
+                && streamConfig.getSliceRecordCount().size() > inputSplit.getSplitNumber()) {
+            channelRecordNum = streamConfig.getSliceRecordCount().get(inputSplit.getSplitNumber());
         }
-        if (streamConf.getPermitsPerSecond() > 0) {
-            rateLimiter = RateLimiter.create(streamConf.getPermitsPerSecond());
+        if (streamConfig.getPermitsPerSecond() > 0) {
+            rateLimiter = RateLimiter.create(streamConfig.getPermitsPerSecond());
         }
         LOG.info(
                 "The record number of channel:[{}] is [{}]",
@@ -90,11 +85,11 @@ public class StreamInputFormat extends BaseRichInputFormat {
         recordRead = 0;
     }
 
-    public StreamConf getStreamConf() {
-        return streamConf;
+    public StreamConfig getStreamConf() {
+        return streamConfig;
     }
 
-    public void setStreamConf(StreamConf streamConf) {
-        this.streamConf = streamConf;
+    public void setStreamConf(StreamConfig streamConfig) {
+        this.streamConfig = streamConfig;
     }
 }

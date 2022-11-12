@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.stream.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.conf.FieldConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -47,23 +47,18 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-/**
- * Date: 2021/04/26 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class StreamColumnConverter
         extends AbstractRowConverter<ColumnRowData, RowData, RowData, String> {
 
     private static final long serialVersionUID = 1L;
     private static final AtomicLong id = new AtomicLong(0L);
 
-    public StreamColumnConverter(ChunJunCommonConf commonConf) {
+    public StreamColumnConverter(CommonConfig commonConfig) {
         List<String> typeList =
-                commonConf.getColumn().stream()
-                        .map(FieldConf::getType)
+                commonConfig.getColumn().stream()
+                        .map(FieldConfig::getType)
                         .collect(Collectors.toList());
-        super.commonConf = commonConf;
+        super.commonConfig = commonConfig;
         toInternalConverters = new ArrayList<>(typeList.size());
         toExternalConverters = new ArrayList<>(typeList.size());
 
@@ -133,12 +128,12 @@ public class StreamColumnConverter
     @Override
     @SuppressWarnings("unchecked")
     public ColumnRowData toInternal(ColumnRowData rowData) throws Exception {
-        List<FieldConf> fieldConfList = commonConf.getColumn();
-        ColumnRowData result = new ColumnRowData(fieldConfList.size());
-        for (int i = 0; i < fieldConfList.size(); i++) {
+        List<FieldConfig> fieldConfigList = commonConfig.getColumn();
+        ColumnRowData result = new ColumnRowData(fieldConfigList.size());
+        for (int i = 0; i < fieldConfigList.size(); i++) {
             AbstractBaseColumn baseColumn =
                     (AbstractBaseColumn) toInternalConverters.get(i).deserialize(null);
-            result.addField(assembleFieldProps(fieldConfList.get(i), baseColumn));
+            result.addField(assembleFieldProps(fieldConfigList.get(i), baseColumn));
         }
         return result;
     }

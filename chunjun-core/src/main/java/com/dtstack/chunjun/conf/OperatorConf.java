@@ -46,18 +46,18 @@ public class OperatorConf implements Serializable {
     /** table设置 */
     private TableConf table;
     /** fieldList */
-    private List<FieldConf> fieldList;
+    private List<FieldConfig> fieldList;
     /** fieldNameList */
     private List<String> fieldNameList;
 
     private String semantic;
 
-    public List<FieldConf> getFieldList() {
+    public List<FieldConfig> getFieldList() {
         if (fieldList == null) {
             List list = (List) parameter.get(ConfigConstant.KEY_COLUMN);
-            fieldList = FieldConf.getFieldList(list);
+            fieldList = FieldConfig.getFieldList(list);
             fieldNameList = new ArrayList<>(fieldList.size());
-            for (FieldConf field : fieldList) {
+            for (FieldConfig field : fieldList) {
                 fieldNameList.add(field.getName());
             }
         }

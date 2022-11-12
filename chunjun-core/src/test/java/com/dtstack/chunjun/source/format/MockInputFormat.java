@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.source.format;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -86,9 +86,9 @@ public class MockInputFormat extends BaseRichInputFormat {
                                         new TestingJobMasterGatewayBuilder().build()))
                         .build();
         setRuntimeContext(new MockRuntimeContext(environment));
-        ChunJunCommonConf chunJunCommonConf = new ChunJunCommonConf();
-        chunJunCommonConf.setMetricPluginName("mock");
-        setConfig(chunJunCommonConf);
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setMetricPluginName("mock");
+        setConfig(commonConfig);
     }
 
     @Override

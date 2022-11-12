@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.sink.format;
 
-import com.dtstack.chunjun.conf.BaseFileConf;
+import com.dtstack.chunjun.conf.BaseFileConfig;
 import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.enums.SizeUnitType;
 import com.dtstack.chunjun.sink.WriteMode;
@@ -37,7 +37,7 @@ import java.util.List;
 public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     protected static final String TMP_DIR_NAME = ".data";
-    protected BaseFileConf baseFileConf;
+    protected BaseFileConfig baseFileConf;
     /** The first half of the file name currently written */
     protected String currentFileNamePrefix;
     /** Full file name */
@@ -255,7 +255,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         return lastWriteTime;
     }
 
-    public void setBaseFileConf(BaseFileConf baseFileConf) {
+    public void setBaseFileConf(BaseFileConfig baseFileConf) {
         this.baseFileConf = baseFileConf;
     }
 }

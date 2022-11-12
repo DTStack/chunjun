@@ -17,9 +17,9 @@
  */
 package com.dtstack.chunjun.connector.jdbc.util;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.conf.FieldConfig;
 import com.dtstack.chunjun.connector.jdbc.JdbcDialectWrapper;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -93,7 +93,7 @@ public class JdbcUtil {
      * @param jdbcDialect
      * @return
      */
-    public static Connection getConnection(JdbcConf jdbcConf, JdbcDialect jdbcDialect) {
+    public static Connection getConnection(JdbcConfig jdbcConf, JdbcDialect jdbcDialect) {
         TelnetUtil.telnet(jdbcConf.getJdbcUrl());
         ClassUtil.forName(
                 jdbcDialect.defaultDriverName().get(),
@@ -119,7 +119,7 @@ public class JdbcUtil {
     }
 
     public static Connection getConnection(
-            JdbcConf conf, org.apache.flink.connector.jdbc.dialect.JdbcDialect dialect) {
+            JdbcConfig conf, org.apache.flink.connector.jdbc.dialect.JdbcDialect dialect) {
         return getConnection(conf, new JdbcDialectWrapper(dialect));
     }
 
@@ -322,7 +322,8 @@ public class JdbcUtil {
      * @param resultSet 查询结果集
      * @return 字段类型list列表
      */
-    public static List<String> analyzeColumnType(ResultSet resultSet, List<FieldConf> metaColumns) {
+    public static List<String> analyzeColumnType(
+            ResultSet resultSet, List<FieldConfig> metaColumns) {
         List<String> columnTypeList = new ArrayList<>();
 
         try {
@@ -332,7 +333,7 @@ public class JdbcUtil {
                 nameTypeMap.put(rd.getColumnName(i + 1), rd.getColumnTypeName(i + 1));
             }
 
-            for (FieldConf metaColumn : metaColumns) {
+            for (FieldConfig metaColumn : metaColumns) {
                 if (metaColumn.getValue() != null) {
                     columnTypeList.add("VARCHAR");
                 } else {
@@ -444,7 +445,7 @@ public class JdbcUtil {
      * @param jdbcConf jdbc datasource configuration
      * @return
      */
-    public static void putExtParam(JdbcConf jdbcConf) {
+    public static void putExtParam(JdbcConfig jdbcConf) {
         Properties properties = jdbcConf.getProperties();
         if (properties == null) {
             properties = new Properties();
@@ -461,7 +462,7 @@ public class JdbcUtil {
      * @param extraProperties default customConfiguration
      * @return
      */
-    public static void putExtParam(JdbcConf jdbcConf, Properties extraProperties) {
+    public static void putExtParam(JdbcConfig jdbcConf, Properties extraProperties) {
         Properties properties = jdbcConf.getProperties();
         if (properties == null) {
             properties = new Properties();
@@ -481,7 +482,7 @@ public class JdbcUtil {
      * @return
      */
     public static LogicalType getLogicalTypeFromJdbcMetaData(
-            JdbcConf jdbcConf, JdbcDialect jdbcDialect, RawTypeConverter converter) {
+            JdbcConfig jdbcConf, JdbcDialect jdbcDialect, RawTypeConverter converter) {
         try (Connection conn = JdbcUtil.getConnection(jdbcConf, jdbcDialect)) {
             Pair<List<String>, List<String>> pair =
                     JdbcUtil.getTableMetaData(
@@ -495,7 +496,8 @@ public class JdbcUtil {
     }
 
     /** 解析schema.table 或者 "schema"."table"等格式的表名 获取对应的schema以及table * */
-    public static void resetSchemaAndTable(JdbcConf jdbcConf, String leftQuote, String rightQuote) {
+    public static void resetSchemaAndTable(
+            JdbcConfig jdbcConf, String leftQuote, String rightQuote) {
         String pattern =
                 String.format(
                         "(?i)(%s(?<schema>(.*))%s\\.%s(?<table>(.*))%s)",
@@ -531,44 +533,44 @@ public class JdbcUtil {
     }
 
     public static Pair<List<String>, List<String>> buildCustomColumnInfo(
-            List<FieldConf> column, String constantType) {
+            List<FieldConfig> column, String constantType) {
         List<String> columnNameList = new ArrayList<>(column.size());
         List<String> columnTypeList = new ArrayList<>(column.size());
         int index = 0;
-        for (FieldConf fieldConf : column) {
-            if (StringUtils.isNotBlank(fieldConf.getValue())) {
-                fieldConf.setType(constantType);
-                fieldConf.setIndex(-1);
+        for (FieldConfig fieldConfig : column) {
+            if (StringUtils.isNotBlank(fieldConfig.getValue())) {
+                fieldConfig.setType(constantType);
+                fieldConfig.setIndex(-1);
             } else {
-                columnNameList.add(fieldConf.getName());
-                columnTypeList.add(fieldConf.getType());
-                fieldConf.setIndex(index++);
+                columnNameList.add(fieldConfig.getName());
+                columnTypeList.add(fieldConfig.getType());
+                fieldConfig.setIndex(index++);
             }
         }
         return Pair.of(columnNameList, columnTypeList);
     }
 
     public static Pair<List<String>, List<String>> buildColumnWithMeta(
-            JdbcConf jdbcConf,
+            JdbcConfig jdbcConf,
             Pair<List<String>, List<String>> tableMetaData,
             String constantType) {
         List<String> metaColumnName = tableMetaData.getLeft();
         List<String> metaColumnType = tableMetaData.getRight();
 
-        List<FieldConf> column = jdbcConf.getColumn();
+        List<FieldConfig> column = jdbcConf.getColumn();
         int size = metaColumnName.size();
         List<String> columnNameList = new ArrayList<>(size);
         List<String> columnTypeList = new ArrayList<>(size);
         if (column.size() == 1 && ConstantValue.STAR_SYMBOL.equals(column.get(0).getName())) {
-            List<FieldConf> metaColumn = new ArrayList<>(size);
+            List<FieldConfig> metaColumn = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
-                FieldConf fieldConf = new FieldConf();
-                fieldConf.setName(metaColumnName.get(i));
+                FieldConfig fieldConfig = new FieldConfig();
+                fieldConfig.setName(metaColumnName.get(i));
                 columnNameList.add(metaColumnName.get(i));
-                fieldConf.setType(metaColumnType.get(i));
+                fieldConfig.setType(metaColumnType.get(i));
                 columnTypeList.add(metaColumnType.get(i));
-                fieldConf.setIndex(i);
-                metaColumn.add(fieldConf);
+                fieldConfig.setIndex(i);
+                metaColumn.add(fieldConfig);
             }
             jdbcConf.setColumn(metaColumn);
             return Pair.of(columnNameList, columnTypeList);
@@ -584,7 +586,7 @@ public class JdbcUtil {
 
     private static Pair<List<String>, List<String>> checkAndModifyColumnWithMeta(
             String tableName,
-            List<FieldConf> column,
+            List<FieldConfig> column,
             List<String> metaColumnName,
             List<String> metaColumnType,
             String constantType) {
@@ -593,12 +595,12 @@ public class JdbcUtil {
         List<String> columnNameList = new ArrayList<>(column.size());
         List<String> columnTypeList = new ArrayList<>(column.size());
         int index = 0;
-        for (FieldConf fieldConf : column) {
-            if (StringUtils.isNotBlank(fieldConf.getValue())) {
-                fieldConf.setType(constantType);
-                fieldConf.setIndex(-1);
+        for (FieldConfig fieldConfig : column) {
+            if (StringUtils.isNotBlank(fieldConfig.getValue())) {
+                fieldConfig.setType(constantType);
+                fieldConfig.setIndex(-1);
             } else {
-                String name = fieldConf.getName();
+                String name = fieldConfig.getName();
                 String metaType = null;
                 int i = 0;
                 for (; i < metaColumnSize; i++) {
@@ -607,8 +609,8 @@ public class JdbcUtil {
                         metaType = metaColumnType.get(i);
                         columnNameList.add(name);
                         columnTypeList.add(metaType);
-                        fieldConf.setIndex(index++);
-                        fieldConf.setType(metaColumnType.get(i));
+                        fieldConfig.setIndex(index++);
+                        fieldConfig.setType(metaColumnType.get(i));
                         break;
                     }
                 }
