@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.jdbc.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.conf.FieldConfig;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -61,7 +61,7 @@ public class JdbcColumnConverter
         this(rowType, null);
     }
 
-    public JdbcColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+    public JdbcColumnConverter(RowType rowType, CommonConfig commonConf) {
         super(rowType, commonConf);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
@@ -90,10 +90,10 @@ public class JdbcColumnConverter
     @Override
     @SuppressWarnings("unchecked")
     public RowData toInternal(ResultSet resultSet) throws Exception {
-        List<FieldConf> fieldConfList = commonConf.getColumn();
+        List<FieldConfig> fieldConfigList = commonConfig.getColumn();
         ColumnRowData result;
-        if (fieldConfList.size() == 1
-                && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())) {
+        if (fieldConfigList.size() == 1
+                && ConstantValue.STAR_SYMBOL.equals(fieldConfigList.get(0).getName())) {
             result = new ColumnRowData(fieldTypes.length);
             for (int index = 0; index < fieldTypes.length; index++) {
                 Object field = resultSet.getObject(index + 1);
@@ -104,10 +104,10 @@ public class JdbcColumnConverter
             return result;
         }
         int converterIndex = 0;
-        result = new ColumnRowData(fieldConfList.size());
-        for (FieldConf fieldConf : fieldConfList) {
+        result = new ColumnRowData(fieldConfigList.size());
+        for (FieldConfig fieldConfig : fieldConfigList) {
             AbstractBaseColumn baseColumn = null;
-            if (StringUtils.isBlank(fieldConf.getValue())) {
+            if (StringUtils.isBlank(fieldConfig.getValue())) {
                 Object field = resultSet.getObject(converterIndex + 1);
 
                 baseColumn =
@@ -115,7 +115,7 @@ public class JdbcColumnConverter
                                 toInternalConverters.get(converterIndex).deserialize(field);
                 converterIndex++;
             }
-            result.addField(assembleFieldProps(fieldConf, baseColumn));
+            result.addField(assembleFieldProps(fieldConfig, baseColumn));
         }
         return result;
     }

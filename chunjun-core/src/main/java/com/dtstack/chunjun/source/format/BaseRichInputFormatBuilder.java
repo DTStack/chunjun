@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.source.format;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 
 import com.google.common.base.Preconditions;
@@ -42,7 +42,7 @@ public abstract class BaseRichInputFormatBuilder<T extends BaseRichInputFormat> 
         this.format = format;
     }
 
-    public void setConfig(ChunJunCommonConf config) {
+    public void setConfig(CommonConfig config) {
         format.setConfig(config);
     }
 

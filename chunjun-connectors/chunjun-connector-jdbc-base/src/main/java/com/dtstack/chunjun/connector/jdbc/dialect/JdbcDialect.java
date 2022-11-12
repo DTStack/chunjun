@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.jdbc.dialect;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRowConverter;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
@@ -102,7 +102,7 @@ public interface JdbcDialect extends Serializable {
      * @return a row converter for the database
      */
     default AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+            getColumnConverter(RowType rowType, CommonConfig commonConf) {
         return new JdbcColumnConverter(rowType, commonConf);
     }
 
@@ -401,7 +401,7 @@ public interface JdbcDialect extends Serializable {
     }
 
     /** catalog/schema/table */
-    default Function<JdbcConf, Tuple3<String, String, String>> getTableIdentify() {
+    default Function<JdbcConfig, Tuple3<String, String, String>> getTableIdentify() {
         return conf -> Tuple3.of(null, conf.getSchema(), conf.getTable());
     }
 }

@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.conf.FieldConfig;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.enums.ColumnType;
@@ -45,12 +45,6 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * Converter that is responsible to convert between JDBC object and Flink SQL internal data
  * structure {@link RowData}.
  */
-
-/**
- * @program: ChunJun
- * @author: wuren
- * @create: 2021/04/10
- */
 public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implements Serializable {
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -59,7 +53,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     protected ArrayList<IDeserializationConverter> toInternalConverters;
     protected ArrayList<ISerializationConverter> toExternalConverters;
     protected LogicalType[] fieldTypes;
-    protected ChunJunCommonConf commonConf;
+    protected CommonConfig commonConfig;
 
     public AbstractRowConverter() {}
 
@@ -72,14 +66,14 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
                         .toArray(LogicalType[]::new);
     }
 
-    public AbstractRowConverter(RowType rowType, ChunJunCommonConf commonConf) {
+    public AbstractRowConverter(RowType rowType, CommonConfig commonConfig) {
         this(rowType.getFieldCount());
         this.rowType = checkNotNull(rowType);
         this.fieldTypes =
                 rowType.getFields().stream()
                         .map(RowType.RowField::getType)
                         .toArray(LogicalType[]::new);
-        this.commonConf = commonConf;
+        this.commonConfig = commonConfig;
     }
 
     public AbstractRowConverter(int converterSize) {
@@ -87,10 +81,10 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
         this.toExternalConverters = new ArrayList<>(converterSize);
     }
 
-    public AbstractRowConverter(int converterSize, ChunJunCommonConf commonConf) {
+    public AbstractRowConverter(int converterSize, CommonConfig commonConfig) {
         this.toInternalConverters = new ArrayList<>(converterSize);
         this.toExternalConverters = new ArrayList<>(converterSize);
-        this.commonConf = commonConf;
+        this.commonConfig = commonConfig;
     }
 
     protected IDeserializationConverter wrapIntoNullableInternalConverter(
@@ -112,16 +106,16 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     /**
      * 组装字段属性，常量、format、等等
      *
-     * @param fieldConf
+     * @param fieldConfig
      * @param baseColumn
      * @return
      */
     protected AbstractBaseColumn assembleFieldProps(
-            FieldConf fieldConf, AbstractBaseColumn baseColumn) {
-        String format = fieldConf.getFormat();
-        String parseFormat = fieldConf.getParseFormat();
-        if (StringUtils.isNotBlank(fieldConf.getValue())) {
-            String type = fieldConf.getType();
+            FieldConfig fieldConfig, AbstractBaseColumn baseColumn) {
+        String format = fieldConfig.getFormat();
+        String parseFormat = fieldConfig.getParseFormat();
+        if (StringUtils.isNotBlank(fieldConfig.getValue())) {
+            String type = fieldConfig.getType();
             if ((ColumnType.isStringType(type) || ColumnType.isTimeType(type))
                     && StringUtils.isNotBlank(format)) {
                 SimpleDateFormat parseDateFormat = null;
@@ -131,11 +125,12 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
                 baseColumn =
                         new StringColumn(
                                 String.valueOf(
-                                        DateUtil.columnToDate(fieldConf.getValue(), parseDateFormat)
+                                        DateUtil.columnToDate(
+                                                        fieldConfig.getValue(), parseDateFormat)
                                                 .getTime()),
                                 format);
             } else {
-                baseColumn = new StringColumn(fieldConf.getValue(), format);
+                baseColumn = new StringColumn(fieldConfig.getValue(), format);
             }
         } else if (StringUtils.isNotBlank(format)) {
             baseColumn =
@@ -223,11 +218,11 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
         return null;
     }
 
-    public ChunJunCommonConf getCommonConf() {
-        return commonConf;
+    public CommonConfig getCommonConfig() {
+        return commonConfig;
     }
 
-    public void setCommonConf(ChunJunCommonConf commonConf) {
-        this.commonConf = commonConf;
+    public void setCommonConfig(CommonConfig commonConfig) {
+        this.commonConfig = commonConfig;
     }
 }

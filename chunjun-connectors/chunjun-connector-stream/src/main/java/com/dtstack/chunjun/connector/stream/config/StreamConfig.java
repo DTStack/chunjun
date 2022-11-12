@@ -15,18 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.chunjun.connector.stream.conf;
+package com.dtstack.chunjun.connector.stream.config;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 
 import java.util.List;
 
-/**
- * Date: 2021/04/07 Company: www.dtstack.com
- *
- * @author tudou 这里是Stream公共的参数
- */
-public class StreamConf extends ChunJunCommonConf {
+public class StreamConfig extends CommonConfig {
 
     // reader
     private List<Long> sliceRecordCount;

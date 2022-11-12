@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.jdbc.source.distribute;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.conf.FieldConfig;
 import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.chunjun.connector.jdbc.conf.DataSourceConf;
@@ -83,9 +83,9 @@ public abstract class DistributedJdbcSourceFactory extends JdbcSourceFactory {
     protected void initColumnInfo() {
         columnNameList = new ArrayList<>();
         columnTypeList = new ArrayList<>();
-        for (FieldConf fieldConf : jdbcConf.getColumn()) {
-            this.columnNameList.add(fieldConf.getName());
-            this.columnTypeList.add(fieldConf.getType());
+        for (FieldConfig fieldConfig : jdbcConf.getColumn()) {
+            this.columnNameList.add(fieldConfig.getName());
+            this.columnTypeList.add(fieldConfig.getType());
         }
         Pair<List<String>, List<String>> columnPair =
                 ColumnBuildUtil.handleColumnList(

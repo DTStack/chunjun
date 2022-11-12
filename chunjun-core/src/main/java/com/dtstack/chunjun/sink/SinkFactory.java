@@ -20,7 +20,7 @@ package com.dtstack.chunjun.sink;
 
 import com.dtstack.chunjun.cdc.CdcConf;
 import com.dtstack.chunjun.cdc.conf.DDLConf;
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 import com.dtstack.chunjun.conf.SpeedConf;
 import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.converter.RawTypeConvertible;
@@ -82,7 +82,7 @@ public abstract class SinkFactory implements RawTypeConvertible {
     }
 
     /** 初始化ChunJunCommonConf */
-    public void initCommonConf(ChunJunCommonConf commonConf) {
+    public void initCommonConf(CommonConfig commonConf) {
         PropertiesUtil.initCommonConf(commonConf, this.syncConf);
         commonConf.setCheckFormat(this.syncConf.getWriter().getBooleanVal("check", true));
         SpeedConf speed = this.syncConf.getSpeed();

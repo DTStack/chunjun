@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.sink;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRawTypeConverterTest;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
@@ -70,7 +70,7 @@ import static org.powermock.reflect.Whitebox.setInternalState;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
     JdbcOutputFormat.class,
-    JdbcConf.class,
+    JdbcConfig.class,
     JdbcDialect.class,
     SqlUtil.class,
     TableUtil.class,
@@ -82,7 +82,7 @@ import static org.powermock.reflect.Whitebox.setInternalState;
 public class JdbcOutputFormatTest {
     JdbcOutputFormat jdbcOutputFormat;
     JdbcDialect jdbcDialect;
-    JdbcConf jdbcConf;
+    JdbcConfig jdbcConf;
 
     AccumulatorCollector accumulatorCollector;
     BigIntegerAccumulator endLocationAccumulator;
@@ -104,7 +104,7 @@ public class JdbcOutputFormatTest {
         jdbcOutputFormat = mock(JdbcOutputFormat.class);
         jdbcDialect = mock(JdbcDialect.class);
         Logger LOG = mock(Logger.class);
-        jdbcConf = mock(JdbcConf.class);
+        jdbcConf = mock(JdbcConfig.class);
         CustomReporter customReporter = mock(CustomReporter.class);
         RuntimeContext runtimeContext = mock(RuntimeContext.class);
         accumulatorCollector = mock(AccumulatorCollector.class);

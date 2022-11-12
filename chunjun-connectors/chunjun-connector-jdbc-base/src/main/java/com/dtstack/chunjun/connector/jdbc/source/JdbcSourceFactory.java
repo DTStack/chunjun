@@ -18,11 +18,11 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.conf.FieldConfig;
 import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -67,7 +67,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     private static final int DEFAULT_FETCH_SIZE = 1024;
     private static final int DEFAULT_QUERY_TIMEOUT = 300;
     private static final int DEFAULT_CONNECTION_TIMEOUT = 600;
-    protected JdbcConf jdbcConf;
+    protected JdbcConfig jdbcConf;
     protected JdbcDialect jdbcDialect;
 
     protected KeyUtil<?, BigInteger> incrementKeyUtil = new NumericTypeUtil();
@@ -102,8 +102,8 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         }
     }
 
-    protected Class<? extends JdbcConf> getConfClass() {
-        return JdbcConf.class;
+    protected Class<? extends JdbcConfig> getConfClass() {
+        return JdbcConfig.class;
     }
 
     @Override
@@ -161,7 +161,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     }
 
     /** set default split strategy if splitStrategy is blank */
-    private void setDefaultSplitStrategy(JdbcConf jdbcConf) {
+    private void setDefaultSplitStrategy(JdbcConfig jdbcConf) {
         if (jdbcConf.getSplitStrategy() == null || jdbcConf.getSplitStrategy().equals("")) {
             if (jdbcConf.isIncrement() && jdbcConf.getParallelism() > 1) {
                 jdbcConf.setSplitStrategy("mod");
@@ -205,12 +205,13 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     protected void initRestoreConfig() {
         String name = syncConf.getRestore().getRestoreColumnName();
         if (StringUtils.isNotBlank(name)) {
-            FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), name);
-            if (fieldConf != null) {
+            FieldConfig fieldConfig = FieldConfig.getSameNameMetaColumn(jdbcConf.getColumn(), name);
+            if (fieldConfig != null) {
                 jdbcConf.setRestoreColumn(name);
-                jdbcConf.setRestoreColumnIndex(fieldConf.getIndex());
-                jdbcConf.setRestoreColumnType(fieldConf.getType());
-                restoreKeyUtil = jdbcDialect.initKeyUtil(fieldConf.getName(), fieldConf.getType());
+                jdbcConf.setRestoreColumnIndex(fieldConfig.getIndex());
+                jdbcConf.setRestoreColumnType(fieldConfig.getType());
+                restoreKeyUtil =
+                        jdbcDialect.initKeyUtil(fieldConfig.getName(), fieldConfig.getType());
             } else {
                 throw new IllegalArgumentException("unknown restore column name: " + name);
             }
@@ -230,7 +231,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
         // 增量字段不为空，表示任务为增量或间隔轮询任务
         if (StringUtils.isNotBlank(increColumn)) {
-            List<FieldConf> fieldConfList = jdbcConf.getColumn();
+            List<FieldConfig> fieldConfigList = jdbcConf.getColumn();
             String type = null;
             String name = null;
             int index = -1;
@@ -238,20 +239,20 @@ public abstract class JdbcSourceFactory extends SourceFactory {
             // 纯数字则表示增量字段在column中的顺序位置
             if (NumberUtils.isNumber(increColumn)) {
                 int idx = Integer.parseInt(increColumn);
-                if (idx > fieldConfList.size() - 1) {
+                if (idx > fieldConfigList.size() - 1) {
                     throw new ChunJunRuntimeException(
                             String.format(
                                     "config error : incrementColumn must less than column.size() when increColumn is number, column = %s, size = %s, increColumn = %s",
-                                    GsonUtil.GSON.toJson(fieldConfList),
-                                    fieldConfList.size(),
+                                    GsonUtil.GSON.toJson(fieldConfigList),
+                                    fieldConfigList.size(),
                                     increColumn));
                 }
-                FieldConf fieldColumn = fieldConfList.get(idx);
+                FieldConfig fieldColumn = fieldConfigList.get(idx);
                 type = fieldColumn.getType();
                 name = fieldColumn.getName();
                 index = fieldColumn.getIndex();
             } else {
-                for (FieldConf field : fieldConfList) {
+                for (FieldConfig field : fieldConfigList) {
                     if (Objects.equals(increColumn, field.getName())) {
                         type = field.getType();
                         name = field.getName();
@@ -264,7 +265,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
                 throw new IllegalArgumentException(
                         String.format(
                                 "config error : increColumn's name or type is null, column = %s, increColumn = %s",
-                                GsonUtil.GSON.toJson(fieldConfList), increColumn));
+                                GsonUtil.GSON.toJson(fieldConfigList), increColumn));
             }
 
             jdbcConf.setIncrement(true);

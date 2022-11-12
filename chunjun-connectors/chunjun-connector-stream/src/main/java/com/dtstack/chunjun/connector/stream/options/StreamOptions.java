@@ -23,11 +23,6 @@ import org.apache.flink.configuration.ConfigOptions;
 
 import static org.apache.flink.configuration.ConfigOptions.key;
 
-/**
- * @author chuixue
- * @create 2021-04-09 10:19
- * @description 常量
- */
 public class StreamOptions {
     public static final ConfigOption<Boolean> PRINT =
             key("print").booleanType().defaultValue(true).withDescription("if print .");

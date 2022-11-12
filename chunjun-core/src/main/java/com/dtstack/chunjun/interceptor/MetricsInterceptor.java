@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.interceptor;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.metrics.AccumulatorCollector;
 import com.dtstack.chunjun.metrics.BaseMetric;
@@ -51,10 +51,10 @@ public class MetricsInterceptor implements Interceptor {
 
     private final StreamingRuntimeContext context;
     private final int indexOfSubTask;
-    private final ChunJunCommonConf config;
+    private final CommonConfig config;
 
     public MetricsInterceptor(
-            StreamingRuntimeContext context, int indexOfSubTask, ChunJunCommonConf conf) {
+            StreamingRuntimeContext context, int indexOfSubTask, CommonConfig conf) {
         this.context = context;
         this.indexOfSubTask = indexOfSubTask;
         this.config = conf;

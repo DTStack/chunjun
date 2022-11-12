@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.source;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.conf.FieldConfig;
 import com.dtstack.chunjun.conf.SpeedConf;
 import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -52,14 +52,14 @@ public abstract class SourceFactory implements RawTypeConvertible {
 
     protected StreamExecutionEnvironment env;
     protected SyncConf syncConf;
-    protected List<FieldConf> fieldList;
+    protected List<FieldConfig> fieldList;
     protected TypeInformation<RowData> typeInformation;
     protected boolean useAbstractBaseColumn = true;
 
     protected SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         this.env = env;
         this.syncConf = syncConf;
-        List<FieldConf> readerFiledConfList = syncConf.getReader().getFieldList();
+        List<FieldConfig> readerFiledConfList = syncConf.getReader().getFieldList();
         this.fieldList = new ArrayList<>(readerFiledConfList.size());
         fieldList.addAll(readerFiledConfList);
         if (syncConf.getTransformer() != null
@@ -92,8 +92,8 @@ public abstract class SourceFactory implements RawTypeConvertible {
      *
      * @param commonConf
      */
-    protected void checkConstant(ChunJunCommonConf commonConf) {
-        List<FieldConf> fieldList = commonConf.getColumn();
+    protected void checkConstant(CommonConfig commonConf) {
+        List<FieldConfig> fieldList = commonConf.getColumn();
         if (fieldList.size() == 1
                 && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldList.get(0).getName())) {
             com.google.common.base.Preconditions.checkArgument(
@@ -135,7 +135,7 @@ public abstract class SourceFactory implements RawTypeConvertible {
     }
 
     /** 初始化ChunJunCommonConf */
-    public void initCommonConf(ChunJunCommonConf commonConf) {
+    public void initCommonConf(CommonConfig commonConf) {
         PropertiesUtil.initCommonConf(commonConf, this.syncConf);
         commonConf.setCheckFormat(this.syncConf.getReader().getBooleanVal("check", true));
         SpeedConf speed = this.syncConf.getSpeed();

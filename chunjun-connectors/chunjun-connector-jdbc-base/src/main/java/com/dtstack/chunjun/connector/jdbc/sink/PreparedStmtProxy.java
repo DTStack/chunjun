@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.jdbc.sink;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.constants.CDCConstantValue;
@@ -87,7 +87,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
     protected Connection connection;
     protected JdbcDialect jdbcDialect;
-    protected JdbcConf jdbcConf;
+    protected JdbcConfig jdbcConf;
 
     /** 是否将框架额外添加的扩展信息写入到数据库,默认不写入* */
     protected boolean writeExtInfo;
@@ -104,7 +104,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
             FieldNamedPreparedStatement currentFieldNamedPstmt,
             AbstractRowConverter currentRowConverter,
             Connection connection,
-            JdbcConf jdbcConf,
+            JdbcConfig jdbcConf,
             JdbcDialect jdbcDialect) {
         this.currentFieldNamedPstmt = currentFieldNamedPstmt;
         this.currentRowConverter = currentRowConverter;

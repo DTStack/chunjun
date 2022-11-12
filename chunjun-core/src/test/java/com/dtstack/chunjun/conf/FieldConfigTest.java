@@ -33,12 +33,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-public class FieldConfTest {
+public class FieldConfigTest {
 
     @Test
     @DisplayName("Should return an empty list when the fieldlist is empty")
     public void getFieldListWhenFieldListIsEmptyThenReturnEmptyList() {
-        List<FieldConf> fieldList = FieldConf.getFieldList(Collections.emptyList());
+        List<FieldConfig> fieldList = FieldConfig.getFieldList(Collections.emptyList());
         assertNotNull(fieldList);
         assertTrue(fieldList.isEmpty());
     }
@@ -46,17 +46,17 @@ public class FieldConfTest {
     /** Should return the correct string when all fields are not null */
     @Test
     public void toStringWhenAllFieldsAreNotNull() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setName("name");
-        fieldConf.setType("type");
-        fieldConf.setIndex(1);
-        fieldConf.setValue("value");
-        fieldConf.setFormat("format");
-        fieldConf.setParseFormat("parseFormat");
-        fieldConf.setSplitter("splitter");
-        fieldConf.setPart(true);
-        fieldConf.setNotNull(true);
-        fieldConf.setLength(1);
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setName("name");
+        fieldConfig.setType("type");
+        fieldConfig.setIndex(1);
+        fieldConfig.setValue("value");
+        fieldConfig.setFormat("format");
+        fieldConfig.setParseFormat("parseFormat");
+        fieldConfig.setSplitter("splitter");
+        fieldConfig.setPart(true);
+        fieldConfig.setNotNull(true);
+        fieldConfig.setLength(1);
 
         String expected =
                 "FieldConf{"
@@ -88,7 +88,7 @@ public class FieldConfTest {
                         + 1
                         + '}';
 
-        assertEquals(expected, fieldConf.toString());
+        assertEquals(expected, fieldConfig.toString());
     }
 
     /** Should return a FieldConf object when the map is not empty */
@@ -108,119 +108,119 @@ public class FieldConfTest {
         map.put("customConverterClass", "customConverterClass");
         map.put("customConverterType", "customConverterType");
 
-        FieldConf fieldConf = FieldConf.getField(map, 1);
+        FieldConfig fieldConfig = FieldConfig.getField(map, 1);
 
-        assertEquals(fieldConf.getName(), "name");
-        assertEquals(fieldConf.getType(), "type");
-        assertEquals(fieldConf.getIndex(), Integer.valueOf(1));
-        assertEquals(fieldConf.getValue(), "value");
-        assertEquals(fieldConf.getFormat(), "format");
-        assertEquals(fieldConf.getParseFormat(), "parseFormat");
-        assertEquals(fieldConf.getSplitter(), "splitter");
-        assertTrue(fieldConf.getPart());
-        assertTrue(fieldConf.getNotNull());
-        assertEquals(fieldConf.getLength(), Integer.valueOf(1));
+        assertEquals(fieldConfig.getName(), "name");
+        assertEquals(fieldConfig.getType(), "type");
+        assertEquals(fieldConfig.getIndex(), Integer.valueOf(1));
+        assertEquals(fieldConfig.getValue(), "value");
+        assertEquals(fieldConfig.getFormat(), "format");
+        assertEquals(fieldConfig.getParseFormat(), "parseFormat");
+        assertEquals(fieldConfig.getSplitter(), "splitter");
+        assertTrue(fieldConfig.getPart());
+        assertTrue(fieldConfig.getNotNull());
+        assertEquals(fieldConfig.getLength(), Integer.valueOf(1));
     }
 
     /** Should return a FieldConf object when the map is empty */
     @Test
     public void getFieldWhenMapIsEmptyThenReturnFieldConfObject() {
         Map<String, Object> map = new HashMap<>();
-        FieldConf fieldConf = FieldConf.getField(map, 0);
-        assertNotNull(fieldConf);
+        FieldConfig fieldConfig = FieldConfig.getField(map, 0);
+        assertNotNull(fieldConfig);
     }
 
     /** Should return the parseFormat when the parseFormat is not null */
     @Test
     public void getParseFormatWhenParseFormatIsNotNull() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setParseFormat("yyyy-MM-dd HH:mm:ss");
-        assertEquals("yyyy-MM-dd HH:mm:ss", fieldConf.getParseFormat());
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setParseFormat("yyyy-MM-dd HH:mm:ss");
+        assertEquals("yyyy-MM-dd HH:mm:ss", fieldConfig.getParseFormat());
     }
 
     /** Should return null when the parseFormat is null */
     @Test
     public void getParseFormatWhenParseFormatIsNull() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setParseFormat(null);
-        assertNull(fieldConf.getParseFormat());
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setParseFormat(null);
+        assertNull(fieldConfig.getParseFormat());
     }
 
     /** Should return the value when the value is not null */
     @Test
     public void getValueWhenValueIsNotNull() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setValue("value");
-        assertEquals("value", fieldConf.getValue());
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setValue("value");
+        assertEquals("value", fieldConfig.getValue());
     }
 
     /** Should return null when the value is null */
     @Test
     public void getValueWhenValueIsNull() {
-        FieldConf fieldConf = new FieldConf();
-        assertNull(fieldConf.getValue());
+        FieldConfig fieldConfig = new FieldConfig();
+        assertNull(fieldConfig.getValue());
     }
 
     /** Should return the format when the format is not null */
     @Test
     public void getFormatWhenFormatIsNotNull() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setFormat("yyyy-MM-dd HH:mm:ss");
-        assertEquals("yyyy-MM-dd HH:mm:ss", fieldConf.getFormat());
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setFormat("yyyy-MM-dd HH:mm:ss");
+        assertEquals("yyyy-MM-dd HH:mm:ss", fieldConfig.getFormat());
     }
 
     /** Should return null when the format is null */
     @Test
     public void getFormatWhenFormatIsNull() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setFormat(null);
-        assertNull(fieldConf.getFormat());
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setFormat(null);
+        assertNull(fieldConfig.getFormat());
     }
 
     /** Should return the splitter when the splitter is not null */
     @Test
     public void getSplitterWhenSplitterIsNotNull() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setSplitter("splitter");
-        assertEquals("splitter", fieldConf.getSplitter());
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setSplitter("splitter");
+        assertEquals("splitter", fieldConfig.getSplitter());
     }
 
     /** Should return null when the splitter is null */
     @Test
     public void getSplitterWhenSplitterIsNull() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setSplitter(null);
-        assertNull(fieldConf.getSplitter());
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setSplitter(null);
+        assertNull(fieldConfig.getSplitter());
     }
 
     /** Should return true when the notNull is true */
     @Test
     public void getNotNullWhenNotNullIsTrue() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setNotNull(true);
-        assertTrue(fieldConf.getNotNull());
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setNotNull(true);
+        assertTrue(fieldConfig.getNotNull());
     }
 
     /** Should return false when the notNull is false */
     @Test
     public void getNotNullWhenNotNullIsFalse() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setNotNull(false);
-        assertFalse(fieldConf.getNotNull());
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setNotNull(false);
+        assertFalse(fieldConfig.getNotNull());
     }
 
     /** Should return the length of the field */
     @Test
     public void getLengthShouldReturnTheLengthOfTheField() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setLength(10);
-        assertEquals(10, (long) fieldConf.getLength());
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setLength(10);
+        assertEquals(10, (long) fieldConfig.getLength());
     }
 
     /** Should return true when the field is part */
     @Test
     public void getPartWhenFieldIsPart() {
-        FieldConf field = new FieldConf();
+        FieldConfig field = new FieldConfig();
         field.setPart(true);
         assertTrue(field.getPart());
     }
@@ -228,7 +228,7 @@ public class FieldConfTest {
     /** Should return false when the field is not part */
     @Test
     public void getPartWhenFieldIsNotPart() {
-        FieldConf field = new FieldConf();
+        FieldConfig field = new FieldConfig();
         field.setPart(false);
         assertFalse(field.getPart());
     }
@@ -236,9 +236,9 @@ public class FieldConfTest {
     /** Should return null when the fieldList is empty */
     @Test
     public void getSameNameMetaColumnWhenFieldListIsEmptyThenReturnNull() {
-        List<FieldConf> fieldList = new ArrayList<>();
-        FieldConf fieldConf = FieldConf.getSameNameMetaColumn(fieldList, "name");
-        assertNull(fieldConf);
+        List<FieldConfig> fieldList = new ArrayList<>();
+        FieldConfig fieldConfig = FieldConfig.getSameNameMetaColumn(fieldList, "name");
+        assertNull(fieldConfig);
     }
 
     /**
@@ -247,20 +247,20 @@ public class FieldConfTest {
     @Test
     public void
             getSameNameMetaColumnWhenFieldListIsNotEmptyButThereIsNoFieldWithTheSameNameThenReturnNull() {
-        List<FieldConf> fieldList = new ArrayList<>();
-        FieldConf field1 = new FieldConf();
+        List<FieldConfig> fieldList = new ArrayList<>();
+        FieldConfig field1 = new FieldConfig();
         field1.setName("name1");
         fieldList.add(field1);
-        FieldConf field2 = new FieldConf();
+        FieldConfig field2 = new FieldConfig();
         field2.setName("name2");
         fieldList.add(field2);
-        FieldConf field3 = new FieldConf();
+        FieldConfig field3 = new FieldConfig();
         field3.setName("name3");
         fieldList.add(field3);
 
         String name = "name4";
 
-        FieldConf result = FieldConf.getSameNameMetaColumn(fieldList, name);
+        FieldConfig result = FieldConfig.getSameNameMetaColumn(fieldList, name);
 
         assertNull(result);
     }
@@ -268,31 +268,31 @@ public class FieldConfTest {
     /** Should return the index when the index is not null */
     @Test
     public void getIndexWhenIndexIsNotNull() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setIndex(1);
-        assertEquals(1, fieldConf.getIndex().intValue());
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setIndex(1);
+        assertEquals(1, fieldConfig.getIndex().intValue());
     }
 
     /** Should return the name of the field */
     @Test
     public void getNameShouldReturnTheNameOfTheField() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setName("name");
-        assertEquals("name", fieldConf.getName());
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setName("name");
+        assertEquals("name", fieldConfig.getName());
     }
 
     /** Should return the type when the type is not null */
     @Test
     public void getTypeWhenTypeIsNotNull() {
-        FieldConf fieldConf = new FieldConf();
-        fieldConf.setType("type");
-        assertEquals("type", fieldConf.getType());
+        FieldConfig fieldConfig = new FieldConfig();
+        fieldConfig.setType("type");
+        assertEquals("type", fieldConfig.getType());
     }
 
     /** Should return null when the type is null */
     @Test
     public void getTypeWhenTypeIsNull() {
-        FieldConf fieldConf = new FieldConf();
-        assertNull(fieldConf.getType());
+        FieldConfig fieldConfig = new FieldConfig();
+        assertNull(fieldConfig.getType());
     }
 }
