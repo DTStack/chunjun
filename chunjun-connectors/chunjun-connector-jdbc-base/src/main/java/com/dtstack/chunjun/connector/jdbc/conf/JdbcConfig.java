@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.jdbc.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.StringUtils;
@@ -27,12 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * Date: 2021/04/12 Company: www.dtstack.com
- *
- * @author tudou
- */
-public class JdbcConf extends ChunJunCommonConf implements Serializable {
+public class JdbcConfig extends CommonConfig implements Serializable {
     private static final long serialVersionUID = 1L;
 
     protected List<String> fullColumn;

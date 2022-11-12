@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.source.format;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,17 +61,17 @@ public class BaseRichInputFormatBuilderTest {
 
     @Test
     public void testSetChunJunCommonConf() {
-        ChunJunCommonConf chunJunCommonConf = new ChunJunCommonConf();
-        builder.setConfig(chunJunCommonConf);
+        CommonConfig commonConfig = new CommonConfig();
+        builder.setConfig(commonConfig);
         BaseRichInputFormat mockInputFormat = builder.finish();
-        assertEquals(chunJunCommonConf, mockInputFormat.config);
+        assertEquals(commonConfig, mockInputFormat.config);
     }
 
     @Test
     public void testCheckFormat() {
-        ChunJunCommonConf chunJunCommonConf = new ChunJunCommonConf();
-        chunJunCommonConf.setCheckFormat(true);
-        builder.setConfig(chunJunCommonConf);
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setCheckFormat(true);
+        builder.setConfig(commonConfig);
         MockInputFormatBuilder mockBuilder = (MockInputFormatBuilder) builder;
         assertFalse(mockBuilder.isChecked());
         builder.finish();
@@ -80,9 +80,9 @@ public class BaseRichInputFormatBuilderTest {
 
     @Test
     public void testDoNotCheckFormat() {
-        ChunJunCommonConf chunJunCommonConf = new ChunJunCommonConf();
-        chunJunCommonConf.setCheckFormat(false);
-        builder.setConfig(chunJunCommonConf);
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setCheckFormat(false);
+        builder.setConfig(commonConfig);
         MockInputFormatBuilder mockBuilder = (MockInputFormatBuilder) builder;
         assertFalse(mockBuilder.isChecked());
         builder.finish();

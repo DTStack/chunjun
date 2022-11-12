@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.util;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -33,7 +33,7 @@ import java.util.List;
 public class SqlUtil {
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    public static String buildQuerySplitRangeSql(JdbcConf jdbcConf, JdbcDialect jdbcDialect) {
+    public static String buildQuerySplitRangeSql(JdbcConfig jdbcConf, JdbcDialect jdbcDialect) {
         // 构建where条件
         String whereFilter = "";
         if (StringUtils.isNotBlank(jdbcConf.getWhere())) {
@@ -86,7 +86,7 @@ public class SqlUtil {
 
     /** create querySql for inputSplit * */
     public static String buildQuerySqlBySplit(
-            JdbcConf jdbcConf,
+            JdbcConfig jdbcConf,
             JdbcDialect jdbcDialect,
             List<String> whereList,
             List<String> columnNameList,
@@ -161,7 +161,7 @@ public class SqlUtil {
      * @return
      */
     public static String buildOrderSql(
-            JdbcConf jdbcConf, JdbcDialect jdbcDialect, String sortRule) {
+            JdbcConfig jdbcConf, JdbcDialect jdbcDialect, String sortRule) {
         String column;
         // 增量任务
         if (jdbcConf.isIncrement()) {

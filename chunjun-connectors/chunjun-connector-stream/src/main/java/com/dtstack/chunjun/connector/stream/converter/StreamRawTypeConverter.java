@@ -25,11 +25,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * @author wuren
- * @program chunjun
- * @create 2021/05/24
- */
 public class StreamRawTypeConverter {
 
     public static DataType apply(String type) throws UnsupportedTypeException {

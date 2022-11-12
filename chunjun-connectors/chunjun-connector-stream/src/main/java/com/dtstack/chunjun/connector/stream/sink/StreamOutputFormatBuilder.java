@@ -18,23 +18,18 @@
 
 package com.dtstack.chunjun.connector.stream.sink;
 
-import com.dtstack.chunjun.connector.stream.conf.StreamConf;
+import com.dtstack.chunjun.connector.stream.config.StreamConfig;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
-/**
- * The builder of StreamOutputFormat
- *
- * @author jiangbo @Company: www.dtstack.com
- */
 public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder<StreamOutputFormat> {
 
     public StreamOutputFormatBuilder() {
         super(new StreamOutputFormat());
     }
 
-    public void setStreamConf(StreamConf streamConf) {
-        super.setConfig(streamConf);
-        format.setStreamConf(streamConf);
+    public void setStreamConfig(StreamConfig streamConfig) {
+        super.setConfig(streamConfig);
+        format.setStreamConfig(streamConfig);
     }
 
     @Override

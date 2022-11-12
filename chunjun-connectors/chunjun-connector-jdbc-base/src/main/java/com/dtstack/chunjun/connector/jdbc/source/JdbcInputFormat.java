@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
@@ -67,7 +67,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected static final int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
     protected static int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
 
-    protected JdbcConf jdbcConf;
+    protected JdbcConfig jdbcConf;
     protected JdbcDialect jdbcDialect;
 
     protected transient Connection dbConn;
@@ -808,11 +808,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         return true;
     }
 
-    public JdbcConf getJdbcConf() {
+    public JdbcConfig getJdbcConf() {
         return jdbcConf;
     }
 
-    public void setJdbcConf(JdbcConf jdbcConf) {
+    public void setJdbcConf(JdbcConfig jdbcConf) {
         this.jdbcConf = jdbcConf;
     }
 
