@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oracle.dialect;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
@@ -128,7 +128,7 @@ public class OracleDialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+            getColumnConverter(RowType rowType, CommonConfig commonConf) {
         return new OracleColumnConverter(rowType, commonConf);
     }
 

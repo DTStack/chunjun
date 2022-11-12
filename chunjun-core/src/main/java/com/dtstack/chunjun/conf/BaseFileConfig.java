@@ -23,7 +23,7 @@ import com.dtstack.chunjun.sink.WriteMode;
 import java.nio.charset.StandardCharsets;
 import java.util.StringJoiner;
 
-public class BaseFileConf extends ChunJunCommonConf {
+public class BaseFileConfig extends CommonConfig {
     private int fromLine = 1;
 
     private String path;
@@ -113,7 +113,7 @@ public class BaseFileConf extends ChunJunCommonConf {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", BaseFileConf.class.getSimpleName() + "[", "]")
+        return new StringJoiner(", ", BaseFileConfig.class.getSimpleName() + "[", "]")
                 .add("fromLine=" + fromLine)
                 .add("path='" + path + "'")
                 .add("fileName='" + fileName + "'")

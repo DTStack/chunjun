@@ -18,7 +18,7 @@
 package com.dtstack.chunjun.connector.oracle.sink;
 
 import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.oracle.dialect.OracleDialect;
@@ -37,7 +37,7 @@ public class OracleSinkFactory extends JdbcSinkFactory {
     }
 
     @Override
-    protected void rebuildJdbcConf(JdbcConf jdbcConf) {
+    protected void rebuildJdbcConf(JdbcConfig jdbcConf) {
         super.rebuildJdbcConf(jdbcConf);
 
         Properties properties = new Properties();

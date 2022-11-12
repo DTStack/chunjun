@@ -23,7 +23,7 @@ import com.dtstack.chunjun.cdc.conf.DDLConf;
 import com.dtstack.chunjun.cdc.exception.LogExceptionHandler;
 import com.dtstack.chunjun.cdc.handler.DDLHandler;
 import com.dtstack.chunjun.cdc.utils.ExecutorUtils;
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.dirty.DirtyConf;
@@ -118,11 +118,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     /** 定时提交数据服务 */
     protected transient ScheduledExecutorService scheduler;
     /** 定时提交数据服务返回结果 */
-    protected transient ScheduledFuture scheduledFuture;
+    protected transient ScheduledFuture<?> scheduledFuture;
     /** 定时提交数据服务间隔时间，单位毫秒 */
     protected long flushIntervalMills;
     /** 任务公共配置 */
-    protected ChunJunCommonConf config;
+    protected CommonConfig config;
     /** BaseRichOutputFormat是否结束 */
     protected transient volatile boolean closed = false;
     /** 批量提交条数 */
@@ -695,11 +695,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         this.dirtyDataManager = dirtyDataManager;
     }
 
-    public ChunJunCommonConf getConfig() {
+    public CommonConfig getConfig() {
         return config;
     }
 
-    public void setConfig(ChunJunCommonConf config) {
+    public void setConfig(CommonConfig config) {
         this.config = config;
     }
 

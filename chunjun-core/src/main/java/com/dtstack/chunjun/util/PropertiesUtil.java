@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
@@ -87,7 +87,7 @@ public class PropertiesUtil {
      * @param commonConf
      * @param syncConf
      */
-    public static void initCommonConf(ChunJunCommonConf commonConf, SyncConf syncConf) {
+    public static void initCommonConf(CommonConfig commonConf, SyncConf syncConf) {
         commonConf.setSpeedBytes(syncConf.getSpeed().getBytes());
         commonConf.setSavePointPath(syncConf.getSavePointPath());
         if (syncConf.getMetricPluginConf() != null) {

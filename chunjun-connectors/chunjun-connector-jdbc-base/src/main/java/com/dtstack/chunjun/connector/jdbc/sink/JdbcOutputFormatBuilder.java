@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.jdbc.sink;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.enums.Semantic;
@@ -34,7 +34,7 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder<JdbcOut
         super(format);
     }
 
-    public void setJdbcConf(JdbcConf jdbcConf) {
+    public void setJdbcConf(JdbcConfig jdbcConf) {
         super.setConfig(jdbcConf);
         format.setJdbcConf(jdbcConf);
     }
@@ -58,7 +58,7 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder<JdbcOut
 
     @Override
     protected void checkFormat() {
-        JdbcConf jdbcConf = format.getJdbcConf();
+        JdbcConfig jdbcConf = format.getJdbcConf();
         StringBuilder sb = new StringBuilder(256);
         if (StringUtils.isBlank(jdbcConf.getUsername())) {
             sb.append("No username supplied;\n");

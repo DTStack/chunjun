@@ -22,7 +22,7 @@ import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.chunjun.connector.jdbc.conf.DataSourceConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRawTypeConverterTest;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
@@ -85,7 +85,7 @@ public class DistributeJdbcInputFormatTest {
     private static DistributedJdbcInputSplit inputSplit;
     private static List<DataSourceConf> dataSourceConfList;
     private static SyncConf syncConf;
-    private static JdbcConf jdbcConf;
+    private static JdbcConfig jdbcConf;
     private static JdbcDialect jdbcDialect;
     private static Logger LOG;
 
@@ -98,7 +98,7 @@ public class DistributeJdbcInputFormatTest {
 
         inputFormat = mock(DistributedJdbcInputFormat.class);
         inputSplit = mock(DistributedJdbcInputSplit.class);
-        jdbcConf = mock(JdbcConf.class);
+        jdbcConf = mock(JdbcConfig.class);
         LOG = mock(Logger.class);
         jdbcDialect = mock(JdbcDialect.class);
 
@@ -116,8 +116,8 @@ public class DistributeJdbcInputFormatTest {
                         .create();
         GsonUtil.setTypeAdapter(gson);
         syncConf = SyncConf.parseJob(json);
-        JdbcConf jdbcConf =
-                gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), JdbcConf.class);
+        JdbcConfig jdbcConf =
+                gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), JdbcConfig.class);
         List<ConnectionConf> connectionConfList = jdbcConf.getConnection();
         dataSourceConfList = new ArrayList<>(connectionConfList.size());
         for (ConnectionConf connectionConf : connectionConfList) {
@@ -192,7 +192,7 @@ public class DistributeJdbcInputFormatTest {
         setInternalState(inputFormat, "noDataSource", false);
         setInternalState(inputFormat, "sourceList", dataSourceConfList);
         setInternalState(inputFormat, "inputSplit", inputSplit);
-        when(JdbcUtil.getConnection(any(JdbcConf.class), any(JdbcDialect.class)))
+        when(JdbcUtil.getConnection(any(JdbcConfig.class), any(JdbcDialect.class)))
                 .thenAnswer(invocation -> connection);
         when(connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY))
                 .thenReturn(statement);

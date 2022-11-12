@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.source;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 import com.dtstack.chunjun.conf.ContentConf;
 import com.dtstack.chunjun.conf.JobConf;
 import com.dtstack.chunjun.conf.OperatorConf;
@@ -62,7 +62,7 @@ public class SourceFactoryTest {
         syncConf.setJob(jobConf);
         MockSourceFactory sourceFactory =
                 new MockSourceFactory(syncConf, new DummyStreamExecutionEnvironment());
-        ChunJunCommonConf commonConf = new ChunJunCommonConf();
+        CommonConfig commonConf = new CommonConfig();
         commonConf.setColumn(reader.getFieldList());
         IllegalArgumentException thrownA =
                 assertThrows(
@@ -95,7 +95,7 @@ public class SourceFactoryTest {
         syncConf.setJob(jobConf);
         MockSourceFactory sourceFactory =
                 new MockSourceFactory(syncConf, new DummyStreamExecutionEnvironment());
-        ChunJunCommonConf commonConf = new ChunJunCommonConf();
+        CommonConfig commonConf = new CommonConfig();
         commonConf.setColumn(reader.getFieldList());
         IllegalArgumentException thrownA =
                 assertThrows(
@@ -130,7 +130,7 @@ public class SourceFactoryTest {
         syncConf.setJob(jobConf);
         MockSourceFactory sourceFactory =
                 new MockSourceFactory(syncConf, new DummyStreamExecutionEnvironment());
-        ChunJunCommonConf commonConf = new ChunJunCommonConf();
+        CommonConfig commonConf = new CommonConfig();
         commonConf.setColumn(reader.getFieldList());
         IllegalArgumentException thrownA =
                 assertThrows(

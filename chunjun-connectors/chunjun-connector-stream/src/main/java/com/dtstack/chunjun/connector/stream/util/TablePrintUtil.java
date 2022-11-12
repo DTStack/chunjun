@@ -37,11 +37,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Reason: Date: 2018/12/19
- *
- * @author xuqianjin
- */
 public class TablePrintUtil {
     public static final int ALIGN_LEFT = 1; // 左对齐
     public static final int ALIGN_RIGHT = 2; // 右对齐

@@ -19,8 +19,8 @@
 package com.dtstack.chunjun.connector.stream.sink;
 
 import com.dtstack.chunjun.cdc.DdlRowData;
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.stream.conf.StreamConf;
+import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.connector.stream.config.StreamConfig;
 import com.dtstack.chunjun.connector.stream.util.TablePrintUtil;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
@@ -33,15 +33,10 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
 
-/**
- * OutputFormat for stream writer
- *
- * @author jiangbo @Company: www.dtstack.com 具体的跟外部系统的交互逻辑
- */
+/** OutputFormat for stream writer */
 public class StreamOutputFormat extends BaseRichOutputFormat {
 
-    // streamSinkConf属性
-    private StreamConf streamConf;
+    private StreamConfig streamConfig;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
@@ -57,10 +52,9 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
                             rowConverter.toExternal(
                                     rowData,
                                     new GenericRowData(rowData.getRowKind(), rowData.getArity()));
-            if (streamConf.getPrint()) {
+            if (streamConfig.getPrint()) {
                 TablePrintUtil.printTable(row, getFieldNames(rowData));
             }
-            lastRow = row;
         } catch (Exception e) {
             throw new WriteRecordException("", e, 0, rowData);
         }
@@ -84,9 +78,10 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
         }
 
         if (fieldNames == null) {
-            List<FieldConf> fieldConfList = streamConf.getColumn();
-            if (CollectionUtils.isNotEmpty(fieldConfList)) {
-                fieldNames = fieldConfList.stream().map(FieldConf::getName).toArray(String[]::new);
+            List<FieldConfig> fieldConfigList = streamConfig.getColumn();
+            if (CollectionUtils.isNotEmpty(fieldConfigList)) {
+                fieldNames =
+                        fieldConfigList.stream().map(FieldConfig::getName).toArray(String[]::new);
             }
         }
         return fieldNames;
@@ -97,7 +92,7 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
         // do nothing
     }
 
-    public void setStreamConf(StreamConf streamConf) {
-        this.streamConf = streamConf;
+    public void setStreamConfig(StreamConfig streamConfig) {
+        this.streamConfig = streamConfig;
     }
 }

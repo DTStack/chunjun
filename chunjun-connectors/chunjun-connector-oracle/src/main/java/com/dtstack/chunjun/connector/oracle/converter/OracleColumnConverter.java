@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.oracle.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.conf.FieldConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -65,7 +65,7 @@ public class OracleColumnConverter extends JdbcColumnConverter {
             Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.US);
     private int currentIndex = 0;
 
-    public OracleColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+    public OracleColumnConverter(RowType rowType, CommonConfig commonConf) {
         super(rowType, commonConf);
     }
 

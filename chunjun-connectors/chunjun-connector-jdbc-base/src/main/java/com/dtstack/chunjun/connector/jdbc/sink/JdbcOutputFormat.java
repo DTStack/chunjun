@@ -21,7 +21,7 @@ import com.dtstack.chunjun.cdc.DdlRowData;
 import com.dtstack.chunjun.cdc.EventType;
 import com.dtstack.chunjun.cdc.ddl.DdlRowDataConvented;
 import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -62,7 +62,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected static final long serialVersionUID = 1L;
 
-    protected JdbcConf jdbcConf;
+    protected JdbcConfig jdbcConf;
     protected JdbcDialect jdbcDialect;
 
     protected transient Connection dbConn;
@@ -159,7 +159,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             for (RowData row : rows) {
                 stmtProxy.convertToExternal(row);
                 stmtProxy.addBatch();
-                lastRow = row;
             }
             stmtProxy.executeBatch();
             // 开启了cp，但是并没有使用2pc方式让下游数据可见
@@ -423,11 +422,11 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 .next();
     }
 
-    public JdbcConf getJdbcConf() {
+    public JdbcConfig getJdbcConf() {
         return jdbcConf;
     }
 
-    public void setJdbcConf(JdbcConf jdbcConf) {
+    public void setJdbcConf(JdbcConfig jdbcConf) {
         this.jdbcConf = jdbcConf;
     }
 
