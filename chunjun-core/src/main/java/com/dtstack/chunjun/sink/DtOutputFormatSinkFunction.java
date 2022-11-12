@@ -56,7 +56,6 @@ import java.util.Map;
  * create {@link org.apache.flink.streaming.api.operators.SimpleOutputFormatOperatorFactory}
  *
  * @param <IN> Input type
- * @author jiangbo
  */
 @PublicEvolving
 public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>

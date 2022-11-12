@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.source.format;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.dirty.DirtyConf;
@@ -83,7 +83,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     /** 任务开始时间, openInputFormat()开始计算 */
     protected long startTime;
     /** 任务公共配置 */
-    protected ChunJunCommonConf config;
+    protected CommonConfig config;
     /** 数据类型转换器 */
     protected AbstractRowConverter rowConverter;
     /** 输入指标组 */
@@ -386,11 +386,11 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         this.formatState = formatState;
     }
 
-    public ChunJunCommonConf getConfig() {
+    public CommonConfig getConfig() {
         return config;
     }
 
-    public void setConfig(ChunJunCommonConf config) {
+    public void setConfig(CommonConfig config) {
         this.config = config;
     }
 

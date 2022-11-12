@@ -100,22 +100,22 @@ public class SyncConf implements Serializable {
                 writerParameter,
                 "[parameter] under [writer] in the task script is empty, please check the configuration of the task script.");
 
-        List<FieldConf> readerFieldList = config.getReader().getFieldList();
+        List<FieldConfig> readerFieldList = config.getReader().getFieldList();
         // 检查并设置restore
         RestoreConf restore = config.getRestore();
         if (restore.isStream()) {
             // 实时任务restore必须设置为true，用于数据ck恢复
             restore.setRestore(true);
         } else if (restore.isRestore()) { // 离线任务开启断点续传
-            FieldConf fieldColumnByName =
-                    FieldConf.getSameNameMetaColumn(
+            FieldConfig fieldColumnByName =
+                    FieldConfig.getSameNameMetaColumn(
                             readerFieldList, restore.getRestoreColumnName());
-            FieldConf fieldColumnByIndex = null;
+            FieldConfig fieldColumnByIndex = null;
             if (restore.getRestoreColumnIndex() >= 0) {
                 fieldColumnByIndex = readerFieldList.get(restore.getRestoreColumnIndex());
             }
 
-            FieldConf fieldColumn;
+            FieldConfig fieldColumn;
             boolean columnWithoutName =
                     readerFieldList.stream().noneMatch(i -> StringUtils.isNotBlank(i.getName()));
             // 如果column没有name 且restoreColumnIndex为-1 则不需要校验

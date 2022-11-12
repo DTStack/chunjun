@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.conf.FieldConfig;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -38,17 +38,17 @@ public class TableUtilTest {
 
     @Test
     public void testGetTypeInformation() {
-        List<FieldConf> fieldConfList =
-                ImmutableList.<FieldConf>builder()
+        List<FieldConfig> fieldConfigList =
+                ImmutableList.<FieldConfig>builder()
                         .add(
-                                FieldConf.getField(
+                                FieldConfig.getField(
                                         ImmutableMap.<String, Object>builder()
                                                 .put("name", "id")
                                                 .put("type", "int")
                                                 .build(),
                                         1))
                         .add(
-                                FieldConf.getField(
+                                FieldConfig.getField(
                                         ImmutableMap.<String, Object>builder()
                                                 .put("name", "name")
                                                 .put("type", "string")
@@ -57,7 +57,7 @@ public class TableUtilTest {
                                                 .build(),
                                         2))
                         .add(
-                                FieldConf.getField(
+                                FieldConfig.getField(
                                         ImmutableMap.<String, Object>builder()
                                                 .put("name", "comment")
                                                 .put("type", "string")
@@ -68,7 +68,7 @@ public class TableUtilTest {
 
         RawTypeConverter converter = new MockRawTypeConverter();
         TypeInformation<RowData> typeInformation =
-                TableUtil.getTypeInformation(fieldConfList, converter, false);
+                TableUtil.getTypeInformation(fieldConfigList, converter, false);
         assertEquals(1, typeInformation.getTotalFields());
     }
 

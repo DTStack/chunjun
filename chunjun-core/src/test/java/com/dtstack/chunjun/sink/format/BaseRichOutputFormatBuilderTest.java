@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.sink.format;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 import com.dtstack.chunjun.source.format.MockRowConverter;
 
 import org.junit.jupiter.api.DisplayName;
@@ -36,10 +36,10 @@ public class BaseRichOutputFormatBuilderTest {
     @Test
     @DisplayName("should throw IllegalArgumentException when batch is large than MAX_BATCH_SIZE")
     public void testFinishWhenBatchSizeLargeMax() {
-        ChunJunCommonConf chunJunCommonConf = new ChunJunCommonConf();
-        chunJunCommonConf.setBatchSize(MAX_BATCH_SIZE + 1);
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setBatchSize(MAX_BATCH_SIZE + 1);
         MockBaseRichOutputFormat format = new MockBaseRichOutputFormat();
-        format.setConfig(chunJunCommonConf);
+        format.setConfig(commonConfig);
         BaseRichOutputFormatBuilder builder = new MockBaseRichOutputFormatBuilder();
         builder.format = format;
         IllegalArgumentException thrown =
@@ -53,10 +53,10 @@ public class BaseRichOutputFormatBuilderTest {
     @Test
     @DisplayName("should throw IllegalArgumentException when batch is less than MAX_BATCH_SIZE")
     public void testFinishWhenBatchSizeLessMax() {
-        ChunJunCommonConf chunJunCommonConf = new ChunJunCommonConf();
-        chunJunCommonConf.setBatchSize(MAX_BATCH_SIZE);
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setBatchSize(MAX_BATCH_SIZE);
         MockBaseRichOutputFormat format = new MockBaseRichOutputFormat();
-        format.setConfig(chunJunCommonConf);
+        format.setConfig(commonConfig);
         BaseRichOutputFormatBuilder builder = new MockBaseRichOutputFormatBuilder();
         builder.format = format;
         assertDoesNotThrow(builder::finish);
@@ -65,10 +65,10 @@ public class BaseRichOutputFormatBuilderTest {
     @Test
     @DisplayName("only set rowConverter")
     public void testSetRowConverter() {
-        ChunJunCommonConf chunJunCommonConf = new ChunJunCommonConf();
-        chunJunCommonConf.setBatchSize(MAX_BATCH_SIZE);
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setBatchSize(MAX_BATCH_SIZE);
         MockBaseRichOutputFormat format = new MockBaseRichOutputFormat();
-        format.setConfig(chunJunCommonConf);
+        format.setConfig(commonConfig);
         BaseRichOutputFormatBuilder builder = new MockBaseRichOutputFormatBuilder();
         builder.format = format;
         MockRowConverter mockRowConverter = new MockRowConverter();
@@ -80,10 +80,10 @@ public class BaseRichOutputFormatBuilderTest {
     @Test
     @DisplayName("set rowConverter and ")
     public void testSetRowConverterAndUseAbstractColumn() {
-        ChunJunCommonConf chunJunCommonConf = new ChunJunCommonConf();
-        chunJunCommonConf.setBatchSize(MAX_BATCH_SIZE);
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setBatchSize(MAX_BATCH_SIZE);
         MockBaseRichOutputFormat format = new MockBaseRichOutputFormat();
-        format.setConfig(chunJunCommonConf);
+        format.setConfig(commonConfig);
         BaseRichOutputFormatBuilder builder = new MockBaseRichOutputFormatBuilder();
         builder.format = format;
         MockRowConverter mockRowConverter = new MockRowConverter();

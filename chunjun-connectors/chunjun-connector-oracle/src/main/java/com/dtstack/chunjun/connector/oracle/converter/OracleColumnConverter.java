@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oracle.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -50,7 +50,7 @@ import java.sql.Timestamp;
  */
 public class OracleColumnConverter extends JdbcColumnConverter {
 
-    public OracleColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+    public OracleColumnConverter(RowType rowType, CommonConfig commonConf) {
         super(rowType, commonConf);
     }
 

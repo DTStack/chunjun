@@ -19,7 +19,7 @@ package com.dtstack.chunjun.connector.jdbc.source.distribute;
 
 import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.chunjun.connector.jdbc.conf.DataSourceConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +44,7 @@ public class DistributedJdbcInputFormatBuilder extends JdbcInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        JdbcConf conf = format.getJdbcConf();
+        JdbcConfig conf = format.getJdbcConf();
         StringBuilder sb = new StringBuilder(256);
         boolean hasGlobalAccountInfo =
                 !StringUtils.isBlank(conf.getUsername())

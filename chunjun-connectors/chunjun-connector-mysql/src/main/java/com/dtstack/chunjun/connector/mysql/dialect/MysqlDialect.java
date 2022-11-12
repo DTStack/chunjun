@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.mysql.dialect;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.mysql.converter.MysqlRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -123,7 +123,7 @@ public class MysqlDialect implements JdbcDialect {
     }
 
     @Override
-    public Function<JdbcConf, Tuple3<String, String, String>> getTableIdentify() {
+    public Function<JdbcConfig, Tuple3<String, String, String>> getTableIdentify() {
         return conf -> Tuple3.of(conf.getSchema(), null, conf.getTable());
     }
 }

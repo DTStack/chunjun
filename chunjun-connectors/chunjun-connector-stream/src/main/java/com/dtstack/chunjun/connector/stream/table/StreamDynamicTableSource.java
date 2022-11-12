@@ -16,73 +16,59 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.stream.source;
+package com.dtstack.chunjun.connector.stream.table;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.stream.conf.StreamConf;
+import com.dtstack.chunjun.connector.stream.config.StreamConfig;
 import com.dtstack.chunjun.connector.stream.converter.StreamRowConverter;
+import com.dtstack.chunjun.connector.stream.source.StreamInputFormatBuilder;
+import com.dtstack.chunjun.connector.stream.util.StreamConfigUtil;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.DataType;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-/**
- * @author chuixue
- * @create 2021-04-09 09:20
- * @description
- */
 public class StreamDynamicTableSource implements ScanTableSource {
 
-    private final TableSchema schema;
-    private final StreamConf streamConf;
+    private final ResolvedSchema schema;
+    private final StreamConfig streamConfig;
+    private final DataType physicalRowDataType;
 
-    public StreamDynamicTableSource(TableSchema schema, StreamConf streamConf) {
+    public StreamDynamicTableSource(
+            ResolvedSchema schema, StreamConfig streamConfig, DataType physicalRowDataType) {
         this.schema = schema;
-        this.streamConf = streamConf;
+        this.streamConfig = streamConfig;
+        this.physicalRowDataType = physicalRowDataType;
     }
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        final RowType rowType = (RowType) schema.toRowDataType().getLogicalType();
-        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
+        final TypeInformation<RowData> typeInformation =
+                InternalTypeInfo.of(physicalRowDataType.getLogicalType());
 
-        List<FieldConf> fieldConfList =
-                schema.getTableColumns().stream()
-                        .map(
-                                e -> {
-                                    FieldConf fieldConf = new FieldConf();
-                                    fieldConf.setName(e.getName());
-                                    String name = e.getType().getConversionClass().getName();
-                                    String[] fieldType = name.split("\\.");
-                                    String type = fieldType[fieldType.length - 1];
-                                    fieldConf.setType(type);
-                                    return fieldConf;
-                                })
-                        .collect(Collectors.toList());
-
-        streamConf.setColumn(fieldConfList);
+        StreamConfigUtil.extractFieldConfig(schema, streamConfig);
 
         StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
-        builder.setRowConverter(new StreamRowConverter(rowType));
-        builder.setStreamConf(streamConf);
+        builder.setRowConverter(
+                new StreamRowConverter(
+                        InternalTypeInfo.of(physicalRowDataType.getLogicalType()).toRowType()));
+        builder.setStreamConf(streamConfig);
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, null);
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
+                false,
+                streamConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new StreamDynamicTableSource(this.schema, this.streamConf);
+        return new StreamDynamicTableSource(schema, streamConfig, physicalRowDataType);
     }
 
     @Override
