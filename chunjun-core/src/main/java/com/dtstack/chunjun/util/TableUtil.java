@@ -39,11 +39,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-/**
- * Date: 2021/04/07 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class TableUtil {
 
     /**
