@@ -38,18 +38,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-/**
- * @program: ChunJun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
-public class KubernetesSessionClusterClientHelper implements ClusterClientHelper {
+public class KubernetesSessionClusterClientHelper implements ClusterClientHelper<String> {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(KubernetesSessionClusterClientHelper.class);
 
     @Override
-    public ClusterClient submit(JobDeployer jobDeployer) throws Exception {
+    public ClusterClient<String> submit(JobDeployer jobDeployer) throws Exception {
         Options launcherOptions = jobDeployer.getLauncherOptions();
         List<String> programArgs = jobDeployer.getProgramArgs();
 
@@ -69,7 +64,7 @@ public class KubernetesSessionClusterClientHelper implements ClusterClientHelper
 
             JobGraph jobGraph =
                     JobGraphUtil.buildJobGraph(launcherOptions, programArgs.toArray(new String[0]));
-            JobID jobID = (JobID) clusterClient.submitJob(jobGraph).get();
+            JobID jobID = clusterClient.submitJob(jobGraph).get();
             LOG.info("submit job successfully, jobID = {}", jobID);
             return clusterClient;
         }
