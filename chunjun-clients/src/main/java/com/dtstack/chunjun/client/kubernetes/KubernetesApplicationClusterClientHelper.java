@@ -54,18 +54,13 @@ import java.util.List;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
-/**
- * @program: ChunJun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
-public class KubernetesApplicationClusterClientHelper implements ClusterClientHelper {
+public class KubernetesApplicationClusterClientHelper implements ClusterClientHelper<String> {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(KubernetesApplicationClusterClientHelper.class);
 
     @Override
-    public ClusterClient submit(JobDeployer jobDeployer) throws Exception {
+    public ClusterClient<String> submit(JobDeployer jobDeployer) throws Exception {
         Options launcherOptions = jobDeployer.getLauncherOptions();
         List<String> programArgs = jobDeployer.getProgramArgs();
         Configuration effectiveConfiguration = jobDeployer.getEffectiveConfiguration();

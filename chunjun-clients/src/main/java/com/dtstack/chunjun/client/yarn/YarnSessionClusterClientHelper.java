@@ -53,17 +53,12 @@ import java.util.concurrent.Callable;
 import static org.apache.flink.yarn.configuration.YarnConfigOptions.APPLICATION_ID;
 import static org.apache.flink.yarn.configuration.YarnConfigOptions.APPLICATION_QUEUE;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
-public class YarnSessionClusterClientHelper implements ClusterClientHelper {
+public class YarnSessionClusterClientHelper implements ClusterClientHelper<ApplicationId> {
 
     private static final Logger LOG = LoggerFactory.getLogger(YarnSessionClusterClientHelper.class);
 
     @Override
-    public ClusterClient submit(JobDeployer jobDeployer) throws Exception {
+    public ClusterClient<ApplicationId> submit(JobDeployer jobDeployer) throws Exception {
         Options launcherOptions = jobDeployer.getLauncherOptions();
         List<String> programArgs = jobDeployer.getProgramArgs();
 

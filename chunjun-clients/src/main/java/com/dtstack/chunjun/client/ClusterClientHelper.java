@@ -19,12 +19,7 @@ package com.dtstack.chunjun.client;
 
 import org.apache.flink.client.program.ClusterClient;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
-public interface ClusterClientHelper {
+public interface ClusterClientHelper<T> {
 
-    ClusterClient submit(JobDeployer jobDeployer) throws Exception;
+    ClusterClient<T> submit(JobDeployer jobDeployer) throws Exception;
 }
