@@ -140,11 +140,11 @@ public class StreamRowConverter
                 return val ->
                         val instanceof BigInteger
                                 ? DecimalData.fromBigDecimal(
-                                new BigDecimal(JMockData.mock(BigInteger.class), 0),
-                                precision,
-                                scale)
+                                        new BigDecimal(JMockData.mock(BigInteger.class), 0),
+                                        precision,
+                                        scale)
                                 : DecimalData.fromBigDecimal(
-                                JMockData.mock(BigDecimal.class), precision, scale);
+                                        JMockData.mock(BigDecimal.class), precision, scale);
             case DATE:
                 return val -> (int) LocalDate.now().toEpochDay();
             case TIME_WITHOUT_TIME_ZONE:

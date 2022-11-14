@@ -168,10 +168,6 @@
 					<artifactId>log4j</artifactId>
 					<groupId>log4j</groupId>
 				</exclusion>
-				<exclusion>
-					<artifactId>commons-logging</artifactId>
-					<groupId>commons-logging</groupId>
-				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
