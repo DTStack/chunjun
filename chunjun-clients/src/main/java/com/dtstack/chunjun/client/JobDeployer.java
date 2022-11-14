@@ -28,11 +28,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-/**
- * @program: Chunjun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
 public class JobDeployer {
 
     private List<String> programArgs;

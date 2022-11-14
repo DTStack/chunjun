@@ -18,6 +18,7 @@
 package com.dtstack.chunjun.client;
 
 import com.dtstack.chunjun.classloader.ClassLoaderManager;
+import com.dtstack.chunjun.client.exception.DeploymentException;
 import com.dtstack.chunjun.client.kubernetes.KubernetesApplicationClusterClientHelper;
 import com.dtstack.chunjun.client.kubernetes.KubernetesSessionClusterClientHelper;
 import com.dtstack.chunjun.client.local.LocalClusterClientHelper;
@@ -29,10 +30,12 @@ import com.dtstack.chunjun.options.OptionParser;
 import com.dtstack.chunjun.options.Options;
 import com.dtstack.chunjun.util.ExecuteProcessHelper;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.apache.flink.client.deployment.ClusterDeploymentException;
+import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.ConfigConstants;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,13 +45,7 @@ import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * Chunjun commandline Launcher
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+/** Chunjun commandline Launcher */
 public class Launcher {
     private static final Logger LOG = LoggerFactory.getLogger(Launcher.class);
 
@@ -81,42 +78,39 @@ public class Launcher {
 
         JobDeployer jobDeployer = new JobDeployer(launcherOptions, argList);
 
-        ClusterClientHelper clusterClientHelper;
-        switch (ClusterMode.getByName(launcherOptions.getMode())) {
-            case local:
-                clusterClientHelper = new LocalClusterClientHelper();
-                break;
-            case standalone:
-                clusterClientHelper = new StandaloneClusterClientHelper();
-                break;
-            case yarnSession:
-                clusterClientHelper = new YarnSessionClusterClientHelper();
-                break;
-            case yarnPerJob:
-                clusterClientHelper = new YarnPerJobClusterClientHelper();
-                break;
-            case yarnApplication:
-                throw new ClusterDeploymentException(
-                        "Application Mode not supported by Yarn deployments.");
-            case kubernetesSession:
-                clusterClientHelper = new KubernetesSessionClusterClientHelper();
-                break;
-            case kubernetesPerJob:
-                throw new ClusterDeploymentException(
-                        "Per-Job Mode not supported by Kubernetes deployments.");
-            case kubernetesApplication:
-                clusterClientHelper = new KubernetesApplicationClusterClientHelper();
-                break;
-            default:
-                throw new ClusterDeploymentException(
-                        launcherOptions.getMode() + " Mode not supported.");
-        }
+        ClusterClientHelper<?> clusterClientHelper = createHelper(launcherOptions.getMode());
 
         // add ext class
         URLClassLoader urlClassLoader = (URLClassLoader) Launcher.class.getClassLoader();
         List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(launcherOptions.getAddjar());
         ClassLoaderManager.loadExtraJar(jarUrlList, urlClassLoader);
-        clusterClientHelper.submit(jobDeployer);
+        try (ClusterClient<?> client = clusterClientHelper.submit(jobDeployer)) {
+            // do nothing.
+            LOG.info(client.getClusterId()  + " submit successfully.");
+        }
+    }
+
+    private static ClusterClientHelper<?> createHelper(String mode) {
+        switch (ClusterMode.getByName(mode)) {
+            case local:
+                return new LocalClusterClientHelper();
+            case standalone:
+                return new StandaloneClusterClientHelper();
+            case yarnSession:
+                return new YarnSessionClusterClientHelper();
+            case yarnPerJob:
+                return new YarnPerJobClusterClientHelper();
+            case yarnApplication:
+                throw new DeploymentException("Application Mode not supported by Yarn deployments.");
+            case kubernetesSession:
+                return new KubernetesSessionClusterClientHelper();
+            case kubernetesPerJob:
+                throw new DeploymentException("Per-Job Mode not supported by Kubernetes deployments.");
+            case kubernetesApplication:
+                return new KubernetesApplicationClusterClientHelper();
+            default:
+                throw new DeploymentException(mode + " Mode not supported.");
+        }
     }
 
     private static void findDefaultConfigDir(Options launcherOptions)
