@@ -15,19 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.chunjun.client.local;
 
-import com.dtstack.chunjun.Main;
-import com.dtstack.chunjun.client.ClusterClientHelper;
-import com.dtstack.chunjun.client.JobDeployer;
+package com.dtstack.chunjun.client.exception;
 
-import org.apache.flink.client.program.ClusterClient;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
-public class LocalClusterClientHelper implements ClusterClientHelper<Void> {
-    @Override
-    public ClusterClient<Void> submit(JobDeployer jobDeployer) throws Exception {
-        String[] args = jobDeployer.getProgramArgs().toArray(new String[0]);
-        Main.main(args);
-        return null;
+public class DeploymentException extends ChunJunRuntimeException {
+    public DeploymentException(String message) {
+        super(message);
+    }
+
+    public DeploymentException(Throwable cause) {
+        super(cause);
+    }
+
+    public DeploymentException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
