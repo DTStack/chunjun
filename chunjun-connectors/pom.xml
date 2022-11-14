@@ -41,7 +41,7 @@
 		<module>chunjun-connector-stream</module>
 
 		<!--MQ-->
-		<module>chunjun-connector-kafka</module>
+<!--		<module>chunjun-connector-kafka</module>-->
 <!--		<module>chunjun-connector-emqx</module>-->
 <!--		<module>chunjun-connector-rocketmq</module>-->
 <!--		<module>chunjun-connector-rabbitmq</module>-->
