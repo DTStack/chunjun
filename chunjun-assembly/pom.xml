@@ -33,14 +33,49 @@
 	<packaging>pom</packaging>
 	<name>ChunJun : Assembly</name>
 
-
 	<properties>
 		<skipTests>true</skipTests>
+		<!--version same as flink-1.12.7-bin-scala_2.12.tgz/lib/log4j-* -->
+		<log4j2.version>2.16.0</log4j2.version>
 		<main.basedir>${project.parent.basedir}</main.basedir>
 		<sbt.project.name>assembly</sbt.project.name>
 		<build.testJarPhase>none</build.testJarPhase>
 		<build.copyDependenciesPhase>package</build.copyDependenciesPhase>
 	</properties>
+
+	<dependencies>
+		<!--add log4j-*jars to package to tar.gz/lib -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-1.2-api</artifactId>
+			<version>${log4j2.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>${log4j2.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>${log4j2.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<version>${log4j2.version}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
