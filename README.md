@@ -105,6 +105,11 @@ sh bin/chunjun-local.sh  -job $SCRIPT_PATH
 The parameter of "$SCRIPT_PATH" means 'the path where the task script is located'.
 After execute, you can perform a task locally.
 
+note:
+```
+when you package in windows and run sh in linux , you need to execute command  sed -i "s/\r//g" bin/*.sh to fix the '\r' problems.
+```
+
 [Reference video](https://www.bilibili.com/video/BV1mT411g7fJ?spm_id_from=333.999.0.0)
 
 ### Standalone
