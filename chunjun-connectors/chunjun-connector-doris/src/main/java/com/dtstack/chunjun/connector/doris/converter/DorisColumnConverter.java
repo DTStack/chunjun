@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.doris.converter;
 
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
@@ -34,11 +34,11 @@ public class DorisColumnConverter
 
     private List<String> fullColumn;
     private List<String> columnNames;
-    private final DorisConf options;
+    private final DorisConfig options;
 
     private static final String NULL_VALUE = "\\N";
 
-    public DorisColumnConverter(DorisConf options) {
+    public DorisColumnConverter(DorisConfig options) {
         super(options.getColumn().size());
         this.options = options;
         for (int i = 0; i < options.getColumn().size(); i++) {

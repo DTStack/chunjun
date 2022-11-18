@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.table;
 
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.options.HdfsOptions;
 import com.dtstack.chunjun.connector.hdfs.sink.HdfsDynamicTableSink;
 import com.dtstack.chunjun.connector.hdfs.source.HdfsDynamicTableSource;
@@ -94,13 +94,13 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         // 3.封装参数
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        HdfsConf hdfsConf = getHdfsConf(config);
+        HdfsConfig hdfsConfig = getHdfsConf(config);
         List<String> partitionKeys = context.getCatalogTable().getPartitionKeys();
-        hdfsConf.setParallelism(config.get(SourceOptions.SCAN_PARALLELISM));
-        hdfsConf.setHadoopConfig(
+        hdfsConfig.setParallelism(config.get(SourceOptions.SCAN_PARALLELISM));
+        hdfsConfig.setHadoopConfig(
                 HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
 
-        return new HdfsDynamicTableSource(hdfsConf, physicalSchema, partitionKeys);
+        return new HdfsDynamicTableSource(hdfsConfig, physicalSchema, partitionKeys);
     }
 
     @Override
@@ -116,12 +116,12 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         // 3.封装参数
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        HdfsConf hdfsConf = getHdfsConf(config);
-        hdfsConf.setParallelism(config.get(SinkOptions.SINK_PARALLELISM));
-        hdfsConf.setHadoopConfig(
+        HdfsConfig hdfsConfig = getHdfsConf(config);
+        hdfsConfig.setParallelism(config.get(SinkOptions.SINK_PARALLELISM));
+        hdfsConfig.setHadoopConfig(
                 HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
 
-        return new HdfsDynamicTableSink(hdfsConf, physicalSchema);
+        return new HdfsDynamicTableSink(hdfsConfig, physicalSchema);
     }
 
     /**
@@ -130,23 +130,23 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
      * @param config
      * @return
      */
-    private HdfsConf getHdfsConf(ReadableConfig config) {
-        HdfsConf hdfsConf = new HdfsConf();
+    private HdfsConfig getHdfsConf(ReadableConfig config) {
+        HdfsConfig hdfsConfig = new HdfsConfig();
 
-        hdfsConf.setPath(config.get(BaseFileOptions.PATH));
-        hdfsConf.setFileName(config.get(BaseFileOptions.FILE_NAME));
-        hdfsConf.setWriteMode(config.get(BaseFileOptions.WRITE_MODE));
-        hdfsConf.setCompress(config.get(BaseFileOptions.COMPRESS));
-        hdfsConf.setEncoding(config.get(BaseFileOptions.ENCODING));
-        hdfsConf.setMaxFileSize(config.get(BaseFileOptions.MAX_FILE_SIZE));
-        hdfsConf.setNextCheckRows(config.get(BaseFileOptions.NEXT_CHECK_ROWS));
+        hdfsConfig.setPath(config.get(BaseFileOptions.PATH));
+        hdfsConfig.setFileName(config.get(BaseFileOptions.FILE_NAME));
+        hdfsConfig.setWriteMode(config.get(BaseFileOptions.WRITE_MODE));
+        hdfsConfig.setCompress(config.get(BaseFileOptions.COMPRESS));
+        hdfsConfig.setEncoding(config.get(BaseFileOptions.ENCODING));
+        hdfsConfig.setMaxFileSize(config.get(BaseFileOptions.MAX_FILE_SIZE));
+        hdfsConfig.setNextCheckRows(config.get(BaseFileOptions.NEXT_CHECK_ROWS));
 
-        hdfsConf.setDefaultFS(config.get(HdfsOptions.DEFAULT_FS));
-        hdfsConf.setFileType(config.get(HdfsOptions.FILE_TYPE));
-        hdfsConf.setFilterRegex(config.get(HdfsOptions.FILTER_REGEX));
-        hdfsConf.setFieldDelimiter(config.get(HdfsOptions.FIELD_DELIMITER));
-        hdfsConf.setEnableDictionary(config.get(HdfsOptions.ENABLE_DICTIONARY));
+        hdfsConfig.setDefaultFS(config.get(HdfsOptions.DEFAULT_FS));
+        hdfsConfig.setFileType(config.get(HdfsOptions.FILE_TYPE));
+        hdfsConfig.setFilterRegex(config.get(HdfsOptions.FILTER_REGEX));
+        hdfsConfig.setFieldDelimiter(config.get(HdfsOptions.FIELD_DELIMITER));
+        hdfsConfig.setEnableDictionary(config.get(HdfsOptions.ENABLE_DICTIONARY));
 
-        return hdfsConf;
+        return hdfsConfig;
     }
 }

@@ -17,9 +17,9 @@
  */
 package com.dtstack.chunjun.connector.mysqld.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
-import com.dtstack.chunjun.connector.jdbc.conf.DataSourceConf;
+import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.connector.jdbc.config.ConnectionConf;
+import com.dtstack.chunjun.connector.jdbc.config.DataSourceConf;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.distribute.DistributedJdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.distribute.DistributedJdbcInputFormatBuilder;

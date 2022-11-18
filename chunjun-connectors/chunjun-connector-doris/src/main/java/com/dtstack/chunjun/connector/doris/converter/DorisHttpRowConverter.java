@@ -49,7 +49,7 @@ public class DorisHttpRowConverter
     }
 
     @Override
-    public RowData toInternal(RowData input) throws Exception {
+    public RowData toInternal(RowData input) {
         return null;
     }
 

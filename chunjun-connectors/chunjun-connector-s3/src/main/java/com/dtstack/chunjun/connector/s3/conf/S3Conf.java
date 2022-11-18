@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.s3.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 
 import com.amazonaws.regions.Regions;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
@@ -28,7 +28,7 @@ import java.util.List;
 
 /** @author jier */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class S3Conf extends ChunJunCommonConf implements Serializable {
+public class S3Conf extends CommonConfig implements Serializable {
 
     private static final long serialVersionUID = 9008329384464201903L;
 

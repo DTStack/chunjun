@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.vertica11.dialect;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.vertica11.converter.Vertica11ColumnConverter;
@@ -80,7 +80,7 @@ public class Vertica11Dialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+            getColumnConverter(RowType rowType, CommonConfig commonConf) {
         return new Vertica11ColumnConverter(rowType, commonConf);
     }
 

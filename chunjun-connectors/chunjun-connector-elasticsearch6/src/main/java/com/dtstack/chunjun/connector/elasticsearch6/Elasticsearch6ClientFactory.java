@@ -36,12 +36,6 @@ import java.util.stream.Collectors;
 
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.HOSTS_OPTION;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/19 12:41
- */
 public class Elasticsearch6ClientFactory {
 
     /** address separator */
@@ -52,14 +46,16 @@ public class Elasticsearch6ClientFactory {
 
     /** es default port */
     public static final Integer ES_DEFAULT_PORT = 9200;
+
     /**
      * @param elasticsearchConf
+     *
      * @return
      */
-    public static RestHighLevelClient createClient(Elasticsearch6Conf elasticsearchConf) {
+    public static RestHighLevelClient createClient(Elasticsearch6Config elasticsearchConf) {
         List<HttpHost> httpAddresses = getHosts(elasticsearchConf.getHosts());
         RestClientBuilder restClientBuilder =
-                RestClient.builder(httpAddresses.toArray(new HttpHost[httpAddresses.size()]));
+                RestClient.builder(httpAddresses.toArray(new HttpHost[0]));
         if (elasticsearchConf.getPassword() != null && elasticsearchConf.getUsername() != null) {
             // basic auth
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -73,8 +69,7 @@ public class Elasticsearch6ClientFactory {
                                     credentialsProvider));
         }
 
-        RestHighLevelClient rhlClient = new RestHighLevelClient(restClientBuilder);
-        return rhlClient;
+        return new RestHighLevelClient(restClientBuilder);
     }
 
     /** parse address to HttpHosts */
@@ -99,7 +94,7 @@ public class Elasticsearch6ClientFactory {
 
     public static List<HttpHost> getHosts(List<String> hosts) {
         return hosts.stream()
-                .map(host -> validateAndParseHostsString(host))
+                .map(Elasticsearch6ClientFactory::validateAndParseHostsString)
                 .collect(Collectors.toList());
     }
 

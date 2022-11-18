@@ -82,7 +82,7 @@ StarRocks 2.x
     - 默认值：false
       <br />
 
-- **loadConf**
+- **loadConfig**
 
     - 描述：内部stream-load的配置
 
@@ -93,7 +93,7 @@ StarRocks 2.x
     - 默认值&示例
 
       ```
-      "loadConf":{
+      "loadConfig":{
           "httpCheckTimeoutMs":10000,//ms
           "queueOfferTimeoutMs":60000,//ms
           "queuePollTimeoutMs":60000,//ms

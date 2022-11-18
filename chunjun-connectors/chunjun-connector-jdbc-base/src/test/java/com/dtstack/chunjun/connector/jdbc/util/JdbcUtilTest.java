@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.jdbc.util;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
-import com.dtstack.chunjun.connector.jdbc.conf.SourceConnectionConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.SourceConnectionConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 
 import com.google.common.collect.Lists;
@@ -37,12 +37,12 @@ import java.util.Objects;
 public class JdbcUtilTest {
 
     private JdbcConfig jdbcConf;
-    private SourceConnectionConf sourceConnectionConf;
+    private SourceConnectionConfig sourceConnectionConf;
 
     @Before
     public void setup() {
         jdbcConf = new JdbcConfig();
-        sourceConnectionConf = new SourceConnectionConf();
+        sourceConnectionConf = new SourceConnectionConfig();
         jdbcConf.setConnection(Collections.singletonList(sourceConnectionConf));
     }
 

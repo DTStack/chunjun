@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.source;
 
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
@@ -47,9 +47,9 @@ public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder<BaseHdfsI
         super(format);
     }
 
-    public void setHdfsConf(HdfsConf hdfsConf) {
-        super.setConfig(hdfsConf);
-        format.setHdfsConf(hdfsConf);
+    public void setHdfsConf(HdfsConfig hdfsConfig) {
+        super.setConfig(hdfsConfig);
+        format.setHdfsConf(hdfsConfig);
     }
 
     @Override

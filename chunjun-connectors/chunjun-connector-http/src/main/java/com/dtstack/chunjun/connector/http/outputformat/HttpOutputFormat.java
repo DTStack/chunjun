@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.http.outputformat;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.http.common.HttpUtil;
 import com.dtstack.chunjun.connector.http.common.HttpWriterConfig;
 import com.dtstack.chunjun.element.ColumnRowData;

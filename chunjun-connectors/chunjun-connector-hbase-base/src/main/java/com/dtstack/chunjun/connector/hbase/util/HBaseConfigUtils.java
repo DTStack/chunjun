@@ -37,10 +37,6 @@ import static com.dtstack.chunjun.security.KerberosUtil.KRB_STR;
 
 /**
  * The utility class of HBase connection
- *
- * <p>Date: 2019/12/24 Company: www.dtstack.com
- *
- * @author maqi
  */
 public class HBaseConfigUtils {
 

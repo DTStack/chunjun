@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.dm.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
@@ -43,10 +43,9 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/** @author kunni */
 public class DmColumnConverter extends JdbcColumnConverter {
 
-    public DmColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+    public DmColumnConverter(RowType rowType, CommonConfig commonConf) {
         super(rowType, commonConf);
     }
 

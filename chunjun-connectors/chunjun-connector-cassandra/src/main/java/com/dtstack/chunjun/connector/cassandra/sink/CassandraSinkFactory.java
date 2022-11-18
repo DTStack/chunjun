@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.cassandra.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraSinkConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraSinkConfig;
 import com.dtstack.chunjun.connector.cassandra.converter.CassandraColumnConverter;
 import com.dtstack.chunjun.connector.cassandra.converter.CassandraRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -35,22 +35,18 @@ import org.apache.flink.table.types.logical.RowType;
 
 import java.util.List;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraSinkFactory extends SinkFactory {
 
-    private final CassandraSinkConf sinkConf;
+    private final CassandraSinkConfig sinkConfig;
 
-    public CassandraSinkFactory(SyncConf syncConf) {
+    public CassandraSinkFactory(SyncConfig syncConf) {
         super(syncConf);
-        sinkConf =
+        sinkConfig =
                 JsonUtil.toObject(
                         JsonUtil.toJson(syncConf.getWriter().getParameter()),
-                        CassandraSinkConf.class);
-        sinkConf.setColumn(syncConf.getWriter().getFieldList());
-        super.initCommonConf(sinkConf);
+                        CassandraSinkConfig.class);
+        sinkConfig.setColumn(syncConf.getWriter().getFieldList());
+        super.initCommonConf(sinkConfig);
     }
 
     @Override
@@ -62,12 +58,12 @@ public class CassandraSinkFactory extends SinkFactory {
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         CassandraOutputFormatBuilder builder = new CassandraOutputFormatBuilder();
 
-        builder.setSinkConf(sinkConf);
-        List<FieldConf> fieldConfList = sinkConf.getColumn();
+        builder.setSinkConf(sinkConfig);
+        List<FieldConfig> fieldList = sinkConfig.getColumn();
 
-        final RowType rowType = TableUtil.createRowType(fieldConfList, getRawTypeConverter());
+        final RowType rowType = TableUtil.createRowType(fieldList, getRawTypeConverter());
         builder.setRowConverter(
-                new CassandraColumnConverter(rowType, fieldConfList), useAbstractBaseColumn);
+                new CassandraColumnConverter(rowType, fieldList), useAbstractBaseColumn);
 
         return createOutput(dataSet, builder.finish());
     }

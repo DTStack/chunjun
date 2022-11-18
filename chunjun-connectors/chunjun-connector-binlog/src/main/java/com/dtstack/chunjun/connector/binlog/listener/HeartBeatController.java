@@ -27,11 +27,6 @@ import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * HeartBeatController
- *
- * @author by dujie@dtstack.com @Date 2020/9/11
- */
 public class HeartBeatController extends AbstractCanalLifeCycle
         implements CanalHAController, HeartBeatCallback {
     private static final Logger logger = LoggerFactory.getLogger(HeartBeatHAController.class);

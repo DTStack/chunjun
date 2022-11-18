@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.hdfs.InputSplit.HdfsParquetSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.enums.ColumnType;
@@ -98,14 +98,14 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
     @Override
     public InputSplit[] createHdfsSplit(int minNumSplits) {
         List<String> allFilePaths;
-        HdfsPathFilter pathFilter = new HdfsPathFilter(hdfsConf.getFilterRegex());
+        HdfsPathFilter pathFilter = new HdfsPathFilter(hdfsConfig.getFilterRegex());
 
         try (FileSystem fs =
                 FileSystemUtil.getFileSystem(
-                        hdfsConf.getHadoopConfig(),
-                        hdfsConf.getDefaultFS(),
+                        hdfsConfig.getHadoopConfig(),
+                        hdfsConfig.getDefaultFS(),
                         PluginUtil.createDistributedCacheFromContextClassLoader())) {
-            allFilePaths = getAllPartitionPath(hdfsConf.getPath(), fs, pathFilter);
+            allFilePaths = getAllPartitionPath(hdfsConfig.getPath(), fs, pathFilter);
         } catch (Exception e) {
             throw new ChunJunRuntimeException(e);
         }
@@ -192,7 +192,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                         getTypeName(type.asPrimitiveType().getPrimitiveTypeName().getMethod));
             }
 
-            for (FieldConf fieldConf : hdfsConf.getColumn()) {
+            for (FieldConf fieldConf : hdfsConfig.getColumn()) {
                 String name = fieldConf.getName();
                 if (StringUtils.isNotBlank(name)) {
                     name = name.toUpperCase();
@@ -235,7 +235,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
     @Override
     @SuppressWarnings("unchecked")
     public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
-        List<FieldConf> fieldConfList = hdfsConf.getColumn();
+        List<FieldConf> fieldConfList = hdfsConfig.getColumn();
         GenericRowData genericRowData;
         if (fieldConfList.size() == 1
                 && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())) {

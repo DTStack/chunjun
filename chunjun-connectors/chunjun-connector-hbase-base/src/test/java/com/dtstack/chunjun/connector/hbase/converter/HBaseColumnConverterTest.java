@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.hbase.converter;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
@@ -72,7 +72,7 @@ public class HBaseColumnConverterTest {
     public void testConstructorOfHBaseColumnConverter() throws Exception {
         Map<String, Object> confMap = Maps.newHashMap();
         List<FieldConf> columnList = Lists.newArrayList();
-        HBaseConf conf = new HBaseConf();
+        HBaseConfig conf = new HBaseConfig();
         ColumnRowData rowData = new ColumnRowData(RowKind.INSERT, 14);
 
         FieldConf id = new FieldConf();
@@ -196,7 +196,7 @@ public class HBaseColumnConverterTest {
     public void testConstructorOfHBaseFlatRowConverter() throws Exception {
         Map<String, Object> confMap = Maps.newHashMap();
         List<FieldConf> columnList = Lists.newArrayList();
-        HBaseConf conf = new HBaseConf();
+        HBaseConfig conf = new HBaseConfig();
         GenericRowData rowData = new GenericRowData(RowKind.INSERT, 12);
 
         FieldConf id = new FieldConf();

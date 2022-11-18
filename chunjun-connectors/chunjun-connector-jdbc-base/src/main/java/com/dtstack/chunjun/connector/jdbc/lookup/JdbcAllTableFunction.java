@@ -18,11 +18,11 @@
 
 package com.dtstack.chunjun.connector.jdbc.lookup;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.conf.LookupConfig;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.table.data.GenericRowData;
@@ -39,11 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * A lookup function for {@link }.
- *
- * @author chuixue
- */
+/** A lookup function for jdbc. */
 @Internal
 public class JdbcAllTableFunction extends AbstractAllTableFunction {
 
@@ -56,11 +52,11 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
     public JdbcAllTableFunction(
             JdbcConfig jdbcConf,
             JdbcDialect jdbcDialect,
-            LookupConf lookupConf,
+            LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
-        super(fieldNames, keyNames, lookupConf, jdbcDialect.getRowConverter(rowType));
+        super(fieldNames, keyNames, lookupConfig, jdbcDialect.getRowConverter(rowType));
         this.jdbcConf = jdbcConf;
         this.query =
                 jdbcDialect.getSelectFromStatement(
@@ -103,7 +99,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
             throws SQLException {
         // load data from table
         Statement statement = connection.createStatement();
-        statement.setFetchSize(lookupConf.getFetchSize());
+        statement.setFetchSize(lookupConfig.getFetchSize());
         ResultSet resultSet = statement.executeQuery(query);
 
         while (resultSet.next()) {

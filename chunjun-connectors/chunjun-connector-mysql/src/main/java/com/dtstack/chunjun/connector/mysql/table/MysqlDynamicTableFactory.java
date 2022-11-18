@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.mysql.table;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
@@ -29,13 +29,8 @@ import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
 
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 
-/**
- * @program: ChunJun
- * @author: wuren
- * @create: 2021/03/17
- */
 public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
 
     // 默认是Mysql流式拉取
@@ -67,7 +62,8 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
     }
 
     @Override
-    protected JdbcConfig getSinkConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
+    protected JdbcConfig getSinkConnectionConf(
+            ReadableConfig readableConfig, ResolvedSchema schema) {
         JdbcConfig jdbcConf = super.getSinkConnectionConf(readableConfig, schema);
         JdbcUtil.putExtParam(jdbcConf);
         return jdbcConf;

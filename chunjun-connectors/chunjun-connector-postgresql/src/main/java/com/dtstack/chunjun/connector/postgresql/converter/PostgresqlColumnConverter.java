@@ -41,7 +41,7 @@
 
 package com.dtstack.chunjun.connector.postgresql.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -88,7 +88,7 @@ public class PostgresqlColumnConverter extends JdbcColumnConverter {
     private transient BaseConnection connection;
     private static final Map<String, Integer> arrayType = new HashMap<>();
 
-    public PostgresqlColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+    public PostgresqlColumnConverter(RowType rowType, CommonConfig commonConf) {
         super(rowType, commonConf);
     }
 

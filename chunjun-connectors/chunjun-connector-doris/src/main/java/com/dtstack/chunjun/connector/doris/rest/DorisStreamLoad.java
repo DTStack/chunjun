@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.doris.rest;
 
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.doris.rest.module.RespContent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,9 +63,9 @@ public class DorisStreamLoad implements Serializable {
     private final String authEncoding;
     private final Properties streamLoadProp;
     private String hostPort;
-    private DorisConf options;
+    private DorisConfig options;
 
-    public DorisStreamLoad(DorisConf options) {
+    public DorisStreamLoad(DorisConfig options) {
         this.options = options;
         this.authEncoding =
                 Base64.getEncoder()
@@ -79,7 +79,7 @@ public class DorisStreamLoad implements Serializable {
         this.hostPort = hostPort;
     }
 
-    public void setOptions(DorisConf options) {
+    public void setOptions(DorisConfig options) {
         this.options = options;
     }
 

@@ -19,7 +19,7 @@
 
 package com.dtstack.chunjun.connector.vertica11.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -45,7 +45,7 @@ import java.sql.Timestamp;
 /** @author menghan */
 public class Vertica11ColumnConverter extends JdbcColumnConverter {
 
-    public Vertica11ColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+    public Vertica11ColumnConverter(RowType rowType, CommonConfig commonConf) {
         super(rowType, commonConf);
     }
 

@@ -17,12 +17,12 @@
  */
 package com.dtstack.chunjun.connector.iceberg.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class IcebergReaderConf extends ChunJunCommonConf {
+public class IcebergReaderConf extends CommonConfig {
     private String path;
 
     private String defaultFS;

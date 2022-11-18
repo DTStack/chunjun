@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.sink.format;
 
-import com.dtstack.chunjun.conf.BaseFileConfig;
+import com.dtstack.chunjun.config.BaseFileConfig;
 
 /**
  * Date: 2021/06/21 Company: www.dtstack.com

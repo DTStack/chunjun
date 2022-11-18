@@ -18,11 +18,11 @@
 
 package com.dtstack.chunjun.sink;
 
-import com.dtstack.chunjun.cdc.CdcConf;
-import com.dtstack.chunjun.cdc.conf.DDLConf;
-import com.dtstack.chunjun.conf.CommonConfig;
-import com.dtstack.chunjun.conf.SpeedConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.cdc.CdcConfig;
+import com.dtstack.chunjun.cdc.config.DDLConfig;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.SpeedConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.converter.RawTypeConvertible;
 import com.dtstack.chunjun.util.PropertiesUtil;
 
@@ -37,20 +37,20 @@ import org.apache.commons.lang3.StringUtils;
 /** Abstract specification of Writer Plugin */
 public abstract class SinkFactory implements RawTypeConvertible {
 
-    protected SyncConf syncConf;
-    protected DDLConf ddlConf;
+    protected SyncConfig syncConfig;
+    protected DDLConfig ddlConfig;
     protected boolean useAbstractBaseColumn = true;
 
-    public SinkFactory(SyncConf syncConf) {
-        this.syncConf = syncConf;
+    public SinkFactory(SyncConfig syncConfig) {
+        this.syncConfig = syncConfig;
 
-        if (syncConf.getTransformer() != null
-                && StringUtils.isNotBlank(syncConf.getTransformer().getTransformSql())) {
+        if (syncConfig.getTransformer() != null
+                && StringUtils.isNotBlank(syncConfig.getTransformer().getTransformSql())) {
             useAbstractBaseColumn = false;
         }
-        CdcConf cdcConf = syncConf.getCdcConf();
-        if (cdcConf != null) {
-            ddlConf = cdcConf.getDdl();
+        CdcConfig cdcConfig = syncConfig.getCdcConf();
+        if (cdcConfig != null) {
+            ddlConfig = cdcConfig.getDdl();
         }
     }
 
@@ -81,11 +81,11 @@ public abstract class SinkFactory implements RawTypeConvertible {
         return createOutput(dataSet, outputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 
-    /** 初始化ChunJunCommonConf */
+    /** 初始化CommonConfig */
     public void initCommonConf(CommonConfig commonConf) {
-        PropertiesUtil.initCommonConf(commonConf, this.syncConf);
-        commonConf.setCheckFormat(this.syncConf.getWriter().getBooleanVal("check", true));
-        SpeedConf speed = this.syncConf.getSpeed();
+        PropertiesUtil.initCommonConf(commonConf, this.syncConfig);
+        commonConf.setCheckFormat(this.syncConfig.getWriter().getBooleanVal("check", true));
+        SpeedConfig speed = this.syncConfig.getSpeed();
         commonConf.setParallelism(
                 speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
     }

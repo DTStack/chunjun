@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.iceberg.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.iceberg.conf.IcebergWriterConf;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.sink.SinkFactory;

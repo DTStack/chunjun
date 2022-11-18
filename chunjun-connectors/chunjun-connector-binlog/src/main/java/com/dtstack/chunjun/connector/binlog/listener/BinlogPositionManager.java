@@ -25,7 +25,6 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-/** @author toutian */
 public class BinlogPositionManager extends AbstractLogPositionManager {
 
     private final BinlogInputFormat format;

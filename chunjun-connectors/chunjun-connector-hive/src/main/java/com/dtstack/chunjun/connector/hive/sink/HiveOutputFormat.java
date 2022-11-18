@@ -17,13 +17,13 @@
  */
 package com.dtstack.chunjun.connector.hive.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsRawTypeConverter;
 import com.dtstack.chunjun.connector.hdfs.sink.BaseHdfsOutputFormat;
 import com.dtstack.chunjun.connector.hdfs.sink.HdfsOutputFormatBuilder;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
-import com.dtstack.chunjun.connector.hive.conf.HiveConf;
+import com.dtstack.chunjun.connector.hive.conf.HiveConfig;
 import com.dtstack.chunjun.connector.hive.entity.ConnectionInfo;
 import com.dtstack.chunjun.connector.hive.entity.HiveFormatState;
 import com.dtstack.chunjun.connector.hive.entity.TableInfo;
@@ -70,7 +70,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     private int taskNumber;
     private int numTasks;
 
-    private HiveConf hiveConf;
+    private HiveConfig hiveConf;
     private ConnectionInfo connectionInfo;
     private SimpleDateFormat partitionFormat;
 
@@ -151,8 +151,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
         try {
             BaseHdfsOutputFormat hdfsOutputFormat = formatPair.getLeft();
-            HdfsConf hdfsConf = hdfsOutputFormat.getHdfsConf();
-            List<FieldConf> fieldConfList = hdfsConf.getColumn();
+            HdfsConfig hdfsConfig = hdfsOutputFormat.getHdfsConf();
+            List<FieldConf> fieldConfList = hdfsConfig.getColumn();
             RowData forwardRowData = null;
             if (dataMap != null) {
                 ColumnRowData result = new ColumnRowData(fieldConfList.size());
@@ -298,8 +298,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         try {
             HdfsOutputFormatBuilder builder =
                     HdfsOutputFormatBuilder.newBuild(hiveConf.getFileType());
-            HiveConf copyHiveConf =
-                    GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(hiveConf), HiveConf.class);
+            HiveConfig copyHiveConf =
+                    GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(hiveConf), HiveConfig.class);
             copyHiveConf.setPath(path);
             copyHiveConf.setFileName(null);
             List<String> columnNameList = tableInfo.getColumnNameList();
@@ -418,11 +418,11 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         return format;
     }
 
-    public void setHiveConf(HiveConf hiveConf) {
+    public void setHiveConf(HiveConfig hiveConf) {
         this.hiveConf = hiveConf;
     }
 
-    public HiveConf getHiveConf() {
+    public HiveConfig getHiveConf() {
         return hiveConf;
     }
 }

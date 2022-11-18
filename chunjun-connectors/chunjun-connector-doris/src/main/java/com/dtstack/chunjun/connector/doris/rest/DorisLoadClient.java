@@ -19,9 +19,9 @@
 
 package com.dtstack.chunjun.connector.doris.rest;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.doris.DorisUtil;
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.throwable.WriteRecordException;
@@ -64,9 +64,9 @@ public class DorisLoadClient implements Serializable {
 
     private final DorisStreamLoad dorisStreamLoad;
     private final boolean nameMapped;
-    private final DorisConf conf;
+    private final DorisConfig conf;
 
-    public DorisLoadClient(DorisStreamLoad dorisStreamLoad, DorisConf conf) {
+    public DorisLoadClient(DorisStreamLoad dorisStreamLoad, DorisConfig conf) {
         this.dorisStreamLoad = dorisStreamLoad;
         this.conf = conf;
         this.nameMapped = conf.isNameMapped();

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRawTypeConverterTest;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -68,7 +68,7 @@ public class SinkFactoryTest {
 
     @Test
     public void initTest() {
-        SyncConf syncConf = SyncConf.parseJob(json);
+        SyncConfig syncConf = SyncConfig.parseJob(json);
         sinkFactory =
                 new TestSinkFactory(
                         syncConf,
@@ -108,7 +108,7 @@ public class SinkFactoryTest {
     }
 
     public static class TestSinkFactory extends JdbcSinkFactory {
-        public TestSinkFactory(SyncConf syncConf, JdbcDialect jdbcDialect) {
+        public TestSinkFactory(SyncConfig syncConf, JdbcDialect jdbcDialect) {
             super(syncConf, jdbcDialect);
         }
     }

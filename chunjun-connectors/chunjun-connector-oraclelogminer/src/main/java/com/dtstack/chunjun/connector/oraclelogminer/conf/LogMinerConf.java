@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -30,7 +30,7 @@ import java.util.Properties;
  * @author dujie
  * @date 2019/12/14
  */
-public class LogMinerConf extends ChunJunCommonConf {
+public class LogMinerConf extends CommonConfig {
 
     private String driverName = "oracle.jdbc.driver.OracleDriver";
 

@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.stream.config;
 
-import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.config.CommonConfig;
 
 import java.util.List;
 

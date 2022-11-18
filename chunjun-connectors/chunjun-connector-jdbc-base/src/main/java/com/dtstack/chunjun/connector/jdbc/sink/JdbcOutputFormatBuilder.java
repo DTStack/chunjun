@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.jdbc.sink;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
@@ -57,7 +57,7 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder<JdbcOut
 
     @Override
     protected void checkFormat() {
-        JdbcConfig jdbcConf = format.getJdbcConf();
+        JdbcConfig jdbcConf = format.getJdbcConfig();
         StringBuilder sb = new StringBuilder(256);
         if (StringUtils.isBlank(jdbcConf.getUsername())) {
             sb.append("No username supplied;\n");

@@ -25,11 +25,6 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 
-/**
- * Date: 2021/04/27 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class TimestampColumn extends AbstractBaseColumn {
 
     private static final int DATETIME_STR_LENGTH = 19;

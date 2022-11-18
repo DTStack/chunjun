@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.mongodb.datasync;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.mongodb.conf.MongodbClientOptions;
 
 import com.mongodb.AuthenticationMechanism;
@@ -31,7 +31,7 @@ import java.util.List;
  * @program chunjun
  * @create 2021/06/21
  */
-public class MongodbDataSyncConf extends ChunJunCommonConf implements Serializable {
+public class MongodbDataSyncConf extends CommonConfig implements Serializable {
 
     private String hostPorts;
 

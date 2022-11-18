@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.sqlserver.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -62,7 +62,7 @@ import java.util.TimeZone;
  */
 public class SqlserverMicroSoftColumnConverter extends JdbcColumnConverter {
 
-    public SqlserverMicroSoftColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+    public SqlserverMicroSoftColumnConverter(RowType rowType, CommonConfig commonConf) {
         super(rowType, commonConf);
     }
 

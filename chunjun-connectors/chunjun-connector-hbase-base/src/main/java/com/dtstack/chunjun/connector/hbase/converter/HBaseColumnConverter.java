@@ -18,10 +18,10 @@
 
 package com.dtstack.chunjun.connector.hbase.converter;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hbase.FunctionParser;
 import com.dtstack.chunjun.connector.hbase.FunctionTree;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -65,15 +65,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.chunjun.connector.hbase.HBaseTypeUtils.MAX_TIMESTAMP_PRECISION;
-import static com.dtstack.chunjun.connector.hbase.HBaseTypeUtils.MIN_TIMESTAMP_PRECISION;
 import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getPrecision;
 
-/**
- * @author jier
- * @program chunjun
- * @create 2021/04/30
- */
 public class HBaseColumnConverter
         extends AbstractRowConverter<Result, RowData, Mutation, LogicalType> {
 
@@ -98,21 +91,21 @@ public class HBaseColumnConverter
 
     private final String encoding;
 
-    private final HBaseConf hBaseConf;
+    private final HBaseConfig hBaseConfig;
 
     private List<String> rowKeyColumns;
 
     private final String nullMode;
 
-    private final List<FieldConf> fieldList;
+    private final List<FieldConfig> fieldList;
 
     private final byte[][][] familyAndQualifier;
 
-    public HBaseColumnConverter(HBaseConf hBaseConf, RowType rowType) {
-        super(rowType, hBaseConf);
-        encoding = StringUtils.isEmpty(hBaseConf.getEncoding()) ? "utf-8" : hBaseConf.getEncoding();
-        nullMode = hBaseConf.getNullMode();
-        for (int i = 0; i < hBaseConf.getColumn().size(); i++) {
+    public HBaseColumnConverter(HBaseConfig hBaseConfig, RowType rowType) {
+        super(rowType, hBaseConfig);
+        encoding = StringUtils.isEmpty(hBaseConfig.getEncoding()) ? "utf-8" : hBaseConfig.getEncoding();
+        nullMode = hBaseConfig.getNullMode();
+        for (int i = 0; i < hBaseConfig.getColumn().size(); i++) {
             toInternalConverters.add(
                     i,
                     wrapIntoNullableInternalConverter(
@@ -123,9 +116,9 @@ public class HBaseColumnConverter
                             createExternalConverter(rowType.getTypeAt(i)), rowType.getTypeAt(i)));
         }
         this.familyAndQualifier = new byte[rowType.getFieldCount()][][];
-        for (int i = 0; i < hBaseConf.getColumn().size(); i++) {
-            FieldConf fieldConf = hBaseConf.getColumn().get(i);
-            String name = fieldConf.getName();
+        for (int i = 0; i < hBaseConfig.getColumn().size(); i++) {
+            FieldConfig FieldConfig = hBaseConfig.getColumn().get(i);
+            String name = FieldConfig.getName();
             columnNames.add(name);
             String[] cfAndQualifier = name.split(":");
             if (cfAndQualifier.length == 2
@@ -138,19 +131,19 @@ public class HBaseColumnConverter
                 familyAndQualifier[i] = qualifierKeys;
             } else if (KEY_ROW_KEY.equals(name)) {
                 rowKeyIndex = i;
-            } else if (!StringUtils.isBlank(fieldConf.getValue())) {
+            } else if (!StringUtils.isBlank(FieldConfig.getValue())) {
                 familyAndQualifier[i] = new byte[2][];
             } else {
                 throw new IllegalArgumentException(
                         "hbase 中，column 的列配置格式应该是：列族:列名. 您配置的列错误：" + name);
             }
         }
-        fieldList = hBaseConf.getColumnMetaInfos();
+        fieldList = hBaseConfig.getColumnMetaInfos();
 
-        this.hBaseConf = hBaseConf;
+        this.hBaseConfig = hBaseConfig;
         initRowKeyConfig();
-        this.versionColumnIndex = hBaseConf.getVersionColumnIndex();
-        this.versionColumnValue = hBaseConf.getVersionColumnValue();
+        this.versionColumnIndex = hBaseConfig.getVersionColumnIndex();
+        this.versionColumnValue = hBaseConfig.getVersionColumnValue();
     }
 
     @Override
@@ -185,7 +178,7 @@ public class HBaseColumnConverter
         Put put;
         if (version == null) {
             put = new Put(rowkey);
-            if (!hBaseConf.getWalFlag()) {
+            if (!hBaseConfig.getWalFlag()) {
                 put.setDurability(Durability.SKIP_WAL);
             }
         } else {
@@ -514,9 +507,9 @@ public class HBaseColumnConverter
     }
 
     private void initRowKeyConfig() {
-        if (StringUtils.isNotBlank(hBaseConf.getRowkeyExpress())) {
-            this.functionTree = FunctionParser.parse(hBaseConf.getRowkeyExpress());
-            this.rowKeyColumns = FunctionParser.parseRowKeyCol(hBaseConf.getRowkeyExpress());
+        if (StringUtils.isNotBlank(hBaseConfig.getRowkeyExpress())) {
+            this.functionTree = FunctionParser.parse(hBaseConfig.getRowkeyExpress());
+            this.rowKeyColumns = FunctionParser.parseRowKeyCol(hBaseConfig.getRowkeyExpress());
             this.rowKeyColumnIndex = new ArrayList<>(rowKeyColumns.size());
             for (String rowKeyColumn : rowKeyColumns) {
                 int index = columnNames.indexOf(rowKeyColumn);

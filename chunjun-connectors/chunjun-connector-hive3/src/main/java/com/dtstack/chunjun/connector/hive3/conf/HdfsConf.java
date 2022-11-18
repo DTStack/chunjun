@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hive3.conf;
 
-import com.dtstack.chunjun.conf.BaseFileConf;
+import com.dtstack.chunjun.config.BaseFileConf;
 
 import org.apache.parquet.hadoop.ParquetWriter;
 

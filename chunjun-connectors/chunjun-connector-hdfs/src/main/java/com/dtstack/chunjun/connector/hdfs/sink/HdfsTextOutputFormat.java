@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.hdfs.enums.CompressType;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
@@ -101,7 +101,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
         if (stream == null) {
             nextBlock();
         }
-        String[] data = new String[hdfsConf.getColumn().size()];
+        String[] data = new String[hdfsConfig.getColumn().size()];
         try {
             data = (String[]) rowConverter.toExternal(rowData, data);
         } catch (Exception e) {
@@ -109,14 +109,14 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
         }
 
         String[] result = new String[fullColumnNameList.size()];
-        for (int i = 0; i < hdfsConf.getColumn().size(); i++) {
-            FieldConf fieldConf = hdfsConf.getColumn().get(i);
+        for (int i = 0; i < hdfsConfig.getColumn().size(); i++) {
+            FieldConf fieldConf = hdfsConfig.getColumn().get(i);
             result[fieldConf.getIndex()] = data[i];
         }
-        String line = String.join(hdfsConf.getFieldDelimiter(), result);
+        String line = String.join(hdfsConfig.getFieldDelimiter(), result);
 
         try {
-            byte[] bytes = line.getBytes(hdfsConf.getEncoding());
+            byte[] bytes = line.getBytes(hdfsConfig.getEncoding());
             this.stream.write(bytes);
             this.stream.write(NEWLINE);
             rowsOfCurrentBlock++;
@@ -148,6 +148,6 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public CompressType getCompressType() {
-        return CompressType.getByTypeAndFileType(hdfsConf.getCompress(), FileType.TEXT.name());
+        return CompressType.getByTypeAndFileType(hdfsConfig.getCompress(), FileType.TEXT.name());
     }
 }

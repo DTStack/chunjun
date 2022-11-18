@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.hdfs.converter;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -65,8 +65,8 @@ public class HdfsParquetColumnConverter
     private List<String> columnNameList;
     private transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
-    public HdfsParquetColumnConverter(List<FieldConf> fieldConfList, HdfsConf hdfsConf) {
-        super(fieldConfList.size(), hdfsConf);
+    public HdfsParquetColumnConverter(List<FieldConf> fieldConfList, HdfsConfig hdfsConfig) {
+        super(fieldConfList.size(), hdfsConfig);
         for (int i = 0; i < fieldConfList.size(); i++) {
             String type = fieldConfList.get(i).getType();
             int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);

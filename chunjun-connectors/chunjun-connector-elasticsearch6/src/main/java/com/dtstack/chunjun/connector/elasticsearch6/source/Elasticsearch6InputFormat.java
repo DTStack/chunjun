@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.elasticsearch6.source;
 
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6ClientFactory;
-import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6RequestFactory;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
@@ -57,7 +57,7 @@ import java.util.Map;
 public class Elasticsearch6InputFormat extends BaseRichInputFormat {
 
     /** Elasticsearch Configuration */
-    private Elasticsearch6Conf elasticsearchConf;
+    private Elasticsearch6Config elasticsearchConf;
 
     /** Elasticsearch High Level Client */
     private transient RestHighLevelClient rhlClient;
@@ -180,11 +180,11 @@ public class Elasticsearch6InputFormat extends BaseRichInputFormat {
         return !iterator.hasNext();
     }
 
-    public Elasticsearch6Conf getElasticsearchConf() {
+    public Elasticsearch6Config getElasticsearchConf() {
         return elasticsearchConf;
     }
 
-    public void setElasticsearchConf(Elasticsearch6Conf elasticsearchConf) {
+    public void setElasticsearchConf(Elasticsearch6Config elasticsearchConf) {
         this.elasticsearchConf = elasticsearchConf;
     }
 }

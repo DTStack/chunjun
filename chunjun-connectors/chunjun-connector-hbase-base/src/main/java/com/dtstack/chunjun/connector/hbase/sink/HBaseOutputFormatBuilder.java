@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hbase.sink;
 
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConfigConstants;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfigConstants;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import com.google.common.base.Preconditions;
@@ -28,10 +28,6 @@ import java.util.Map;
 
 /**
  * The Builder class of HbaseOutputFormatBuilder
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
  */
 public class HBaseOutputFormatBuilder extends BaseRichOutputFormatBuilder<HBaseOutputFormat> {
 

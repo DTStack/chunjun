@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.elasticsearch6.sink;
 
-import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import com.google.common.base.Preconditions;
@@ -36,14 +36,14 @@ public class Elasticsearch6OutputFormatBuilder
         super(new Elasticsearch6OutputFormat());
     }
 
-    public void setEsConf(Elasticsearch6Conf esConf) {
+    public void setEsConf(Elasticsearch6Config esConf) {
         super.setConfig(esConf);
         format.setElasticsearchConf(esConf);
     }
 
     @Override
     protected void checkFormat() {
-        Elasticsearch6Conf esConf = format.getElasticsearchConf();
+        Elasticsearch6Config esConf = format.getElasticsearchConf();
         Preconditions.checkNotNull(esConf.getHosts(), "elasticsearch6 type of address is required");
         Preconditions.checkNotNull(esConf.getIndex(), "elasticsearch6 type of index is required");
         Preconditions.checkNotNull(esConf.getType(), "elasticsearch6 type of type is required");

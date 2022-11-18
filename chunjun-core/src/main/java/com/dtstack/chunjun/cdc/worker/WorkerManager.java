@@ -19,7 +19,7 @@
 
 package com.dtstack.chunjun.cdc.worker;
 
-import com.dtstack.chunjun.cdc.CdcConf;
+import com.dtstack.chunjun.cdc.CdcConfig;
 import com.dtstack.chunjun.cdc.QueuesChamberlain;
 import com.dtstack.chunjun.cdc.exception.LogExceptionHandler;
 import com.dtstack.chunjun.cdc.utils.ExecutorUtils;
@@ -61,7 +61,7 @@ public class WorkerManager implements Serializable {
     /** worker线程池的最大容量 */
     private final int workerMax;
 
-    public WorkerManager(QueuesChamberlain chamberlain, CdcConf conf) {
+    public WorkerManager(QueuesChamberlain chamberlain, CdcConfig conf) {
         this.chamberlain = chamberlain;
         this.workerNum = conf.getWorkerNum();
         this.workerSize = conf.getWorkerSize();

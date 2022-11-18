@@ -19,12 +19,13 @@
 package com.dtstack.chunjun.connector.elasticsearch6.table;
 
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRowConverter;
-import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.connector.elasticsearch6.source.Elasticsearch6InputFormatBuilder;
 import com.dtstack.chunjun.connector.elasticsearch6.table.lookup.Elasticsearch6AllTableFunction;
 import com.dtstack.chunjun.connector.elasticsearch6.table.lookup.Elasticsearch6LruTableFunction;
 import com.dtstack.chunjun.enums.CacheType;
 import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.conf.LookupConfig;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
@@ -43,31 +44,25 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/22 11:08
- */
 public class Elasticsearch6DynamicTableSource
         implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
     private TableSchema physicalSchema;
-    protected final Elasticsearch6Conf elasticsearchConf;
-    protected final LookupConf lookupConf;
+    protected final Elasticsearch6Config elasticsearchConf;
+    protected final LookupConfig lookupConfig;
 
     public Elasticsearch6DynamicTableSource(
             TableSchema physicalSchema,
-            Elasticsearch6Conf elasticsearchConf,
-            LookupConf lookupConf) {
+            Elasticsearch6Config elasticsearchConf,
+            LookupConfig lookupConfig) {
         this.physicalSchema = physicalSchema;
         this.elasticsearchConf = elasticsearchConf;
-        this.lookupConf = lookupConf;
+        this.lookupConfig = lookupConfig;
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new Elasticsearch6DynamicTableSource(physicalSchema, elasticsearchConf, lookupConf);
+        return new Elasticsearch6DynamicTableSource(physicalSchema, elasticsearchConf, lookupConfig);
     }
 
     @Override
@@ -108,24 +103,24 @@ public class Elasticsearch6DynamicTableSource
         }
 
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+        if (lookupConfig.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
             return ParallelTableFunctionProvider.of(
                     new Elasticsearch6AllTableFunction(
                             elasticsearchConf,
-                            lookupConf,
+                            lookupConfig,
                             physicalSchema.getFieldNames(),
                             keyNames,
                             new ElasticsearchRowConverter(rowType)),
-                    lookupConf.getParallelism());
+                    lookupConfig.getParallelism());
         }
         return ParallelAsyncTableFunctionProvider.of(
                 new Elasticsearch6LruTableFunction(
                         elasticsearchConf,
-                        lookupConf,
+                        lookupConfig,
                         physicalSchema.getFieldNames(),
                         keyNames,
                         new ElasticsearchRowConverter(rowType)),
-                lookupConf.getParallelism());
+                lookupConfig.getParallelism());
     }
 
     @Override

@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.hdfs.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.enums.CompressType;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.sink.format.BaseFileOutputFormat;
@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     protected FileSystem fs;
-    protected HdfsConf hdfsConf;
+    protected HdfsConfig hdfsConfig;
 
     protected List<String> fullColumnNameList;
     protected List<String> fullColumnTypeList;
@@ -63,7 +63,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         // 这里休眠一段时间是为了避免reader和writer或者多个任务在同一个taskManager里同时认证kerberos
-        if (FileSystemUtil.isOpenKerberos(hdfsConf.getHadoopConfig())) {
+        if (FileSystemUtil.isOpenKerberos(hdfsConfig.getHadoopConfig())) {
             try {
                 Thread.sleep(5000L + (long) (10000 * Math.random()));
             } catch (Exception e) {
@@ -75,24 +75,24 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void initVariableFields() {
-        if (CollectionUtils.isNotEmpty(hdfsConf.getFullColumnName())) {
-            fullColumnNameList = hdfsConf.getFullColumnName();
+        if (CollectionUtils.isNotEmpty(hdfsConfig.getFullColumnName())) {
+            fullColumnNameList = hdfsConfig.getFullColumnName();
         } else {
             fullColumnNameList =
-                    hdfsConf.getColumn().stream()
+                    hdfsConfig.getColumn().stream()
                             .map(FieldConf::getName)
                             .collect(Collectors.toList());
-            hdfsConf.setFullColumnName(fullColumnNameList);
+            hdfsConfig.setFullColumnName(fullColumnNameList);
         }
 
-        if (CollectionUtils.isNotEmpty(hdfsConf.getFullColumnType())) {
-            fullColumnTypeList = hdfsConf.getFullColumnType();
+        if (CollectionUtils.isNotEmpty(hdfsConfig.getFullColumnType())) {
+            fullColumnTypeList = hdfsConfig.getFullColumnType();
         } else {
             fullColumnTypeList =
-                    hdfsConf.getColumn().stream()
+                    hdfsConfig.getColumn().stream()
                             .map(FieldConf::getType)
                             .collect(Collectors.toList());
-            hdfsConf.setFullColumnType(fullColumnTypeList);
+            hdfsConfig.setFullColumnType(fullColumnTypeList);
         }
         compressType = getCompressType();
         super.initVariableFields();
@@ -136,7 +136,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void openSource() {
-        conf = FileSystemUtil.getConfiguration(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
+        conf = FileSystemUtil.getConfiguration(hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS());
         RuntimeContext runtimeContext = null;
         try {
             runtimeContext = getRuntimeContext();
@@ -152,7 +152,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         try {
             fs =
                     FileSystemUtil.getFileSystem(
-                            hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), distributedCache);
+                            hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS(), distributedCache);
         } catch (Exception e) {
             throw new ChunJunRuntimeException("can't init fileSystem", e);
         }
@@ -167,7 +167,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
     protected long getCurrentFileSize() {
         String path = tmpPath + getHdfsPathChar() + currentFileName;
         try {
-            if (hdfsConf.getMaxFileSize() > ConstantValue.STORE_SIZE_G) {
+            if (hdfsConfig.getMaxFileSize() > ConstantValue.STORE_SIZE_G) {
                 return fs.getFileStatus(new Path(path)).getLen();
             } else {
                 return fs.open(new Path(path)).available();
@@ -287,11 +287,11 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         }
     }
 
-    public HdfsConf getHdfsConf() {
-        return hdfsConf;
+    public HdfsConfig getHdfsConf() {
+        return hdfsConfig;
     }
 
-    public void setHdfsConf(HdfsConf hdfsConf) {
-        this.hdfsConf = hdfsConf;
+    public void setHdfsConf(HdfsConfig hdfsConfig) {
+        this.hdfsConfig = hdfsConfig;
     }
 }

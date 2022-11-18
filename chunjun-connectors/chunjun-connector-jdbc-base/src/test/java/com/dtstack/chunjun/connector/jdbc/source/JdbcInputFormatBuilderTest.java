@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 
 import org.junit.Assert;
@@ -45,7 +45,7 @@ public class JdbcInputFormatBuilderTest {
         jdbcConf = mock(JdbcConfig.class);
         jdbcInputFormatBuilder = new JdbcInputFormatBuilder(jdbcInputFormat);
 
-        when(jdbcInputFormat.getJdbcConf()).thenReturn(jdbcConf);
+        when(jdbcInputFormat.getJdbcConfig()).thenReturn(jdbcConf);
         when(jdbcConf.getParallelism()).thenReturn(3);
     }
 

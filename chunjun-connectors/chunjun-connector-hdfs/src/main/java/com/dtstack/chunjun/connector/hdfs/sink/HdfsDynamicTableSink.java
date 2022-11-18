@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.hdfs.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcRowConverter;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetRowConverter;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsTextRowConverter;
@@ -42,11 +42,11 @@ import java.util.List;
  */
 public class HdfsDynamicTableSink implements DynamicTableSink {
 
-    private final HdfsConf hdfsConf;
+    private final HdfsConfig hdfsConfig;
     private final TableSchema tableSchema;
 
-    public HdfsDynamicTableSink(HdfsConf hdfsConf, TableSchema tableSchema) {
-        this.hdfsConf = hdfsConf;
+    public HdfsDynamicTableSink(HdfsConfig hdfsConfig, TableSchema tableSchema) {
+        this.hdfsConfig = hdfsConfig;
         this.tableSchema = tableSchema;
     }
 
@@ -68,11 +68,11 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
             field.setIndex(i);
             columnList.add(field);
         }
-        hdfsConf.setColumn(columnList);
-        HdfsOutputFormatBuilder builder = HdfsOutputFormatBuilder.newBuild(hdfsConf.getFileType());
-        builder.setHdfsConf(hdfsConf);
+        hdfsConfig.setColumn(columnList);
+        HdfsOutputFormatBuilder builder = HdfsOutputFormatBuilder.newBuild(hdfsConfig.getFileType());
+        builder.setHdfsConf(hdfsConfig);
         AbstractRowConverter rowConverter;
-        switch (FileType.getByName(hdfsConf.getFileType())) {
+        switch (FileType.getByName(hdfsConfig.getFileType())) {
             case ORC:
                 rowConverter = new HdfsOrcRowConverter(rowType);
                 break;
@@ -84,12 +84,12 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
         }
         builder.setRowConverter(rowConverter);
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction(builder.finish()), hdfsConf.getParallelism());
+                new DtOutputFormatSinkFunction(builder.finish()), hdfsConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new HdfsDynamicTableSink(hdfsConf, tableSchema);
+        return new HdfsDynamicTableSink(hdfsConfig, tableSchema);
     }
 
     @Override

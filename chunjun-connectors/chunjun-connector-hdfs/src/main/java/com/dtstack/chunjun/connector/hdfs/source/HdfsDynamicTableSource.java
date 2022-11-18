@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.hdfs.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcRowConverter;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetRowConverter;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsTextRowConverter;
@@ -46,17 +46,17 @@ import java.util.List;
  */
 public class HdfsDynamicTableSource implements ScanTableSource {
 
-    private final HdfsConf hdfsConf;
+    private final HdfsConfig hdfsConfig;
     private final TableSchema tableSchema;
     private final List<String> partitionKeyList;
 
-    public HdfsDynamicTableSource(HdfsConf hdfsConf, TableSchema tableSchema) {
-        this(hdfsConf, tableSchema, new ArrayList<>());
+    public HdfsDynamicTableSource(HdfsConfig hdfsConfig, TableSchema tableSchema) {
+        this(hdfsConfig, tableSchema, new ArrayList<>());
     }
 
     public HdfsDynamicTableSource(
-            HdfsConf hdfsConf, TableSchema tableSchema, List<String> partitionKeyList) {
-        this.hdfsConf = hdfsConf;
+            HdfsConfig hdfsConfig, TableSchema tableSchema, List<String> partitionKeyList) {
+        this.hdfsConfig = hdfsConfig;
         this.tableSchema = tableSchema;
         this.partitionKeyList = partitionKeyList;
     }
@@ -78,11 +78,11 @@ public class HdfsDynamicTableSource implements ScanTableSource {
             }
             columnList.add(field);
         }
-        hdfsConf.setColumn(columnList);
-        HdfsInputFormatBuilder builder = HdfsInputFormatBuilder.newBuild(hdfsConf.getFileType());
-        builder.setHdfsConf(hdfsConf);
+        hdfsConfig.setColumn(columnList);
+        HdfsInputFormatBuilder builder = HdfsInputFormatBuilder.newBuild(hdfsConfig.getFileType());
+        builder.setHdfsConf(hdfsConfig);
         AbstractRowConverter rowConverter;
-        switch (FileType.getByName(hdfsConf.getFileType())) {
+        switch (FileType.getByName(hdfsConfig.getFileType())) {
             case ORC:
                 rowConverter = new HdfsOrcRowConverter(rowType);
                 break;
@@ -96,12 +96,12 @@ public class HdfsDynamicTableSource implements ScanTableSource {
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
                 false,
-                hdfsConf.getParallelism());
+                hdfsConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new HdfsDynamicTableSource(this.hdfsConf, this.tableSchema);
+        return new HdfsDynamicTableSource(this.hdfsConfig, this.tableSchema);
     }
 
     @Override

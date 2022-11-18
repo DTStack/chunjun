@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.doris.sink;
 
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConf;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import java.util.List;
@@ -31,7 +31,7 @@ public class DorisHttpOutputFormatBuilder
         super(new DorisHttpOutputFormat());
     }
 
-    public void setDorisOptions(DorisConf options) {
+    public void setDorisOptions(DorisConfig options) {
         JdbcConf jdbcConf = options.setToJdbcConf();
         format.setOptions(options);
         format.setConfig(jdbcConf);

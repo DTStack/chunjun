@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.kudu.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.kudu.conf.KuduSourceConf;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;

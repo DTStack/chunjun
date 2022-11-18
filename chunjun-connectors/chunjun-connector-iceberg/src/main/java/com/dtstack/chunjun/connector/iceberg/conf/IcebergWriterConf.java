@@ -18,14 +18,14 @@
 
 package com.dtstack.chunjun.connector.iceberg.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class IcebergWriterConf extends ChunJunCommonConf {
+public class IcebergWriterConf extends CommonConfig {
     private String defaultFS;
     private String fileType;
     /** hadoop高可用相关配置 * */

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.saphana.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -48,7 +48,7 @@ import java.sql.Timestamp;
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
 public class SaphanaColumnConverter extends JdbcColumnConverter {
 
-    public SaphanaColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+    public SaphanaColumnConverter(RowType rowType, CommonConfig commonConf) {
         super(rowType, commonConf);
     }
 

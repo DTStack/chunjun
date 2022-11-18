@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.elasticsearch7;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 
 import java.io.Serializable;
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.Map;
  * @author: lany
  * @create: 2021/06/16 15:36
  */
-public class ElasticsearchConf extends ChunJunCommonConf implements Serializable {
+public class ElasticsearchConf extends CommonConfig implements Serializable {
 
     private static final long serialVersionUID = 2L;
 

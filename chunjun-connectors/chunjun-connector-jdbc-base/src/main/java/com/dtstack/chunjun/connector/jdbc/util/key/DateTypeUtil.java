@@ -28,7 +28,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/** @author liuliu 2022/6/22 */
 public class DateTypeUtil extends KeyUtil<Date, BigInteger> {
 
     @Override

@@ -19,7 +19,7 @@
 
 package com.dtstack.chunjun.connector.vertica11.conf;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcLookupConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcLookupConf;
 
 import java.util.Map;
 

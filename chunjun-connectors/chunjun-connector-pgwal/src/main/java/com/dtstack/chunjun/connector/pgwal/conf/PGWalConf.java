@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.pgwal.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConf;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 /** config of pg cdc */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PGWalConf extends ChunJunCommonConf {
+public class PGWalConf extends CommonConfig {
 
     public String username;
     public String password;

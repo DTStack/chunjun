@@ -18,10 +18,10 @@
 
 package com.dtstack.chunjun.connector.mysqlcdc.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
-import com.dtstack.chunjun.connector.jdbc.conf.CdcConf;
-import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
+import com.dtstack.chunjun.connector.jdbc.config.CdcConf;
+import com.dtstack.chunjun.connector.jdbc.config.ConnectionConf;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.chunjun.connector.mysqlcdc.converter.MysqlCdcRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;

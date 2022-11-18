@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.db2.source;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +16,9 @@ package com.dtstack.chunjun.connector.db2.source;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.conf.SyncConf;
+package com.dtstack.chunjun.connector.db2.source;
+
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.db2.dialect.Db2Dialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
@@ -27,20 +28,14 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * Company: www.dtstack.com
- *
- * @author xuchao
- * @date 2021-06-15
- */
 public class Db2SourceFactory extends JdbcSourceFactory {
-    public Db2SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, new Db2Dialect());
+    public Db2SourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env, new Db2Dialect());
         // 避免result.next阻塞
-        if (jdbcConf.isPolling()
-                && StringUtils.isEmpty(jdbcConf.getStartLocation())
-                && jdbcConf.getFetchSize() == 0) {
-            jdbcConf.setFetchSize(1000);
+        if (jdbcConfig.isPolling()
+                && StringUtils.isEmpty(jdbcConfig.getStartLocation())
+                && jdbcConfig.getFetchSize() == 0) {
+            jdbcConfig.setFetchSize(1000);
         }
     }
 

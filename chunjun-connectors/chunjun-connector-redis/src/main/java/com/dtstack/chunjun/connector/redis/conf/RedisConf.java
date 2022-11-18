@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.redis.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.redis.enums.RedisConnectType;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataMode;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataType;
@@ -31,7 +31,7 @@ import java.util.List;
  * @create 2021-06-16 15:15
  * @description
  */
-public class RedisConf extends ChunJunCommonConf {
+public class RedisConf extends CommonConfig {
     /** ip and port */
     private String hostPort;
     /** password */

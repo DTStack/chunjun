@@ -18,11 +18,11 @@
 
 package com.dtstack.chunjun.connector.oceanbasecdc.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 
 import com.oceanbase.clogproxy.client.config.ObReaderConfig;
 
-public class OceanBaseCdcConf extends ChunJunCommonConf {
+public class OceanBaseCdcConf extends CommonConfig {
     private String logProxyHost;
     private int logProxyPort;
     private ObReaderConfig obReaderConfig;

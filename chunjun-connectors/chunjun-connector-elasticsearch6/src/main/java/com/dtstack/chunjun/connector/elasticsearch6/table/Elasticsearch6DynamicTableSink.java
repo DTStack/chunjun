@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.elasticsearch6.table;
 
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRowConverter;
-import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.connector.elasticsearch6.sink.Elasticsearch6OutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
@@ -30,19 +30,13 @@ import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/19 14:54
- */
 public class Elasticsearch6DynamicTableSink implements DynamicTableSink {
 
     private final TableSchema physicalSchema;
-    private final Elasticsearch6Conf elasticsearchConf;
+    private final Elasticsearch6Config elasticsearchConf;
 
     public Elasticsearch6DynamicTableSink(
-            TableSchema physicalSchema, Elasticsearch6Conf elasticsearchConf) {
+            TableSchema physicalSchema, Elasticsearch6Config elasticsearchConf) {
         this.physicalSchema = physicalSchema;
         this.elasticsearchConf = elasticsearchConf;
     }

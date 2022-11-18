@@ -28,7 +28,6 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-/** @author toutian */
 public class BinlogJournalValidator {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogJournalValidator.class);

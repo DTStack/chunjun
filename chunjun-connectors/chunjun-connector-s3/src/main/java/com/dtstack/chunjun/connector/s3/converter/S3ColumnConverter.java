@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.s3.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -43,7 +43,7 @@ import java.util.List;
 public class S3ColumnConverter
         extends AbstractRowConverter<String[], RowData, String[], LogicalType> {
 
-    public S3ColumnConverter(RowType rowType, ChunJunCommonConf conf) {
+    public S3ColumnConverter(RowType rowType, CommonConfig conf) {
         super(rowType, conf);
         super.commonConf = conf;
         for (int i = 0; i < fieldTypes.length; i++) {

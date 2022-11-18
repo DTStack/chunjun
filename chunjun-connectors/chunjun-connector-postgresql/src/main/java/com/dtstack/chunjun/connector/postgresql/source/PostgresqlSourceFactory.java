@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.postgresql.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.chunjun.connector.postgresql.dialect.PostgresqlDialect;
 

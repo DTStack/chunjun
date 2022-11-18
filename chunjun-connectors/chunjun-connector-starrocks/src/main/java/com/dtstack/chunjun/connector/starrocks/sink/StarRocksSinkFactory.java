@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.starrocks.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
 import com.dtstack.chunjun.connector.starrocks.converter.StarRocksColumnConverter;
 import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRawTypeConverter;

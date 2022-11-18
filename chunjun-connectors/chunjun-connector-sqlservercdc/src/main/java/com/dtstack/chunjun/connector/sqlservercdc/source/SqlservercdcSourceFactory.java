@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.sqlservercdc.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.sqlservercdc.conf.SqlServerCdcConf;
 import com.dtstack.chunjun.connector.sqlservercdc.convert.SqlServerCdcColumnConverter;
 import com.dtstack.chunjun.connector.sqlservercdc.convert.SqlServerCdcRawTypeConverter;

@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.hdfs.InputSplit.HdfsOrcInputSplit;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -65,11 +65,11 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
     public HdfsOrcInputSplit[] createHdfsSplit(int minNumSplits) throws IOException {
         super.initHadoopJobConf();
         String path;
-        if (StringUtils.isNotBlank(hdfsConf.getFileName())) {
+        if (StringUtils.isNotBlank(hdfsConfig.getFileName())) {
             // 兼容平台逻辑
-            path = hdfsConf.getPath() + ConstantValue.SINGLE_SLASH_SYMBOL + hdfsConf.getFileName();
+            path = hdfsConfig.getPath() + ConstantValue.SINGLE_SLASH_SYMBOL + hdfsConfig.getFileName();
         } else {
-            path = hdfsConf.getPath();
+            path = hdfsConfig.getPath();
         }
         org.apache.hadoop.mapred.FileInputFormat.setInputPaths(hadoopJobConf, path);
         org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(
@@ -235,7 +235,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
     @Override
     @SuppressWarnings("unchecked")
     public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
-        List<FieldConf> fieldConfList = hdfsConf.getColumn();
+        List<FieldConf> fieldConfList = hdfsConfig.getColumn();
         GenericRowData genericRowData;
         if (fieldConfList.size() == 1
                 && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())) {

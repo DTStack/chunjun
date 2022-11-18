@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.solr;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.solr.converter.SolrColumnConverter;
 import com.dtstack.chunjun.connector.solr.converter.SolrRawTypeConverter;
 import com.dtstack.chunjun.connector.solr.converter.SolrRowConverter;

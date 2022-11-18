@@ -26,10 +26,6 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/**
- * @author tiezhu
- * @since 2021/6/25 星期五
- */
 public class ByteColumn extends AbstractBaseColumn {
     public ByteColumn(byte data) {
         super(data, 1);

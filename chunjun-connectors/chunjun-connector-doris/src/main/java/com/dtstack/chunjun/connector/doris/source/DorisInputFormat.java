@@ -18,18 +18,18 @@
 
 package com.dtstack.chunjun.connector.doris.source;
 
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 
 public class DorisInputFormat extends JdbcInputFormat {
 
-    private DorisConf dorisConf;
+    private DorisConfig dorisConfig;
 
-    public void setDorisConf(DorisConf dorisConf) {
-        this.dorisConf = dorisConf;
+    public void setDorisConf(DorisConfig dorisConfig) {
+        this.dorisConfig = dorisConfig;
     }
 
-    public DorisConf getDorisConf() {
-        return dorisConf;
+    public DorisConfig getDorisConf() {
+        return dorisConfig;
     }
 }

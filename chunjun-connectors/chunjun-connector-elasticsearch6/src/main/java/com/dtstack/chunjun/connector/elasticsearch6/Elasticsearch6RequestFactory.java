@@ -34,12 +34,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-/**
- * @description: build request
- * @program chunjun
- * @author: lany
- * @create: 2021/06/19 13:59
- */
 public class Elasticsearch6RequestFactory {
 
     /**
@@ -108,7 +102,7 @@ public class Elasticsearch6RequestFactory {
 
         if (keyNames != null && keys != null && keyNames.length > 0) {
             List<String> keyValues =
-                    Arrays.stream(keys).map(e -> String.valueOf(e)).collect(Collectors.toList());
+                    Arrays.stream(keys).map(String::valueOf).collect(Collectors.toList());
             List<String> tempKeyNames = Arrays.asList(keyNames);
             for (int i = 0; i < tempKeyNames.size(); i++) {
                 queryBuilder.must(QueryBuilders.termQuery(tempKeyNames.get(i), keyValues.get(i)));

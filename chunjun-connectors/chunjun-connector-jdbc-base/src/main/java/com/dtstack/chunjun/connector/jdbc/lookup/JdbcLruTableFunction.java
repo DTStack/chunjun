@@ -18,15 +18,15 @@
 
 package com.dtstack.chunjun.connector.jdbc.lookup;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcLookupConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcLookupConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.factory.ChunJunThreadFactory;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
 import com.dtstack.chunjun.lookup.cache.CacheMissVal;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.conf.LookupConfig;
 import com.dtstack.chunjun.throwable.NoRestartException;
 import com.dtstack.chunjun.util.DateUtil;
 import com.dtstack.chunjun.util.ThreadUtil;
@@ -101,14 +101,14 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     public JdbcLruTableFunction(
             JdbcConfig jdbcConf,
             JdbcDialect jdbcDialect,
-            LookupConf lookupConf,
+            LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
-        super(lookupConf, jdbcDialect.getRowConverter(rowType));
+        super(lookupConfig, jdbcDialect.getRowConverter(rowType));
         this.jdbcConf = jdbcConf;
         this.jdbcDialect = jdbcDialect;
-        this.asyncPoolSize = ((JdbcLookupConf) lookupConf).getAsyncPoolSize();
+        this.asyncPoolSize = ((JdbcLookupConfig) lookupConfig).getAsyncPoolSize();
         this.query =
                 jdbcDialect.getSelectFromStatement(
                         jdbcConf.getSchema(), jdbcConf.getTable(), fieldNames, keyNames);
@@ -125,7 +125,8 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         asyncPoolSize = asyncPoolSize > 0 ? asyncPoolSize : defaultAsyncPoolSize;
 
         VertxOptions vertxOptions = new VertxOptions();
-        JsonObject jdbcConfig = createJdbcConfig(((JdbcLookupConf) lookupConf).getDruidConf());
+        JsonObject jdbcConfig =
+                createJdbcConfig(((JdbcLookupConfig) lookupConfig).getDruidConfig());
         System.setProperty("vertx.disableFileCPResolving", "true");
         vertxOptions
                 .setEventLoopPoolSize(DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE.defaultValue())
@@ -260,7 +261,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         rdbSqlClient.getConnection(
                 conn -> {
                     try {
-                        Integer retryMaxNum = lookupConf.getMaxRetryTimes();
+                        Integer retryMaxNum = lookupConfig.getMaxRetryTimes();
                         int logPrintTime =
                                 retryMaxNum / ERRORLOG_PRINTNUM.defaultValue() == 0
                                         ? retryMaxNum

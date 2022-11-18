@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.rocketmq.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -26,7 +26,7 @@ import java.io.Serializable;
 import java.util.Locale;
 
 /** @author shitou @date 2022/5/26 * */
-public class RocketMQConf extends ChunJunCommonConf {
+public class RocketMQConf extends CommonConfig {
 
     private String topic;
     private String nameserverAddress;

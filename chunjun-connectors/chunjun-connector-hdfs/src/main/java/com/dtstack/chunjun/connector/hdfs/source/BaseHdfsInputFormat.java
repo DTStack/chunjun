@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.hdfs.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -47,7 +47,7 @@ import java.util.Map;
  */
 public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
-    protected HdfsConf hdfsConf;
+    protected HdfsConfig hdfsConfig;
 
     /** the key to read data into */
     protected Object key;
@@ -64,13 +64,13 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
-        openKerberos = FileSystemUtil.isOpenKerberos(hdfsConf.getHadoopConfig());
+        openKerberos = FileSystemUtil.isOpenKerberos(hdfsConfig.getHadoopConfig());
         if (openKerberos) {
             DistributedCache distributedCache =
                     PluginUtil.createDistributedCacheFromContextClassLoader();
             UserGroupInformation ugi =
                     FileSystemUtil.getUGI(
-                            hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), distributedCache);
+                            hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS(), distributedCache);
             LOG.info("user:{}, ", ugi.getShortUserName());
             return ugi.doAs(
                     (PrivilegedAction<InputSplit[]>)
@@ -92,12 +92,12 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
         super.openInputFormat();
         initHadoopJobConf();
         this.inputFormat = createInputFormat();
-        openKerberos = FileSystemUtil.isOpenKerberos(hdfsConf.getHadoopConfig());
+        openKerberos = FileSystemUtil.isOpenKerberos(hdfsConfig.getHadoopConfig());
         if (openKerberos) {
             ugi =
                     FileSystemUtil.getUGI(
-                            hdfsConf.getHadoopConfig(),
-                            hdfsConf.getDefaultFS(),
+                            hdfsConfig.getHadoopConfig(),
+                            hdfsConfig.getDefaultFS(),
                             getRuntimeContext().getDistributedCache());
         }
     }
@@ -118,8 +118,8 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
     /** init Hadoop Job Config */
     protected void initHadoopJobConf() {
         hadoopJobConf =
-                FileSystemUtil.getJobConf(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
-        hadoopJobConf.set(HdfsPathFilter.KEY_REGEX, hdfsConf.getFilterRegex());
+                FileSystemUtil.getJobConf(hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS());
+        hadoopJobConf.set(HdfsPathFilter.KEY_REGEX, hdfsConfig.getFilterRegex());
         FileSystemUtil.setHadoopUserName(hadoopJobConf);
     }
 
@@ -140,7 +140,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
             pathStr = pathStr.substring(0, i);
         }
 
-        for (FieldConf fieldConf : hdfsConf.getColumn()) {
+        for (FieldConf fieldConf : hdfsConfig.getColumn()) {
             if (fieldConf.getPart()) {
                 fieldConf.setValue(map.get(fieldConf.getName()));
             }
@@ -163,7 +163,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
      */
     public abstract org.apache.hadoop.mapred.InputFormat createInputFormat();
 
-    public void setHdfsConf(HdfsConf hdfsConf) {
-        this.hdfsConf = hdfsConf;
+    public void setHdfsConf(HdfsConfig hdfsConfig) {
+        this.hdfsConfig = hdfsConfig;
     }
 }

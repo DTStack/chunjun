@@ -17,6 +17,11 @@
  */
 package com.dtstack.chunjun.connector.binlog.converter;
 
+import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DdlResult;
+import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DdlResultExtend;
+import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
+import com.alibaba.otter.canal.protocol.CanalEntry;
+
 import com.dtstack.chunjun.cdc.DdlRowData;
 import com.dtstack.chunjun.cdc.DdlRowDataBuilder;
 import com.dtstack.chunjun.cdc.EventType;
@@ -36,16 +41,12 @@ import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 import com.dtstack.chunjun.util.DateUtil;
 
-import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.RowKind;
-
-import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DdlResult;
-import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DdlResultExtend;
-import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
-import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.types.RowKind;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -69,11 +70,6 @@ import static com.dtstack.chunjun.constants.CDCConstantValue.TABLE;
 import static com.dtstack.chunjun.constants.CDCConstantValue.TS;
 import static com.dtstack.chunjun.constants.CDCConstantValue.TYPE;
 
-/**
- * Date: 2021/04/29 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRow, String> {
 
     public BinlogColumnConverter(boolean pavingData, boolean splitUpdate) {
@@ -200,18 +196,12 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
                                                                 .getChunjunEventType())) {
                                                     return swapEventToDdlRowData(binlogEventRow);
                                                 }
-                                                throw new RuntimeException(
-                                                        "not support sql: "
-                                                                + binlogEventRow
-                                                                        .getRowChange()
-                                                                        .getSql());
-                                            } else {
-                                                throw new RuntimeException(
-                                                        "not support sql: "
-                                                                + binlogEventRow
-                                                                        .getRowChange()
-                                                                        .getSql());
                                             }
+                                            throw new RuntimeException(
+                                                    "not support sql: "
+                                                            + binlogEventRow
+                                                            .getRowChange()
+                                                            .getSql());
                                         })
                                 .collect(Collectors.toList()));
             } else {
@@ -422,6 +412,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
      * 解析CanalEntry中的Column，获取字段名及值
      *
      * @param columnList
+     *
      * @return 字段名和值的map集合
      */
     private Map<String, Object> processColumnList(List<CanalEntry.Column> columnList) {
@@ -436,6 +427,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
      * 将 binlogEventRow {@link BinlogEventRow} 转化为 ddlRowData {@link DdlRowData}
      *
      * @param binlogEventRow binlog 事件数据
+     *
      * @return ddl row-data
      */
     private DdlRowData swapEventToDdlRowData(BinlogEventRow binlogEventRow) {

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hbase.util;
 
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.security.KerberosUtil;
 import com.dtstack.chunjun.util.FileSystemUtil;
 
@@ -54,10 +54,6 @@ import static com.dtstack.chunjun.security.KerberosUtil.KRB_STR;
 
 /**
  * The utility class of HBase
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
  */
 public class HBaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(HBaseHelper.class);
@@ -66,8 +62,8 @@ public class HBaseHelper {
     private static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
     private static final String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
 
-    public static Connection getHbaseConnection(HBaseConf hBaseConf) {
-        Map<String, Object> hbaseConfig = new HashMap<>(hBaseConf.getHbaseConfig());
+    public static Connection getHbaseConnection(HBaseConfig hBaseConfig) {
+        Map<String, Object> hbaseConfig = new HashMap<>(hBaseConfig.getHbaseConfig());
         return getHbaseConnection(hbaseConfig);
     }
 

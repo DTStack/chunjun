@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.mongodb.datasync;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.mongodb.converter.MongodbColumnConverter;
 import com.dtstack.chunjun.connector.mongodb.converter.MongodbRawTypeConverter;
 import com.dtstack.chunjun.connector.mongodb.converter.MongodbRowConverter;

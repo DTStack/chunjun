@@ -22,10 +22,6 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.StringJoiner;
 
-/**
- * @author tiezhu@dtstack
- * @date 2021/9/22 星期三
- */
 public class DirtyDataEntry implements Serializable {
 
     private static final long serialVersionUID = 1L;

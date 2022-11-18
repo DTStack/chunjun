@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.iceberg.sink;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.metrics.AccumulatorCollector;
 import com.dtstack.chunjun.metrics.BaseMetric;
@@ -60,7 +60,7 @@ public class IcebergMetricsMapFunction extends RichMapFunction<RowData, RowData>
     /** 任务开始时间, openInputFormat()开始计算 */
     protected long startTime;
     /** 任务公共配置 */
-    protected ChunJunCommonConf config;
+    protected CommonConfig config;
 
     /** 任务名称 */
     protected String jobName = "defaultJobName";
@@ -71,7 +71,7 @@ public class IcebergMetricsMapFunction extends RichMapFunction<RowData, RowData>
     /** 子任务数量 */
     protected int numTasks;
 
-    public IcebergMetricsMapFunction(ChunJunCommonConf config) {
+    public IcebergMetricsMapFunction(CommonConfig config) {
         this.config = config;
     }
 
