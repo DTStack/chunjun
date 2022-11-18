@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oceanbasecdc.inputformat;
 
-import com.dtstack.chunjun.connector.oceanbasecdc.conf.OceanBaseCdcConf;
+import com.dtstack.chunjun.connector.oceanbasecdc.config.OceanBaseCdcConfig;
 import com.dtstack.chunjun.connector.oceanbasecdc.listener.OceanBaseCdcListener;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
 import com.dtstack.chunjun.restore.FormatState;
@@ -41,7 +41,7 @@ public class OceanBaseCdcInputFormat extends BaseRichInputFormat {
     public volatile boolean running = false;
     public String safeTimestamp;
 
-    private OceanBaseCdcConf cdcConf;
+    private OceanBaseCdcConfig cdcConf;
     private AbstractCDCRowConverter rowConverter;
 
     private transient Thread cdcListenerThread;
@@ -111,11 +111,11 @@ public class OceanBaseCdcInputFormat extends BaseRichInputFormat {
         return false;
     }
 
-    public OceanBaseCdcConf getCdcConf() {
+    public OceanBaseCdcConfig getCdcConf() {
         return cdcConf;
     }
 
-    public void setCdcConf(OceanBaseCdcConf cdcConf) {
+    public void setCdcConf(OceanBaseCdcConfig cdcConf) {
         this.cdcConf = cdcConf;
     }
 

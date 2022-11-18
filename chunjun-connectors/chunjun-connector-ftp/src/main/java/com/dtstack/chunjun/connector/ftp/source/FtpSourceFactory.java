@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.ftp.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.ftp.conf.ConfigConstants;
 import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.converter.FtpColumnConverter;
@@ -38,20 +38,15 @@ import org.apache.flink.table.types.logical.RowType;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/06/19
- */
 public class FtpSourceFactory extends SourceFactory {
 
     private final FtpConfig ftpConfig;
 
-    public FtpSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
+    public FtpSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
         ftpConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getReader().getParameter()), FtpConfig.class);
+                        JsonUtil.toJson(syncConfig.getReader().getParameter()), FtpConfig.class);
 
         if (ftpConfig.getPort() == null) {
             ftpConfig.setDefaultPort();
@@ -68,12 +63,12 @@ public class FtpSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         FtpInputFormatBuilder builder = new FtpInputFormatBuilder();
         builder.setFtpConfig(ftpConfig);
-        List<FieldConf> fieldConfList =
+        List<FieldConfig> fieldConfList =
                 ftpConfig.getColumn().stream()
                         .peek(
-                                fieldConf -> {
-                                    if (fieldConf.getName() == null) {
-                                        fieldConf.setName(String.valueOf(fieldConf.getIndex()));
+                                fieldConfig -> {
+                                    if (fieldConfig.getName() == null) {
+                                        fieldConfig.setName(String.valueOf(fieldConfig.getIndex()));
                                     }
                                 })
                         .collect(Collectors.toList());

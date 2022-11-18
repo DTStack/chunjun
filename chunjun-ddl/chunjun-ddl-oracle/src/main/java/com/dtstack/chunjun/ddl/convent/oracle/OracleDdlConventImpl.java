@@ -25,7 +25,7 @@ import com.dtstack.chunjun.cdc.ddl.definition.ConstraintOperator;
 import com.dtstack.chunjun.cdc.ddl.definition.DdlOperator;
 import com.dtstack.chunjun.cdc.ddl.definition.IndexOperator;
 import com.dtstack.chunjun.cdc.ddl.definition.TableOperator;
-import com.dtstack.chunjun.mapping.MappingConf;
+import com.dtstack.chunjun.mapping.MappingConfig;
 import com.dtstack.chunjun.throwable.ConventException;
 
 import java.util.Collections;
@@ -38,7 +38,7 @@ public class OracleDdlConventImpl implements DdlConvent {
         this(null);
     }
 
-    public OracleDdlConventImpl(MappingConf mappingConf) {}
+    public OracleDdlConventImpl(MappingConfig mappingConfig) {}
 
     @Override
     public List<DdlOperator> rowConventToDdlData(DdlRowData row) throws ConventException {

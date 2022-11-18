@@ -30,7 +30,6 @@ import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-/** @author liuliu 2022/4/13 */
 public abstract class RowSizeCalculator<T> {
 
     public abstract long getObjectSize(T object);

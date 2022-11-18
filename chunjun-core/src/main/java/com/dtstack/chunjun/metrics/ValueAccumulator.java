@@ -19,11 +19,6 @@ package com.dtstack.chunjun.metrics;
 
 import org.apache.flink.api.common.accumulators.LongCounter;
 
-/**
- * Date: 2021/05/18 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class ValueAccumulator {
     private final LongCounter local;
     private long global;

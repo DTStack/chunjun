@@ -22,7 +22,6 @@ import org.apache.flink.annotation.Internal;
 
 import java.util.Objects;
 
-/** Base class for {@link IndexGenerator}. */
 @Internal
 public abstract class IndexGeneratorBase implements IndexGenerator {
 

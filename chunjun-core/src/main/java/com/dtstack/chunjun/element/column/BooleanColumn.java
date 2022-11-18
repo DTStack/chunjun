@@ -25,11 +25,6 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/**
- * Date: 2021/04/27 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class BooleanColumn extends AbstractBaseColumn {
 
     public BooleanColumn(boolean data) {

@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.kudu.table;
 
-import com.dtstack.chunjun.connector.kudu.conf.KuduLookupConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduSourceConf;
+import com.dtstack.chunjun.connector.kudu.config.KuduLookupConf;
+import com.dtstack.chunjun.connector.kudu.config.KuduSourceConfig;
 import com.dtstack.chunjun.connector.kudu.converter.KuduRowConverter;
 import com.dtstack.chunjun.connector.kudu.source.KuduInputFormatBuilder;
 import com.dtstack.chunjun.connector.kudu.table.lookup.KuduAllTableFunction;
@@ -39,31 +39,26 @@ import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushD
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
 import java.util.Arrays;
 
-/**
- * @author tiezhu
- * @since 2021/6/9 星期三
- */
 public class KuduDynamicTableSource
         implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
     private static final String IDENTIFIER = "Kudu";
 
-    private final KuduSourceConf sourceConf;
+    private final KuduSourceConfig sourceConf;
 
     private final KuduLookupConf kuduLookupConf;
 
     private TableSchema tableSchema;
 
     public KuduDynamicTableSource(
-            KuduSourceConf sourceConf, KuduLookupConf lookupConf, TableSchema tableSchema) {
+            KuduSourceConfig sourceConf, KuduLookupConf lookupConfig, TableSchema tableSchema) {
         this.sourceConf = sourceConf;
         this.tableSchema = tableSchema;
-        this.kuduLookupConf = lookupConf;
+        this.kuduLookupConf = lookupConfig;
     }
 
     @Override
@@ -133,10 +128,5 @@ public class KuduDynamicTableSource
     public boolean supportsNestedProjection() {
         // kudu doesn't support nested projection
         return false;
-    }
-
-    @Override
-    public void applyProjection(int[][] projectedFields) {
-        this.tableSchema = TableSchemaUtils.projectSchema(tableSchema, projectedFields);
     }
 }

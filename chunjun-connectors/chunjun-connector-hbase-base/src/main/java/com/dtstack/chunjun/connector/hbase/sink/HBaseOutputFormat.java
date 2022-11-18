@@ -41,13 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * The Hbase Implementation of OutputFormat
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+/** The Hbase Implementation of OutputFormat */
 public class HBaseOutputFormat extends BaseRichOutputFormat {
 
     private Map<String, Object> hbaseConfig;

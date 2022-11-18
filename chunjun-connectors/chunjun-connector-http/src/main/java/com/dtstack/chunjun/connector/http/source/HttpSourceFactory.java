@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.http.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.http.common.ConstantValue;
 import com.dtstack.chunjun.connector.http.common.HttpMethod;
 import com.dtstack.chunjun.connector.http.common.HttpRestConfig;
@@ -52,7 +52,7 @@ public class HttpSourceFactory extends SourceFactory {
 
     private final HttpRestConfig httpRestConfig;
 
-    public HttpSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
+    public HttpSourceFactory(SyncConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         httpRestConfig =
                 JsonUtil.toObject(
@@ -84,8 +84,8 @@ public class HttpSourceFactory extends SourceFactory {
                                         ParamType.HEADER));
             }
         }
-        if (syncConf.getTransformer() == null
-                || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
+        if (syncConfig.getTransformer() == null
+                || StringUtils.isBlank(syncConfig.getTransformer().getTransformSql())) {
             typeInformation =
                     TableUtil.getTypeInformation(
                             Collections.emptyList(), getRawTypeConverter(), true);
@@ -98,19 +98,19 @@ public class HttpSourceFactory extends SourceFactory {
         super.initCommonConf(httpRestConfig);
     }
 
-    private List<FieldConf> subColumns(List<FieldConf> fields) {
-        List<FieldConf> columnsNoDelimiter = new ArrayList();
+    private List<FieldConfig> subColumns(List<FieldConfig> fields) {
+        List<FieldConfig> columnsNoDelimiter = new ArrayList();
         fields.forEach(
-                fieldConf -> {
-                    FieldConf newField = new FieldConf();
+                fieldConfig -> {
+                    FieldConfig newField = new FieldConfig();
                     String[] split =
-                            fieldConf
+                            fieldConfig
                                     .getName()
                                     .split(
                                             StringUtil.escapeExprSpecialWord(
                                                     httpRestConfig.getFieldDelimiter()));
                     newField.setName(split[split.length - 1]);
-                    newField.setType(fieldConf.getType());
+                    newField.setType(fieldConfig.getType());
                     columnsNoDelimiter.add(newField);
                 });
         return columnsNoDelimiter;

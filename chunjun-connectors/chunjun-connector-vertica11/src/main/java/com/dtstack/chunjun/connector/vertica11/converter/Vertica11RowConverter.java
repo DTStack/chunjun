@@ -32,6 +32,7 @@ import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
@@ -45,7 +46,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
-/** @author menghan on 2022/7/7. */
 public class Vertica11RowConverter extends JdbcRowConverter {
 
     private static final long serialVersionUID = 1L;
@@ -63,12 +63,10 @@ public class Vertica11RowConverter extends JdbcRowConverter {
     }
 
     protected IDeserializationConverter createAsyncInternalConverter(LogicalType type) {
-        switch (type.getTypeRoot()) {
-            case INTEGER:
-                return (IDeserializationConverter<Long, Long>) val -> new Long(val.toString());
-            default:
-                return createInternalConverter(type);
+        if (type.getTypeRoot() == LogicalTypeRoot.INTEGER) {
+            return (IDeserializationConverter<Long, Long>) val -> new Long(val.toString());
         }
+        return createInternalConverter(type);
     }
 
     @Override
@@ -94,8 +92,15 @@ public class Vertica11RowConverter extends JdbcRowConverter {
             case NULL:
                 return val -> null;
             case BOOLEAN:
+            case BIGINT:
+            case CHAR:
+            case BINARY:
+            case VARBINARY:
                 return (IDeserializationConverter<Boolean, Boolean>) val -> val;
             case FLOAT:
+            case TINYINT:
+            case SMALLINT:
+            case DECIMAL:
                 return (IDeserializationConverter<BigDecimal, DecimalData>)
                         val -> DecimalData.fromBigDecimal(val, val.precision(), val.scale());
             case DOUBLE:
@@ -103,13 +108,6 @@ public class Vertica11RowConverter extends JdbcRowConverter {
             case INTERVAL_DAY_TIME:
             case INTEGER:
                 return (IDeserializationConverter<Long, Long>) val -> new Long(val.toString());
-            case BIGINT:
-                return (IDeserializationConverter<Long, Long>) val -> val;
-            case TINYINT:
-            case SMALLINT:
-            case DECIMAL:
-                return (IDeserializationConverter<BigDecimal, DecimalData>)
-                        val -> DecimalData.fromBigDecimal(val, val.precision(), val.scale());
             case DATE:
                 return (IDeserializationConverter<String, Integer>)
                         val ->
@@ -129,15 +127,8 @@ public class Vertica11RowConverter extends JdbcRowConverter {
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> TimestampData.fromTimestamp((Timestamp) val);
-            case CHAR:
-                return (IDeserializationConverter<String, String>) val -> val;
             case VARCHAR:
-                return (IDeserializationConverter<String, StringData>)
-                        val -> StringData.fromString(val);
-            case BINARY:
-                return (IDeserializationConverter<byte[], byte[]>) val -> val;
-            case VARBINARY:
-                return (IDeserializationConverter<byte[], byte[]>) val -> val;
+                return (IDeserializationConverter<String, StringData>) StringData::fromString;
             case ARRAY:
             case ROW:
             case MAP:

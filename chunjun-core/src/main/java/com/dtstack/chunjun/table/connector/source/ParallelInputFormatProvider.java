@@ -25,11 +25,6 @@ import org.apache.flink.table.data.RowData;
 
 import java.util.Optional;
 
-/**
- * @program chunjun
- * @author: wuren
- * @create: 2021/04/19
- */
 public interface ParallelInputFormatProvider extends InputFormatProvider, ParallelismProvider {
 
     /** Helper method for creating a InputFormat provider with a provided source parallelism. */

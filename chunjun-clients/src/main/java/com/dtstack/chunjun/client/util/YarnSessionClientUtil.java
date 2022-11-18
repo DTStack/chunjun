@@ -46,13 +46,6 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-/**
- * Date: 2021/03/03 Company: www.dtstack.com
- *
- * <p>start flink yarn session
- *
- * @author tudou
- */
 public class YarnSessionClientUtil {
 
     public static final int MIN_JM_MEMORY = 1024;

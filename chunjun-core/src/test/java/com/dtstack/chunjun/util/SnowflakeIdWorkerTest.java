@@ -24,10 +24,6 @@ import org.junit.Test;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author jiangbo
- * @date 2020/3/18
- */
 public class SnowflakeIdWorkerTest {
 
     SnowflakeIdWorker snowflakeIdWorker = new SnowflakeIdWorker(1L, 1L);

@@ -17,7 +17,7 @@
 
 package com.dtstack.chunjun.connector.rocketmq.source;
 
-import com.dtstack.chunjun.connector.rocketmq.conf.RocketMQConf;
+import com.dtstack.chunjun.connector.rocketmq.config.RocketMQConfig;
 import com.dtstack.chunjun.connector.rocketmq.source.deserialization.KeyValueDeserializationSchema;
 import com.dtstack.chunjun.connector.rocketmq.source.deserialization.RowKeyValueDeserializationSchema;
 import com.dtstack.chunjun.connector.rocketmq.source.watermark.WaterMarkForAll;
@@ -28,6 +28,7 @@ import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.util.JsonUtil;
 
 import org.apache.flink.api.common.functions.RuntimeContext;
+import org.apache.flink.api.common.state.CheckpointListener;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.typeinfo.TypeHint;
@@ -35,7 +36,6 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.runtime.state.CheckpointListener;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
@@ -43,8 +43,7 @@ import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunctio
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.util.Preconditions;
 
-import org.apache.flink.shaded.curator4.com.google.common.util.concurrent.ThreadFactoryBuilder;
-
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.lang3.Validate;
 import org.apache.rocketmq.client.consumer.DefaultMQPullConsumer;
@@ -87,7 +86,7 @@ public class RocketMQSourceFunction<OUT> extends RichParallelSourceFunction<OUT>
     private static final String OFFSETS_STATE_NAME = "topic-partition-offset-states";
     private com.dtstack.chunjun.connector.rocketmq.source.RunningChecker runningChecker;
     private transient DefaultMQPullConsumer consumer;
-    private KeyValueDeserializationSchema<OUT> schema;
+    private final KeyValueDeserializationSchema<OUT> schema;
     private transient ListState<FormatState> unionOffsetStates;
     private Map<Integer, FormatState> formatStateMap;
     private Map<MessageQueue, Long> offsetTable;
@@ -103,18 +102,17 @@ public class RocketMQSourceFunction<OUT> extends RichParallelSourceFunction<OUT>
     /** Data for pending but uncommitted offsets. */
     private LinkedMap pendingOffsetsToCommit;
 
-    private RocketMQConf rocketMQConf;
+    private final RocketMQConfig rocketMQConfig;
     private String topic;
-    private String group;
     private transient volatile boolean restored;
     private transient boolean enableCheckpoint;
     private volatile Object checkPointLock;
     private transient volatile Exception consumerException;
 
     public RocketMQSourceFunction(
-            KeyValueDeserializationSchema<OUT> schema, RocketMQConf rocketMQConf) {
+            KeyValueDeserializationSchema<OUT> schema, RocketMQConfig rocketMQConfig) {
         this.schema = schema;
-        this.rocketMQConf = rocketMQConf;
+        this.rocketMQConfig = rocketMQConfig;
     }
 
     @Override
@@ -134,8 +132,8 @@ public class RocketMQSourceFunction<OUT> extends RichParallelSourceFunction<OUT>
             schema.init();
         }
 
-        this.topic = rocketMQConf.getTopic();
-        this.group = rocketMQConf.getConsumerGroup();
+        this.topic = rocketMQConfig.getTopic();
+        String group = rocketMQConfig.getConsumerGroup();
 
         Validate.notEmpty(topic, "Consumer topic can not be empty");
         Validate.notEmpty(group, "Consumer group can not be empty");
@@ -183,8 +181,8 @@ public class RocketMQSourceFunction<OUT> extends RichParallelSourceFunction<OUT>
                 new DefaultMQPullConsumer(
                         group,
                         RocketMQUtils.buildAclRPCHook(
-                                rocketMQConf.getAccessKey(), rocketMQConf.getSecretKey()));
-        RocketMQUtils.buildConsumer(rocketMQConf, consumer);
+                                rocketMQConfig.getAccessKey(), rocketMQConfig.getSecretKey()));
+        RocketMQUtils.buildConsumer(rocketMQConfig, consumer);
 
         // set unique instance name, avoid exception:
         // https://help.aliyun.com/document_detail/29646.html
@@ -202,14 +200,14 @@ public class RocketMQSourceFunction<OUT> extends RichParallelSourceFunction<OUT>
         log.info(
                 "[{}] open successfully, \n[{}]: \n{} ",
                 this.getClass().getSimpleName(),
-                rocketMQConf.getClass().getSimpleName(),
-                JsonUtil.toPrintJson(rocketMQConf));
+                rocketMQConfig.getClass().getSimpleName(),
+                JsonUtil.toPrintJson(rocketMQConfig));
     }
 
     @Override
     public void run(SourceContext context) throws Exception {
-        String tag = rocketMQConf.getTag();
-        int pullBatchSize = rocketMQConf.getFetchSize();
+        String tag = rocketMQConfig.getTag();
+        int pullBatchSize = rocketMQConfig.getFetchSize();
 
         final RuntimeContext ctx = getRuntimeContext();
         // The lock that guarantees that record emission and state updates are atomic,
@@ -219,10 +217,7 @@ public class RocketMQSourceFunction<OUT> extends RichParallelSourceFunction<OUT>
         log.info("Source run, NumberOfTotalTask={}, IndexOfThisSubTask={}", taskNumber, taskIndex);
 
         timer.scheduleAtFixedRate(
-                () -> {
-                    // context.emitWatermark(waterMarkPerQueue.getCurrentWatermark());
-                    context.emitWatermark(waterMarkForAll.getCurrentWatermark());
-                },
+                () -> context.emitWatermark(waterMarkForAll.getCurrentWatermark()),
                 5,
                 5,
                 TimeUnit.SECONDS);
@@ -348,7 +343,7 @@ public class RocketMQSourceFunction<OUT> extends RichParallelSourceFunction<OUT>
             // fetchConsumeOffset from broker
             offset = consumer.fetchConsumeOffset(mq, false);
             if (!restored || offset < 0) {
-                RocketMQConf.StartMode mode = rocketMQConf.getMode();
+                RocketMQConfig.StartMode mode = rocketMQConfig.getMode();
                 switch (mode) {
                     case EARLIEST:
                         offset = consumer.minOffset(mq);
@@ -360,14 +355,14 @@ public class RocketMQSourceFunction<OUT> extends RichParallelSourceFunction<OUT>
                         offset =
                                 consumer.searchOffset(
                                         mq,
-                                        rocketMQConf.getStartMessageTimeStamp() < 0
-                                                ? (rocketMQConf.getStartTimeMs() < 0
+                                        rocketMQConfig.getStartMessageTimeStamp() < 0
+                                                ? (rocketMQConfig.getStartTimeMs() < 0
                                                         ? System.currentTimeMillis()
-                                                        : rocketMQConf.getStartTimeMs())
-                                                : rocketMQConf.getStartMessageTimeStamp());
+                                                        : rocketMQConfig.getStartTimeMs())
+                                                : rocketMQConfig.getStartMessageTimeStamp());
                         break;
                     case OFFSET:
-                        offset = rocketMQConf.getStartMessageOffset();
+                        offset = rocketMQConfig.getStartMessageOffset();
                         break;
                     default:
                         throw new IllegalArgumentException(

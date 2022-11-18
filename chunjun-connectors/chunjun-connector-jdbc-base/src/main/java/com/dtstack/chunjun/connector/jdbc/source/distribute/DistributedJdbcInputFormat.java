@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.jdbc.source.distribute;
 
-import com.dtstack.chunjun.connector.jdbc.conf.DataSourceConf;
+import com.dtstack.chunjun.connector.jdbc.config.DataSourceConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -32,14 +32,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Date: 2022/01/12 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class DistributedJdbcInputFormat extends JdbcInputFormat {
 
-    protected List<DataSourceConf> sourceList;
+    protected List<DataSourceConfig> sourceList;
     protected DistributedJdbcInputSplit inputSplit;
     protected int sourceIndex = 0;
     protected boolean noDataSource = false;
@@ -57,14 +52,14 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) {
-        if (minNumSplits != jdbcConf.getParallelism()) {
+        if (minNumSplits != jdbcConfig.getParallelism()) {
             throw new ChunJunRuntimeException(
                     String.format(
-                            "numTaskVertices is [%s], but parallelism in jdbcConf is [%s]",
-                            minNumSplits, jdbcConf.getParallelism()));
+                            "numTaskVertices is [%s], but parallelism in jdbcConfig is [%s]",
+                            minNumSplits, jdbcConfig.getParallelism()));
         }
         DistributedJdbcInputSplit[] inputSplits = new DistributedJdbcInputSplit[minNumSplits];
-        List<List<DataSourceConf>> subList =
+        List<List<DataSourceConfig>> subList =
                 RangeSplitUtil.subListBySegment(sourceList, minNumSplits);
 
         for (int i = 0; i < subList.size(); i++) {
@@ -73,8 +68,8 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
                             i,
                             minNumSplits,
                             subList.get(i),
-                            jdbcConf.getSplitStrategy(),
-                            jdbcConf.isPolling());
+                            jdbcConfig.getSplitStrategy(),
+                            jdbcConfig.isPolling());
             inputSplits[i] = split;
         }
 
@@ -111,16 +106,16 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
     }
 
     protected void openNextSource() throws SQLException {
-        DataSourceConf currentSource = sourceList.get(sourceIndex);
+        DataSourceConfig currentSource = sourceList.get(sourceIndex);
         dbConn = getConnection();
         dbConn.setAutoCommit(false);
         statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
 
-        statement.setFetchSize(jdbcConf.getFetchSize());
-        statement.setQueryTimeout(jdbcConf.getQueryTimeOut());
+        statement.setFetchSize(jdbcConfig.getFetchSize());
+        statement.setQueryTimeout(jdbcConfig.getQueryTimeOut());
 
         String querySql = buildQuerySql(inputSplit);
-        jdbcConf.setQuerySql(querySql);
+        jdbcConfig.setQuerySql(querySql);
         resultSet = statement.executeQuery(querySql);
         hasNext = resultSet.next();
 
@@ -138,16 +133,16 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
 
     @Override
     protected Connection getConnection() throws SQLException {
-        DataSourceConf currentSource = sourceList.get(sourceIndex);
-        jdbcConf.setJdbcUrl(currentSource.getJdbcUrl());
-        jdbcConf.setUsername(currentSource.getUserName());
-        jdbcConf.setPassword(currentSource.getPassword());
-        jdbcConf.setTable(currentSource.getTable());
-        jdbcConf.setSchema(currentSource.getSchema());
-        return JdbcUtil.getConnection(jdbcConf, this.jdbcDialect);
+        DataSourceConfig currentSource = sourceList.get(sourceIndex);
+        jdbcConfig.setJdbcUrl(currentSource.getJdbcUrl());
+        jdbcConfig.setUsername(currentSource.getUserName());
+        jdbcConfig.setPassword(currentSource.getPassword());
+        jdbcConfig.setTable(currentSource.getTable());
+        jdbcConfig.setSchema(currentSource.getSchema());
+        return JdbcUtil.getConnection(jdbcConfig, this.jdbcDialect);
     }
 
-    public void setSourceList(List<DataSourceConf> sourceList) {
+    public void setSourceList(List<DataSourceConfig> sourceList) {
         this.sourceList = sourceList;
     }
 }

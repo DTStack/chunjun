@@ -18,13 +18,7 @@
 
 package com.dtstack.chunjun.enums;
 
-/**
- * Database type
- *
- * <p>Company: www.dtstack.com
- *
- * @author jiangbo
- */
+/** Database type */
 public enum EDatabaseType {
 
     /** database type */

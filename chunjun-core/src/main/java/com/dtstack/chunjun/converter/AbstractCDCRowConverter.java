@@ -37,11 +37,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Date: 2021/04/29 Company: www.dtstack.com
- *
- * @author tudou
- */
 public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializable {
     protected static final long serialVersionUID = 1L;
 
@@ -102,12 +97,12 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
     protected abstract IDeserializationConverter createInternalConverter(T type);
 
     protected IDeserializationConverter wrapIntoNullableInternalConverter(
-            IDeserializationConverter IDeserializationConverter) {
+            IDeserializationConverter converter) {
         return val -> {
             if (val == null) {
                 return null;
             } else {
-                return IDeserializationConverter.deserialize(val);
+                return converter.deserialize(val);
             }
         };
     }

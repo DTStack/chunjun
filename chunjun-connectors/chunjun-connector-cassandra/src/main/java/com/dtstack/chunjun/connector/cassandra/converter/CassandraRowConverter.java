@@ -44,10 +44,6 @@ import java.sql.Date;
 import java.sql.Time;
 import java.util.List;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraRowConverter
         extends AbstractRowConverter<Row, Row, BoundStatement, LogicalType> {
 

@@ -17,7 +17,7 @@
 
 package com.dtstack.chunjun.connector.rocketmq.utils;
 
-import com.dtstack.chunjun.connector.rocketmq.conf.RocketMQConf;
+import com.dtstack.chunjun.connector.rocketmq.config.RocketMQConfig;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -77,7 +77,7 @@ public final class RocketMQUtils {
         return null;
     }
 
-    public static void buildConsumer(RocketMQConf conf, DefaultMQPullConsumer consumer) {
+    public static void buildConsumer(RocketMQConfig conf, DefaultMQPullConsumer consumer) {
         Validate.notEmpty(conf.getNameserverAddress());
         consumer.setNamesrvAddr(conf.getNameserverAddress());
         consumer.setHeartbeatBrokerInterval(conf.getHeartbeatBrokerInterval());

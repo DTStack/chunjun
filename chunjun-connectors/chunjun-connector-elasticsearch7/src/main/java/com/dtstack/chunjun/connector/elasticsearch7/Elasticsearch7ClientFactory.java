@@ -48,39 +48,31 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.HOSTS_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.HOSTS_OPTION;
 
-/**
- * @description:
- * @program: ChunJun
- * @author: lany
- * @create: 2021/06/27 17:32
- */
 public class Elasticsearch7ClientFactory {
 
-    /**
-     * @param elasticsearchConf
-     * @return
-     */
     public static RestHighLevelClient createClient(
-            ElasticsearchConf elasticsearchConf, DistributedCache distributedCache) {
-        boolean useSsl = Objects.nonNull(elasticsearchConf.getSslConfig());
-        List<HttpHost> httpAddresses = getHosts(elasticsearchConf.getHosts(), useSsl);
+            ElasticsearchConfig elasticsearchConfig, DistributedCache distributedCache) {
+        boolean useSsl = Objects.nonNull(elasticsearchConfig.getSslConfig());
+        List<HttpHost> httpAddresses = getHosts(elasticsearchConfig.getHosts(), useSsl);
         RestClientBuilder restClientBuilder =
-                RestClient.builder(httpAddresses.toArray(new HttpHost[httpAddresses.size()]));
+                RestClient.builder(httpAddresses.toArray(new HttpHost[0]));
         restClientBuilder.setRequestConfigCallback(
                 requestConfigBuilder ->
                         requestConfigBuilder
-                                .setConnectTimeout(elasticsearchConf.getConnectTimeout())
-                                .setConnectionRequestTimeout(elasticsearchConf.getRequestTimeout())
-                                .setSocketTimeout(elasticsearchConf.getSocketTimeout()));
+                                .setConnectTimeout(elasticsearchConfig.getConnectTimeout())
+                                .setConnectionRequestTimeout(
+                                        elasticsearchConfig.getRequestTimeout())
+                                .setSocketTimeout(elasticsearchConfig.getSocketTimeout()));
         // 进行用户和密码认证
-        if (elasticsearchConf.getPassword() != null && elasticsearchConf.getUsername() != null) {
+        if (elasticsearchConfig.getPassword() != null
+                && elasticsearchConfig.getUsername() != null) {
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(
                     AuthScope.ANY,
                     new UsernamePasswordCredentials(
-                            elasticsearchConf.getUsername(), elasticsearchConf.getPassword()));
+                            elasticsearchConfig.getUsername(), elasticsearchConfig.getPassword()));
 
             restClientBuilder.setHttpClientConfigCallback(
                     httpAsyncClientBuilder -> {
@@ -89,12 +81,13 @@ public class Elasticsearch7ClientFactory {
                                         .setDefaultCredentialsProvider(credentialsProvider)
                                         .setKeepAliveStrategy(
                                                 (response, context) ->
-                                                        elasticsearchConf.getKeepAliveTime())
-                                        .setMaxConnPerRoute(elasticsearchConf.getMaxConnPerRoute());
+                                                        elasticsearchConfig.getKeepAliveTime())
+                                        .setMaxConnPerRoute(
+                                                elasticsearchConfig.getMaxConnPerRoute());
                         if (useSsl) {
                             httpAsyncClientBuilder1.setSSLContext(
                                     getSslContext(
-                                            elasticsearchConf.getSslConfig(), distributedCache));
+                                            elasticsearchConfig.getSslConfig(), distributedCache));
                             httpAsyncClientBuilder1.setSSLHostnameVerifier(
                                     NoopHostnameVerifier.INSTANCE);
                         }
@@ -106,8 +99,8 @@ public class Elasticsearch7ClientFactory {
                             httpAsyncClientBuilder
                                     .setKeepAliveStrategy(
                                             (response, context) ->
-                                                    elasticsearchConf.getKeepAliveTime())
-                                    .setMaxConnPerRoute(elasticsearchConf.getMaxConnPerRoute()));
+                                                    elasticsearchConfig.getKeepAliveTime())
+                                    .setMaxConnPerRoute(elasticsearchConfig.getMaxConnPerRoute()));
         }
         return new RestHighLevelClient(restClientBuilder);
     }
@@ -126,7 +119,7 @@ public class Elasticsearch7ClientFactory {
                             .collect(Collectors.toList());
         }
         return hosts.stream()
-                .map(host -> validateAndParseHostsString(host))
+                .map(Elasticsearch7ClientFactory::validateAndParseHostsString)
                 .collect(Collectors.toList());
     }
 
@@ -165,18 +158,19 @@ public class Elasticsearch7ClientFactory {
         }
     }
 
-    private static SSLContext getSslContext(SslConf sslConf, DistributedCache distributedCache) {
+    private static SSLContext getSslContext(
+            SslConfig sslConfig, DistributedCache distributedCache) {
         try {
-            String path = sslConf.getFileName();
-            if (StringUtils.isNotBlank(sslConf.getFilePath())) {
-                path = sslConf.getFilePath() + File.separator + sslConf.getFileName();
+            String path = sslConfig.getFileName();
+            if (StringUtils.isNotBlank(sslConfig.getFilePath())) {
+                path = sslConfig.getFilePath() + File.separator + sslConfig.getFileName();
             }
-            String file = SSLUtil.loadFile(MapUtil.objectToMap(sslConf), path, distributedCache);
+            String file = SSLUtil.loadFile(MapUtil.objectToMap(sslConfig), path, distributedCache);
             Path trustStorePath = Paths.get(file);
             // use the certificate to obtain KeyStore
             KeyStore trustStore =
                     SSLUtil.getKeyStoreByType(
-                            sslConf.getType(), trustStorePath, sslConf.getKeyStorePass());
+                            sslConfig.getType(), trustStorePath, sslConfig.getKeyStorePass());
 
             SSLContextBuilder sslBuilder =
                     SSLContexts.custom()

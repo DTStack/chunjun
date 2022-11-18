@@ -29,12 +29,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Company：www.dtstack.com
- *
- * @author shitou
- * @date 2021/5/19 13:57
- */
 public class SqlserverInputFormat extends JdbcInputFormat {
 
     @Override
@@ -42,9 +36,9 @@ public class SqlserverInputFormat extends JdbcInputFormat {
         if (hasNext) {
             return false;
         } else {
-            if (jdbcConf.isPolling()) {
+            if (jdbcConfig.isPolling()) {
                 try {
-                    TimeUnit.MILLISECONDS.sleep(jdbcConf.getPollingInterval());
+                    TimeUnit.MILLISECONDS.sleep(jdbcConfig.getPollingInterval());
                     // 间隔轮询检测数据库连接是否断开，超时时间三秒，断开后自动重连
                     if (!isValid(dbConn, 3)) {
                         dbConn = getConnection();
@@ -53,8 +47,8 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                             String message =
                                     String.format(
                                             "cannot connect to %s, username = %s, please check %s is available.",
-                                            jdbcConf.getJdbcUrl(),
-                                            jdbcConf.getUsername(),
+                                            jdbcConfig.getJdbcUrl(),
+                                            jdbcConfig.getUsername(),
                                             jdbcDialect.dialectName());
                             throw new ChunJunRuntimeException(message);
                         }
@@ -67,13 +61,13 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                     queryForPolling(incrementKeyUtil.transToLocationValue(state).toString());
                     return false;
                 } catch (InterruptedException e) {
-                    LOG.warn("interrupted while waiting for polling, e = {}", e);
+                    LOG.warn("interrupted while waiting for polling", e);
                 } catch (SQLException e) {
                     JdbcUtil.closeDbResources(resultSet, ps, null, false);
                     String message =
                             String.format(
                                     "error to execute sql = %s, startLocation = %s, e = %s",
-                                    jdbcConf.getQuerySql(),
+                                    jdbcConfig.getQuerySql(),
                                     state,
                                     ExceptionUtil.getErrorMessage(e));
                     throw new ChunJunRuntimeException(message, e);

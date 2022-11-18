@@ -23,11 +23,6 @@ import org.apache.flink.api.common.accumulators.LongCounter;
 import java.io.Serializable;
 import java.util.Map;
 
-/**
- * @author jiangbo
- * @explanation
- * @date 2019/2/28
- */
 public class FormatState implements Serializable {
 
     private static final long serialVersionUID = 1L;

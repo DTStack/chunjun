@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.http.outputformat;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.http.common.HttpUtil;
 import com.dtstack.chunjun.connector.http.common.HttpWriterConfig;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -169,7 +169,7 @@ public class HttpOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    private Map<String, Object> getMapDataFromRow(RowData row, List<FieldConf> columns)
+    private Map<String, Object> getMapDataFromRow(RowData row, List<FieldConfig> columns)
             throws WriteRecordException {
         RowData rowData;
         try {
@@ -182,12 +182,13 @@ public class HttpOutputFormat extends BaseRichOutputFormat {
         if (!columns.isEmpty()) {
             // if column is not empty ,row one to one column
             for (; index < columns.size(); index++) {
-                FieldConf fieldConf = columns.get(index);
+                FieldConfig fieldConfig = columns.get(index);
                 if (row instanceof GenericRowData) {
-                    columnData.put(fieldConf.getName(), ((GenericRowData) rowData).getField(index));
+                    columnData.put(
+                            fieldConfig.getName(), ((GenericRowData) rowData).getField(index));
                 } else {
                     columnData.put(
-                            fieldConf.getName(),
+                            fieldConfig.getName(),
                             ((ColumnRowData) rowData).getField(index).getData());
                 }
             }

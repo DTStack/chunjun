@@ -21,13 +21,6 @@ package com.dtstack.chunjun.util;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A DFA split string to SQL statements.
- *
- * @author Ada Wong
- * @program chunjun
- * @create 2021/05/31
- */
 public class Splitter {
 
     private static final char SINGLE_QUOTE = '\'';

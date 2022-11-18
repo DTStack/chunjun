@@ -21,7 +21,6 @@ package com.dtstack.chunjun.connector.rocketmq.table;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/** @author shitou @date 2022/5/17 * */
 public class RocketMQOptions {
 
     // common

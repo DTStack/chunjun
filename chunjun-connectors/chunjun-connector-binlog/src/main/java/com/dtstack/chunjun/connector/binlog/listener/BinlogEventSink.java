@@ -56,7 +56,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/** @author toutian */
 public class BinlogEventSink extends AbstractCanalLifeCycle
         implements com.alibaba.otter.canal.sink.CanalEventSink<List<CanalEntry.Entry>> {
 

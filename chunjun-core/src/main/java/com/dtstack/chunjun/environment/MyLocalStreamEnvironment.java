@@ -51,8 +51,6 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  *
  * <p>When this environment is instantiated, it uses a default parallelism of {@code 1}. The default
  * parallelism can be set via {@link #setParallelism(int)}.
- *
- * @author jiangbo
  */
 @Public
 public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {

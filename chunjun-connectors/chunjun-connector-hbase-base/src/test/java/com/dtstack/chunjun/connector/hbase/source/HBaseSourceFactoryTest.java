@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hbase.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hbase.util.HBaseTestUtil;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
@@ -54,8 +54,8 @@ public class HBaseSourceFactoryTest {
 
     @Test
     public void testSourceFactoryForSyncWithTransform() throws IOException {
-        SyncConf conf =
-                SyncConf.parseJob(HBaseTestUtil.readFile("hbase_stream_with_transform.json"));
+        SyncConfig conf =
+                SyncConfig.parseJob(HBaseTestUtil.readFile("hbase_stream_with_transform.json"));
         HBaseSourceFactoryBase factory = new TestSourceFactory(conf, env);
 
         RawTypeConverter converter = factory.getRawTypeConverter();
@@ -69,7 +69,7 @@ public class HBaseSourceFactoryTest {
 
     @Test
     public void testSourceFactoryForSync() throws IOException {
-        SyncConf conf = SyncConf.parseJob(HBaseTestUtil.readFile("hbase_stream.json"));
+        SyncConfig conf = SyncConfig.parseJob(HBaseTestUtil.readFile("hbase_stream.json"));
         HBaseSourceFactoryBase factory = new TestSourceFactory(conf, env);
 
         RawTypeConverter converter = factory.getRawTypeConverter();
@@ -83,8 +83,8 @@ public class HBaseSourceFactoryTest {
 
     public static final class TestSourceFactory extends HBaseSourceFactoryBase {
 
-        public TestSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-            super(syncConf, env);
+        public TestSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+            super(syncConfig, env);
         }
     }
 }

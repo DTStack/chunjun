@@ -25,17 +25,11 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
 public class MongodbRawTypeConverter {
 
     /**
-     * Inspired by MongoDB doc. https://docs.mongodb.com/manual/reference/bson-types/
-     *
-     * @param type
+     * Inspired by MongoDB doc. <a
+     * href="https://docs.mongodb.com/manual/reference/bson-types/">Inspired by MongoDB doc</a>
      */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {

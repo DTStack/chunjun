@@ -29,7 +29,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-/** @author liuliu 2022/6/22 */
 public class TimestampTypeUtil extends KeyUtil<Timestamp, BigInteger> {
 
     @Override

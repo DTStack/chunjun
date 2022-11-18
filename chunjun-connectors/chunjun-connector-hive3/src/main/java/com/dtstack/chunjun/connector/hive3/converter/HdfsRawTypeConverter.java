@@ -27,7 +27,6 @@ import org.apache.flink.table.types.logical.BinaryType;
 
 import java.util.Locale;
 
-/** @author liuliu 2022/3/22 */
 public class HdfsRawTypeConverter {
     public static DataType apply(String type) throws UnsupportedTypeException {
         type = type.toUpperCase(Locale.ENGLISH);

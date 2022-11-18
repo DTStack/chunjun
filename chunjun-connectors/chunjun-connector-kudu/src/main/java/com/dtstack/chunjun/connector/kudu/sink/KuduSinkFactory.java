@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.kudu.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduSinkConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.kudu.config.KuduSinkConfig;
 import com.dtstack.chunjun.connector.kudu.converter.KuduColumnConverter;
 import com.dtstack.chunjun.connector.kudu.converter.KuduRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -36,23 +36,20 @@ import org.apache.flink.table.types.logical.RowType;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class KuduSinkFactory extends SinkFactory {
 
-    private final KuduSinkConf sinkConf;
+    private final KuduSinkConfig sinkConfig;
 
-    public KuduSinkFactory(SyncConf syncConf) {
-        super(syncConf);
+    public KuduSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
 
-        sinkConf =
+        sinkConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getWriter().getParameter()), KuduSinkConf.class);
-        sinkConf.setColumn(syncConf.getWriter().getFieldList());
-        sinkConf.setKerberos(sinkConf.conventHadoopConfig());
-        super.initCommonConf(sinkConf);
+                        JsonUtil.toJson(syncConfig.getWriter().getParameter()),
+                        KuduSinkConfig.class);
+        sinkConfig.setColumn(syncConfig.getWriter().getFieldList());
+        sinkConfig.setKerberos(sinkConfig.conventHadoopConfig());
+        super.initCommonConf(sinkConfig);
     }
 
     @Override
@@ -65,8 +62,8 @@ public class KuduSinkFactory extends SinkFactory {
         KuduOutputFormatBuilder builder = new KuduOutputFormatBuilder();
         List<String> columnNames = new ArrayList<>();
 
-        builder.setSinkConf(sinkConf);
-        List<FieldConf> fieldConfList = sinkConf.getColumn();
+        builder.setSinkConfig(sinkConfig);
+        List<FieldConfig> fieldConfList = sinkConfig.getColumn();
         fieldConfList.forEach(field -> columnNames.add(field.getName()));
 
         final RowType rowType = TableUtil.createRowType(fieldConfList, getRawTypeConverter());

@@ -27,7 +27,6 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 
-/** @author liuliu 2022/1/12 */
 public class SqlDateColumn extends AbstractBaseColumn {
     public SqlDateColumn(Date data) {
         super(data, 8);

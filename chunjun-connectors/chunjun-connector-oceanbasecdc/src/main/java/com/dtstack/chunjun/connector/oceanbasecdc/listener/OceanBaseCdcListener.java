@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oceanbasecdc.listener;
 
-import com.dtstack.chunjun.connector.oceanbasecdc.conf.OceanBaseCdcConf;
+import com.dtstack.chunjun.connector.oceanbasecdc.config.OceanBaseCdcConfig;
 import com.dtstack.chunjun.connector.oceanbasecdc.entity.OceanBaseCdcEventRow;
 import com.dtstack.chunjun.connector.oceanbasecdc.inputformat.OceanBaseCdcInputFormat;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -48,7 +48,7 @@ public class OceanBaseCdcListener implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(OceanBaseCdcListener.class);
 
     private final OceanBaseCdcInputFormat format;
-    private final OceanBaseCdcConf cdcConf;
+    private final OceanBaseCdcConfig cdcConf;
     private final AbstractCDCRowConverter rowConverter;
     private final List<DataMessage.Record.Type> categories;
 

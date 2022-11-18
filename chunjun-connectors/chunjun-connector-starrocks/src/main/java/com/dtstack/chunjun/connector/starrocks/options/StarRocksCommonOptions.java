@@ -23,7 +23,6 @@ import org.apache.flink.configuration.ConfigOptions;
 
 import java.util.List;
 
-/** @author liuliu 2022/7/12 */
 public class StarRocksCommonOptions {
     public static final ConfigOption<List<String>> FENODES =
             ConfigOptions.key("fe-nodes")

@@ -18,14 +18,14 @@
 
 package com.dtstack.chunjun.connector.starrocks.source;
 
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.source.be.StarRocksQueryPlanVisitor;
 import com.dtstack.chunjun.connector.starrocks.source.be.StarRocksSourceBeReader;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryBeXTablets;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryInfo;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.flink.table.data.GenericRowData;
@@ -46,12 +46,11 @@ import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.starrocks.util.StarRocksUtil.splitQueryBeXTablets;
 
-/** @author liuliu 2022/7/19 */
 public class StarRocksAllTableFunction extends AbstractAllTableFunction {
 
     private static final Logger LOG = LoggerFactory.getLogger(StarRocksAllTableFunction.class);
 
-    private final StarRocksConf starRocksConf;
+    private final StarRocksConfig starRocksConfig;
 
     private final int[] keyIndexes;
 
@@ -60,13 +59,13 @@ public class StarRocksAllTableFunction extends AbstractAllTableFunction {
     private StarRocksQueryPlanVisitor queryPlanVisitor;
 
     public StarRocksAllTableFunction(
-            StarRocksConf starRocksConf,
-            LookupConf lookupConf,
+            StarRocksConfig starRocksConfig,
+            LookupConfig lookupConfig,
             int[] keyIndexes,
             AbstractRowConverter rowConverter) {
-        super(starRocksConf.getFieldNames(), null, lookupConf, rowConverter);
+        super(starRocksConfig.getFieldNames(), null, lookupConfig, rowConverter);
         this.keyIndexes = keyIndexes;
-        this.starRocksConf = starRocksConf;
+        this.starRocksConfig = starRocksConfig;
         this.querySql = buildQueryStatement();
     }
 
@@ -99,7 +98,7 @@ public class StarRocksAllTableFunction extends AbstractAllTableFunction {
 
         cacheRef.set(newCache);
         LOG.info(
-                "----- " + lookupConf.getTableName() + ": all cacheRef reload end:{}",
+                "----- " + lookupConfig.getTableName() + ": all cacheRef reload end:{}",
                 LocalDateTime.now());
     }
 
@@ -114,7 +113,7 @@ public class StarRocksAllTableFunction extends AbstractAllTableFunction {
                             queryBeXTablets -> {
                                 StarRocksSourceBeReader beReader =
                                         new StarRocksSourceBeReader(
-                                                queryBeXTablets.getBeNode(), starRocksConf);
+                                                queryBeXTablets.getBeNode(), starRocksConfig);
                                 beReader.openScanner(
                                         queryBeXTablets.getTabletIds(),
                                         queryInfo.getQueryPlan().getOpaqued_query_plan());
@@ -150,7 +149,7 @@ public class StarRocksAllTableFunction extends AbstractAllTableFunction {
 
     @Override
     public void open(FunctionContext context) throws Exception {
-        queryPlanVisitor = new StarRocksQueryPlanVisitor(starRocksConf);
+        queryPlanVisitor = new StarRocksQueryPlanVisitor(starRocksConfig);
         super.open(context);
     }
 
@@ -159,8 +158,8 @@ public class StarRocksAllTableFunction extends AbstractAllTableFunction {
         return String.format(
                 QUERY_SQL_TEMPLATE,
                 String.join(",", fieldsName),
-                starRocksConf.getDatabase(),
-                starRocksConf.getTable());
+                starRocksConfig.getDatabase(),
+                starRocksConfig.getTable());
     }
 
     @Override

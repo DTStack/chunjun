@@ -19,12 +19,6 @@
 
 package com.dtstack.chunjun.connector.influxdb.constants;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/3/9
- */
 public class InfluxdbCons {
 
     public static final String KEY_URL = "url";

@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.mongodb.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -44,11 +44,6 @@ import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
 public class MongodbColumnConverter
         extends AbstractRowConverter<Document, Document, Document, LogicalType> {
 
@@ -56,8 +51,8 @@ public class MongodbColumnConverter
     private final List<MongoSerializationConverter> toExternalConverters;
     private final String[] fieldNames;
 
-    public MongodbColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
-        super(rowType, commonConf);
+    public MongodbColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
         this.fieldNames = rowType.getFieldNames().toArray(new String[0]);
         toInternalConverters = new ArrayList<>();
         toExternalConverters = new ArrayList<>();
@@ -97,19 +92,19 @@ public class MongodbColumnConverter
 
     @Override
     public RowData toInternal(Document document) {
-        List<FieldConf> fieldList = commonConf.getColumn();
+        List<FieldConfig> fieldList = commonConfig.getColumn();
         ColumnRowData result = new ColumnRowData(fieldList.size());
         int convertIndex = 0;
-        for (FieldConf fieldConf : fieldList) {
+        for (FieldConfig fieldConfig : fieldList) {
             AbstractBaseColumn baseColumn = null;
-            if (StringUtils.isNullOrWhitespaceOnly(fieldConf.getValue())) {
-                Object field = document.get(fieldConf.getName());
+            if (StringUtils.isNullOrWhitespaceOnly(fieldConfig.getValue())) {
+                Object field = document.get(fieldConfig.getName());
                 baseColumn =
                         (AbstractBaseColumn)
                                 toInternalConverters.get(convertIndex).deserialize(field);
                 convertIndex++;
             }
-            result.addField(assembleFieldProps(fieldConf, baseColumn));
+            result.addField(assembleFieldProps(fieldConfig, baseColumn));
         }
         return result;
     }

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.doris.sink;
 
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.doris.rest.Carrier;
 import com.dtstack.chunjun.connector.doris.rest.DorisLoadClient;
 import com.dtstack.chunjun.connector.doris.rest.DorisStreamLoad;
@@ -36,14 +36,14 @@ import java.util.Set;
 
 /** use DorisStreamLoad to write data into doris */
 public class DorisHttpOutputFormat extends BaseRichOutputFormat {
-    private DorisConf options;
+    private DorisConfig options;
     private DorisLoadClient client;
     /** cache carriers * */
     private final Map<String, Carrier> carrierMap = new HashMap<>();
 
     private List<String> columns;
 
-    public void setOptions(DorisConf options) {
+    public void setOptions(DorisConfig options) {
         this.options = options;
     }
 

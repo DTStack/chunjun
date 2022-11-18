@@ -33,10 +33,6 @@ import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-/**
- * @author jiangbo
- * @date 2018/7/10 14:08
- */
 public class UrlUtil {
 
     private static int MAX_RETRY_TIMES = 3;

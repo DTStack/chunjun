@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.emqx.source;
 
-import com.dtstack.chunjun.connector.emqx.conf.EmqxConf;
+import com.dtstack.chunjun.connector.emqx.config.EmqxConfig;
 import com.dtstack.chunjun.connector.emqx.util.MqttConnectUtil;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
@@ -43,17 +43,12 @@ import java.util.concurrent.SynchronousQueue;
 
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.CLIENT_ID_READER;
 
-/**
- * @author chuixue
- * @create 2021-06-01 20:09
- * @description
- */
 public class EmqxInputFormat extends BaseRichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(EmqxInputFormat.class);
 
     /** emqx Conf */
-    private EmqxConf emqxConf;
+    private EmqxConfig emqxConfig;
     /** emqx client */
     private transient MqttClient client;
     /** Encapsulate the data in emq */
@@ -76,7 +71,7 @@ public class EmqxInputFormat extends BaseRichInputFormat {
             queue = new SynchronousQueue<>(false);
             client =
                     MqttConnectUtil.getMqttClient(
-                            emqxConf,
+                            emqxConfig,
                             CLIENT_ID_READER.defaultValue()
                                     + LocalTime.now().toSecondOfDay()
                                     + jobId);
@@ -96,7 +91,7 @@ public class EmqxInputFormat extends BaseRichInputFormat {
                             }
 
                             try {
-                                client = MqttConnectUtil.getMqttClient(emqxConf, jobId);
+                                client = MqttConnectUtil.getMqttClient(emqxConfig, jobId);
                             } catch (Exception e) {
                                 LOG.error(
                                         e.getMessage()
@@ -125,7 +120,7 @@ public class EmqxInputFormat extends BaseRichInputFormat {
                             }
                         }
                     });
-            client.subscribe(emqxConf.getTopic(), emqxConf.getQos());
+            client.subscribe(emqxConfig.getTopic(), emqxConfig.getQos());
         } catch (MqttException e) {
             throw new RuntimeException(e);
         }
@@ -151,11 +146,11 @@ public class EmqxInputFormat extends BaseRichInputFormat {
         return false;
     }
 
-    public void setEmqxConf(EmqxConf emqxConf) {
-        this.emqxConf = emqxConf;
+    public void setEmqxConf(EmqxConfig emqxConfig) {
+        this.emqxConfig = emqxConfig;
     }
 
-    public EmqxConf getEmqxConf() {
-        return emqxConf;
+    public EmqxConfig getEmqxConf() {
+        return emqxConfig;
     }
 }

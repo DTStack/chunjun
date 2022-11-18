@@ -30,12 +30,11 @@ import com.dtstack.chunjun.options.OptionParser;
 import com.dtstack.chunjun.options.Options;
 import com.dtstack.chunjun.util.ExecuteProcessHelper;
 
-import org.apache.commons.lang3.StringUtils;
-
 import org.apache.flink.client.deployment.ClusterDeploymentException;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.ConfigConstants;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +85,7 @@ public class Launcher {
         ClassLoaderManager.loadExtraJar(jarUrlList, urlClassLoader);
         try (ClusterClient<?> client = clusterClientHelper.submit(jobDeployer)) {
             // do nothing.
-            LOG.info(client.getClusterId()  + " submit successfully.");
+            LOG.info(client.getClusterId() + " submit successfully.");
         }
     }
 
@@ -101,11 +100,13 @@ public class Launcher {
             case yarnPerJob:
                 return new YarnPerJobClusterClientHelper();
             case yarnApplication:
-                throw new DeploymentException("Application Mode not supported by Yarn deployments.");
+                throw new DeploymentException(
+                        "Application Mode not supported by Yarn deployments.");
             case kubernetesSession:
                 return new KubernetesSessionClusterClientHelper();
             case kubernetesPerJob:
-                throw new DeploymentException("Per-Job Mode not supported by Kubernetes deployments.");
+                throw new DeploymentException(
+                        "Per-Job Mode not supported by Kubernetes deployments.");
             case kubernetesApplication:
                 return new KubernetesApplicationClusterClientHelper();
             default:

@@ -19,11 +19,6 @@ package com.dtstack.chunjun.connector.hdfs.enums;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * Date: 2021/06/09 Company: www.dtstack.com
- *
- * @author tudou
- */
 public enum CompressType {
     /** text file */
     TEXT_GZIP("GZIP", "text", ".gz", 0.331F),

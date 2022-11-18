@@ -24,10 +24,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author jiangbo
- * @date 2019/7/24
- */
 public class FunctionParser {
 
     private static final String COL_REGEX = "\\$\\([^\\(\\)]+?\\)";

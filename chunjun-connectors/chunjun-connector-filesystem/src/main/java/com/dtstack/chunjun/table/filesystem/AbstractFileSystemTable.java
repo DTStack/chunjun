@@ -30,9 +30,6 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 
 import java.util.List;
 
-import static org.apache.flink.table.filesystem.FileSystemOptions.PARTITION_DEFAULT_NAME;
-import static org.apache.flink.table.filesystem.FileSystemOptions.PATH;
-
 /** Abstract File system table for providing some common methods. */
 abstract class AbstractFileSystemTable {
 

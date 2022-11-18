@@ -27,11 +27,6 @@ import org.apache.flink.table.types.DataType;
 import java.sql.SQLException;
 import java.util.Locale;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/10
- */
 public class ClickhouseRawTypeConverter {
 
     /**

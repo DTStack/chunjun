@@ -18,7 +18,7 @@
 package com.dtstack.chunjun.connector.hbase.table;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseRowConverter;
 import com.dtstack.chunjun.connector.hbase.source.HBaseInputFormatBuilder;
 import com.dtstack.chunjun.connector.hbase.table.lookup.HBaseAllTableFunction;
@@ -27,44 +27,39 @@ import com.dtstack.chunjun.connector.hbase.util.ScanBuilder;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 
-/**
- * Date: 2021/06/17 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HBaseDynamicTableSource extends BaseHBaseDynamicTableSource {
 
-    private final HBaseConf hBaseConf;
+    private final HBaseConfig hBaseConfig;
     private final TableSchema tableSchema;
-    private final LookupConf lookupConf;
+    private final LookupConfig lookupConfig;
     private final HBaseTableSchema hbaseSchema;
     protected final String nullStringLiteral;
 
     public HBaseDynamicTableSource(
-            HBaseConf conf,
+            HBaseConfig conf,
             TableSchema tableSchema,
-            LookupConf lookupConf,
+            LookupConfig lookupConfig,
             HBaseTableSchema hbaseSchema,
             String nullStringLiteral) {
-        super(tableSchema, hbaseSchema, conf, lookupConf);
-        this.hBaseConf = conf;
+        super(tableSchema, hbaseSchema, conf, lookupConfig);
+        this.hBaseConfig = conf;
         this.tableSchema = tableSchema;
-        this.lookupConf = lookupConf;
+        this.lookupConfig = lookupConfig;
         this.hbaseSchema = hbaseSchema;
-        this.hbaseSchema.setTableName(hBaseConf.getTable());
+        this.hbaseSchema.setTableName(hBaseConfig.getTable());
         this.nullStringLiteral = nullStringLiteral;
     }
 
     @Override
     public DynamicTableSource copy() {
         return new HBaseDynamicTableSource(
-                this.hBaseConf, tableSchema, lookupConf, hbaseSchema, nullStringLiteral);
+                this.hBaseConfig, tableSchema, lookupConfig, hbaseSchema, nullStringLiteral);
     }
 
     @Override
@@ -76,10 +71,10 @@ public class HBaseDynamicTableSource extends BaseHBaseDynamicTableSource {
     protected BaseRichInputFormatBuilder<?> getBaseRichInputFormatBuilder() {
         ScanBuilder scanBuilder = ScanBuilder.forSql(hbaseSchema);
         HBaseInputFormatBuilder builder =
-                HBaseInputFormatBuilder.newBuild(hBaseConf.getTable(), scanBuilder);
-        builder.setColumnMetaInfos(hBaseConf.getColumnMetaInfos());
-        builder.setConfig(hBaseConf);
-        builder.setHbaseConfig(hBaseConf.getHbaseConfig());
+                HBaseInputFormatBuilder.newBuild(hBaseConfig.getTable(), scanBuilder);
+        builder.setColumnMetaInfos(hBaseConfig.getColumnMetaInfos());
+        builder.setConfig(hBaseConfig);
+        builder.setHbaseConfig(hBaseConfig.getHbaseConfig());
         // 投影下推后, hbaseSchema 会被过滤无用的字段，而 tableSchema 不变, 后面根据 hbaseSchema 生成 hbase scan
         AbstractRowConverter rowConverter = new HBaseRowConverter(hbaseSchema, nullStringLiteral);
         builder.setRowConverter(rowConverter);
@@ -89,11 +84,11 @@ public class HBaseDynamicTableSource extends BaseHBaseDynamicTableSource {
     @Override
     protected AbstractLruTableFunction getAbstractLruTableFunction() {
         AbstractRowConverter rowConverter = new HBaseRowConverter(hbaseSchema, nullStringLiteral);
-        return new HBaseLruTableFunction(lookupConf, hbaseSchema, hBaseConf, rowConverter);
+        return new HBaseLruTableFunction(lookupConfig, hbaseSchema, hBaseConfig, rowConverter);
     }
 
     @Override
     protected AbstractAllTableFunction getAbstractAllTableFunction() {
-        return new HBaseAllTableFunction(lookupConf, hbaseSchema, hBaseConf);
+        return new HBaseAllTableFunction(lookupConfig, hbaseSchema, hBaseConfig);
     }
 }

@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.jdbc.sink;
 
-import com.dtstack.chunjun.conf.FieldConfig;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatementImpl;
@@ -43,11 +43,6 @@ import java.util.Set;
 /**
  * base on row data info to build preparedStatement. row data info include rowkind(which is to set
  * which sql kind to use )
- *
- * <p>Company: www.dtstack.com
- *
- * @author xuchao
- * @date 2021-12-20
  */
 public class DynamicPreparedStmt {
 
@@ -58,7 +53,7 @@ public class DynamicPreparedStmt {
     protected List<String> columnTypeList = new ArrayList<>();
 
     protected transient FieldNamedPreparedStatement fieldNamedPreparedStatement;
-    protected JdbcConfig jdbcConf;
+    protected JdbcConfig jdbcConfig;
     private boolean writeExtInfo;
     private JdbcDialect jdbcDialect;
     private AbstractRowConverter<?, ?, ?, ?> rowConverter;
@@ -168,7 +163,7 @@ public class DynamicPreparedStmt {
         RowType rowType =
                 TableUtil.createRowType(
                         columnNameList, columnTypeList, jdbcDialect.getRawTypeConverter());
-        rowConverter = jdbcDialect.getColumnConverter(rowType, jdbcConf);
+        rowConverter = jdbcDialect.getColumnConverter(rowType, jdbcConfig);
     }
 
     public void getColumnMeta(String schema, String table, Connection dbConn) {

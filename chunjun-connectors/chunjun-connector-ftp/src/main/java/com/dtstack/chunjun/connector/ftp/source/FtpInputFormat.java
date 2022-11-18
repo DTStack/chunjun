@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.ftp.client.Data;
 import com.dtstack.chunjun.connector.ftp.client.FileUtil;
 import com.dtstack.chunjun.connector.ftp.conf.ConfigConstants;
@@ -188,10 +188,10 @@ public class FtpInputFormat extends BaseRichInputFormat {
                 rowData = rowConverter.toInternal(String.join(",", fields));
             } else if (rowConverter instanceof FtpColumnConverter) {
 
-                List<FieldConf> columns = ftpConfig.getColumn();
+                List<FieldConfig> columns = ftpConfig.getColumn();
 
                 if (enableFilenameRow) {
-                    List<FieldConf> tmpColumns = ftpConfig.getColumn();
+                    List<FieldConfig> tmpColumns = ftpConfig.getColumn();
                     int tmpIndex = 0;
                     for (int i = 0; i < tmpColumns.size(); i++) {
                         if (tmpColumns.get(i).getName().equals(ConfigConstants.INTERNAL_FILENAME)) {
@@ -200,7 +200,7 @@ public class FtpInputFormat extends BaseRichInputFormat {
                         }
                     }
 
-                    FieldConf tmpColumn = columns.get(tmpIndex);
+                    FieldConfig tmpColumn = columns.get(tmpIndex);
                     tmpColumn.setValue(reader.getCurrentFileName());
                     columns.set(tmpIndex, tmpColumn);
                 }
@@ -218,21 +218,21 @@ public class FtpInputFormat extends BaseRichInputFormat {
                 } else {
                     genericRowData = new GenericRowData(columns.size());
                     for (int i = 0; i < CollectionUtils.size(columns); i++) {
-                        FieldConf fieldConf = columns.get(i);
+                        FieldConfig fieldConfig = columns.get(i);
 
                         Object value;
-                        if (fieldConf.getValue() != null) {
-                            value = fieldConf.getValue();
+                        if (fieldConfig.getValue() != null) {
+                            value = fieldConfig.getValue();
                         } else {
-                            if (fieldConf.getIndex() >= fields.length) {
+                            if (fieldConfig.getIndex() >= fields.length) {
                                 String errorMessage =
                                         String.format(
                                                 "The column index is greater than the data size."
                                                         + " The current column index is [%s], but the data size is [%s]. Data loss may occur.",
-                                                fieldConf.getIndex(), fields.length);
+                                                fieldConfig.getIndex(), fields.length);
                                 throw new IllegalArgumentException(errorMessage);
                             }
-                            value = fields[fieldConf.getIndex()];
+                            value = fields[fieldConfig.getIndex()];
                         }
                         if (null == value || "".equals(value)) {
                             value = ftpConfig.getNullIsReplacedWithValue();

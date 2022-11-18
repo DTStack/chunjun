@@ -18,28 +18,22 @@
 
 package com.dtstack.chunjun.connector.file.table;
 
-import com.dtstack.chunjun.conf.BaseFileConf;
+import com.dtstack.chunjun.config.BaseFileConfig;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.format.DecodingFormat;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.factories.DeserializationFormatFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/06/24
- */
 public class FileDynamicTableFactory implements DynamicTableSourceFactory {
 
     /** 通过该值查找具体插件 */
@@ -52,18 +46,17 @@ public class FileDynamicTableFactory implements DynamicTableSourceFactory {
                 FactoryUtil.createTableFactoryHelper(this, context);
         final ReadableConfig config = helper.getOptions();
 
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
         final DecodingFormat<DeserializationSchema<RowData>> decodingFormat =
                 getDecodingFormat(helper);
 
-        BaseFileConf fileConf = getFileConfByOptions(config);
-        return new FileDynamicTableSource(physicalSchema, fileConf, decodingFormat);
+        BaseFileConfig fileConf = getFileConfByOptions(config);
+        return new FileDynamicTableSource(resolvedSchema, fileConf, decodingFormat);
     }
 
-    private BaseFileConf getFileConfByOptions(ReadableConfig config) {
-        BaseFileConf fileConf = new BaseFileConf();
+    private BaseFileConfig getFileConfByOptions(ReadableConfig config) {
+        BaseFileConfig fileConf = new BaseFileConfig();
         fileConf.setPath(config.get(FileOptions.PATH));
         fileConf.setEncoding(config.get(FileOptions.ENCODING));
         fileConf.setFromLine(config.get(FileOptions.SCAN_LINE));

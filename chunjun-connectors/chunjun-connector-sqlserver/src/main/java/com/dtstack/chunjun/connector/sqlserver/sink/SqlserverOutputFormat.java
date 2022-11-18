@@ -26,12 +26,6 @@ import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-/**
- * Company：www.dtstack.com
- *
- * @author shitou
- * @date 2021/5/19 20:03
- */
 public class SqlserverOutputFormat extends JdbcOutputFormat {
 
     @Override
@@ -41,7 +35,7 @@ public class SqlserverOutputFormat extends JdbcOutputFormat {
         Statement statement = null;
         String sql =
                 ((SqlserverDialect) jdbcDialect)
-                        .getIdentityInsertOnSql(jdbcConf.getSchema(), jdbcConf.getTable());
+                        .getIdentityInsertOnSql(jdbcConfig.getSchema(), jdbcConfig.getTable());
         try {
             statement = dbConn.createStatement();
             statement.execute(sql);

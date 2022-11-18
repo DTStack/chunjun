@@ -25,7 +25,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-/** @author liuliu 2022/6/22 */
 public class OracleTimestampTypeUtil extends TimestampTypeUtil {
 
     @Override

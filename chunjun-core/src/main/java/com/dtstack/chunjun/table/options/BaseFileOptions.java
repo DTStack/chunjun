@@ -20,11 +20,6 @@ package com.dtstack.chunjun.table.options;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * Date: 2021/06/17 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class BaseFileOptions {
     public static final ConfigOption<String> PATH =
             ConfigOptions.key("path")

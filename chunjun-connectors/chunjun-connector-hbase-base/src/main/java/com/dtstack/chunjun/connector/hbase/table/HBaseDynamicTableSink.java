@@ -18,7 +18,7 @@
 package com.dtstack.chunjun.connector.hbase.table;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseRowConverter;
 import com.dtstack.chunjun.connector.hbase.sink.HBaseOutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
@@ -28,20 +28,15 @@ import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 
-/**
- * Date: 2021/06/21 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HBaseDynamicTableSink implements DynamicTableSink {
 
-    private final HBaseConf conf;
+    private final HBaseConfig conf;
     private final TableSchema tableSchema;
     private final HBaseTableSchema hbaseSchema;
     protected final String nullStringLiteral;
 
     public HBaseDynamicTableSink(
-            HBaseConf conf,
+            HBaseConfig conf,
             TableSchema tableSchema,
             HBaseTableSchema hbaseSchema,
             String nullStringLiteral) {

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hbase.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.util.ScanBuilder;
 
@@ -37,7 +37,7 @@ public class HBaseInputFormatTest {
 
     private final HBaseTableSchema tableSchema = new HBaseTableSchema();
 
-    private final List<FieldConf> confList = Lists.newArrayList();
+    private final List<FieldConfig> confList = Lists.newArrayList();
 
     private ScanBuilder forSql;
 
@@ -48,11 +48,11 @@ public class HBaseInputFormatTest {
         tableSchema.addColumn("stu", "id", DataTypes.INT());
         tableSchema.addColumn("msg", "address", DataTypes.STRING());
 
-        FieldConf id = new FieldConf();
+        FieldConfig id = new FieldConfig();
         id.setName("stu.id");
         id.setType("int");
 
-        FieldConf address = new FieldConf();
+        FieldConfig address = new FieldConfig();
         address.setName("msg.address");
         address.setType("string");
 

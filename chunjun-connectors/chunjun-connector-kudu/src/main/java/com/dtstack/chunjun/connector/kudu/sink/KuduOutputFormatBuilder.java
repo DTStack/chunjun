@@ -18,30 +18,26 @@
 
 package com.dtstack.chunjun.connector.kudu.sink;
 
-import com.dtstack.chunjun.connector.kudu.conf.KuduSinkConf;
+import com.dtstack.chunjun.connector.kudu.config.KuduSinkConfig;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 import com.dtstack.chunjun.throwable.NoRestartException;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class KuduOutputFormatBuilder extends BaseRichOutputFormatBuilder<KuduOutputFormat> {
 
     public KuduOutputFormatBuilder() {
         super(new KuduOutputFormat());
     }
 
-    public void setSinkConf(KuduSinkConf sinkConf) {
-        super.setConfig(sinkConf);
-        format.setKuduSinkConf(sinkConf);
+    public void setSinkConfig(KuduSinkConfig sinkConfig) {
+        super.setConfig(sinkConfig);
+        format.setKuduSinkConf(sinkConfig);
     }
 
     @Override
     protected void checkFormat() {
-        KuduSinkConf sinkConf = format.getKuduSinkConf();
+        KuduSinkConfig sinkConf = format.getKuduSinkConf();
         StringBuilder sb = new StringBuilder(256);
 
         if (StringUtils.isBlank(sinkConf.getMasters())) {

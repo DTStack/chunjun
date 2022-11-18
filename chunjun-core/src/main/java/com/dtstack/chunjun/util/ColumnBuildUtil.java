@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
@@ -28,11 +28,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author chuixue
- * @create 2021-07-05 14:54
- * @description
- */
 public class ColumnBuildUtil {
 
     /**

@@ -33,7 +33,6 @@ import org.apache.flink.core.memory.DataOutputView;
 import java.io.IOException;
 import java.util.Map;
 
-/** @author liuliu 2022/5/25 */
 public class MapColumnSerializer extends TypeSerializerSingleton<AbstractBaseColumn> {
 
     private static final long serialVersionUID = 1L;

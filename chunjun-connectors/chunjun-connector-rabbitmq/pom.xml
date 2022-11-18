@@ -34,6 +34,7 @@
 	<properties>
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
+		<connector.dir>rabbitmq</connector.dir>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -80,31 +81,6 @@
 
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<!-- here the phase you need -->
-						<phase>package</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/connector/rabbitmq/"
-									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-								<!--suppress UnresolvedMavenProperty -->
-								<move file="${basedir}/../../${dist.dir}/connector/rabbitmq/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/rabbitmq/${project.artifactId}.jar"/>
-								<delete>
-									<!--suppress UnresolvedMavenProperty -->
-									<fileset dir="${basedir}/../../${dist.dir}/connector/rabbitmq/"
-											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}.jar"/>
-								</delete>
-							</tasks>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>

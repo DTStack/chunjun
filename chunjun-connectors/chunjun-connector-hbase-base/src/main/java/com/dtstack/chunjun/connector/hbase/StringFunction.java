@@ -20,11 +20,6 @@ package com.dtstack.chunjun.connector.hbase;
 
 import java.io.Serializable;
 
-/**
- * @company: www.dtstack.com
- * @author: toutian
- * @create: 2019/7/23
- */
 public class StringFunction implements IFunction, Serializable {
 
     @Override

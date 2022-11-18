@@ -33,12 +33,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * QueuesChamberlain维护blockedQueues、unblockQueues,对外提供访问二者的方法.
- *
- * @author shitou
- * @date 2021/12/6
- */
+/** QueuesChamberlain维护blockedQueues、unblockQueues,对外提供访问二者的方法. */
 public class QueuesChamberlain implements Serializable {
 
     private static final long serialVersionUID = 2L;

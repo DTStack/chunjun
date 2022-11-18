@@ -23,7 +23,6 @@ import com.dtstack.chunjun.enums.SizeUnitType;
 import org.junit.Assert;
 import org.junit.Test;
 
-/** @company:www.dtstack.com @Author:shiFang @Date:2021-01-14 11:20 @Description: */
 public class UnitConvertTest {
 
     @Test

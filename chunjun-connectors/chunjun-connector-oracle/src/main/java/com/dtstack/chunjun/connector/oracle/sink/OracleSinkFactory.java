@@ -17,37 +17,33 @@
  */
 package com.dtstack.chunjun.connector.oracle.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.oracle.dialect.OracleDialect;
 
 import java.util.Properties;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class OracleSinkFactory extends JdbcSinkFactory {
 
-    public OracleSinkFactory(SyncConf syncConf) {
-        super(syncConf, new OracleDialect());
+    public OracleSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig, new OracleDialect());
     }
 
     @Override
-    protected void rebuildJdbcConf(JdbcConfig jdbcConf) {
-        super.rebuildJdbcConf(jdbcConf);
+    protected void rebuildJdbcConf(JdbcConfig jdbcConfig) {
+        super.rebuildJdbcConf(jdbcConfig);
 
         Properties properties = new Properties();
-        if (jdbcConf.getConnectTimeOut() != 0) {
+        if (jdbcConfig.getConnectTimeOut() != 0) {
             properties.put(
-                    "oracle.jdbc.ReadTimeout", String.valueOf(jdbcConf.getConnectTimeOut() * 1000));
+                    "oracle.jdbc.ReadTimeout",
+                    String.valueOf(jdbcConfig.getConnectTimeOut() * 1000));
             properties.put(
                     "oracle.net.CONNECT_TIMEOUT",
-                    String.valueOf((jdbcConf.getConnectTimeOut()) * 1000));
+                    String.valueOf((jdbcConfig.getConnectTimeOut()) * 1000));
         }
-        JdbcUtil.putExtParam(jdbcConf, properties);
+        JdbcUtil.putExtParam(jdbcConfig, properties);
     }
 }

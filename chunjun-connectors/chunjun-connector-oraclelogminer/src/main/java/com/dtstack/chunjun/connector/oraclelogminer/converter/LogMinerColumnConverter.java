@@ -61,11 +61,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-/**
- * Date: 2021/04/29 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, String> {
 
     // 存储表字段
@@ -78,7 +73,6 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public LinkedList<RowData> toInternal(EventRow eventRow) throws Exception {
         LinkedList<RowData> result = new LinkedList<>();
 
@@ -192,14 +186,6 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         }
     }
 
-    /**
-     * 将eventRowData 拆分 成多条数据并且附带RowKind
-     *
-     * @param columnRowData
-     * @param metadata
-     * @param result
-     * @throws Exception
-     */
     public void dealEventRowSplit(
             ColumnRowData columnRowData,
             TableMetaData metadata,
@@ -262,14 +248,6 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         result.add(copy);
     }
 
-    /**
-     * 填充column 元数据信息
-     *
-     * @param columnRowData
-     * @param eventRow
-     * @param schema
-     * @param table
-     */
     public void fillColumnMetaData(
             ColumnRowData columnRowData, EventRow eventRow, String schema, String table) {
         columnRowData.addField(new BigDecimalColumn(eventRow.getScn()));
@@ -295,14 +273,6 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         columnRowData.addExtHeader(CDCConstantValue.OP_TIME);
     }
 
-    /**
-     * @param converters converters
-     * @param fieldList fieldsOftTable
-     * @param entryColumnList analyzeData
-     * @param columnList columnList
-     * @param headerList headerList
-     * @param prefix after_/before_
-     */
     private void parseColumnList(
             List<IDeserializationConverter> converters,
             List<String> fieldList,
@@ -399,11 +369,6 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         }
     }
 
-    /**
-     * Column，获取字段名及值
-     *
-     * @return 字段名和值的map集合
-     */
     private Map<String, Object> processColumnList(List<EventRowData> eventRowDataList) {
         Map<String, Object> map = Maps.newLinkedHashMapWithExpectedSize(eventRowDataList.size());
         for (EventRowData data : eventRowDataList) {

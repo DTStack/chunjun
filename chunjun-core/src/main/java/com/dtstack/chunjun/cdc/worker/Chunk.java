@@ -23,12 +23,6 @@ import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
 
 import java.io.Serializable;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2021/12/13
- */
 public class Chunk implements Serializable {
 
     private static final long serialVersionUID = 2L;

@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.hive3.converter;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hive3.util.Hive3Util;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -49,24 +49,22 @@ import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.io.api.Binary;
 
-import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** @author liuliu 2022/3/23 */
 public class HdfsParquetColumnConverter
         extends AbstractRowConverter<RowData, RowData, Group, LogicalType> {
     private final List<String> columnNameList;
-    HdfsConf hdfsConf;
+    HdfsConfig hdfsConfig;
 
-    public HdfsParquetColumnConverter(RowType rowType, HdfsConf hdfsConf) {
-        super(rowType, hdfsConf);
-        this.hdfsConf = hdfsConf;
-        List<FieldConf> fieldConfList = hdfsConf.getColumn();
+    public HdfsParquetColumnConverter(RowType rowType, HdfsConfig hdfsConfig) {
+        super(rowType, hdfsConfig);
+        this.hdfsConfig = hdfsConfig;
+        List<FieldConfig> fieldConfList = hdfsConfig.getColumn();
         columnNameList =
-                fieldConfList.stream().map(FieldConf::getName).collect(Collectors.toList());
+                fieldConfList.stream().map(FieldConfig::getName).collect(Collectors.toList());
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
@@ -94,7 +92,7 @@ public class HdfsParquetColumnConverter
     public RowData toInternal(RowData input) throws Exception {
         ColumnRowData row = new ColumnRowData(input.getArity());
         if (input instanceof GenericRowData) {
-            List<FieldConf> fieldConfList = commonConf.getColumn();
+            List<FieldConfig> fieldConfList = commonConfig.getColumn();
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < fieldConfList.size(); i++) {
                 row.addField(
@@ -117,8 +115,8 @@ public class HdfsParquetColumnConverter
     @Override
     @SuppressWarnings("unchecked")
     public Group toExternal(RowData rowData, Group group) throws Exception {
-        for (int index = 0; index < hdfsConf.getFullColumnName().size(); index++) {
-            int columnIndex = hdfsConf.getFullColumnIndexes()[index];
+        for (int index = 0; index < hdfsConfig.getFullColumnName().size(); index++) {
+            int columnIndex = hdfsConfig.getFullColumnIndexes()[index];
             if (columnIndex == -1) {
                 continue;
             }
@@ -133,7 +131,6 @@ public class HdfsParquetColumnConverter
     }
 
     @Override
-    @SuppressWarnings("all")
     protected IDeserializationConverter createInternalConverter(LogicalType logicalType) {
         switch (logicalType.getTypeRoot()) {
             case BOOLEAN:
@@ -142,17 +139,11 @@ public class HdfsParquetColumnConverter
                 return (IDeserializationConverter<Byte, AbstractBaseColumn>) ByteColumn::new;
             case SMALLINT:
             case INTEGER:
-                return (IDeserializationConverter<Integer, AbstractBaseColumn>)
-                        BigDecimalColumn::new;
-            case BIGINT:
-                return (IDeserializationConverter<Long, AbstractBaseColumn>) BigDecimalColumn::new;
-            case FLOAT:
-                return (IDeserializationConverter<Float, AbstractBaseColumn>) BigDecimalColumn::new;
-            case DOUBLE:
-                return (IDeserializationConverter<Double, AbstractBaseColumn>)
-                        BigDecimalColumn::new;
             case DECIMAL:
-                return (IDeserializationConverter<BigDecimal, AbstractBaseColumn>)
+            case DOUBLE:
+            case FLOAT:
+            case BIGINT:
+                return (IDeserializationConverter<Integer, AbstractBaseColumn>)
                         BigDecimalColumn::new;
             case VARCHAR:
                 return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;

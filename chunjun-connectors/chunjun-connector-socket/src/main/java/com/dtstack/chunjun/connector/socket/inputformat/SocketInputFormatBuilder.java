@@ -26,11 +26,6 @@ import com.dtstack.chunjun.util.ValueUtil;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * 构建InputFormat
- *
- * @author by kunni@dtstack.com
- */
 public class SocketInputFormatBuilder extends BaseRichInputFormatBuilder<SocketInputFormat> {
 
     protected SocketInputFormat format;

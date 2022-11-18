@@ -21,12 +21,6 @@ package com.dtstack.chunjun.connector.elasticsearch7.table;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * @description: Elasticsearch version 7 only
- * @program chunjun
- * @author: lany
- * @create: 2021/06/29 19:10
- */
 public class Elasticsearch7Options {
 
     public static final ConfigOption<Integer> CLIENT_CONNECT_TIMEOUT_OPTION =

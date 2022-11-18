@@ -19,10 +19,10 @@
 package com.dtstack.chunjun.connector.mongodb.table.lookup;
 
 import com.dtstack.chunjun.connector.mongodb.MongoClientFactory;
-import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
+import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
 import com.dtstack.chunjun.connector.mongodb.converter.MongodbRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.types.logical.RowType;
@@ -31,50 +31,40 @@ import com.google.common.collect.Maps;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import org.bson.Document;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
 public class MongoAllTableFunction extends AbstractAllTableFunction {
 
     private final int fetchSize;
-    private final MongoClientConf mongoClientConf;
-    private transient MongoClient mongoClient;
-    private transient MongoCollection collection;
+    private final MongoClientConfig mongoClientConfig;
 
     public MongoAllTableFunction(
-            MongoClientConf mongoClientConf,
-            LookupConf lookupConf,
+            MongoClientConfig mongoClientConfig,
+            LookupConfig lookupConfig,
             RowType rowType,
             String[] keyNames,
             String[] fieldNames) {
-        super(fieldNames, keyNames, lookupConf, new MongodbRowConverter(rowType, fieldNames));
-        this.mongoClientConf = mongoClientConf;
-        this.fetchSize = lookupConf.getFetchSize();
+        super(fieldNames, keyNames, lookupConfig, new MongodbRowConverter(rowType, fieldNames));
+        this.mongoClientConfig = mongoClientConfig;
+        this.fetchSize = lookupConfig.getFetchSize();
     }
 
     @Override
     protected void loadData(Object cacheRef) {
-        mongoClient = MongoClientFactory.createClient(mongoClientConf);
-        collection =
+        MongoClient mongoClient = MongoClientFactory.createClient(mongoClientConfig);
+        MongoCollection<Document> collection =
                 MongoClientFactory.createCollection(
                         mongoClient,
-                        mongoClientConf.getDatabase(),
-                        mongoClientConf.getCollection());
+                        mongoClientConfig.getDatabase(),
+                        mongoClientConfig.getCollection());
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
 
         FindIterable<Document> findIterable = collection.find().limit(fetchSize);
-        MongoCursor<Document> mongoCursor = findIterable.iterator();
-        while (mongoCursor.hasNext()) {
-            Document doc = mongoCursor.next();
+        for (Document doc : findIterable) {
             Map<String, Object> row = Maps.newHashMap();
             GenericRowData rowData =
                     (GenericRowData) ((MongodbRowConverter) rowConverter).toInternal(doc);

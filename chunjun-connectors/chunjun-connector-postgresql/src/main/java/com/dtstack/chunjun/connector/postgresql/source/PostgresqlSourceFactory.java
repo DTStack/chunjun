@@ -18,22 +18,16 @@
 
 package com.dtstack.chunjun.connector.postgresql.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.chunjun.connector.postgresql.dialect.PostgresqlDialect;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-/**
- * Starting with Postgresql that is for compatible with 1.10 API.
- *
- * @program: Chunjun
- * @author: wuren
- * @create: 2021/04/28
- */
+/** Starting with Postgresql that is for compatible with 1.10 API. */
 public class PostgresqlSourceFactory extends JdbcSourceFactory {
 
-    public PostgresqlSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, new PostgresqlDialect());
+    public PostgresqlSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env, new PostgresqlDialect());
     }
 }

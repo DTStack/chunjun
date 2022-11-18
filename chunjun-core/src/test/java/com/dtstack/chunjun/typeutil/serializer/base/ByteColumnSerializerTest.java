@@ -30,7 +30,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.function.BiFunction;
 
-/** @author liuliu 2022/5/13 */
 public class ByteColumnSerializerTest extends SerializerTestBase<AbstractBaseColumn> {
 
     @Override

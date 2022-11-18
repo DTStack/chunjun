@@ -37,7 +37,6 @@ import static com.dtstack.chunjun.constants.CDCConstantValue.DATABASE;
 import static com.dtstack.chunjun.constants.CDCConstantValue.SCHEMA;
 import static com.dtstack.chunjun.constants.CDCConstantValue.TABLE;
 
-/** @author shitou */
 public interface Mapping<IN, OUT> {
 
     Set<String> META_HEADER =

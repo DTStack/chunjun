@@ -24,23 +24,15 @@ import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
-import java.sql.SQLException;
 import java.util.Locale;
 
-/** @author menghan */
 public class Vertica11RawTypeConverter {
 
     private static final Integer MAX_BINARY_LENGTH = 65000; // vertica binary max length
     private static final Integer MAX_VARBINARY_LENGTH = 65000; // vertica varbinary max length
     private static final Integer MAX_LONG_VARBINARY_LENGTH =
             32000000; // vertica long varbinary max length
-    /**
-     * Convert the type in the Vertica database to the DataType type of flink.
-     *
-     * @param type
-     * @return
-     * @throws SQLException
-     */
+
     public static DataType apply(String type) {
         type = type.toUpperCase(Locale.ENGLISH);
         switch (type) {

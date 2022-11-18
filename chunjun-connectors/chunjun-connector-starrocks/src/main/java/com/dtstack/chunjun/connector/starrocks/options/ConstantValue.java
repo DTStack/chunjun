@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.connector.starrocks.options;
 
-/** @author liuliu 2022/7/12 */
 public class ConstantValue {
 
     // sink

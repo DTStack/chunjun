@@ -29,13 +29,6 @@ import com.google.gson.GsonBuilder;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Row Utilities
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public class RowUtil {
     static Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 

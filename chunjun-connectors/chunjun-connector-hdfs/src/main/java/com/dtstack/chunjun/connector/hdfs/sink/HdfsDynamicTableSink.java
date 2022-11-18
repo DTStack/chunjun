@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.hdfs.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcRowConverter;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetRowConverter;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsTextRowConverter;
@@ -26,27 +26,24 @@ import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.table.catalog.Column;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
-import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Date: 2021/06/21 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsDynamicTableSink implements DynamicTableSink {
 
-    private final HdfsConf hdfsConf;
-    private final TableSchema tableSchema;
+    protected final ResolvedSchema tableSchema;
+    protected final HdfsConfig hdfsConfig;
 
-    public HdfsDynamicTableSink(HdfsConf hdfsConf, TableSchema tableSchema) {
-        this.hdfsConf = hdfsConf;
+    public HdfsDynamicTableSink(HdfsConfig hdfsConfig, ResolvedSchema tableSchema) {
+        this.hdfsConfig = hdfsConfig;
         this.tableSchema = tableSchema;
     }
 
@@ -58,38 +55,62 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
     @Override
     @SuppressWarnings("all")
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
-        final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
-        String[] fieldNames = tableSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        for (int i = 0; i < fieldNames.length; i++) {
-            FieldConf field = new FieldConf();
-            field.setName(fieldNames[i]);
-            field.setType(rowType.getTypeAt(i).asSummaryString());
-            field.setIndex(i);
-            columnList.add(field);
-        }
-        hdfsConf.setColumn(columnList);
-        HdfsOutputFormatBuilder builder = HdfsOutputFormatBuilder.newBuild(hdfsConf.getFileType());
-        builder.setHdfsConf(hdfsConf);
+        final TypeInformation<?> typeInformation =
+                InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType());
+        List<Column> columns = tableSchema.getColumns();
+        List<FieldConfig> columnList = new ArrayList<>(columns.size());
+
+        columns.forEach(
+                column -> {
+                    String name = column.getName();
+                    String type = column.getDataType().getLogicalType().asSummaryString();
+                    FieldConfig field = new FieldConfig();
+                    field.setName(name);
+                    field.setType(type);
+                    field.setIndex(columns.indexOf(column));
+                    columnList.add(field);
+                });
+        hdfsConfig.setColumn(columnList);
+        HdfsOutputFormatBuilder builder =
+                HdfsOutputFormatBuilder.newBuild(hdfsConfig.getFileType());
+        builder.setHdfsConf(hdfsConfig);
         AbstractRowConverter rowConverter;
-        switch (FileType.getByName(hdfsConf.getFileType())) {
+        switch (FileType.getByName(hdfsConfig.getFileType())) {
             case ORC:
-                rowConverter = new HdfsOrcRowConverter(rowType);
+                rowConverter =
+                        new HdfsOrcRowConverter(
+                                InternalTypeInfo.of(
+                                                tableSchema
+                                                        .toPhysicalRowDataType()
+                                                        .getLogicalType())
+                                        .toRowType());
                 break;
             case PARQUET:
-                rowConverter = new HdfsParquetRowConverter(rowType);
+                rowConverter =
+                        new HdfsParquetRowConverter(
+                                InternalTypeInfo.of(
+                                                tableSchema
+                                                        .toPhysicalRowDataType()
+                                                        .getLogicalType())
+                                        .toRowType());
                 break;
             default:
-                rowConverter = new HdfsTextRowConverter(rowType);
+                rowConverter =
+                        new HdfsTextRowConverter(
+                                (InternalTypeInfo.of(
+                                                tableSchema
+                                                        .toPhysicalRowDataType()
+                                                        .getLogicalType())
+                                        .toRowType()));
         }
         builder.setRowConverter(rowConverter);
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction(builder.finish()), hdfsConf.getParallelism());
+                new DtOutputFormatSinkFunction(builder.finish()), hdfsConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new HdfsDynamicTableSink(hdfsConf, tableSchema);
+        return new HdfsDynamicTableSink(hdfsConfig, tableSchema);
     }
 
     @Override

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.doris.rest.module;
 
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -39,7 +39,7 @@ public class PartitionDefinition implements Serializable, Comparable<PartitionDe
     public PartitionDefinition(
             String database,
             String table,
-            DorisConf settings,
+            DorisConfig settings,
             String beAddress,
             Set<Long> tabletIds,
             String queryPlan)

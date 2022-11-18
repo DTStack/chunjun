@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetColumnConverter;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetRowConverter;
 import com.dtstack.chunjun.connector.hdfs.enums.CompressType;
@@ -55,11 +55,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-/**
- * Date: 2021/06/20 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
 
     private static final ColumnTypeUtil.DecimalInfo PARQUET_DEFAULT_DECIMAL_INFO =
@@ -76,7 +71,9 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         GroupWriteSupport.setSchema(schema, conf);
         groupFactory = new SimpleGroupFactory(schema);
         List<String> columnNameList =
-                hdfsConf.getColumn().stream().map(FieldConf::getName).collect(Collectors.toList());
+                hdfsConfig.getColumn().stream()
+                        .map(FieldConfig::getName)
+                        .collect(Collectors.toList());
         if (rowConverter instanceof HdfsParquetColumnConverter) {
             ((HdfsParquetColumnConverter) rowConverter).setColumnNameList(columnNameList);
             ((HdfsParquetColumnConverter) rowConverter).setDecimalColInfo(decimalColInfo);
@@ -120,15 +117,15 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                             .withCompressionCodec(compressionCodecName)
                             .withConf(conf)
                             .withType(schema)
-                            .withDictionaryEncoding(hdfsConf.isEnableDictionary())
-                            .withRowGroupSize(hdfsConf.getRowGroupSize());
+                            .withDictionaryEncoding(hdfsConfig.isEnableDictionary())
+                            .withRowGroupSize(hdfsConfig.getRowGroupSize());
 
             // 开启kerberos 需要在ugi里进行build
-            if (FileSystemUtil.isOpenKerberos(hdfsConf.getHadoopConfig())) {
+            if (FileSystemUtil.isOpenKerberos(hdfsConfig.getHadoopConfig())) {
                 UserGroupInformation ugi =
                         FileSystemUtil.getUGI(
-                                hdfsConf.getHadoopConfig(),
-                                hdfsConf.getDefaultFS(),
+                                hdfsConfig.getHadoopConfig(),
+                                hdfsConfig.getDefaultFS(),
                                 getRuntimeContext().getDistributedCache());
                 ugi.doAs(
                         (PrivilegedAction<Object>)
@@ -212,7 +209,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public CompressType getCompressType() {
-        return CompressType.getByTypeAndFileType(hdfsConf.getCompress(), FileType.PARQUET.name());
+        return CompressType.getByTypeAndFileType(hdfsConfig.getCompress(), FileType.PARQUET.name());
     }
 
     @SuppressWarnings("all")

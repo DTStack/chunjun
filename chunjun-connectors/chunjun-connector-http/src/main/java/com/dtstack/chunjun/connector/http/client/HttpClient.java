@@ -41,11 +41,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/**
- * httpClient
- *
- * @author by shifang@dtstack.com @Date 2020/9/25
- */
 public class HttpClient {
     private static final Logger LOG = LoggerFactory.getLogger(HttpClient.class);
 

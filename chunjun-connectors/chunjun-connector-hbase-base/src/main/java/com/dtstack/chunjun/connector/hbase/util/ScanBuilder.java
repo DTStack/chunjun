@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hbase.util;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 
 import org.apache.flink.table.types.DataType;
@@ -36,7 +36,7 @@ public class ScanBuilder implements Serializable {
 
     private final boolean isSync;
     private final HBaseTableSchema hBaseTableSchema;
-    private final List<FieldConf> fieldConfList;
+    private final List<FieldConfig> fieldConfList;
 
     private ScanBuilder(HBaseTableSchema hBaseTableSchema) {
         this.isSync = false;
@@ -44,7 +44,7 @@ public class ScanBuilder implements Serializable {
         this.hBaseTableSchema = hBaseTableSchema;
     }
 
-    private ScanBuilder(List<FieldConf> fieldConfList) {
+    private ScanBuilder(List<FieldConfig> fieldConfList) {
         this.isSync = true;
         this.fieldConfList = fieldConfList;
         this.hBaseTableSchema = null;
@@ -54,7 +54,7 @@ public class ScanBuilder implements Serializable {
         return new ScanBuilder(hBaseTableSchema);
     }
 
-    public static ScanBuilder forSync(List<FieldConf> fieldConfList) {
+    public static ScanBuilder forSync(List<FieldConfig> fieldConfList) {
         return new ScanBuilder(fieldConfList);
     }
 
@@ -62,8 +62,8 @@ public class ScanBuilder implements Serializable {
         Scan scan = new Scan();
         if (isSync) {
             assert fieldConfList != null;
-            for (FieldConf fieldConf : fieldConfList) {
-                String fieldName = fieldConf.getName();
+            for (FieldConfig fieldConfig : fieldConfList) {
+                String fieldName = fieldConfig.getName();
                 if (!"rowkey".equalsIgnoreCase(fieldName)) {
                     if (fieldName.contains(".")) {
                         String[] fields = fieldName.split("\\.");

@@ -30,11 +30,6 @@ import com.google.gson.JsonSerializer;
 
 import java.lang.reflect.Type;
 
-/**
- * @author chuixue
- * @create 2021-06-17 17:15
- * @description
- */
 public class RedisDataModeAdapter
         implements JsonSerializer<RedisDataMode>, JsonDeserializer<RedisDataMode> {
 

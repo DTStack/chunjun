@@ -18,11 +18,11 @@
 
 package com.dtstack.chunjun.connector.jdbc.lookup;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.table.data.GenericRowData;
@@ -39,32 +39,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * A lookup function for {@link }.
- *
- * @author chuixue
- */
+/** A lookup function for jdbc. */
 @Internal
 public class JdbcAllTableFunction extends AbstractAllTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(JdbcAllTableFunction.class);
     protected final JdbcDialect jdbcDialect;
-    private final JdbcConfig jdbcConf;
+    private final JdbcConfig jdbcConfig;
     private final String query;
 
     public JdbcAllTableFunction(
-            JdbcConfig jdbcConf,
+            JdbcConfig jdbcConfig,
             JdbcDialect jdbcDialect,
-            LookupConf lookupConf,
+            LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
-        super(fieldNames, keyNames, lookupConf, jdbcDialect.getRowConverter(rowType));
-        this.jdbcConf = jdbcConf;
+        super(fieldNames, keyNames, lookupConfig, jdbcDialect.getRowConverter(rowType));
+        this.jdbcConfig = jdbcConfig;
         this.query =
                 jdbcDialect.getSelectFromStatement(
-                        jdbcConf.getSchema(), jdbcConf.getTable(), fieldNames, new String[] {});
+                        jdbcConfig.getSchema(), jdbcConfig.getTable(), fieldNames, new String[] {});
         this.jdbcDialect = jdbcDialect;
     }
 
@@ -75,7 +71,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
         Connection connection = null;
 
         try {
-            connection = JdbcUtil.getConnection(jdbcConf, jdbcDialect);
+            connection = JdbcUtil.getConnection(jdbcConfig, jdbcDialect);
             queryAndFillData(tmpCache, connection);
         } catch (Exception e) {
             LOG.error("", e);
@@ -103,7 +99,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
             throws SQLException {
         // load data from table
         Statement statement = connection.createStatement();
-        statement.setFetchSize(lookupConf.getFetchSize());
+        statement.setFetchSize(lookupConfig.getFetchSize());
         ResultSet resultSet = statement.executeQuery(query);
 
         while (resultSet.next()) {

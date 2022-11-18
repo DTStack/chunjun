@@ -18,10 +18,6 @@
 
 package com.dtstack.chunjun.cdc;
 
-/**
- * @author tiezhu@dtstack.com
- * @since 19/11/2021 Friday
- */
 public enum EventType {
     UNKNOWN,
 

@@ -29,7 +29,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/** @author liuliu 2022/6/23 */
 public class SqlserverTimestampTypeUtil extends KeyUtil<byte[], BigInteger> {
 
     @Override

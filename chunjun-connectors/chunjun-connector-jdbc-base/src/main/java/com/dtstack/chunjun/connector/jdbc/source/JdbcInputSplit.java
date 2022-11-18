@@ -20,11 +20,6 @@ package com.dtstack.chunjun.connector.jdbc.source;
 
 import org.apache.flink.core.io.GenericInputSplit;
 
-/**
- * @author jiangbo
- * @explanation
- * @date 2019/3/6
- */
 public class JdbcInputSplit extends GenericInputSplit {
 
     private int mod;

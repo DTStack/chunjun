@@ -24,11 +24,6 @@ import org.apache.flink.table.data.RowData;
 
 import java.util.Optional;
 
-/**
- * @program: luna-flink
- * @author: wuren
- * @create: 2021/04/02
- */
 public interface ParallelOutputFormatProvider extends OutputFormatProvider {
 
     /** Helper method for creating a OutputFormat provider with a provided sink parallelism. */

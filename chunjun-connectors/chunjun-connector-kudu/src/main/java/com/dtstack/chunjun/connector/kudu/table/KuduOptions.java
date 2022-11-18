@@ -26,10 +26,6 @@ import org.apache.flink.configuration.ConfigOptions;
 import org.apache.kudu.client.AsyncKuduClient;
 import org.apache.kudu.client.SessionConfiguration;
 
-/**
- * @author tiezhu
- * @since 2021/6/9 星期三
- */
 public class KuduOptions {
 
     public static final ConfigOption<String> MASTER_ADDRESS =

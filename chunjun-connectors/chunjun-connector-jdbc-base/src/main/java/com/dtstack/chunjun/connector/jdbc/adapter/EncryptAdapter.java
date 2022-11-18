@@ -23,11 +23,6 @@ import com.google.gson.JsonSerializer;
 
 import java.lang.reflect.Type;
 
-/**
- * Date: 2022/01/12 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class EncryptAdapter implements JsonSerializer<String> {
 
     @Override

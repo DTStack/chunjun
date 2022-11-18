@@ -19,68 +19,68 @@
 package com.dtstack.chunjun.connector.doris.options;
 
 public class LoadConfBuilder {
-    private final LoadConf loadConf;
+    private final LoadConfig loadConfig;
 
     public LoadConfBuilder() {
-        this.loadConf = new LoadConf();
+        this.loadConfig = new LoadConfig();
     }
 
     public LoadConfBuilder setReadFields(String readFields) {
-        this.loadConf.setReadFields(readFields);
+        this.loadConfig.setReadFields(readFields);
         return this;
     }
 
     public LoadConfBuilder setFilterQuery(String filterQuery) {
-        this.loadConf.setFilterQuery(filterQuery);
+        this.loadConfig.setFilterQuery(filterQuery);
         return this;
     }
 
     public LoadConfBuilder setRequestTabletSize(Integer requestTabletSize) {
-        this.loadConf.setRequestBatchSize(requestTabletSize);
+        this.loadConfig.setRequestBatchSize(requestTabletSize);
         return this;
     }
 
     public LoadConfBuilder setRequestConnectTimeoutMs(Integer requestConnectTimeoutMs) {
-        this.loadConf.setRequestConnectTimeoutMs(requestConnectTimeoutMs);
+        this.loadConfig.setRequestConnectTimeoutMs(requestConnectTimeoutMs);
         return this;
     }
 
     public LoadConfBuilder setRequestReadTimeoutMs(Integer requestReadTimeoutMs) {
-        this.loadConf.setRequestReadTimeoutMs(requestReadTimeoutMs);
+        this.loadConfig.setRequestReadTimeoutMs(requestReadTimeoutMs);
         return this;
     }
 
     public LoadConfBuilder setRequestQueryTimeoutMs(Integer requestQueryTimeoutMs) {
-        this.loadConf.setRequestQueryTimeoutS(requestQueryTimeoutMs);
+        this.loadConfig.setRequestQueryTimeoutS(requestQueryTimeoutMs);
         return this;
     }
 
     public LoadConfBuilder setRequestRetries(Integer requestRetries) {
-        this.loadConf.setRequestRetries(requestRetries);
+        this.loadConfig.setRequestRetries(requestRetries);
         return this;
     }
 
     public LoadConfBuilder setRequestBatchSize(Integer requestBatchSize) {
-        this.loadConf.setRequestBatchSize(requestBatchSize);
+        this.loadConfig.setRequestBatchSize(requestBatchSize);
         return this;
     }
 
     public LoadConfBuilder setExecMemLimit(Long execMemLimit) {
-        this.loadConf.setExecMemLimit(execMemLimit);
+        this.loadConfig.setExecMemLimit(execMemLimit);
         return this;
     }
 
     public LoadConfBuilder setDeserializeQueueSize(Integer deserializeQueueSize) {
-        this.loadConf.setDeserializeQueueSize(deserializeQueueSize);
+        this.loadConfig.setDeserializeQueueSize(deserializeQueueSize);
         return this;
     }
 
     public LoadConfBuilder setDeserializeArrowAsync(Boolean deserializeArrowAsync) {
-        this.loadConf.setDeserializeArrowAsync(deserializeArrowAsync);
+        this.loadConfig.setDeserializeArrowAsync(deserializeArrowAsync);
         return this;
     }
 
-    public LoadConf build() {
-        return this.loadConf;
+    public LoadConfig build() {
+        return this.loadConfig;
     }
 }

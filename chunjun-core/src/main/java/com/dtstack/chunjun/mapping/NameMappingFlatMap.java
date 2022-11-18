@@ -35,7 +35,7 @@ public class NameMappingFlatMap extends RichFlatMapFunction<RowData, RowData>
     private final NameMapping client;
 
     public NameMappingFlatMap(
-            MappingConf conf,
+            MappingConfig conf,
             Boolean useDdlConvent,
             DdlConvent sourceDdlConvent,
             DdlConvent sinkDdlConvent) {

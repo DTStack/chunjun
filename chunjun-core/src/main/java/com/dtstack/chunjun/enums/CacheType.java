@@ -18,11 +18,6 @@
 
 package com.dtstack.chunjun.enums;
 
-/**
- * @author chuixue
- * @create 2021-04-09 13:27
- * @description
- */
 public enum CacheType {
     /** none */
     NONE,
@@ -37,7 +32,6 @@ public enum CacheType {
                 return true;
             }
         }
-
         return false;
     }
 }

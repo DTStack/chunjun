@@ -25,7 +25,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/** @Author OT @Date 2022/6/13 17:59 @Version 1.0 */
 public class SybaseRawTypeConverter {
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {

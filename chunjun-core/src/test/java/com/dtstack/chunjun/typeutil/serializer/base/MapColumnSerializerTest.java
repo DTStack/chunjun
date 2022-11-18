@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-/** @author liuliu 2022/5/25 */
 public class MapColumnSerializerTest extends SerializerTestBase<AbstractBaseColumn> {
     @Override
     protected Tuple2<BiFunction<Object, Object, Boolean>, DeeplyEqualsChecker.CustomEqualityChecker>

@@ -43,11 +43,6 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 
-/**
- * Date: 2021/06/16 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsOrcRowConverter
         extends AbstractRowConverter<RowData, RowData, Object[], LogicalType> {
 

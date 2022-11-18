@@ -18,17 +18,11 @@
 
 package com.dtstack.chunjun.connector.elasticsearch7.source;
 
-import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConf;
+import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import com.google.common.base.Preconditions;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/27 17:27
- */
 public class ElasticsearchInputFormatBuilder
         extends BaseRichInputFormatBuilder<ElasticsearchInputFormat> {
 
@@ -36,14 +30,14 @@ public class ElasticsearchInputFormatBuilder
         super(new ElasticsearchInputFormat());
     }
 
-    public void setEsConf(ElasticsearchConf esConf) {
+    public void setEsConf(ElasticsearchConfig esConf) {
         super.setConfig(esConf);
         format.setElasticsearchConf(esConf);
     }
 
     @Override
     protected void checkFormat() {
-        ElasticsearchConf esConf = format.getElasticsearchConf();
+        ElasticsearchConfig esConf = format.getElasticsearchConf();
         Preconditions.checkNotNull(esConf.getHosts(), "elasticsearch7 type of address is required");
         Preconditions.checkNotNull(esConf.getIndex(), "elasticsearch7 type of index is required");
 

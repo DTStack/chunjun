@@ -31,13 +31,16 @@
 	<artifactId>chunjun-connector-socket</artifactId>
 	<name>ChunJun : Connectors : Socket</name>
 
+	<properties>
+		<connector.dir>socket</connector.dir>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
-			<version>4.0.23.Final</version>
+			<version>4.1.85.Final</version>
 		</dependency>
-
 	</dependencies>
 	<build>
 		<plugins>
@@ -86,35 +89,7 @@
 
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<!-- here the phase you need -->
-						<phase>package</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/connector/socket"
-									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../${dist.dir}/connector/socket/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/socket/${project.artifactId}.jar"/>
-								<delete>
-									<fileset dir="${basedir}/../../${dist.dir}/connector/socket/"
-											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}.jar"/>
-								</delete>
-							</tasks>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>
-
-
-
-
-
 </project>

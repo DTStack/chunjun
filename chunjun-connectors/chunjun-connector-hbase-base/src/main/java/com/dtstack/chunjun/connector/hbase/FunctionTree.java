@@ -28,10 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author jiangbo
- * @date 2019/7/24
- */
 public class FunctionTree implements Serializable {
 
     private String columnName;

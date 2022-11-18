@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcColumnConverter;
 import com.dtstack.chunjun.connector.hdfs.enums.CompressType;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
@@ -42,6 +42,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.compress.BZip2Codec;
+import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.DefaultCodec;
 import org.apache.hadoop.io.compress.GzipCodec;
 import org.apache.hadoop.io.compress.Lz4Codec;
@@ -57,11 +58,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Date: 2021/06/19 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
     private static final ColumnTypeUtil.DecimalInfo ORC_DEFAULT_DECIMAL_INFO =
@@ -71,20 +67,19 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     private OrcSerde orcSerde;
     private StructObjectInspector inspector;
     private FileOutputFormat outputFormat;
-    private JobConf jobConf;
+    private JobConf jobConfig;
 
     protected int[] colIndices;
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void openSource() {
         super.openSource();
 
         orcSerde = new OrcSerde();
         outputFormat = new org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat();
-        jobConf = new JobConf(conf);
+        jobConfig = new JobConf(conf);
 
-        Class codecClass;
+        Class<? extends CompressionCodec> codecClass;
         switch (compressType) {
             case ORC_SNAPPY:
                 codecClass = SnappyCodec.class;
@@ -101,18 +96,18 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             default:
                 codecClass = DefaultCodec.class;
         }
-        FileOutputFormat.setOutputCompressorClass(jobConf, codecClass);
+        FileOutputFormat.setOutputCompressorClass(jobConfig, codecClass);
 
-        int size = hdfsConf.getFullColumnType().size();
+        int size = hdfsConfig.getFullColumnType().size();
         decimalColInfo = Maps.newHashMapWithExpectedSize(size);
         List<ObjectInspector> structFieldObjectInspectors = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            String columnType = hdfsConf.getFullColumnType().get(i);
+            String columnType = hdfsConfig.getFullColumnType().get(i);
 
             if (ColumnTypeUtil.isDecimalType(columnType)) {
                 ColumnTypeUtil.DecimalInfo decimalInfo =
                         ColumnTypeUtil.getDecimalInfo(columnType, ORC_DEFAULT_DECIMAL_INFO);
-                decimalColInfo.put(hdfsConf.getFullColumnName().get(i), decimalInfo);
+                decimalColInfo.put(hdfsConfig.getFullColumnName().get(i), decimalInfo);
             }
             ColumnType type = ColumnType.getType(columnType);
             structFieldObjectInspectors.add(HdfsUtil.columnTypeToObjectInspetor(type));
@@ -122,26 +117,27 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             ((HdfsOrcColumnConverter) rowConverter).setDecimalColInfo(decimalColInfo);
             ((HdfsOrcColumnConverter) rowConverter)
                     .setColumnNameList(
-                            hdfsConf.getColumn().stream()
-                                    .map(FieldConf::getName)
+                            hdfsConfig.getColumn().stream()
+                                    .map(FieldConfig::getName)
                                     .collect(Collectors.toList()));
         }
         this.inspector =
                 ObjectInspectorFactory.getStandardStructObjectInspector(
                         fullColumnNameList, structFieldObjectInspectors);
 
-        colIndices = new int[hdfsConf.getFullColumnName().size()];
-        for (int i = 0; i < hdfsConf.getFullColumnName().size(); ++i) {
+        colIndices = new int[hdfsConfig.getFullColumnName().size()];
+        for (int i = 0; i < hdfsConfig.getFullColumnName().size(); ++i) {
             int j = 0;
-            for (; j < hdfsConf.getColumn().size(); ++j) {
-                if (hdfsConf.getFullColumnName()
+            for (; j < hdfsConfig.getColumn().size(); ++j) {
+                if (hdfsConfig
+                        .getFullColumnName()
                         .get(i)
-                        .equalsIgnoreCase(hdfsConf.getColumn().get(j).getName())) {
+                        .equalsIgnoreCase(hdfsConfig.getColumn().get(j).getName())) {
                     colIndices[i] = j;
                     break;
                 }
             }
-            if (j == hdfsConf.getColumn().size()) {
+            if (j == hdfsConfig.getColumn().size()) {
                 colIndices[i] = -1;
             }
         }
@@ -164,7 +160,8 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
         try {
             String currentBlockTmpPath = tmpPath + getHdfsPathChar() + currentFileName;
             recordWriter =
-                    outputFormat.getRecordWriter(null, jobConf, currentBlockTmpPath, Reporter.NULL);
+                    outputFormat.getRecordWriter(
+                            null, jobConfig, currentBlockTmpPath, Reporter.NULL);
             currentFileIndex++;
 
             setFs();
@@ -202,7 +199,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             nextBlock();
         }
 
-        Object[] data = new Object[hdfsConf.getColumn().size()];
+        Object[] data = new Object[hdfsConfig.getColumn().size()];
         try {
             data = (Object[]) rowConverter.toExternal(rowData, data);
         } catch (Exception e) {
@@ -215,7 +212,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
         try {
             List<Object> recordList = new ArrayList<>();
-            for (int i = 0; i < hdfsConf.getFullColumnName().size(); ++i) {
+            for (int i = 0; i < hdfsConfig.getFullColumnName().size(); ++i) {
                 int colIndex = colIndices[i];
                 if (colIndex == -1) {
                     recordList.add(null);
@@ -252,17 +249,17 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public CompressType getCompressType() {
-        return CompressType.getByTypeAndFileType(hdfsConf.getCompress(), FileType.ORC.name());
+        return CompressType.getByTypeAndFileType(hdfsConfig.getCompress(), FileType.ORC.name());
     }
 
     /**
      * 数据源开启kerberos时 如果这里不通过反射对 writerOptions 赋值fs，则在recordWriter.writer时 会初始化一个fs 此fs不在ugi里获取的
      * 导致开启了kerberos的数据源在checkpoint时进行 recordWriter.close() 操作，会出现kerberos认证错误
      *
-     * @throws IllegalAccessException
+     * @throws IllegalAccessException illegal access exception.
      */
     private void setFs() throws IllegalAccessException {
-        if (FileSystemUtil.isOpenKerberos(hdfsConf.getHadoopConfig())) {
+        if (FileSystemUtil.isOpenKerberos(hdfsConfig.getHadoopConfig())) {
             Field declaredField = ReflectionUtils.getDeclaredField(recordWriter, "options");
             assert declaredField != null;
             declaredField.setAccessible(true);

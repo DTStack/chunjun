@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.kudu.sink;
 
-import com.dtstack.chunjun.connector.kudu.conf.KuduSinkConf;
+import com.dtstack.chunjun.connector.kudu.config.KuduSinkConfig;
 import com.dtstack.chunjun.connector.kudu.util.KuduUtil;
 import com.dtstack.chunjun.sink.WriteMode;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
@@ -42,17 +42,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Locale;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class KuduOutputFormat extends BaseRichOutputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(KuduOutputFormat.class);
 
     private static final long serialVersionUID = 1L;
 
-    private KuduSinkConf sinkConf;
+    private KuduSinkConfig sinkConfig;
 
     private KuduClient client;
 
@@ -102,7 +98,6 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void writeMultipleRecordsInternal() throws Exception {
         for (RowData rowData : rows) {
             Operation operation = toOperation(writeMode);
@@ -114,17 +109,17 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        writeMode = sinkConf.getWriteMode();
-        flushMode = transformFlushMode(sinkConf.getFlushMode());
+        writeMode = sinkConfig.getWriteMode();
+        flushMode = transformFlushMode(sinkConfig.getFlushMode());
         try {
-            client = KuduUtil.getKuduClient(sinkConf);
+            client = KuduUtil.getKuduClient(sinkConfig);
         } catch (Exception e) {
             throw new NoRestartException("Get KuduClient error", e);
         }
 
         session = client.newSession();
-        session.setMutationBufferSpace(sinkConf.getMaxBufferSize());
-        kuduTable = client.openTable(sinkConf.getTable());
+        session.setMutationBufferSpace(sinkConfig.getMaxBufferSize());
+        kuduTable = client.openTable(sinkConfig.getTable());
 
         switch (flushMode.name().toLowerCase(Locale.ENGLISH)) {
             case "auto_flush_background":
@@ -188,11 +183,11 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    public KuduSinkConf getKuduSinkConf() {
-        return sinkConf;
+    public KuduSinkConfig getKuduSinkConf() {
+        return sinkConfig;
     }
 
-    public void setKuduSinkConf(KuduSinkConf sinkConf) {
-        this.sinkConf = sinkConf;
+    public void setKuduSinkConf(KuduSinkConfig sinkConf) {
+        this.sinkConfig = sinkConf;
     }
 }

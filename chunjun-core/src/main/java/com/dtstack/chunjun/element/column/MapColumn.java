@@ -28,11 +28,6 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Map;
 
-/**
- * Date: 2021/04/26 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class MapColumn extends AbstractBaseColumn {
 
     public MapColumn(Map<String, Object> data) {

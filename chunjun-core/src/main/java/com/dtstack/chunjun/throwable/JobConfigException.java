@@ -18,10 +18,6 @@
 
 package com.dtstack.chunjun.throwable;
 
-/**
- * @author zhujinming
- * @since 2022/5/12 4:50 下午
- */
 public class JobConfigException extends ChunJunRuntimeException {
 
     private static final long serialVersionUID = 140341232132169L;

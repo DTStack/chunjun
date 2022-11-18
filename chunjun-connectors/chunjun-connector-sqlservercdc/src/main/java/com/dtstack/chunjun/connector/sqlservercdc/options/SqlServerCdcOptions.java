@@ -17,15 +17,17 @@
  */
 package com.dtstack.chunjun.connector.sqlservercdc.options;
 
+import com.dtstack.chunjun.connector.sqlservercdc.format.TimestampFormat;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
+import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.table.api.TableException;
 
-/**
- * Date: 2021/05/06 Company: www.dtstack.com
- *
- * @author shifang
- */
 public class SqlServerCdcOptions {
+
+    public static final String SQL = "SQL";
+    public static final String ISO_8601 = "ISO-8601";
 
     public static final ConfigOption<String> USERNAME =
             ConfigOptions.key("username")
@@ -85,4 +87,28 @@ public class SqlServerCdcOptions {
                     .booleanType()
                     .defaultValue(false)
                     .withDescription("auto_reset_connection.");
+
+    public static final ConfigOption<String> TIMESTAMP_FORMAT =
+            ConfigOptions.key("timestamp-format.standard")
+                    .stringType()
+                    .defaultValue("SQL")
+                    .withDescription(
+                            "Optional flag to specify timestamp format, SQL by default."
+                                    + " Option ISO-8601 will parse input timestamp in \"yyyy-MM-ddTHH:mm:ss.s{precision}\" format and output timestamp in the same format."
+                                    + " Option SQL will parse input timestamp in \"yyyy-MM-dd HH:mm:ss.s{precision}\" format and output timestamp in the same format.");
+
+    public static TimestampFormat getTimestampFormat(ReadableConfig config) {
+        String timestampFormat = config.get(TIMESTAMP_FORMAT);
+        switch (timestampFormat) {
+            case SQL:
+                return TimestampFormat.SQL;
+            case ISO_8601:
+                return TimestampFormat.ISO_8601;
+            default:
+                throw new TableException(
+                        String.format(
+                                "Unsupported timestamp format '%s'. Validator should have checked that.",
+                                timestampFormat));
+        }
+    }
 }
