@@ -19,12 +19,12 @@
 package com.dtstack.chunjun.connector.hbase.table.lookup;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseSerde;
 import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
 import com.dtstack.chunjun.connector.hbase.util.HBaseHelper;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.security.KerberosUtil;
 
 import org.apache.flink.table.data.RowData;
@@ -59,14 +59,14 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
     private final HBaseTableSchema hbaseTableSchema;
     private transient HBaseSerde serde;
     private final String nullStringLiteral;
-    private final HBaseConf hBaseConf;
+    private final HBaseConfig hBaseConfig;
 
     public HBaseAllTableFunction(
-            LookupConf lookupConf, HBaseTableSchema hbaseTableSchema, HBaseConf hBaseConf) {
-        super(null, null, lookupConf, null);
+            LookupConfig lookupConfig, HBaseTableSchema hbaseTableSchema, HBaseConfig hBaseConfig) {
+        super(null, null, lookupConfig, null);
         this.hbaseTableSchema = hbaseTableSchema;
-        this.hBaseConf = hBaseConf;
-        this.nullStringLiteral = hBaseConf.getNullStringLiteral();
+        this.hBaseConfig = hBaseConfig;
+        this.nullStringLiteral = hBaseConfig.getNullStringLiteral();
     }
 
     @Override
@@ -78,7 +78,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
     @Override
     protected void loadData(Object cacheRef) {
         Configuration hbaseDomainConf = new Configuration();
-        for (Map.Entry<String, Object> entry : hBaseConf.getHbaseConfig().entrySet()) {
+        for (Map.Entry<String, Object> entry : hBaseConfig.getHbaseConfig().entrySet()) {
             hbaseDomainConf.set(entry.getKey(), entry.getValue().toString());
         }
         int loadDataCount = 0;
@@ -154,7 +154,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
         loadData(newCache);
         cacheRef.set(newCache);
         LOG.info(
-                "----- " + lookupConf.getTableName() + ": all cacheRef reload end:{}",
+                "----- " + lookupConfig.getTableName() + ": all cacheRef reload end:{}",
                 LocalDateTime.now());
     }
 

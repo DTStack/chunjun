@@ -21,11 +21,6 @@ package com.dtstack.chunjun.connector.emqx.options;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * @author chuixue
- * @create 2021-06-02 10:34
- * @description
- */
 public class EmqxOptions {
     public static final ConfigOption<String> BROKER =
             ConfigOptions.key("broker").stringType().noDefaultValue().withDescription(" broker ");

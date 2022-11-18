@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.mongodb.table.lookup;
 
-import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
+import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
 import com.dtstack.chunjun.connector.mongodb.converter.MongodbRowConverter;
 
 import org.apache.flink.table.data.RowData;
@@ -44,29 +44,24 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/22
- */
 public class MongodbAsyncTableFunction extends AsyncTableFunction<RowData> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MongodbAsyncTableFunction.class);
 
-    private final MongoClientConf mongoClientConf;
+    private final MongoClientConfig mongoClientConfig;
     private final RowType rowType;
     private final String[] keyNames;
     private final String[] fieldNames;
     private transient MongoClient mongoClient;
-    private transient MongoCollection collection;
+    private transient MongoCollection<Document> collection;
     private transient MongodbRowConverter converter;
 
     public MongodbAsyncTableFunction(
-            MongoClientConf mongoClientConf,
+            MongoClientConfig mongoClientConfig,
             RowType rowType,
             String[] keyNames,
             String[] fieldNames) {
-        this.mongoClientConf = mongoClientConf;
+        this.mongoClientConfig = mongoClientConfig;
         this.rowType = rowType;
         this.keyNames = keyNames;
         this.fieldNames = fieldNames;
@@ -76,9 +71,9 @@ public class MongodbAsyncTableFunction extends AsyncTableFunction<RowData> {
     public void open(FunctionContext context) throws Exception {
         super.open(context);
         converter = new MongodbRowConverter(rowType, fieldNames);
-        mongoClient = MongoClients.create(new ConnectionString(mongoClientConf.getUri()));
-        MongoDatabase db = mongoClient.getDatabase(mongoClientConf.getDatabase());
-        collection = db.getCollection(mongoClientConf.getCollection(), Document.class);
+        mongoClient = MongoClients.create(new ConnectionString(mongoClientConfig.getUri()));
+        MongoDatabase db = mongoClient.getDatabase(mongoClientConfig.getDatabase());
+        collection = db.getCollection(mongoClientConfig.getCollection(), Document.class);
     }
 
     public void eval(CompletableFuture<Collection<RowData>> future, Object... keys) {
@@ -100,7 +95,7 @@ public class MongodbAsyncTableFunction extends AsyncTableFunction<RowData> {
                 (result, t) -> {
                     if (rowList.size() <= 0) {
                         LOG.warn("Cannot retrieve the data from the database");
-                        future.complete(Collections.EMPTY_LIST);
+                        future.complete(Collections.emptyList());
                     } else {
                         future.complete(rowList);
                     }

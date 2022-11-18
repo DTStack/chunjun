@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.jdbc.util;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
-import com.dtstack.chunjun.connector.jdbc.conf.SourceConnectionConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.SourceConnectionConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 
 import com.google.common.collect.Lists;
@@ -36,14 +36,14 @@ import java.util.Objects;
 /** @author dujie */
 public class JdbcUtilTest {
 
-    private JdbcConfig jdbcConf;
-    private SourceConnectionConf sourceConnectionConf;
+    private JdbcConfig jdbcConfig;
+    private SourceConnectionConfig sourceConnectionConf;
 
     @Before
     public void setup() {
-        jdbcConf = new JdbcConfig();
-        sourceConnectionConf = new SourceConnectionConf();
-        jdbcConf.setConnection(Collections.singletonList(sourceConnectionConf));
+        jdbcConfig = new JdbcConfig();
+        sourceConnectionConf = new SourceConnectionConfig();
+        jdbcConfig.setConnection(Collections.singletonList(sourceConnectionConf));
     }
 
     @Test
@@ -52,10 +52,10 @@ public class JdbcUtilTest {
         String table = "\"table\"";
         sourceConnectionConf.setTable(
                 Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
-        JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
+        JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\\"", "\\\"");
 
-        Assert.assertEquals("schema", jdbcConf.getSchema());
-        Assert.assertEquals("table", jdbcConf.getTable());
+        Assert.assertEquals("schema", jdbcConfig.getSchema());
+        Assert.assertEquals("table", jdbcConfig.getTable());
     }
 
     @Test
@@ -64,10 +64,10 @@ public class JdbcUtilTest {
         String table = "table";
         sourceConnectionConf.setTable(
                 Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
-        JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
+        JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\\"", "\\\"");
 
-        Assert.assertEquals("schema", jdbcConf.getSchema());
-        Assert.assertEquals("table", jdbcConf.getTable());
+        Assert.assertEquals("schema", jdbcConfig.getSchema());
+        Assert.assertEquals("table", jdbcConfig.getTable());
     }
 
     @Test
@@ -77,10 +77,10 @@ public class JdbcUtilTest {
 
         sourceConnectionConf.setTable(
                 Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
-        JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+        JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\[", "\\]");
 
-        Assert.assertEquals("schema", jdbcConf.getSchema());
-        Assert.assertEquals("table", jdbcConf.getTable());
+        Assert.assertEquals("schema", jdbcConfig.getSchema());
+        Assert.assertEquals("table", jdbcConfig.getTable());
     }
 
     @Test
@@ -90,10 +90,10 @@ public class JdbcUtilTest {
 
         sourceConnectionConf.setTable(
                 Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
-        JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+        JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\[", "\\]");
 
-        Assert.assertEquals("[schema", jdbcConf.getSchema());
-        Assert.assertEquals("table", jdbcConf.getTable());
+        Assert.assertEquals("[schema", jdbcConfig.getSchema());
+        Assert.assertEquals("table", jdbcConfig.getTable());
     }
 
     @Test
@@ -103,10 +103,10 @@ public class JdbcUtilTest {
 
         sourceConnectionConf.setTable(
                 Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
-        JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+        JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\[", "\\]");
 
-        Assert.assertEquals("[sche.ma]", jdbcConf.getSchema());
-        Assert.assertEquals("table", jdbcConf.getTable());
+        Assert.assertEquals("[sche.ma]", jdbcConfig.getSchema());
+        Assert.assertEquals("table", jdbcConfig.getTable());
     }
 
     public static String readFile(String fileName) throws IOException {

@@ -17,11 +17,6 @@
  */
 package com.dtstack.chunjun.enums;
 
-/**
- * Date: 2021/04/27 Company: www.dtstack.com
- *
- * @author tudou
- */
 public enum OperationType {
     // ----------------- DML -----------------
     INSERT(0, "INSERT"),

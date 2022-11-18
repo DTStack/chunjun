@@ -17,7 +17,7 @@
 
 FROM emqx/emqx
 
-LABEL maintainer="www.dtstack.com"
+LABEL maintainer="chunjun@github.com"
 
 ENV LANG=C.UTF-8
 

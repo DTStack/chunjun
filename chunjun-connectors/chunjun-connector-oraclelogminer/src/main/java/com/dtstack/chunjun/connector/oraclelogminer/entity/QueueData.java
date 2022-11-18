@@ -20,12 +20,8 @@ package com.dtstack.chunjun.connector.oraclelogminer.entity;
 import org.apache.flink.table.data.RowData;
 
 import java.math.BigInteger;
+import java.util.StringJoiner;
 
-/**
- * Date: 2020/06/01 Company: www.dtstack.com
- *
- * @author dujie
- */
 public class QueueData {
     private final BigInteger scn;
     private final RowData data;
@@ -45,6 +41,9 @@ public class QueueData {
 
     @Override
     public String toString() {
-        return "QueueData{" + "scn=" + scn + ", data=" + data + '}';
+        return new StringJoiner(", ", QueueData.class.getSimpleName() + "[", "]")
+                .add("scn=" + scn)
+                .add("data=" + data)
+                .toString();
     }
 }

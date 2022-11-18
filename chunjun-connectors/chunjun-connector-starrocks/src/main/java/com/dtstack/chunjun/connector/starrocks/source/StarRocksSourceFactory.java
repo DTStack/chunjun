@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.starrocks.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.converter.StarRocksColumnConverter;
 import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRawTypeConverter;
 import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRowConverter;
@@ -41,30 +41,30 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-/** @author liuliu 2022/7/27 */
 public class StarRocksSourceFactory extends SourceFactory {
 
-    private final StarRocksConf starRocksConf;
+    private final StarRocksConfig starRocksConfig;
 
-    public StarRocksSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
-        starRocksConf =
+    public StarRocksSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
+        starRocksConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getReader().getParameter()), StarRocksConf.class);
-        List<FieldConf> fieldList = syncConf.getReader().getFieldList();
+                        JsonUtil.toJson(syncConfig.getReader().getParameter()),
+                        StarRocksConfig.class);
+        List<FieldConfig> fieldList = syncConfig.getReader().getFieldList();
         List<String> fieldNameList = new ArrayList<>();
         List<DataType> dataTypeList = new ArrayList<>();
         RawTypeConverter rawTypeConverter = getRawTypeConverter();
-        for (FieldConf fieldConf : fieldList) {
-            if (StringUtils.isBlank(fieldConf.getValue())) {
-                fieldNameList.add(fieldConf.getName());
-                dataTypeList.add(rawTypeConverter.apply(fieldConf.getType()));
+        for (FieldConfig fieldConfig : fieldList) {
+            if (StringUtils.isBlank(fieldConfig.getValue())) {
+                fieldNameList.add(fieldConfig.getName());
+                dataTypeList.add(rawTypeConverter.apply(fieldConfig.getType()));
             }
         }
 
-        super.initCommonConf(starRocksConf);
-        starRocksConf.setFieldNames(fieldNameList.toArray(new String[0]));
-        starRocksConf.setDataTypes(dataTypeList.toArray(new DataType[0]));
+        super.initCommonConf(starRocksConfig);
+        starRocksConfig.setFieldNames(fieldNameList.toArray(new String[0]));
+        starRocksConfig.setDataTypes(dataTypeList.toArray(new DataType[0]));
     }
 
     @Override
@@ -76,11 +76,12 @@ public class StarRocksSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         StarRocksInputFormatBuilder inputFormatBuilder =
                 new StarRocksInputFormatBuilder(new StarRocksInputFormat());
-        inputFormatBuilder.setStarRocksConf(starRocksConf);
-        RowType rowType = TableUtil.createRowType(starRocksConf.getColumn(), getRawTypeConverter());
+        inputFormatBuilder.setStarRocksConf(starRocksConfig);
+        RowType rowType =
+                TableUtil.createRowType(starRocksConfig.getColumn(), getRawTypeConverter());
         AbstractRowConverter rowConverter;
         if (useAbstractBaseColumn) {
-            rowConverter = new StarRocksColumnConverter(rowType, starRocksConf);
+            rowConverter = new StarRocksColumnConverter(rowType, starRocksConfig);
         } else {
             rowConverter = new StarRocksRowConverter(rowType, null);
         }

@@ -24,13 +24,6 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import java.net.URL;
 import java.util.List;
 
-/**
- * parse a single SQL statement.
- *
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/08
- */
 public abstract class AbstractStmtParser {
 
     private AbstractStmtParser nextStmtParser;

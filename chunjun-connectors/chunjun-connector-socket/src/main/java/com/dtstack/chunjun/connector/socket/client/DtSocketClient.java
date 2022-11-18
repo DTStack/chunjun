@@ -44,11 +44,6 @@ import java.util.concurrent.SynchronousQueue;
 
 import static com.dtstack.chunjun.connector.socket.inputformat.SocketInputFormat.KEY_EXIT0;
 
-/**
- * 采用netty实现Socket Client
- *
- * @author kunni.dtstack.com
- */
 public class DtSocketClient implements Closeable, Serializable {
 
     private static final long serialVersionUID = 1L;

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oracle.dialect;
 
-import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
@@ -45,11 +45,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class OracleDialect implements JdbcDialect {
 
     @Override
@@ -128,8 +123,8 @@ public class OracleDialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, CommonConfig commonConf) {
-        return new OracleColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new OracleColumnConverter(rowType, commonConfig);
     }
 
     /** build select sql , such as (SELECT ? "A",? "B" FROM DUAL) */

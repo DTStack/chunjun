@@ -19,7 +19,7 @@
 
 package com.dtstack.chunjun.connector.vertica11.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -42,19 +42,12 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/** @author menghan */
 public class Vertica11ColumnConverter extends JdbcColumnConverter {
 
-    public Vertica11ColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
-        super(rowType, commonConf);
+    public Vertica11ColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
     }
 
-    /**
-     * Convert external database type to flink internal type
-     *
-     * @param type
-     * @return
-     */
     @Override
     protected IDeserializationConverter createInternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
@@ -63,12 +56,10 @@ public class Vertica11ColumnConverter extends JdbcColumnConverter {
             case TINYINT:
             case SMALLINT:
             case INTEGER:
-                return val -> new BigDecimalColumn((Long) val);
-            case FLOAT:
-                return val -> new BigDecimalColumn((BigDecimal) val);
             case DOUBLE:
             case BIGINT:
                 return val -> new BigDecimalColumn((Long) val);
+            case FLOAT:
             case DECIMAL:
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:
@@ -82,7 +73,6 @@ public class Vertica11ColumnConverter extends JdbcColumnConverter {
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> new TimestampColumn((Timestamp) val);
             case BINARY:
-                return val -> new BytesColumn((byte[]) val);
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
             default:
@@ -90,12 +80,6 @@ public class Vertica11ColumnConverter extends JdbcColumnConverter {
         }
     }
 
-    /**
-     * Convert data types inside flink to external database system types
-     *
-     * @param type
-     * @return
-     */
     @Override
     protected ISerializationConverter<FieldNamedPreparedStatement> createExternalConverter(
             LogicalType type) {
@@ -107,16 +91,11 @@ public class Vertica11ColumnConverter extends JdbcColumnConverter {
             case TINYINT:
             case SMALLINT:
             case INTEGER:
-                return (val, index, statement) ->
-                        statement.setLong(index, ((ColumnRowData) val).getField(index).asLong());
-            case FLOAT:
-                return (val, index, statement) ->
-                        statement.setBigDecimal(
-                                index, ((ColumnRowData) val).getField(index).asBigDecimal());
             case DOUBLE:
             case BIGINT:
                 return (val, index, statement) ->
                         statement.setLong(index, ((ColumnRowData) val).getField(index).asLong());
+            case FLOAT:
             case DECIMAL:
                 return (val, index, statement) ->
                         statement.setBigDecimal(

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.solr.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.solr.SolrConf;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
@@ -32,7 +32,7 @@ import java.util.List;
 public class SolrInputFormatBuilder extends BaseRichInputFormatBuilder<SolrInputFormat> {
 
     public static SolrInputFormatBuilder newBuild(SolrConf solrConf) {
-        List<FieldConf> fields = solrConf.getColumn();
+        List<FieldConfig> fields = solrConf.getColumn();
         String[] fieldNames = new String[fields.size()];
         for (int i = 0; i < fields.size(); i++) {
             fieldNames[i] = fields.get(i).getName();

@@ -24,11 +24,6 @@ import com.dtstack.chunjun.converter.RawTypeConverter;
 
 import java.util.Optional;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class GreenplumDialect extends PostgresqlDialect {
 
     private static final String DIALECT_NAME = "Greenplum";

@@ -27,11 +27,6 @@ import org.apache.flink.core.io.InputSplit;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/10
- */
 public class ClickhouseInputFormat extends JdbcInputFormat {
 
     @Override
@@ -51,11 +46,13 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
         try {
             dbConn = getConnection();
             querySQL = buildQuerySql(currentJdbcInputSplit);
-            jdbcConf.setQuerySql(querySQL);
+            jdbcConfig.setQuerySql(querySQL);
             executeQuery(currentJdbcInputSplit.getStartLocation());
             // 增量任务
             needUpdateEndLocation =
-                    jdbcConf.isIncrement() && !jdbcConf.isPolling() && !jdbcConf.isUseMaxFunc();
+                    jdbcConfig.isIncrement()
+                            && !jdbcConfig.isPolling()
+                            && !jdbcConfig.isUseMaxFunc();
         } catch (SQLException se) {
             String expMsg = se.getMessage();
             expMsg = querySQL == null ? expMsg : expMsg + "\n querySQL: " + querySQL;
@@ -66,6 +63,6 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
     @Override
     protected Connection getConnection() throws SQLException {
         return ClickhouseUtil.getConnection(
-                jdbcConf.getJdbcUrl(), jdbcConf.getUsername(), jdbcConf.getPassword());
+                jdbcConfig.getJdbcUrl(), jdbcConfig.getUsername(), jdbcConfig.getPassword());
     }
 }

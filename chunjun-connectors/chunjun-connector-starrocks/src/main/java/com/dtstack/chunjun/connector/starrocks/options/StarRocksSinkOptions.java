@@ -21,7 +21,6 @@ package com.dtstack.chunjun.connector.starrocks.options;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/** @author liuliu 2022/7/12 */
 public class StarRocksSinkOptions {
 
     public static final ConfigOption<String> SINK_SEMANTIC =

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.cassandra.sink;
 
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraSinkConf;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraSinkConfig;
 import com.dtstack.chunjun.connector.cassandra.util.CassandraService;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
@@ -44,17 +44,13 @@ import java.util.concurrent.TimeUnit;
 
 import static com.dtstack.chunjun.connector.cassandra.util.CassandraService.quoteColumn;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraOutputFormat extends BaseRichOutputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(CassandraOutputFormat.class);
 
     private static final long serialVersionUID = 1L;
 
-    private CassandraSinkConf sinkConf;
+    private CassandraSinkConfig sinkConf;
 
     private Session session;
 
@@ -164,11 +160,11 @@ public class CassandraOutputFormat extends BaseRichOutputFormat {
         CassandraService.close(session);
     }
 
-    public CassandraSinkConf getSinkConf() {
+    public CassandraSinkConfig getSinkConf() {
         return sinkConf;
     }
 
-    public void setSinkConf(CassandraSinkConf sinkConf) {
+    public void setSinkConf(CassandraSinkConfig sinkConf) {
         this.sinkConf = sinkConf;
     }
 }

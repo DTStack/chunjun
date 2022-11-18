@@ -107,7 +107,7 @@ public class ColumnInfo {
     public String conventToSql() {
         StringBuilder sb = new StringBuilder();
         sb.append(SqlUtil.quote(name, "\"")).append(" ").append(type);
-        if (Objects.nonNull(charLength) && isCharFamilry()) {
+        if (Objects.nonNull(charLength) && isCharFamily()) {
             sb.append("(").append(charLength).append(")");
         } else if (type.equals("NUMBER")) {
             sb.append("(").append(precision);
@@ -134,13 +134,8 @@ public class ColumnInfo {
         if (pk) {
             sb.append("constraint")
                     .append(" ")
-                    .append(
-                            "flinkx_pk"
-                                    + UUID.randomUUID()
-                                            .toString()
-                                            .trim()
-                                            .replace("-", "")
-                                            .substring(0, 12))
+                    .append("flinkx_pk")
+                    .append(UUID.randomUUID().toString().trim().replace("-", "").substring(0, 12))
                     .append(" primary key");
         }
 
@@ -157,7 +152,7 @@ public class ColumnInfo {
         return null;
     }
 
-    private boolean isCharFamilry() {
+    private boolean isCharFamily() {
         return charType.contains(type);
     }
 }

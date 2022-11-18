@@ -23,11 +23,6 @@ import org.apache.flink.core.io.GenericInputSplit;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * splits {@link S3InputSplit#splits} contains all s3 objects instead of a part of all s3 objects
- *
- * @author jier
- */
 public class S3InputSplit extends GenericInputSplit {
 
     private static final long serialVersionUID = 8350870573057970895L;

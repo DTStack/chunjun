@@ -33,11 +33,6 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * Utilities for relational database connection and sql execution company: www.dtstack.com
- *
- * @author huyifan_zju@
- */
 public class JdbcUtil {
 
     public static final String TEMPORARY_TABLE_NAME = "chunjun_tmp";
@@ -46,32 +41,32 @@ public class JdbcUtil {
     /**
      * 获取JDBC连接
      *
-     * @param jdbcConf
+     * @param jdbcConfig
      * @param jdbcDialect
      * @return
      */
-    public static Connection getConnection(JdbcMetricConf jdbcConf, JdbcDialect jdbcDialect) {
-        TelnetUtil.telnet(jdbcConf.getJdbcUrl());
+    public static Connection getConnection(JdbcMetricConf jdbcConfig, JdbcDialect jdbcDialect) {
+        TelnetUtil.telnet(jdbcConfig.getJdbcUrl());
         ClassUtil.forName(
                 jdbcDialect.defaultDriverName().get(),
                 Thread.currentThread().getContextClassLoader());
-        Map<String, String> properties = jdbcConf.getProperties();
+        Map<String, String> properties = jdbcConfig.getProperties();
         Properties prop = new Properties();
         if (MapUtils.isNotEmpty(properties)) {
             for (final Map.Entry<String, String> entry : properties.entrySet()) {
                 prop.setProperty(entry.getKey(), entry.getValue());
             }
         }
-        if (StringUtils.isNotBlank(jdbcConf.getUsername())) {
-            prop.put("user", jdbcConf.getUsername());
+        if (StringUtils.isNotBlank(jdbcConfig.getUsername())) {
+            prop.put("user", jdbcConfig.getUsername());
         }
-        if (StringUtils.isNotBlank(jdbcConf.getPassword())) {
-            prop.put("password", jdbcConf.getPassword());
+        if (StringUtils.isNotBlank(jdbcConfig.getPassword())) {
+            prop.put("password", jdbcConfig.getPassword());
         }
         Properties finalProp = prop;
         synchronized (ClassUtil.LOCK_STR) {
             return RetryUtil.executeWithRetry(
-                    () -> DriverManager.getConnection(jdbcConf.getJdbcUrl(), finalProp),
+                    () -> DriverManager.getConnection(jdbcConfig.getJdbcUrl(), finalProp),
                     3,
                     2000,
                     false);

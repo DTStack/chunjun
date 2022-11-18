@@ -38,11 +38,6 @@ import java.util.concurrent.SynchronousQueue;
 
 import static com.dtstack.chunjun.connector.socket.inputformat.SocketInputFormat.KEY_EXIT0;
 
-/**
- * 自定义handler
- *
- * @author kunni@dtstack.com
- */
 public class DtClientHandler extends ChannelInboundHandlerAdapter {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());

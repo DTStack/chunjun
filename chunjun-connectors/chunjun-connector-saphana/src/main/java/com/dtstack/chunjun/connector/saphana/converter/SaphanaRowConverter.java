@@ -38,11 +38,6 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class SaphanaRowConverter extends JdbcRowConverter {
 
     private static final long serialVersionUID = 1L;

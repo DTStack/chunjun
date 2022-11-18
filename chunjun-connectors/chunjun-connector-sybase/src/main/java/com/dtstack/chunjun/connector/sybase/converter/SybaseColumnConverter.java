@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.sybase.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
@@ -41,10 +41,9 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/** @Author OT @Date 2022/6/16 17:52 @Version 1.0 */
 public class SybaseColumnConverter extends JdbcColumnConverter {
-    public SybaseColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
-        super(rowType, commonConf);
+    public SybaseColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
     }
 
     @Override

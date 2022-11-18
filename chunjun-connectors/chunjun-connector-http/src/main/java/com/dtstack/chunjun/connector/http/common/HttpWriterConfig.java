@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.http.common;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("all")
-public class HttpWriterConfig extends ChunJunCommonConf {
+public class HttpWriterConfig extends CommonConfig {
 
     protected String url;
 

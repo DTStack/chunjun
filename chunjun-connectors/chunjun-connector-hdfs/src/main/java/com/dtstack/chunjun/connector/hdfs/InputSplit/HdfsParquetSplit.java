@@ -21,11 +21,6 @@ import org.apache.flink.core.io.InputSplit;
 
 import java.util.List;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsParquetSplit implements InputSplit {
     private static final long serialVersionUID = 1L;
     private final int splitNumber;

@@ -89,7 +89,7 @@ public class StarRocksJdbcConnectionProvider
     }
 
     @Override
-    public Connection reestablishConnection() throws SQLException, ClassNotFoundException {
+    public Connection reestablishConnection() throws ClassNotFoundException {
         close();
         connection = getConnection();
         return connection;

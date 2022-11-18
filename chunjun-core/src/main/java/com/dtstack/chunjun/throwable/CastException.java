@@ -18,10 +18,6 @@
 
 package com.dtstack.chunjun.throwable;
 
-/**
- * @author tiezhu
- * @since 2021/4/28 2:56 下午
- */
 public class CastException extends ChunJunRuntimeException {
 
     public CastException(String beforeType, String afterType, String stringValue) {

@@ -26,11 +26,6 @@ import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import java.util.Optional;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/08
- */
 public class ClickhouseDialect implements JdbcDialect {
 
     @Override

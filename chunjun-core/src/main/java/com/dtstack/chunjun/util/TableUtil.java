@@ -17,21 +17,22 @@
  */
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.typeutil.ColumnRowDataTypeInfo;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
-import org.apache.flink.table.api.TableColumn;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
+
+import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,12 +42,6 @@ import java.util.stream.Collectors;
 
 public class TableUtil {
 
-    /**
-     * 获取TypeInformation
-     *
-     * @param fieldList 任务参数实体类
-     * @return TypeInformation
-     */
     public static TypeInformation<RowData> getTypeInformation(
             List<FieldConfig> fieldList,
             RawTypeConverter converter,
@@ -62,36 +57,18 @@ public class TableUtil {
                 || Arrays.stream(fieldTypes).anyMatch(Objects::isNull)) {
             return new GenericTypeInfo<>(RowData.class);
         }
-        TableSchema.Builder builder = TableSchema.builder();
+        DataType[] dataTypes = new DataType[fieldTypes.length];
         for (int i = 0; i < fieldTypes.length; i++) {
-            DataType dataType = converter.apply(fieldTypes[i]);
-            builder.add(TableColumn.physical(fieldNames[i], dataType));
+            dataTypes[i] = converter.apply(fieldTypes[i]);
         }
-        DataType[] dataTypes =
-                builder.build().toRowDataType().getChildren().toArray(new DataType[] {});
-
         return getTypeInformation(dataTypes, fieldNames, fieldFormat, useAbstractBaseColumn);
     }
 
-    /**
-     * 获取TypeInformation
-     *
-     * @param dataTypes
-     * @param fieldNames
-     * @return
-     */
     public static TypeInformation<RowData> getTypeInformation(
             DataType[] dataTypes, String[] fieldNames) {
         return getTypeInformation(dataTypes, fieldNames, new String[fieldNames.length], false);
     }
 
-    /**
-     * 获取TypeInformation
-     *
-     * @param dataTypes
-     * @param fieldNames
-     * @return
-     */
     public static TypeInformation<RowData> getTypeInformation(
             DataType[] dataTypes,
             String[] fieldNames,
@@ -115,13 +92,6 @@ public class TableUtil {
                 .anyMatch(logicalTypeRoot -> logicalTypeRoot == LogicalTypeRoot.ARRAY);
     }
 
-    /**
-     * 获取RowType
-     *
-     * @param dataTypes
-     * @param fieldNames
-     * @return
-     */
     public static RowType getRowType(
             DataType[] dataTypes, String[] fieldNames, String[] formatField) {
         List<RowType.RowField> rowFieldList = new ArrayList<>(dataTypes.length);
@@ -141,48 +111,43 @@ public class TableUtil {
         return new RowType(rowFieldList);
     }
 
-    /**
-     * only using in data sync/integration
-     *
-     * @param fieldNames field Names
-     * @param types field types
-     * @return
-     */
     public static RowType createRowType(
             List<String> fieldNames, List<String> types, RawTypeConverter converter) {
-        TableSchema.Builder builder = TableSchema.builder();
+        List<DataType> dataTypeList = Lists.newLinkedList();
         for (int i = 0; i < types.size(); i++) {
-            DataType dataType = converter.apply(types.get(i));
-            builder.add(TableColumn.physical(fieldNames.get(i), dataType));
+            dataTypeList.add(i, converter.apply(types.get(i)));
         }
-        return (RowType) builder.build().toRowDataType().getLogicalType();
+        return (RowType)
+                ResolvedSchema.physical(fieldNames, dataTypeList)
+                        .toPhysicalRowDataType()
+                        .getLogicalType();
     }
 
     /**
      * only using in data sync/integration
      *
-     * @param fields List<FieldConf>, field information name, type etc.
+     * @param fields List<FieldConfig>, field information name, type etc.
      * @return
      */
     public static RowType createRowType(List<FieldConfig> fields, RawTypeConverter converter) {
-        return (RowType) createTableSchema(fields, converter).toRowDataType().getLogicalType();
+        return (RowType)
+                createTableSchema(fields, converter).toPhysicalRowDataType().getLogicalType();
     }
 
     /**
      * only using in data sync/integration
      *
-     * @param fields List<FieldConf>, field information name, type etc.
+     * @param fields List<FieldConfig>, field information name, type etc.
      * @return
      */
-    public static TableSchema createTableSchema(
+    public static ResolvedSchema createTableSchema(
             List<FieldConfig> fields, RawTypeConverter converter) {
         String[] fieldNames = fields.stream().map(FieldConfig::getName).toArray(String[]::new);
         String[] fieldTypes = fields.stream().map(FieldConfig::getType).toArray(String[]::new);
-        TableSchema.Builder builder = TableSchema.builder();
+        DataType[] dataTypes = new DataType[fieldTypes.length];
         for (int i = 0; i < fieldTypes.length; i++) {
-            DataType dataType = converter.apply(fieldTypes[i]);
-            builder.add(TableColumn.physical(fieldNames[i], dataType));
+            dataTypes[i] = converter.apply(fieldTypes[i]);
         }
-        return builder.build();
+        return ResolvedSchema.physical(fieldNames, dataTypes);
     }
 }

@@ -41,11 +41,6 @@ import java.util.Set;
 
 import static com.dtstack.chunjun.constants.ConfigConstant.SAMPLE_INTERVAL_COUNT;
 
-/**
- * 任务执行时的流程方法 Date: 2020/2/17 Company: www.dtstack.com
- *
- * @author maqi
- */
 public class ExecuteProcessHelper {
 
     private static final String CLASS_FILE_NAME_FMT = "class_path_%d";

@@ -18,10 +18,6 @@
 
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.conf.JobConf;
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.constants.ConfigConstant;
-
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -64,25 +60,5 @@ public class PrintUtil {
         }
         builder.append("\n*********************************************\n");
         LOG.info(builder.toString());
-    }
-
-    /** 打印job配置信息 */
-    public static void printJobConfig(SyncConf config) {
-
-        // 深拷贝对象
-        JobConf job = JsonUtil.toObject(JsonUtil.toJson(config.getJob()), JobConf.class);
-
-        // 隐藏密码信息
-        Map<String, Object> readerParameter = job.getReader().getParameter();
-        if (readerParameter.containsKey(ConfigConstant.KEY_PASSWORD)) {
-            readerParameter.put(ConfigConstant.KEY_PASSWORD, ConfigConstant.KEY_CONFUSED_PASSWORD);
-        }
-
-        Map<String, Object> writerParameter = job.getWriter().getParameter();
-        if (writerParameter.containsKey(ConfigConstant.KEY_PASSWORD)) {
-            writerParameter.put(ConfigConstant.KEY_PASSWORD, ConfigConstant.KEY_CONFUSED_PASSWORD);
-        }
-        LOG.info(config.asString());
-        LOG.info("configInfo : \n{}", JsonUtil.toPrintJson(job));
     }
 }

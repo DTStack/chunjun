@@ -17,9 +17,10 @@
  */
 package com.dtstack.chunjun.connector.stream.config;
 
-import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.config.CommonConfig;
 
 import java.util.List;
+import java.util.StringJoiner;
 
 public class StreamConfig extends CommonConfig {
 
@@ -57,13 +58,10 @@ public class StreamConfig extends CommonConfig {
 
     @Override
     public String toString() {
-        return "StreamConf{"
-                + "sliceRecordCount="
-                + sliceRecordCount
-                + ", print="
-                + print
-                + ", permitsPerSecond="
-                + permitsPerSecond
-                + '}';
+        return new StringJoiner(", ", StreamConfig.class.getSimpleName() + "[", "]")
+                .add("sliceRecordCount=" + sliceRecordCount)
+                .add("print=" + print)
+                .add("permitsPerSecond=" + permitsPerSecond)
+                .toString();
     }
 }

@@ -44,10 +44,6 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * @author tiezhu
- * @since 2021/6/10 星期四
- */
 public class KuduRowConverter
         extends AbstractRowConverter<RowResult, RowResult, Operation, LogicalType> {
 
@@ -69,7 +65,6 @@ public class KuduRowConverter
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected ISerializationConverter<Operation> wrapIntoNullableExternalConverter(
             ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, operation) -> {
@@ -93,7 +88,6 @@ public class KuduRowConverter
         return deserializeInput(input);
     }
 
-    @SuppressWarnings("unchecked")
     private RowData deserializeInput(RowResult input) throws Exception {
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {

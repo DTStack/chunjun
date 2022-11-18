@@ -30,11 +30,9 @@ import java.util.Locale;
 public class ElasticsearchRawTypeMapper {
 
     /**
-     * Inspired by
-     * https://www.elastic.co/guide/en/elasticsearch/reference/current/sql-data-types.html
-     *
-     * @param type
-     * @return
+     * Inspired by <a
+     * href="https://www.elastic.co/guide/en/elasticsearch/reference/current/sql-data-types.html">data
+     * type</a>
      */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {

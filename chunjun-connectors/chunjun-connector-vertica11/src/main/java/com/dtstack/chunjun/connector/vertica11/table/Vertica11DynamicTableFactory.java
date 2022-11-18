@@ -22,17 +22,16 @@ package com.dtstack.chunjun.connector.vertica11.table;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.table.JdbcDynamicTableFactory;
-import com.dtstack.chunjun.connector.vertica11.conf.Vertica11LookupConf;
+import com.dtstack.chunjun.connector.vertica11.config.Vertica11LookupConfig;
 import com.dtstack.chunjun.connector.vertica11.dialect.Vertica11Dialect;
 import com.dtstack.chunjun.connector.vertica11.sink.Vertica11OutputFormat;
 import com.dtstack.chunjun.connector.vertica11.source.Vertica11DynamicTableSource;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import static com.dtstack.chunjun.connector.vertica11.lookup.options.Vertica11LookupOptions.VERTX_WORKER_POOL_SIZE;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
@@ -45,7 +44,6 @@ import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
 
-/** @author menghan on 2022/7/7. */
 public class Vertica11DynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** Find a specific plugin by this value */
@@ -71,10 +69,9 @@ public class Vertica11DynamicTableFactory extends JdbcDynamicTableFactory {
                 FactoryUtil.createTableFactoryHelper(this, context);
         final ReadableConfig config = helper.getOptions();
 
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
-        validateConfigOptions(config, physicalSchema);
+        validateConfigOptions(config, resolvedSchema);
 
         JdbcDialect jdbcDialect = getDialect();
 
@@ -82,13 +79,13 @@ public class Vertica11DynamicTableFactory extends JdbcDynamicTableFactory {
                 getSourceConnectionConf(helper.getOptions()),
                 getJdbcLookupConf(
                         helper.getOptions(), context.getObjectIdentifier().getObjectName()),
-                physicalSchema,
+                resolvedSchema,
                 jdbcDialect,
                 getInputFormatBuilder());
     }
 
-    protected LookupConf getJdbcLookupConf(ReadableConfig readableConfig, String tableName) {
-        return Vertica11LookupConf.build()
+    protected LookupConfig getJdbcLookupConf(ReadableConfig readableConfig, String tableName) {
+        return Vertica11LookupConfig.build()
                 .setAsyncPoolSize(readableConfig.get(VERTX_WORKER_POOL_SIZE))
                 .setTableName(tableName)
                 .setPeriod(readableConfig.get(LOOKUP_CACHE_PERIOD))

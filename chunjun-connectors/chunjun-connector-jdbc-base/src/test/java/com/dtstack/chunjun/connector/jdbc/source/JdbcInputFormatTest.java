@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
@@ -97,7 +97,7 @@ public class JdbcInputFormatTest {
 
     JdbcInputFormat jdbcInputFormat;
     JdbcDialect jdbcDialect;
-    JdbcConfig jdbcConf;
+    JdbcConfig jdbcConfig;
 
     AccumulatorCollector accumulatorCollector;
     BigIntegerAccumulator endLocationAccumulator;
@@ -120,7 +120,7 @@ public class JdbcInputFormatTest {
         jdbcInputFormat = mock(JdbcInputFormat.class);
         jdbcDialect = mock(JdbcDialect.class);
         Logger LOG = mock(Logger.class);
-        jdbcConf = mock(JdbcConfig.class);
+        jdbcConfig = mock(JdbcConfig.class);
         CustomReporter customReporter = mock(CustomReporter.class);
         RuntimeContext runtimeContext = mock(RuntimeContext.class);
         accumulatorCollector = mock(AccumulatorCollector.class);
@@ -129,7 +129,7 @@ public class JdbcInputFormatTest {
         rowConverter = mock(JdbcColumnConverter.class);
 
         setInternalState(jdbcInputFormat, "LOG", LOG);
-        setInternalState(jdbcInputFormat, "jdbcConf", jdbcConf);
+        setInternalState(jdbcInputFormat, "jdbcConfig", jdbcConfig);
         setInternalState(jdbcInputFormat, "jdbcDialect", jdbcDialect);
         setInternalState(jdbcInputFormat, "customReporter", customReporter);
         setInternalState(jdbcInputFormat, "accumulatorCollector", accumulatorCollector);
@@ -137,14 +137,14 @@ public class JdbcInputFormatTest {
         setInternalState(jdbcInputFormat, "formatState", formatState);
         setInternalState(jdbcInputFormat, "rowConverter", rowConverter);
         when(jdbcInputFormat.getRuntimeContext()).thenReturn(runtimeContext);
-        when(jdbcConf.getStartLocation()).thenReturn("10");
+        when(jdbcConfig.getStartLocation()).thenReturn("10");
     }
 
     /** -------------------------------- split test -------------------------------- */
     @Test
     public void createSplitWithErrorTest() {
         when(jdbcInputFormat.createInputSplitsInternal(2)).thenCallRealMethod();
-        when(jdbcConf.getParallelism()).thenReturn(3);
+        when(jdbcConfig.getParallelism()).thenReturn(3);
         Assert.assertThrows(
                 ChunJunRuntimeException.class, () -> jdbcInputFormat.createInputSplitsInternal(2));
     }
@@ -153,9 +153,9 @@ public class JdbcInputFormatTest {
     public void createModSplitTest() {
         when(jdbcInputFormat.createInputSplitsInternal(3)).thenCallRealMethod();
         when(jdbcInputFormat.createSplitsInternalBySplitMod(3, "20")).thenCallRealMethod();
-        when(jdbcConf.getParallelism()).thenReturn(3);
-        when(jdbcConf.getSplitStrategy()).thenReturn("mod");
-        when(jdbcConf.getStartLocation()).thenReturn("20");
+        when(jdbcConfig.getParallelism()).thenReturn(3);
+        when(jdbcConfig.getSplitStrategy()).thenReturn("mod");
+        when(jdbcConfig.getStartLocation()).thenReturn("20");
         Assert.assertEquals(jdbcInputFormat.createInputSplitsInternal(3).length, 3);
     }
 
@@ -163,9 +163,9 @@ public class JdbcInputFormatTest {
     public void createModSplitTestWithoutLocation() {
         when(jdbcInputFormat.createInputSplitsInternal(3)).thenCallRealMethod();
         when(jdbcInputFormat.createSplitsInternalBySplitMod(3, null)).thenCallRealMethod();
-        when(jdbcConf.getParallelism()).thenReturn(3);
-        when(jdbcConf.getSplitStrategy()).thenReturn("mod");
-        when(jdbcConf.getStartLocation()).thenReturn(null);
+        when(jdbcConfig.getParallelism()).thenReturn(3);
+        when(jdbcConfig.getSplitStrategy()).thenReturn("mod");
+        when(jdbcConfig.getStartLocation()).thenReturn(null);
         Assert.assertEquals(jdbcInputFormat.createInputSplitsInternal(3).length, 3);
     }
 
@@ -173,9 +173,9 @@ public class JdbcInputFormatTest {
     public void createModSplitMultiStartLocationTest() {
         when(jdbcInputFormat.createInputSplitsInternal(3)).thenCallRealMethod();
         when(jdbcInputFormat.createSplitsInternalBySplitMod(3, "30,40,50")).thenCallRealMethod();
-        when(jdbcConf.getParallelism()).thenReturn(3);
-        when(jdbcConf.getSplitStrategy()).thenReturn("mod");
-        when(jdbcConf.getStartLocation()).thenReturn("30,40,50");
+        when(jdbcConfig.getParallelism()).thenReturn(3);
+        when(jdbcConfig.getSplitStrategy()).thenReturn("mod");
+        when(jdbcConfig.getStartLocation()).thenReturn("30,40,50");
         Assert.assertEquals(jdbcInputFormat.createInputSplitsInternal(3).length, 3);
     }
 
@@ -183,9 +183,9 @@ public class JdbcInputFormatTest {
     public void createModSplitErrorTest() {
         when(jdbcInputFormat.createInputSplitsInternal(3)).thenCallRealMethod();
         when(jdbcInputFormat.createSplitsInternalBySplitMod(3, "30,40")).thenCallRealMethod();
-        when(jdbcConf.getParallelism()).thenReturn(3);
-        when(jdbcConf.getSplitStrategy()).thenReturn("mod");
-        when(jdbcConf.getStartLocation()).thenReturn("30,40");
+        when(jdbcConfig.getParallelism()).thenReturn(3);
+        when(jdbcConfig.getSplitStrategy()).thenReturn("mod");
+        when(jdbcConfig.getStartLocation()).thenReturn("30,40");
         Assert.assertThrows(
                 ChunJunRuntimeException.class, () -> jdbcInputFormat.createInputSplitsInternal(3));
     }
@@ -198,9 +198,9 @@ public class JdbcInputFormatTest {
         when(jdbcInputFormat.createRangeSplits(
                         any(BigDecimal.class), any(BigDecimal.class), any(int.class)))
                 .thenCallRealMethod();
-        when(jdbcConf.getParallelism()).thenReturn(3);
-        when(jdbcConf.getSplitStrategy()).thenReturn("range");
-        when(jdbcConf.getStartLocation()).thenReturn("20");
+        when(jdbcConfig.getParallelism()).thenReturn(3);
+        when(jdbcConfig.getSplitStrategy()).thenReturn("range");
+        when(jdbcConfig.getStartLocation()).thenReturn("20");
         setInternalState(jdbcInputFormat, "splitKeyUtil", new NumericTypeUtil());
 
         Method getSplitRangeFromDb =
@@ -224,15 +224,15 @@ public class JdbcInputFormatTest {
         when(resultSetMetaData.getColumnCount()).thenReturn(1);
         setInternalState(jdbcInputFormat, "rowConverter", converter);
 
-        when(jdbcConf.isIncrement()).thenReturn(true);
-        when(jdbcConf.isPolling()).thenReturn(false);
-        when(jdbcConf.isUseMaxFunc()).thenReturn(false);
-        when(jdbcConf.getIncreColumnType()).thenReturn("int");
+        when(jdbcConfig.isIncrement()).thenReturn(true);
+        when(jdbcConfig.isPolling()).thenReturn(false);
+        when(jdbcConfig.isUseMaxFunc()).thenReturn(false);
+        when(jdbcConfig.getIncreColumnType()).thenReturn("int");
 
         when(jdbcInputFormat.getConnection()).thenReturn(connection);
         when(ColumnBuildUtil.handleColumnList(anyList(), anyList(), anyList()))
                 .thenAnswer(invocation -> Pair.of(new ArrayList<>(), new ArrayList<>()));
-        when(jdbcConf.getColumn()).thenReturn(new ArrayList<>());
+        when(jdbcConfig.getColumn()).thenReturn(new ArrayList<>());
         when(jdbcDialect.getRawTypeConverter()).thenReturn(null);
         when(TableUtil.createRowType(new ArrayList<>(), new ArrayList<>(), null))
                 .thenAnswer(invocation -> null);
@@ -243,7 +243,7 @@ public class JdbcInputFormatTest {
         verify(jdbcInputFormat, times(3)).openInternal(any(JdbcInputSplit.class));
 
         doCallRealMethod().when(jdbcInputFormat).executeQuery(any());
-        when(jdbcConf.isPolling()).thenReturn(false);
+        when(jdbcConfig.isPolling()).thenReturn(false);
         when(connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY))
                 .thenThrow(new SQLException());
         Assert.assertThrows(Exception.class, () -> jdbcInputFormat.openInternal(inputSplit));
@@ -266,7 +266,7 @@ public class JdbcInputFormatTest {
         when(jdbcInputFormat.canReadData(inputSplit)).thenCallRealMethod();
         Assert.assertTrue(jdbcInputFormat.canReadData(inputSplit));
 
-        when(jdbcConf.isIncrement()).thenReturn(true);
+        when(jdbcConfig.isIncrement()).thenReturn(true);
         when(currentJdbcInputSplit.isPolling()).thenReturn(false);
 
         when(inputSplit.getStartLocation()).thenReturn(null);
@@ -286,11 +286,11 @@ public class JdbcInputFormatTest {
         jdbcInputFormat.initMetric(split);
 
         when(split.getStartLocation()).thenReturn("10");
-        when(jdbcConf.isIncrement()).thenReturn(true);
-        when(jdbcConf.getIncreColumnType()).thenReturn("int");
-        when(jdbcConf.isPolling()).thenReturn(false);
-        when(jdbcConf.isUseMaxFunc()).thenReturn(false);
-        when(jdbcConf.getParallelism()).thenReturn(3);
+        when(jdbcConfig.isIncrement()).thenReturn(true);
+        when(jdbcConfig.getIncreColumnType()).thenReturn("int");
+        when(jdbcConfig.isPolling()).thenReturn(false);
+        when(jdbcConfig.isUseMaxFunc()).thenReturn(false);
+        when(jdbcConfig.getParallelism()).thenReturn(3);
         when(jdbcInputFormat.useCustomReporter()).thenReturn(true);
         jdbcInputFormat.initMetric(split);
 
@@ -320,11 +320,11 @@ public class JdbcInputFormatTest {
         Method getMaxValueFromDb = PowerMockito.method(JdbcInputFormat.class, "getMaxValueFromDb");
         when(getMaxValueFromDb.invoke(jdbcInputFormat)).thenCallRealMethod();
 
-        when(jdbcConf.getIncreColumn()).thenReturn("id");
+        when(jdbcConfig.getIncreColumn()).thenReturn("id");
         when(jdbcDialect.quoteIdentifier("id")).thenCallRealMethod();
-        when(jdbcConf.getStartLocation()).thenReturn("10");
-        when(jdbcConf.isUseMaxFunc()).thenReturn(true);
-        when(jdbcConf.isPolling()).thenReturn(true);
+        when(jdbcConfig.getStartLocation()).thenReturn("10");
+        when(jdbcConfig.isUseMaxFunc()).thenReturn(true);
+        when(jdbcConfig.isPolling()).thenReturn(true);
         when(jdbcInputFormat.buildStartLocationSql("\"id\"", "10", true, true))
                 .thenReturn("id >= 10");
 
@@ -337,12 +337,12 @@ public class JdbcInputFormatTest {
         when(resultSet.getString("max_value")).thenReturn("100");
 
         setInternalState(jdbcInputFormat, "incrementKeyUtil", new NumericTypeUtil());
-        jdbcConf.setCustomSql("");
+        jdbcConfig.setCustomSql("");
         setInternalState(jdbcInputFormat, "type", ColumnType.INTEGER);
-        when(jdbcConf.getCustomSql()).thenCallRealMethod();
+        when(jdbcConfig.getCustomSql()).thenCallRealMethod();
         Assert.assertEquals(getMaxValueFromDb.invoke(jdbcInputFormat), "100");
 
-        when(jdbcConf.getCustomSql()).thenReturn("select id from table");
+        when(jdbcConfig.getCustomSql()).thenReturn("select id from table");
         Assert.assertEquals(getMaxValueFromDb.invoke(jdbcInputFormat), "100");
 
         when(statement.executeQuery(anyString())).thenThrow(new SQLException());
@@ -369,12 +369,12 @@ public class JdbcInputFormatTest {
         setInternalState(jdbcInputFormat, "columnNameList", new ArrayList<>());
         JdbcInputSplit inputSplit = mock(JdbcInputSplit.class);
         when(jdbcInputFormat.buildQuerySql(inputSplit)).thenCallRealMethod();
-        when(jdbcConf.getWhere()).thenReturn("id > 10");
+        when(jdbcConfig.getWhere()).thenReturn("id > 10");
         when(jdbcInputFormat.buildQuerySqlBySplit(any(JdbcInputSplit.class), anyList()))
                 .thenCallRealMethod();
         when(SqlUtil.buildQuerySqlBySplit(any(), any(), anyList(), anyList(), any()))
                 .thenAnswer(invocation -> "select id from table where id > 10");
-        when(SqlUtil.buildOrderSql(jdbcConf, jdbcDialect, "ASC"))
+        when(SqlUtil.buildOrderSql(jdbcConfig, jdbcDialect, "ASC"))
                 .thenAnswer(invocation -> " order by id ASC");
         String except = "select id from table where id > 10 order by id ASC";
         Assert.assertEquals(except, jdbcInputFormat.buildQuerySql(inputSplit));
@@ -386,35 +386,35 @@ public class JdbcInputFormatTest {
                 new JdbcInputSplit(0, 1, 0, "10", "100", null, null, "mod", false);
         List<String> whereList = new ArrayList<>();
         doCallRealMethod().when(jdbcInputFormat).buildLocationFilter(inputSplit, whereList);
-        setInternalState(jdbcInputFormat, "jdbcConf", jdbcConf);
+        setInternalState(jdbcInputFormat, "jdbcConfig", jdbcConfig);
 
         setInternalState(jdbcInputFormat, "incrementKeyUtil", new NumericTypeUtil());
         setInternalState(jdbcInputFormat, "restoreKeyUtil", new NumericTypeUtil());
 
-        doAnswer(invocation -> true).when(jdbcConf).isIncrement();
+        doAnswer(invocation -> true).when(jdbcConfig).isIncrement();
         jdbcInputFormat.buildLocationFilter(inputSplit, whereList);
         when(jdbcInputFormat.buildFilterSql(
                         anyString(), anyString(), anyString(), anyBoolean(), anyString()))
                 .thenCallRealMethod();
 
-        when(jdbcConf.isUseMaxFunc()).thenReturn(true);
+        when(jdbcConfig.isUseMaxFunc()).thenReturn(true);
         when(jdbcDialect.quoteIdentifier(anyString())).thenCallRealMethod();
 
         // from state
-        when(jdbcConf.getCustomSql()).thenReturn("");
+        when(jdbcConfig.getCustomSql()).thenReturn("");
         when(formatState.getState()).thenReturn(20);
-        when(jdbcConf.getRestoreColumn()).thenReturn("id");
+        when(jdbcConfig.getRestoreColumn()).thenReturn("id");
 
-        when(jdbcConf.isIncrement()).thenReturn(true);
+        when(jdbcConfig.isIncrement()).thenReturn(true);
         jdbcInputFormat.buildLocationFilter(inputSplit, whereList);
         Assert.assertEquals(inputSplit.getStartLocation(), "20");
         // increment
 
-        when(jdbcConf.getCustomSql()).thenReturn("select id from table");
-        when(jdbcConf.getIncreColumn()).thenReturn("id");
-        when(jdbcConf.getIncreColumnType()).thenReturn("int");
+        when(jdbcConfig.getCustomSql()).thenReturn("select id from table");
+        when(jdbcConfig.getIncreColumn()).thenReturn("id");
+        when(jdbcConfig.getIncreColumnType()).thenReturn("int");
         when(formatState.getState()).thenReturn(null);
-        when(jdbcConf.isPolling()).thenReturn(true);
+        when(jdbcConfig.isPolling()).thenReturn(true);
         jdbcInputFormat.buildLocationFilter(inputSplit, whereList);
         Assert.assertTrue(whereList.contains("chunjun_tmp.\"id\" < 100"));
     }
@@ -431,7 +431,7 @@ public class JdbcInputFormatTest {
         doCallRealMethod().when(jdbcInputFormat).executeQuery(anyString());
         doCallRealMethod().when(jdbcInputFormat).initPrepareStatement(anyString());
 
-        when(jdbcConf.getQuerySql()).thenReturn("select id from table");
+        when(jdbcConfig.getQuerySql()).thenReturn("select id from table");
         when(jdbcDialect.quoteIdentifier(anyString())).thenCallRealMethod();
 
         when(split.isPolling()).thenReturn(true, true, false);

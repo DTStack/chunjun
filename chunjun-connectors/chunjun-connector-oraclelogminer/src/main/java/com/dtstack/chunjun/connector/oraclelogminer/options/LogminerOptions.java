@@ -17,17 +17,19 @@
  */
 package com.dtstack.chunjun.connector.oraclelogminer.options;
 
+import com.dtstack.chunjun.connector.oraclelogminer.format.TimestampFormat;
 import com.dtstack.chunjun.constants.ConstantValue;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
+import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.table.api.TableException;
 
-/**
- * Date: 2021/05/06 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class LogminerOptions {
+
+    public static final String SQL = "SQL";
+    public static final String ISO_8601 = "ISO-8601";
+
     public static final ConfigOption<String> JDBC_URL =
             ConfigOptions.key("url")
                     .stringType()
@@ -118,4 +120,28 @@ public class LogminerOptions {
                     .defaultValue(20)
                     .withDescription(
                             "Oracle LogMiner cache expire time  and  default value is 20 minutes");
+
+    public static final ConfigOption<String> TIMESTAMP_FORMAT =
+            ConfigOptions.key("timestamp-format.standard")
+                    .stringType()
+                    .defaultValue("SQL")
+                    .withDescription(
+                            "Optional flag to specify timestamp format, SQL by default."
+                                    + " Option ISO-8601 will parse input timestamp in \"yyyy-MM-ddTHH:mm:ss.s{precision}\" format and output timestamp in the same format."
+                                    + " Option SQL will parse input timestamp in \"yyyy-MM-dd HH:mm:ss.s{precision}\" format and output timestamp in the same format.");
+
+    public static TimestampFormat getTimestampFormat(ReadableConfig config) {
+        String timestampFormat = config.get(TIMESTAMP_FORMAT);
+        switch (timestampFormat) {
+            case SQL:
+                return TimestampFormat.SQL;
+            case ISO_8601:
+                return TimestampFormat.ISO_8601;
+            default:
+                throw new TableException(
+                        String.format(
+                                "Unsupported timestamp format '%s'. Validator should have checked that.",
+                                timestampFormat));
+        }
+    }
 }

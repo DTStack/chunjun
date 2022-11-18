@@ -120,7 +120,7 @@ Standalone mode depend on the Flink Standalone environment and does not depend o
 ##### 1. add jars of chunjun 
 1) Find directory of jars:
    if you build this project using maven, the directory name is 'chunjun-dist' ;
-   if you download tar.gz file from release page, after decompression, the directory name would be like 'chunjun-assembly-1.12-SNAPSHOT-chunjun-dist'.
+   if you download tar.gz file from release page, after decompression, the directory name would be like 'chunjun-assembly-1.16-SNAPSHOT-chunjun-dist'.
 
 2) Copy jars to directory of Flink lib, command example:
 ```shell

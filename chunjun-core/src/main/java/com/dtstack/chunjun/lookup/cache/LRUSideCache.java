@@ -23,11 +23,6 @@ import com.google.common.cache.CacheBuilder;
 
 import java.util.concurrent.TimeUnit;
 
-/**
- * Reason: Date: 2018/9/10 Company: www.dtstack.com
- *
- * @author xuchao
- */
 public class LRUSideCache extends AbstractSideCache {
 
     protected transient Cache<String, CacheObj> cache;

@@ -44,11 +44,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQueries;
 import java.util.Arrays;
 
-/**
- * Date: 2021/06/16 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsTextRowConverter
         extends AbstractRowConverter<RowData, RowData, String[], LogicalType> {
 

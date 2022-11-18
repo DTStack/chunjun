@@ -21,11 +21,6 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 
 import java.io.Serializable;
 
-/**
- * Date: 2021/04/30 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class BinlogEventRow implements Serializable {
     private static final long serialVersionUID = 1L;
 

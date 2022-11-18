@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.stream.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.stream.config.StreamConfig;
 import com.dtstack.chunjun.connector.stream.converter.StreamColumnConverter;
 import com.dtstack.chunjun.connector.stream.converter.StreamRawTypeConverter;
@@ -37,7 +37,7 @@ import org.apache.flink.table.types.logical.RowType;
 public class StreamSourceFactory extends SourceFactory {
     private final StreamConfig streamConfig;
 
-    public StreamSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
+    public StreamSourceFactory(SyncConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         streamConfig =
                 GsonUtil.GSON.fromJson(

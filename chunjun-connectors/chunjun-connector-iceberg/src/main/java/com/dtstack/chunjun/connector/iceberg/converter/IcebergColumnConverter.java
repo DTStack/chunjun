@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.iceberg.converter;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -49,7 +49,7 @@ public class IcebergColumnConverter extends AbstractRowConverter<RowData, RowDat
     private List<String> columnNameList;
     private transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
-    public IcebergColumnConverter(List<FieldConf> fieldConfList) {
+    public IcebergColumnConverter(List<FieldConfig> fieldConfList) {
         super(fieldConfList.size());
         for (int i = 0; i < fieldConfList.size(); i++) {
             String type = fieldConfList.get(i).getType();

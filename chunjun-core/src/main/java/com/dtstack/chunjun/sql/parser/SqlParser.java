@@ -33,18 +33,13 @@ import org.apache.commons.lang3.StringUtils;
 import java.net.URL;
 import java.util.List;
 
-/**
- * Reason: Date: 2018/6/22 Company: www.dtstack.com
- *
- * @author xuchao
- */
 public class SqlParser {
 
     private static final char SQL_DELIMITER = ';';
 
     /**
      * flink support sql syntax CREATE TABLE sls_stream() with (); CREATE (TABLE|SCALA) FUNCTION
-     * fcnName WITH com.dtstack.com; insert into tb1 select * from tb2;
+     * fcnName WITH insert into tb1 select * from tb2;
      *
      * @param
      */

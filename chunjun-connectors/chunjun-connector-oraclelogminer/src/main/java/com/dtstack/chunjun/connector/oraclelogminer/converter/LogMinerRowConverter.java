@@ -47,11 +47,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Date: 2021/04/29 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class LogMinerRowConverter extends AbstractCDCRowConverter<EventRow, LogicalType> {
 
     public LogMinerRowConverter(RowType rowType) {
@@ -77,10 +72,7 @@ public class LogMinerRowConverter extends AbstractCDCRowConverter<EventRow, Logi
 
         List<EventRowData> afterRowDataList = eventRow.getAfterColumnList();
         Map<Object, Object> afterMap = Maps.newHashMapWithExpectedSize(afterRowDataList.size());
-        afterRowDataList.forEach(
-                x -> {
-                    afterMap.put(x.getName(), x.getData());
-                });
+        afterRowDataList.forEach(x -> afterMap.put(x.getName(), x.getData()));
 
         switch (eventType) {
             case "INSERT":

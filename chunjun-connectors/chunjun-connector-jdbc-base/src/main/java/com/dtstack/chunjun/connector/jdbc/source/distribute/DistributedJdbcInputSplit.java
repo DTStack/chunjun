@@ -17,24 +17,19 @@
  */
 package com.dtstack.chunjun.connector.jdbc.source.distribute;
 
-import com.dtstack.chunjun.connector.jdbc.conf.DataSourceConf;
+import com.dtstack.chunjun.connector.jdbc.config.DataSourceConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 
 import java.util.List;
 
-/**
- * Date: 2022/01/12 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class DistributedJdbcInputSplit extends JdbcInputSplit {
 
-    private List<DataSourceConf> sourceList;
+    private List<DataSourceConfig> sourceList;
 
     public DistributedJdbcInputSplit(
             int partitionNumber,
             int totalNumberOfPartitions,
-            List<DataSourceConf> sourceList,
+            List<DataSourceConfig> sourceList,
             String splitStrategy,
             boolean isPolling) {
         super(
@@ -50,11 +45,11 @@ public class DistributedJdbcInputSplit extends JdbcInputSplit {
         this.sourceList = sourceList;
     }
 
-    public List<DataSourceConf> getSourceList() {
+    public List<DataSourceConfig> getSourceList() {
         return sourceList;
     }
 
-    public void setSourceList(List<DataSourceConf> sourceList) {
+    public void setSourceList(List<DataSourceConfig> sourceList) {
         this.sourceList = sourceList;
     }
 }

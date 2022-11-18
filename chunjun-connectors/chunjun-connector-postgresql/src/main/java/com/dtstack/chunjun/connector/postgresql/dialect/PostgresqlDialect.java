@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.postgresql.dialect;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -38,11 +38,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * @program chunjun
- * @author: wuren
- * @create: 2021/04/22
- */
 public class PostgresqlDialect implements JdbcDialect {
 
     private static final String DIALECT_NAME = "PostgreSQL";
@@ -69,8 +64,8 @@ public class PostgresqlDialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
-        return new PostgresqlColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new PostgresqlColumnConverter(rowType, commonConfig);
     }
 
     @Override

@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.listener;
 
-import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.EventRow;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.EventRowData;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.QueueData;
@@ -55,21 +54,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * @author jiangbo
- * @date 2020/3/30
- */
 public class LogParser {
 
     public static Logger LOG = LoggerFactory.getLogger(LogParser.class);
 
     public static SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
-
-    private final LogMinerConf config;
-
-    public LogParser(LogMinerConf config) {
-        this.config = config;
-    }
 
     private static String cleanString(String str) {
         if ("NULL".equalsIgnoreCase(str)) {
@@ -173,12 +162,6 @@ public class LogParser {
                         });
     }
 
-    /**
-     * parse time type data
-     *
-     * @param value
-     * @return
-     */
     public static String parseTime(String value) {
         if (!value.endsWith("')")) {
             return value;

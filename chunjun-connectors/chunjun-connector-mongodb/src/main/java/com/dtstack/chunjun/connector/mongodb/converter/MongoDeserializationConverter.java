@@ -18,22 +18,9 @@
 
 package com.dtstack.chunjun.connector.mongodb.converter;
 
-import org.apache.flink.table.data.RowData;
-
 import java.io.Serializable;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/27
- */
 public interface MongoDeserializationConverter extends Serializable {
-    /**
-     * Runtime converter to convert field to {@link RowData} type object
-     *
-     * @param field
-     * @return
-     * @throws Exception
-     */
+
     Object deserialize(Object field);
 }

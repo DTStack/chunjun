@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.kudu.table;
 
-import com.dtstack.chunjun.connector.kudu.conf.KuduLookupConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduSinkConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduSourceConf;
+import com.dtstack.chunjun.connector.kudu.config.KuduLookupConf;
+import com.dtstack.chunjun.connector.kudu.config.KuduSinkConfig;
+import com.dtstack.chunjun.connector.kudu.config.KuduSourceConfig;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
@@ -67,10 +67,6 @@ import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_MA
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_MAX_RETRIES;
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_PARALLELISM;
 
-/**
- * @author tiezhu
- * @since 2021/6/9 星期三
- */
 public class KuduDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     private static final String IDENTIFIER = "kudu-x";
@@ -87,7 +83,7 @@ public class KuduDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         TableSchema tableSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
-        KuduSinkConf kuduSinkConf = KuduSinkConf.from(options);
+        KuduSinkConfig kuduSinkConf = KuduSinkConfig.from(options);
 
         return new KuduDynamicTableSink(kuduSinkConf, tableSchema);
     }
@@ -104,7 +100,7 @@ public class KuduDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         TableSchema tableSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
-        KuduSourceConf kuduSourceConf = KuduSourceConf.from(options);
+        KuduSourceConfig kuduSourceConf = KuduSourceConfig.from(options);
         KuduLookupConf kuduLookupConf = KuduLookupConf.from(options);
 
         return new KuduDynamicTableSource(kuduSourceConf, kuduLookupConf, tableSchema);

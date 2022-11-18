@@ -30,7 +30,6 @@ import org.apache.flink.util.Preconditions;
 
 import java.util.Objects;
 
-/** @author liuliu 2022/5/12 */
 public class ColumnRowDataTypeInfo<T> extends TypeInformation<T> {
 
     private static final String FORMAT = "%s(%s, %s)";

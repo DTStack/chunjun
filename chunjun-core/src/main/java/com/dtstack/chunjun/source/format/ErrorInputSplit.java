@@ -20,10 +20,6 @@ package com.dtstack.chunjun.source.format;
 
 import org.apache.flink.core.io.InputSplit;
 
-/**
- * @author jiangbo
- * @date 2019/11/21
- */
 public class ErrorInputSplit implements InputSplit {
 
     int splitNumber;

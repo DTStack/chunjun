@@ -46,10 +46,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-/**
- * @author jiangbo
- * @date 2019/12/14
- */
 public class SqlUtil {
 
     /**
@@ -573,42 +569,37 @@ public class SqlUtil {
         if (tables.size() == 1) {
             where += " a.OWNER = ?\n" + " and a.TABLE_NAME = ?";
         } else {
-            StringBuilder append = new StringBuilder().append(where).append("(");
-            append.append(
-                            tables.stream()
+            where =
+                    where
+                            + "("
+                            + tables.stream()
                                     .map(
                                             i ->
                                                     String.format(
                                                             "(a.OWNER = '%s' and a.TABLE_NAME = '%s')",
                                                             i.getLeft(), i.getRight()))
-                                    .collect(Collectors.joining("OR")))
-                    .append(")");
-            where = append.toString();
+                                    .collect(Collectors.joining("OR"))
+                            + ")";
         }
         return String.format(SQL_QUERY_TABLE_COLUMN_INFO_TEMPLATE, where);
     }
 
     public static String formatGetTableInfoSql(String schema, String table) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(" and ");
-        sb.append(" a.OWNER = ");
-        sb.append("'");
-        sb.append(schema);
-        sb.append("'");
-        sb.append(" and a.TABLE_NAME = ");
-        sb.append("'");
-        sb.append(table);
-        sb.append("'");
-        String where = sb.toString();
+        String where =
+                " and "
+                        + " a.OWNER = "
+                        + "'"
+                        + schema
+                        + "'"
+                        + " and a.TABLE_NAME = "
+                        + "'"
+                        + table
+                        + "'";
         return String.format(SQL_QUERY_TABLE_COLUMN_INFO_TEMPLATE, where);
     }
 
     public static String formatLockTableWithRowShare(String table) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("lock table ");
-        sb.append(table);
-        sb.append(" IN ROW SHARE MODE");
-        return sb.toString();
+        return "lock table " + table + " IN ROW SHARE MODE";
     }
 
     public static String queryDataByScn(String tableWithSchema, BigInteger scn) {
@@ -677,7 +668,7 @@ public class SqlUtil {
 
             case "DATE":
                 if (val instanceof Timestamp) {
-                    String formatTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:SS").format(val);
+                    String formatTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(val);
                     return new TimestampColumn(DateUtil.getTimestampFromStr(formatTime), 0);
                 }
 

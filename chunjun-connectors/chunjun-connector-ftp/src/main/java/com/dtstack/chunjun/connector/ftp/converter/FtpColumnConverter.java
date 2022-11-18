@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.converter;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -47,12 +47,8 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/06/19
- */
-public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, String, FieldConf> {
+public class FtpColumnConverter
+        extends AbstractRowConverter<RowData, RowData, String, FieldConfig> {
 
     private final FtpConfig ftpConfig;
 
@@ -60,13 +56,13 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
         super(rowType);
         this.ftpConfig = ftpConfig;
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            FieldConf fieldConf = ftpConfig.getColumn().get(i);
+            FieldConfig fieldConfig = ftpConfig.getColumn().get(i);
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
                             createInternalConverter(rowType.getTypeAt(i))));
             toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldConf), fieldConf));
+                            createExternalConverter(fieldConfig), fieldConfig));
         }
     }
 
@@ -109,7 +105,7 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
     @Override
     @SuppressWarnings("unchecked")
     protected ISerializationConverter<List<String>> wrapIntoNullableExternalConverter(
-            ISerializationConverter serializationConverter, FieldConf fieldConf) {
+            ISerializationConverter serializationConverter, FieldConfig fieldConfig) {
         return (rowData, index, list) -> {
             if (rowData == null || rowData.isNullAt(index)) {
                 list.add(index, null);
@@ -159,7 +155,8 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
     }
 
     @Override
-    protected ISerializationConverter<List<String>> createExternalConverter(FieldConf fieldConf) {
+    protected ISerializationConverter<List<String>> createExternalConverter(
+            FieldConfig fieldConfig) {
         return (rowData, index, list) ->
                 list.add(index, ((ColumnRowData) rowData).getField(index).asString());
     }

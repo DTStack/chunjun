@@ -21,11 +21,6 @@ import org.apache.flink.table.data.RowData;
 
 import java.io.Serializable;
 
-/**
- * Date: 2021/04/30 Company: www.dtstack.com
- *
- * @author tudou
- */
 public interface ISerializationConverter<T> extends Serializable {
 
     /**

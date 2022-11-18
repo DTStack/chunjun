@@ -23,11 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
 
-/**
- * Date: 2021/06/17 Company: www.dtstack.com
- *
- * @author tudou
- */
 public enum FileType {
     TEXT,
     ORC,

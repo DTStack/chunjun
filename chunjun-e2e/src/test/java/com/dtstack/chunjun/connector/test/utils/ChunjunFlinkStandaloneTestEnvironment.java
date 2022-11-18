@@ -62,11 +62,6 @@ import java.util.stream.Stream;
 
 import static org.apache.flink.util.Preconditions.checkState;
 
-/**
- * @author jayce
- * @version 1.0
- * @date 2022/8/11 11:18
- */
 public class ChunjunFlinkStandaloneTestEnvironment {
     private static final Logger LOG =
             LoggerFactory.getLogger(ChunjunFlinkStandaloneTestEnvironment.class);
@@ -159,17 +154,17 @@ public class ChunjunFlinkStandaloneTestEnvironment {
         return restClusterClient;
     }
 
-    protected void submitSyncJobOnStandLone(String syncConf) throws Exception {
-        this.submitSyncJobOnStandLoneWithParameters(syncConf, null);
+    protected void submitSyncJobOnStandLone(String syncConfig) throws Exception {
+        this.submitSyncJobOnStandLoneWithParameters(syncConfig, null);
     }
 
     protected void submitSyncJobOnStandLoneWithParameters(
-            String syncConf, Map<String, String> parameters) throws Exception {
+            String syncConfig, Map<String, String> parameters) throws Exception {
         String[] syncs =
                 new LaunchCommandBuilder("sync")
                         .withFlinkConfDir("/opt/flink/conf")
                         .withRunningMode(ClusterMode.standalone)
-                        .withJobContentPath(syncConf)
+                        .withJobContentPath(syncConfig)
                         .withChunJunDistDir(CHUNJUN_DIST)
                         .withFlinkLibDir(CHUNJUN_LIB)
                         .withParameters(parameters)

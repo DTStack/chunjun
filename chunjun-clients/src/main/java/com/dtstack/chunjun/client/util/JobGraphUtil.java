@@ -36,11 +36,6 @@ import java.util.stream.Collectors;
 
 import static org.apache.flink.configuration.CoreOptions.DEFAULT_PARALLELISM;
 
-/**
- * @program: ChunJun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
 public class JobGraphUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(JobGraphUtil.class);

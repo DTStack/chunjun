@@ -19,32 +19,27 @@
 package com.dtstack.chunjun.connector.elasticsearch6.table;
 
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRowConverter;
-import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.connector.elasticsearch6.sink.Elasticsearch6OutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
-import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
+import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.types.RowKind;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/19 14:54
- */
 public class Elasticsearch6DynamicTableSink implements DynamicTableSink {
 
-    private final TableSchema physicalSchema;
-    private final Elasticsearch6Conf elasticsearchConf;
+    private final ResolvedSchema physicalSchema;
+    private final Elasticsearch6Config elasticsearchConfig;
 
     public Elasticsearch6DynamicTableSink(
-            TableSchema physicalSchema, Elasticsearch6Conf elasticsearchConf) {
+            ResolvedSchema physicalSchema, Elasticsearch6Config elasticsearchConfig) {
         this.physicalSchema = physicalSchema;
-        this.elasticsearchConf = elasticsearchConf;
+        this.elasticsearchConfig = elasticsearchConfig;
     }
 
     @Override
@@ -60,20 +55,21 @@ public class Elasticsearch6DynamicTableSink implements DynamicTableSink {
 
     @Override
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
+        LogicalType logicalType = physicalSchema.toPhysicalRowDataType().getLogicalType();
 
         Elasticsearch6OutputFormatBuilder builder = new Elasticsearch6OutputFormatBuilder();
-        builder.setRowConverter(new ElasticsearchRowConverter(rowType));
-        builder.setEsConf(elasticsearchConf);
+        builder.setRowConverter(
+                new ElasticsearchRowConverter(InternalTypeInfo.of(logicalType).toRowType()));
+        builder.setEsConf(elasticsearchConfig);
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction<>(builder.finish()),
-                elasticsearchConf.getParallelism());
+                elasticsearchConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new Elasticsearch6DynamicTableSink(physicalSchema, elasticsearchConf);
+        return new Elasticsearch6DynamicTableSink(physicalSchema, elasticsearchConfig);
     }
 
     @Override

@@ -40,13 +40,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Date: 2020/06/12 Company: www.dtstack.com
- *
- * <p>Gson工具类，用于对json的序列化及反序列化，及解决int类型在map中被转换成double类型问题
- *
- * @author tudou
- */
 public class GsonUtil {
     private static final Logger LOG = LoggerFactory.getLogger(GsonUtil.class);
     public static Gson GSON = getGson();

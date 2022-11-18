@@ -47,11 +47,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/**
- * Date: 2019/12/03 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class SqlServerCdcUtil {
     private static final Logger LOG = LoggerFactory.getLogger(SqlServerCdcUtil.class);
 
@@ -84,14 +79,6 @@ public class SqlServerCdcUtil {
         }
     }
 
-    /**
-     * check database cdc is enable
-     *
-     * @param conn
-     * @param databaseName
-     * @return
-     * @throws SQLException
-     */
     public static boolean checkEnabledCdcDatabase(Connection conn, String databaseName)
             throws SQLException {
 
@@ -113,14 +100,6 @@ public class SqlServerCdcUtil {
         return ret;
     }
 
-    /**
-     * check table is enable
-     *
-     * @param conn
-     * @param tableSet
-     * @return
-     * @throws SQLException
-     */
     public static Set<String> checkUnEnabledCdcTables(Connection conn, Collection<String> tableSet)
             throws SQLException {
         if (CollectionUtils.isEmpty(tableSet)) {
@@ -145,14 +124,6 @@ public class SqlServerCdcUtil {
         return unEnabledCdcTables;
     }
 
-    /**
-     * get tables which changes
-     *
-     * @param conn
-     * @param databaseName
-     * @return
-     * @throws SQLException
-     */
     public static Set<ChangeTable> queryChangeTableSet(Connection conn, String databaseName)
             throws SQLException {
         Set<ChangeTable> changeTableSet = new HashSet<>();
@@ -183,13 +154,6 @@ public class SqlServerCdcUtil {
         return changeTableSet;
     }
 
-    /**
-     * get current max lsn
-     *
-     * @param conn
-     * @return
-     * @throws SQLException
-     */
     public static Lsn getMaxLsn(Connection conn) throws SQLException {
         Lsn lsn = null;
         try (Statement statement = conn.createStatement()) {
@@ -205,15 +169,6 @@ public class SqlServerCdcUtil {
         return lsn;
     }
 
-    /**
-     * get tables detail changes
-     *
-     * @param conn
-     * @param databaseName
-     * @param tableList
-     * @return
-     * @throws SQLException
-     */
     public static ChangeTable[] getCdcTablesToQuery(
             Connection conn, String databaseName, List<String> tableList) throws SQLException {
         Set<ChangeTable> cdcEnabledTableSet =
@@ -276,16 +231,6 @@ public class SqlServerCdcUtil {
         return ret;
     }
 
-    /**
-     * get changes resultSet by tables
-     *
-     * @param conn
-     * @param changeTables
-     * @param intervalFromLsn
-     * @param intervalToLsn
-     * @return
-     * @throws SQLException
-     */
     public static StatementResult[] getChangesForTables(
             Connection conn, ChangeTable[] changeTables, Lsn intervalFromLsn, Lsn intervalToLsn)
             throws SQLException {
@@ -317,15 +262,6 @@ public class SqlServerCdcUtil {
         return resultSets;
     }
 
-    /**
-     * get jdbc connection
-     *
-     * @param url
-     * @param username
-     * @param password
-     * @return
-     * @throws SQLException
-     */
     public static Connection getConnection(String url, String username, String password)
             throws SQLException {
         Connection dbConn;

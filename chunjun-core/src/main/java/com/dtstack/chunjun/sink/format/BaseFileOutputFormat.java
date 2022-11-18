@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.sink.format;
 
-import com.dtstack.chunjun.conf.BaseFileConfig;
+import com.dtstack.chunjun.config.BaseFileConfig;
 import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.enums.SizeUnitType;
 import com.dtstack.chunjun.sink.WriteMode;

@@ -19,35 +19,30 @@
 package com.dtstack.chunjun.connector.elasticsearch6.table;
 
 import com.dtstack.chunjun.connector.elasticsearch.table.ElasticsearchDynamicTableFactoryBase;
-import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
+import org.apache.flink.table.catalog.UniqueConstraint;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_MAX_ACTIONS_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.DOCUMENT_TYPE_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.HOSTS_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.INDEX_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.KEY_DELIMITER_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.PASSWORD_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.USERNAME_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.BULK_FLUSH_MAX_ACTIONS_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.HOSTS_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.INDEX_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.KEY_DELIMITER_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.PASSWORD_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.USERNAME_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchConnectorOptions.DOCUMENT_TYPE_OPTION;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/21 10:06
- */
 public class Elasticsearch6DynamicTableFactory extends ElasticsearchDynamicTableFactoryBase {
 
     private static final String FACTORY_IDENTIFIER = "elasticsearch6-x";
@@ -70,11 +65,10 @@ public class Elasticsearch6DynamicTableFactory extends ElasticsearchDynamicTable
         helper.validate();
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
         return new Elasticsearch6DynamicTableSink(
-                physicalSchema, getElasticsearchConf(config, physicalSchema));
+                resolvedSchema, getElasticsearchConfig(config, resolvedSchema));
     }
 
     @Override
@@ -88,13 +82,13 @@ public class Elasticsearch6DynamicTableFactory extends ElasticsearchDynamicTable
         helper.validate();
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
         return new Elasticsearch6DynamicTableSource(
-                physicalSchema,
-                getElasticsearchConf(config, physicalSchema),
-                getElasticsearchLookupConf(config, context.getObjectIdentifier().getObjectName()));
+                resolvedSchema,
+                getElasticsearchConfig(config, resolvedSchema),
+                getElasticsearchLookupConfig(
+                        config, context.getObjectIdentifier().getObjectName()));
     }
 
     @Override
@@ -104,20 +98,23 @@ public class Elasticsearch6DynamicTableFactory extends ElasticsearchDynamicTable
         return requiredOptions;
     }
 
-    private Elasticsearch6Conf getElasticsearchConf(
-            ReadableConfig readableConfig, TableSchema schema) {
-        Elasticsearch6Conf elasticsearchConf = new Elasticsearch6Conf();
+    private Elasticsearch6Config getElasticsearchConfig(
+            ReadableConfig readableConfig, ResolvedSchema schema) {
+        Elasticsearch6Config elasticsearchConfig = new Elasticsearch6Config();
 
-        elasticsearchConf.setHosts(readableConfig.get(HOSTS_OPTION));
-        elasticsearchConf.setIndex(readableConfig.get(INDEX_OPTION));
-        elasticsearchConf.setType(readableConfig.get(DOCUMENT_TYPE_OPTION));
-        elasticsearchConf.setKeyDelimiter(readableConfig.get(KEY_DELIMITER_OPTION));
-        elasticsearchConf.setBatchSize(readableConfig.get(BULK_FLUSH_MAX_ACTIONS_OPTION));
-        elasticsearchConf.setUsername(readableConfig.get(USERNAME_OPTION));
-        elasticsearchConf.setPassword(readableConfig.get(PASSWORD_OPTION));
+        elasticsearchConfig.setHosts(readableConfig.get(HOSTS_OPTION));
+        elasticsearchConfig.setIndex(readableConfig.get(INDEX_OPTION));
+        elasticsearchConfig.setType(readableConfig.get(DOCUMENT_TYPE_OPTION));
+        elasticsearchConfig.setKeyDelimiter(readableConfig.get(KEY_DELIMITER_OPTION));
+        elasticsearchConfig.setBatchSize(readableConfig.get(BULK_FLUSH_MAX_ACTIONS_OPTION));
+        elasticsearchConfig.setUsername(readableConfig.get(USERNAME_OPTION));
+        elasticsearchConfig.setPassword(readableConfig.get(PASSWORD_OPTION));
 
-        List<String> keyFields = schema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
-        elasticsearchConf.setIds(keyFields);
-        return elasticsearchConf;
+        List<String> keyFields =
+                schema.getPrimaryKey()
+                        .map(UniqueConstraint::getColumns)
+                        .orElse(Collections.emptyList());
+        elasticsearchConfig.setIds(keyFields);
+        return elasticsearchConfig;
     }
 }

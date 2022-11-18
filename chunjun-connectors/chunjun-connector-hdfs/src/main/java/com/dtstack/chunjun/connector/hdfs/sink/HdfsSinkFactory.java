@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.hdfs.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsRawTypeConverter;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -30,35 +30,31 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 
-/**
- * Date: 2021/06/09 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsSinkFactory extends SinkFactory {
 
-    private final HdfsConf hdfsConf;
+    private final HdfsConfig hdfsConfig;
 
-    public HdfsSinkFactory(SyncConf config) {
+    public HdfsSinkFactory(SyncConfig config) {
         super(config);
-        hdfsConf =
+        hdfsConfig =
                 GsonUtil.GSON.fromJson(
-                        GsonUtil.GSON.toJson(config.getWriter().getParameter()), HdfsConf.class);
-        hdfsConf.setColumn(config.getWriter().getFieldList());
-        super.initCommonConf(hdfsConf);
+                        GsonUtil.GSON.toJson(config.getWriter().getParameter()), HdfsConfig.class);
+        hdfsConfig.setColumn(config.getWriter().getFieldList());
+        super.initCommonConf(hdfsConfig);
     }
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
-        HdfsOutputFormatBuilder builder = HdfsOutputFormatBuilder.newBuild(hdfsConf.getFileType());
-        builder.setHdfsConf(hdfsConf);
+        HdfsOutputFormatBuilder builder =
+                HdfsOutputFormatBuilder.newBuild(hdfsConfig.getFileType());
+        builder.setHdfsConf(hdfsConfig);
         AbstractRowConverter rowConverter =
                 HdfsUtil.createRowConverter(
                         useAbstractBaseColumn,
-                        hdfsConf.getFileType(),
-                        hdfsConf.getColumn(),
+                        hdfsConfig.getFileType(),
+                        hdfsConfig.getColumn(),
                         getRawTypeConverter(),
-                        hdfsConf);
+                        hdfsConfig);
 
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());

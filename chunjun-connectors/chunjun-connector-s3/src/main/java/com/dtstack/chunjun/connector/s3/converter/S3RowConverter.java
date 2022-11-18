@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.s3.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -37,7 +37,7 @@ import java.time.LocalTime;
 
 public class S3RowConverter extends AbstractRowConverter<String[], RowData, String[], LogicalType> {
 
-    public S3RowConverter(RowType rowType, ChunJunCommonConf conf) {
+    public S3RowConverter(RowType rowType, CommonConfig conf) {
         super(rowType, conf);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
@@ -129,7 +129,7 @@ public class S3RowConverter extends AbstractRowConverter<String[], RowData, Stri
 
     @Override
     protected ISerializationConverter<String[]> wrapIntoNullableExternalConverter(
-            ISerializationConverter<String[]> ISerializationConverter, LogicalType type) {
-        return (val, index, output) -> ISerializationConverter.serialize(val, index, output);
+            ISerializationConverter<String[]> converter, LogicalType type) {
+        return converter;
     }
 }

@@ -21,10 +21,6 @@ package com.dtstack.chunjun.util;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
-/**
- * @author jiangbo
- * @date 2020/2/13
- */
 public class Md5Util {
 
     private static final char[] DIGITS_LOWER = {

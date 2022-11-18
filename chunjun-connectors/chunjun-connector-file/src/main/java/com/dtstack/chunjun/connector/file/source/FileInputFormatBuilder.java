@@ -18,32 +18,26 @@
 
 package com.dtstack.chunjun.connector.file.source;
 
-import com.dtstack.chunjun.conf.BaseFileConf;
+import com.dtstack.chunjun.config.BaseFileConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @program: ChunJun
- * @author: xiuzhu
- * @create: 2021/06/24
- */
 public class FileInputFormatBuilder extends BaseRichInputFormatBuilder<FileInputFormat> {
 
     public FileInputFormatBuilder() {
         super(new FileInputFormat());
     }
 
-    public void setFileConf(BaseFileConf fileConf) {
-        super.setConfig(fileConf);
-        format.setFileConf(fileConf);
+    public void setFileConf(BaseFileConfig fileConfig) {
+        super.setConfig(fileConfig);
+        format.setFileConfig(fileConfig);
     }
 
     @Override
     protected void checkFormat() {
-
-        BaseFileConf fileConf = format.getFileConf();
-        if (StringUtils.isBlank(fileConf.getPath())) {
+        BaseFileConfig fileConfig = format.getFileConfig();
+        if (StringUtils.isBlank(fileConfig.getPath())) {
             throw new IllegalArgumentException("file path cannot be blank");
         }
     }

@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.mongodb.source;
 
 import com.dtstack.chunjun.connector.mongodb.MongoClientFactory;
-import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
+import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
 import com.dtstack.chunjun.util.ExceptionUtil;
@@ -36,47 +36,43 @@ import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
 public class MongodbInputFormat extends BaseRichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(MongodbInputFormat.class);
 
-    private final MongoClientConf mongoClientConf;
+    private final MongoClientConfig mongoClientConfig;
     private final Bson filter;
     private final int fetchSize;
 
     private transient MongoCursor<Document> cursor;
     private transient MongoClient mongoClient;
 
-    public MongodbInputFormat(MongoClientConf mongoClientConf, Bson filter, int fetchSize) {
-        this.mongoClientConf = mongoClientConf;
+    public MongodbInputFormat(MongoClientConfig mongoClientConfig, Bson filter, int fetchSize) {
+        this.mongoClientConfig = mongoClientConfig;
         this.filter = filter;
         this.fetchSize = fetchSize;
     }
 
     @Override
-    protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
+    protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
         ArrayList<MongodbInputSplit> splits = new ArrayList<>();
 
         MongoClient client = null;
         try {
-            client = MongoClientFactory.createClient(mongoClientConf);
+            client = MongoClientFactory.createClient(mongoClientConfig);
             MongoCollection<Document> collection =
                     MongoClientFactory.createCollection(
-                            client, mongoClientConf.getDatabase(), mongoClientConf.getCollection());
+                            client,
+                            mongoClientConfig.getDatabase(),
+                            mongoClientConfig.getCollection());
 
             // 不使用 collection.countDocuments() 获取总数是因为这个方法在大数据量时超时，导致出现超时异常结束任务
             long docNum = collection.estimatedDocumentCount();
             if (docNum <= minNumSplits) {
                 splits.add(new MongodbInputSplit(0, (int) docNum));
-                return splits.toArray(new MongodbInputSplit[splits.size()]);
+                return splits.toArray(new MongodbInputSplit[0]);
             }
 
             long size = Math.floorDiv(docNum, minNumSplits);
@@ -96,21 +92,21 @@ public class MongodbInputFormat extends BaseRichInputFormat {
             closeMongo(client, null);
         }
 
-        return splits.toArray(new MongodbInputSplit[splits.size()]);
+        return splits.toArray(new MongodbInputSplit[0]);
     }
 
     @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
+    protected void openInternal(InputSplit inputSplit) {
         LOG.info("inputSplit = {}", inputSplit);
         MongodbInputSplit split = (MongodbInputSplit) inputSplit;
         FindIterable<Document> findIterable;
 
-        mongoClient = MongoClientFactory.createClient(mongoClientConf);
+        mongoClient = MongoClientFactory.createClient(mongoClientConfig);
         MongoCollection<Document> collection =
                 MongoClientFactory.createCollection(
                         mongoClient,
-                        mongoClientConf.getDatabase(),
-                        mongoClientConf.getCollection());
+                        mongoClientConfig.getDatabase(),
+                        mongoClientConfig.getCollection());
 
         if (filter == null) {
             findIterable = collection.find();
@@ -134,7 +130,7 @@ public class MongodbInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected void closeInternal() throws IOException {
+    protected void closeInternal() {
         closeMongo(mongoClient, cursor);
     }
 
@@ -153,7 +149,7 @@ public class MongodbInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
+    public boolean reachedEnd() {
         return !cursor.hasNext();
     }
 }

@@ -23,11 +23,6 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 
-/**
- * Date: 2021/04/26 Company: www.dtstack.com
- *
- * @author tudou
- */
 public abstract class AbstractBaseColumn implements Serializable {
     private static final long serialVersionUID = 1L;
     protected Object data;

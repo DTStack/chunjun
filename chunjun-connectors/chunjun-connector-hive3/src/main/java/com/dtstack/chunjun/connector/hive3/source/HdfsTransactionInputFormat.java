@@ -47,12 +47,12 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-/** @author liuliu 2022/3/28 */
 public class HdfsTransactionInputFormat extends HdfsOrcInputFormat {
     @Override
     protected InputSplit[] createHdfsSplit(int minNumSplits) {
         LOG.info("To read hive transaction table, create OrcSplit.");
-        hadoopJobConf = Hive3Util.getJobConf(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
+        hadoopJobConf =
+                Hive3Util.getJobConf(hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS());
         // hive3 事务表必须设置的属性
         hadoopJobConf.setBoolean(hive_metastoreConstants.TABLE_IS_TRANSACTIONAL, true);
         // 此处防止 shaded 后，文件系统改变,导致错误。
@@ -65,13 +65,13 @@ public class HdfsTransactionInputFormat extends HdfsOrcInputFormat {
         try {
             fileSystem =
                     Hive3Util.getFileSystem(
-                            hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), null);
+                            hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS(), null);
             // 递归找到所有分区路径
             Set<String> allPartitionPath =
                     Hive3Util.getAllPartitionPath(
-                            hdfsConf.getPath(),
+                            hdfsConfig.getPath(),
                             fileSystem,
-                            new HdfsPathFilter(hdfsConf.getFilterRegex()));
+                            new HdfsPathFilter(hdfsConfig.getFilterRegex()));
             // 每个分区路径
             LinkedList<HdfsOrcInputSplit> allSplit = new LinkedList<>();
             int splitNumber = 0;

@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.db2.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
@@ -43,16 +43,10 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/**
- * convert db2 type to flink type Company: www.dtstack.com
- *
- * @author xuchao
- * @date 2021-06-15
- */
 public class Db2ColumnConverter extends JdbcColumnConverter {
 
-    public Db2ColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
-        super(rowType, commonConf);
+    public Db2ColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
     }
 
     /**
@@ -114,14 +108,14 @@ public class Db2ColumnConverter extends JdbcColumnConverter {
     }
 
     public static String convertClob(Clob clob) throws SQLException, IOException {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder builder = new StringBuilder();
         try (Reader r = clob.getCharacterStream()) {
             int ch;
             while ((ch = r.read()) != -1) {
-                buffer.append("" + (char) ch);
+                builder.append((char) ch);
             }
         }
         clob.free();
-        return buffer.toString();
+        return builder.toString();
     }
 }

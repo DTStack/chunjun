@@ -35,11 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163,com
- * @date: 2022/10/25 7:00 下午
- */
 public class ExternalDataUtil {
 
     public static void arrayDataToExternal(LogicalType type, Object[] to, ArrayData from) {

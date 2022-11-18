@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.cassandra.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraLookupConf;
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraSourceConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraLookupConfig;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraSourceConfig;
 import com.dtstack.chunjun.connector.cassandra.converter.CassandraRawTypeConverter;
 import com.dtstack.chunjun.connector.cassandra.converter.CassandraRowConverter;
 import com.dtstack.chunjun.connector.cassandra.lookup.CassandraAllTableFunction;
@@ -32,44 +32,43 @@ import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider
 import com.dtstack.chunjun.table.connector.source.ParallelTableFunctionProvider;
 import com.dtstack.chunjun.util.TableUtil;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.Column;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.AtomicDataType;
+import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.NullType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Preconditions;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraDynamicTableSource implements ScanTableSource, LookupTableSource {
 
     private static final String IDENTIFIER = "Cassandra";
 
-    private final CassandraSourceConf sourceConf;
+    private final CassandraSourceConfig sourceConf;
 
-    private final CassandraLookupConf cassandraLookupConf;
+    private final CassandraLookupConfig cassandraLookupConfig;
 
-    private final TableSchema tableSchema;
+    private final ResolvedSchema tableSchema;
+
+    private final DataType dataType;
 
     public CassandraDynamicTableSource(
-            CassandraSourceConf sourceConf,
-            CassandraLookupConf cassandraLookupConf,
-            TableSchema tableSchema) {
+            CassandraSourceConfig sourceConf,
+            CassandraLookupConfig cassandraLookupConfig,
+            ResolvedSchema tableSchema,
+            DataType dataType) {
         this.sourceConf = sourceConf;
-        this.cassandraLookupConf = cassandraLookupConf;
+        this.cassandraLookupConfig = cassandraLookupConfig;
         this.tableSchema = tableSchema;
+        this.dataType = dataType;
     }
 
     @Override
@@ -81,28 +80,23 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
         CassandraInputFormatBuilder builder = new CassandraInputFormatBuilder();
 
-        LogicalType logicalType = tableSchema.toRowDataType().getLogicalType();
+        LogicalType logicalType = dataType.getLogicalType();
         InternalTypeInfo<RowData> typeInfo = InternalTypeInfo.of(logicalType);
 
-        String[] fieldNames = tableSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        List<String> columnNameList = new ArrayList<>();
+        List<Column> columns = tableSchema.getColumns();
+        List<FieldConfig> columnList = new ArrayList<>(columns.size());
+        List<String> columnNameList = new ArrayList<>(columns.size());
 
-        for (int i = 0; i < fieldNames.length; i++) {
-            String name = fieldNames[i];
+        for (int index = 0; index < columns.size(); index++) {
+            Column column = columns.get(index);
+            String name = column.getName();
             columnNameList.add(name);
 
-            FieldConf field = new FieldConf();
+            FieldConfig field = new FieldConfig();
 
             field.setName(name);
-            field.setType(
-                    tableSchema
-                            .getFieldDataType(name)
-                            .orElse(new AtomicDataType(new NullType()))
-                            .getLogicalType()
-                            .getTypeRoot()
-                            .name());
-            field.setIndex(i);
+            field.setType(column.getDataType().getLogicalType().asSummaryString());
+            field.setIndex(index);
 
             columnList.add(field);
         }
@@ -122,7 +116,8 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
 
     @Override
     public DynamicTableSource copy() {
-        return new CassandraDynamicTableSource(sourceConf, cassandraLookupConf, tableSchema);
+        return new CassandraDynamicTableSource(
+                sourceConf, cassandraLookupConfig, tableSchema, dataType);
     }
 
     @Override
@@ -137,28 +132,27 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
             int[] innerKeyArr = context.getKeys()[i];
             Preconditions.checkArgument(
                     innerKeyArr.length == 1, "Kudu only support non-nested look up keys");
-            keyNames[i] = tableSchema.getFieldNames()[innerKeyArr[0]];
+            keyNames[i] = tableSchema.getColumnNames().get(innerKeyArr[0]);
         }
-        // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
-        final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
-
-        if (cassandraLookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+        if (cassandraLookupConfig.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
             return ParallelTableFunctionProvider.of(
                     new CassandraAllTableFunction(
-                            cassandraLookupConf,
+                            cassandraLookupConfig,
                             new CassandraRowConverter(
-                                    rowType, Arrays.asList(tableSchema.getFieldNames())),
-                            tableSchema.getFieldNames(),
+                                    InternalTypeInfo.of(dataType.getLogicalType()).toRowType(),
+                                    tableSchema.getColumnNames()),
+                            tableSchema.getColumnNames().toArray(new String[0]),
                             keyNames),
-                    cassandraLookupConf.getParallelism());
+                    cassandraLookupConfig.getParallelism());
         }
         return ParallelAsyncTableFunctionProvider.of(
                 new CassandraLruTableFunction(
-                        cassandraLookupConf,
+                        cassandraLookupConfig,
                         new CassandraRowConverter(
-                                rowType, Arrays.asList(tableSchema.getFieldNames())),
-                        tableSchema.getFieldNames(),
+                                InternalTypeInfo.of(dataType.getLogicalType()).toRowType(),
+                                tableSchema.getColumnNames()),
+                        tableSchema.getColumnNames().toArray(new String[0]),
                         keyNames),
-                cassandraLookupConf.getParallelism());
+                cassandraLookupConfig.getParallelism());
     }
 }

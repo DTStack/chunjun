@@ -43,7 +43,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/** @author liuliu 2022/3/28 */
 public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
 
     // hive3
@@ -58,7 +57,7 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
     @Override
     protected void openSource() {
         try {
-            if (hdfsConf.isTransaction()) {
+            if (hdfsConfig.isTransaction()) {
                 SecurityUtil.setSecurityInfoProviders(new AnnotatedSecurityInfo());
                 String currentUser;
                 try {
@@ -66,21 +65,20 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
                 } catch (IOException e) {
                     throw new ChunJunRuntimeException("");
                 }
-                Object hadoopUser = hdfsConf.getHadoopConfig().get(HADOOP_USER_NAME);
+                Object hadoopUser = hdfsConfig.getHadoopConfig().get(HADOOP_USER_NAME);
                 // 如果配置的 hadoop 用户不为空，那么设置配置中的用户。
                 if (hadoopUser != null && StringUtils.isNotEmpty(hadoopUser.toString())) {
                     currentUser = hadoopUser.toString();
                 }
                 conf =
                         Hive3Util.getConfiguration(
-                                hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
+                                hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS());
                 try {
                     // overwrite 需要用到这个 fs 去清空 hdfs 目录.
-
                     fs =
                             Hive3Util.getFileSystem(
-                                    hdfsConf.getHadoopConfig(),
-                                    hdfsConf.getDefaultFS(),
+                                    hdfsConfig.getHadoopConfig(),
+                                    hdfsConfig.getDefaultFS(),
                                     currentUser,
                                     null);
                 } catch (Exception e) {
@@ -113,14 +111,14 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
     }
 
     public void getUgi() throws IOException {
-        openKerberos = Hive3Util.isOpenKerberos(hdfsConf.getHadoopConfig());
+        openKerberos = Hive3Util.isOpenKerberos(hdfsConfig.getHadoopConfig());
         String currentUser = UserGroupInformation.getCurrentUser().getUserName();
-        Object hadoopUser = hdfsConf.getHadoopConfig().get(HADOOP_USER_NAME);
+        Object hadoopUser = hdfsConfig.getHadoopConfig().get(HADOOP_USER_NAME);
         if (hadoopUser != null && StringUtils.isNotEmpty(hadoopUser.toString())) {
             currentUser = hadoopUser.toString();
         }
         if (openKerberos) {
-            ugi = Hive3Util.getUGI(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), null);
+            ugi = Hive3Util.getUGI(hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS(), null);
             LOG.info("user:{}, ", ugi.getShortUserName());
         } else {
             ugi = UserGroupInformation.createRemoteUser(currentUser);
@@ -129,15 +127,15 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
 
     /** hiveMetaStore 也开启 kerberos 验证，此处设置认证 metastore. */
     private void setMetaStoreKerberosConf() {
-        String keytabFileName = KerberosUtil.getPrincipalFileName(hdfsConf.getHadoopConfig());
-        keytabFileName = KerberosUtil.loadFile(hdfsConf.getHadoopConfig(), keytabFileName, null);
-        String principal = MapUtils.getString(hdfsConf.getHadoopConfig(), KEY_PRINCIPAL);
+        String keytabFileName = KerberosUtil.getPrincipalFileName(hdfsConfig.getHadoopConfig());
+        keytabFileName = KerberosUtil.loadFile(hdfsConfig.getHadoopConfig(), keytabFileName, null);
+        String principal = MapUtils.getString(hdfsConfig.getHadoopConfig(), KEY_PRINCIPAL);
         String saslEnabled =
-                MapUtils.getString(hdfsConf.getHadoopConfig(), "hive.metastore.sasl.enabled");
+                MapUtils.getString(hdfsConfig.getHadoopConfig(), "hive.metastore.sasl.enabled");
         if (null == saslEnabled) {
             saslEnabled = "false";
         }
-        if (hdfsConf.getHadoopConfig().get("hive.metastore.kerberos.principal") == null) {
+        if (hdfsConfig.getHadoopConfig().get("hive.metastore.kerberos.principal") == null) {
             hiveConf.setVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL, principal);
         }
         hiveConf.setVar(HiveConf.ConfVars.METASTORE_KERBEROS_KEYTAB_FILE, keytabFileName);
@@ -205,7 +203,7 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
     @Override
     protected void writeMultipleRecordsInternal() {
         // hive3 事务表
-        if (hdfsConf.isTransaction()) {
+        if (hdfsConfig.isTransaction()) {
             ugi.doAs(
                     (PrivilegedAction<Void>)
                             () -> {
@@ -240,16 +238,16 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
     private HiveStreamingConnection getConnection() {
         HiveStreamingConnection.Builder builder =
                 HiveStreamingConnection.newBuilder()
-                        .withDatabase(hdfsConf.getSchema())
-                        .withTable(hdfsConf.getTable())
+                        .withDatabase(hdfsConfig.getSchema())
+                        .withTable(hdfsConfig.getTable())
                         .withAgentInfo("chunjun3_hive3writer_" + Thread.currentThread().getName())
-                        .withTransactionBatchSize(hdfsConf.getBatchSize()) // 何时触发压缩
+                        .withTransactionBatchSize(hdfsConfig.getBatchSize()) // 何时触发压缩
                         .withRecordWriter(wr)
                         .withHiveConf(hiveConf);
-        if (StringUtils.isNotEmpty(hdfsConf.getPartitionName())) {
-            String[] multiPartitionName = {hdfsConf.getPartitionName()};
-            if (hdfsConf.getPartitionName().contains("/")) {
-                multiPartitionName = hdfsConf.getPartitionName().split("/");
+        if (StringUtils.isNotEmpty(hdfsConfig.getPartitionName())) {
+            String[] multiPartitionName = {hdfsConfig.getPartitionName()};
+            if (hdfsConfig.getPartitionName().contains("/")) {
+                multiPartitionName = hdfsConfig.getPartitionName().split("/");
             }
             List<String> partitions = Arrays.asList(multiPartitionName);
             builder.withStaticPartitionValues(partitions);

@@ -25,13 +25,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * System Utilities
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public class SysUtil {
     public static void sleep(long milliseconds) {
         try {

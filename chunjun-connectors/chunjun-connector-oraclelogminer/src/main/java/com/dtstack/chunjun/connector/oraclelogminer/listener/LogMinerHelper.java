@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.listener;
 
-import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
+import com.dtstack.chunjun.connector.oraclelogminer.config.LogMinerConfig;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.QueueData;
 import com.dtstack.chunjun.connector.oraclelogminer.util.SqlUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
@@ -53,7 +53,7 @@ public class LogMinerHelper {
     /** 加载数据的connection */
     private final LinkedList<LogMinerConnection> activeConnectionList;
 
-    private final LogMinerConf config;
+    private final LogMinerConfig config;
     private final String logMinerSelectSql;
     private final LogMinerListener listener;
     private final BigInteger step = new BigInteger("3000");
@@ -72,7 +72,7 @@ public class LogMinerHelper {
     private BigInteger currentReadEndScn;
 
     public LogMinerHelper(
-            LogMinerListener listener, LogMinerConf logMinerConfig, BigInteger startScn) {
+            LogMinerListener listener, LogMinerConfig logMinerConfig, BigInteger startScn) {
         this.listener = listener;
         this.transactionManager =
                 new TransactionManager(
@@ -369,7 +369,7 @@ public class LogMinerHelper {
         if (Objects.nonNull(currentConnection)) {
             return currentConnection;
         }
-        LogMinerConnection choosedConnection = null;
+        LogMinerConnection chosenConnection = null;
         List<LogMinerConnection> candidateList =
                 activeConnectionList.stream()
                         .filter(i -> Objects.nonNull(i.startScn) && Objects.nonNull(i.endScn))
@@ -377,15 +377,15 @@ public class LogMinerHelper {
         for (LogMinerConnection logMinerConnection : candidateList) {
             if (logMinerConnection.startScn.compareTo(currentReadEndScn) == 0
                     && !logMinerConnection.getState().equals(LogMinerConnection.STATE.INITIALIZE)) {
-                choosedConnection = logMinerConnection;
-                if (choosedConnection.getState().equals(LogMinerConnection.STATE.FAILED)) {
-                    listener.sendException(choosedConnection.getE(), null);
-                    restart(choosedConnection.getE());
+                chosenConnection = logMinerConnection;
+                if (chosenConnection.getState().equals(LogMinerConnection.STATE.FAILED)) {
+                    listener.sendException(chosenConnection.getE(), null);
+                    restart(chosenConnection.getE());
                 }
                 break;
             }
         }
-        return choosedConnection;
+        return chosenConnection;
     }
 
     public QueueData getQueueData() {

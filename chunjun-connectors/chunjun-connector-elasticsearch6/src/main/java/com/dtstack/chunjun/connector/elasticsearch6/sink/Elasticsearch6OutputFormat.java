@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.elasticsearch6.sink;
 
 import com.dtstack.chunjun.connector.elasticsearch.KeyExtractor;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6ClientFactory;
-import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6RequestFactory;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
@@ -40,26 +40,18 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/18 11:59
- */
 public class Elasticsearch6OutputFormat extends BaseRichOutputFormat {
 
     /** Elasticsearch Configuration */
-    private Elasticsearch6Conf elasticsearchConf;
+    private Elasticsearch6Config elasticsearchConfig;
 
     /** Elasticsearch High Level Client */
     private transient RestHighLevelClient rhlClient;
 
-    private transient BulkRequest bulkRequest;
-
     @Override
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         try {
-            DocWriteRequest docWriteRequest;
+            DocWriteRequest<?> docWriteRequest;
             switch (rowData.getRowKind()) {
                 case INSERT:
                 case UPDATE_AFTER:
@@ -86,8 +78,8 @@ public class Elasticsearch6OutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        bulkRequest = new BulkRequest();
-        DocWriteRequest docWriteRequest;
+        BulkRequest bulkRequest = new BulkRequest();
+        DocWriteRequest<?> docWriteRequest;
         for (RowData rowData : rows) {
             switch (rowData.getRowKind()) {
                 case INSERT:
@@ -132,7 +124,7 @@ public class Elasticsearch6OutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        rhlClient = Elasticsearch6ClientFactory.createClient(elasticsearchConf);
+        rhlClient = Elasticsearch6ClientFactory.createClient(elasticsearchConfig);
     }
 
     @Override
@@ -142,37 +134,30 @@ public class Elasticsearch6OutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    public Elasticsearch6Conf getElasticsearchConf() {
-        return elasticsearchConf;
+    public Elasticsearch6Config getElasticsearchConf() {
+        return elasticsearchConfig;
     }
 
-    public void setElasticsearchConf(Elasticsearch6Conf elasticsearchConf) {
-        this.elasticsearchConf = elasticsearchConf;
+    public void setElasticsearchConf(Elasticsearch6Config elasticsearchConfig) {
+        this.elasticsearchConfig = elasticsearchConfig;
     }
 
-    private DocWriteRequest processUpsert(RowData rowData) throws Exception {
+    private DocWriteRequest<?> processUpsert(RowData rowData) throws Exception {
         Map<String, Object> message =
                 (Map<String, Object>)
                         rowConverter.toExternal(rowData, new HashMap<String, Object>());
 
-        if (elasticsearchConf.getIds() == null || elasticsearchConf.getIds().size() == 0) {
-            IndexRequest indexRequest =
-                    Elasticsearch6RequestFactory.createIndexRequest(
-                            elasticsearchConf.getIndex(), elasticsearchConf.getType(), message);
-            return indexRequest;
+        if (elasticsearchConfig.getIds() == null || elasticsearchConfig.getIds().size() == 0) {
+            return Elasticsearch6RequestFactory.createIndexRequest(
+                    elasticsearchConfig.getIndex(), elasticsearchConfig.getType(), message);
         } else {
             final String key =
                     KeyExtractor.getDocId(
-                            elasticsearchConf.getIds(),
+                            elasticsearchConfig.getIds(),
                             message,
-                            elasticsearchConf.getKeyDelimiter());
-            UpdateRequest updateRequest =
-                    Elasticsearch6RequestFactory.createUpdateRequest(
-                            elasticsearchConf.getIndex(),
-                            elasticsearchConf.getType(),
-                            key,
-                            message);
-            return updateRequest;
+                            elasticsearchConfig.getKeyDelimiter());
+            return Elasticsearch6RequestFactory.createUpdateRequest(
+                    elasticsearchConfig.getIndex(), elasticsearchConfig.getType(), key, message);
         }
     }
 
@@ -183,10 +168,10 @@ public class Elasticsearch6OutputFormat extends BaseRichOutputFormat {
 
         final String key =
                 KeyExtractor.getDocId(
-                        elasticsearchConf.getIds(), message, elasticsearchConf.getKeyDelimiter());
-        DeleteRequest deleteRequest =
-                Elasticsearch6RequestFactory.createDeleteRequest(
-                        elasticsearchConf.getIndex(), elasticsearchConf.getType(), key);
-        return deleteRequest;
+                        elasticsearchConfig.getIds(),
+                        message,
+                        elasticsearchConfig.getKeyDelimiter());
+        return Elasticsearch6RequestFactory.createDeleteRequest(
+                elasticsearchConfig.getIndex(), elasticsearchConfig.getType(), key);
     }
 }

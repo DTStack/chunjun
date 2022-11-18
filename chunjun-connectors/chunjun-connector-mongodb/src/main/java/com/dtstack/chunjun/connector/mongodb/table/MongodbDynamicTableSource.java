@@ -18,11 +18,11 @@
 
 package com.dtstack.chunjun.connector.mongodb.table;
 
-import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
+import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
 import com.dtstack.chunjun.connector.mongodb.table.lookup.MongoAllTableFunction;
 import com.dtstack.chunjun.connector.mongodb.table.lookup.MongoLruTableFunction;
 import com.dtstack.chunjun.enums.CacheType;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelTableFunctionProvider;
 
@@ -34,21 +34,18 @@ import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Preconditions;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
 public class MongodbDynamicTableSource implements ScanTableSource, LookupTableSource {
 
-    private final MongoClientConf mongoClientConf;
+    private final MongoClientConfig mongoClientConfig;
     private final TableSchema physicalSchema;
-    private final LookupConf lookupConf;
+    private final LookupConfig lookupConfig;
 
     public MongodbDynamicTableSource(
-            MongoClientConf mongoClientConf, LookupConf lookupConf, TableSchema physicalSchema) {
-        this.mongoClientConf = mongoClientConf;
-        this.lookupConf = lookupConf;
+            MongoClientConfig mongoClientConfig,
+            LookupConfig lookupConfig,
+            TableSchema physicalSchema) {
+        this.mongoClientConfig = mongoClientConfig;
+        this.lookupConfig = lookupConfig;
         this.physicalSchema = physicalSchema;
     }
 
@@ -65,31 +62,31 @@ public class MongodbDynamicTableSource implements ScanTableSource, LookupTableSo
 
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+        if (lookupConfig.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
             return ParallelTableFunctionProvider.of(
                     new MongoAllTableFunction(
-                            mongoClientConf,
-                            lookupConf,
+                            mongoClientConfig,
+                            lookupConfig,
                             rowType,
                             keyNames,
                             physicalSchema.getFieldNames()),
-                    lookupConf.getParallelism());
+                    lookupConfig.getParallelism());
         } else {
             return ParallelAsyncTableFunctionProvider.of(
                     new MongoLruTableFunction(
-                            mongoClientConf,
-                            lookupConf,
+                            mongoClientConfig,
+                            lookupConfig,
                             rowType,
                             keyNames,
                             physicalSchema.getFieldNames()),
-                    lookupConf.getParallelism());
+                    lookupConfig.getParallelism());
         }
     }
 
     @Override
     public DynamicTableSource copy() {
         return new MongodbDynamicTableSource(
-                this.mongoClientConf, this.lookupConf, this.physicalSchema);
+                this.mongoClientConfig, this.lookupConfig, this.physicalSchema);
     }
 
     @Override
@@ -97,22 +94,11 @@ public class MongodbDynamicTableSource implements ScanTableSource, LookupTableSo
         return "MongoDB Source";
     }
 
-    /**
-     * ScanTableSource独有
-     *
-     * @return
-     */
     @Override
     public ChangelogMode getChangelogMode() {
         return ChangelogMode.insertOnly();
     }
 
-    /**
-     * ScanTableSource独有
-     *
-     * @param runtimeProviderContext
-     * @return
-     */
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
         return null;

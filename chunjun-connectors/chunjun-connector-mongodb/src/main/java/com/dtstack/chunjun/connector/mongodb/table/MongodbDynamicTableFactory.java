@@ -18,11 +18,11 @@
 
 package com.dtstack.chunjun.connector.mongodb.table;
 
-import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
-import com.dtstack.chunjun.connector.mongodb.conf.MongoWriteConf;
+import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
+import com.dtstack.chunjun.connector.mongodb.config.MongoWriteConfig;
 import com.dtstack.chunjun.connector.mongodb.table.options.MongoClientOptions;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
-import com.dtstack.chunjun.lookup.conf.LookupConfFactory;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfigFactory;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
@@ -52,20 +52,9 @@ import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_MA
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_PARALLELISM;
 import static org.apache.flink.util.Preconditions.checkState;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
 public class MongodbDynamicTableFactory
         implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
-    /**
-     * 解析、校验、读取参数
-     *
-     * @param context
-     * @return
-     */
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
         final FactoryUtil.TableFactoryHelper helper =
@@ -78,16 +67,17 @@ public class MongodbDynamicTableFactory
 
         validateConfigOptions(config);
 
-        MongoClientConf mongoClientConf = new MongoClientConf();
-        config.getOptional(MongoClientOptions.URI).ifPresent(mongoClientConf::setUri);
-        config.getOptional(MongoClientOptions.DATABASE).ifPresent(mongoClientConf::setDatabase);
-        config.getOptional(MongoClientOptions.COLLECTION).ifPresent(mongoClientConf::setCollection);
+        MongoClientConfig mongoClientConfig = new MongoClientConfig();
+        config.getOptional(MongoClientOptions.URI).ifPresent(mongoClientConfig::setUri);
+        config.getOptional(MongoClientOptions.DATABASE).ifPresent(mongoClientConfig::setDatabase);
+        config.getOptional(MongoClientOptions.COLLECTION)
+                .ifPresent(mongoClientConfig::setCollection);
 
-        config.getOptional(MongoClientOptions.USERNAME).ifPresent(mongoClientConf::setUsername);
-        config.getOptional(MongoClientOptions.PASSWORD).ifPresent(mongoClientConf::setPassword);
+        config.getOptional(MongoClientOptions.USERNAME).ifPresent(mongoClientConfig::setUsername);
+        config.getOptional(MongoClientOptions.PASSWORD).ifPresent(mongoClientConfig::setPassword);
 
-        LookupConf lookupConf = LookupConfFactory.createLookupConf(config);
-        return new MongodbDynamicTableSource(mongoClientConf, lookupConf, physicalSchema);
+        LookupConfig lookupConfig = LookupConfigFactory.createLookupConfig(config);
+        return new MongodbDynamicTableSource(mongoClientConfig, lookupConfig, physicalSchema);
     }
 
     /**
@@ -134,11 +124,6 @@ public class MongodbDynamicTableFactory
         return optionalOptions;
     }
 
-    /**
-     * 针对特定Connector 进行的参数校验
-     *
-     * @param config
-     */
     protected void validateConfigOptions(ReadableConfig config) {
         String uri = config.get(MongoClientOptions.URI);
         if (uri != null) {
@@ -160,17 +145,19 @@ public class MongodbDynamicTableFactory
 
         validateConfigOptions(config);
 
-        MongoClientConf mongoClientConf = new MongoClientConf();
-        config.getOptional(MongoClientOptions.URI).ifPresent(mongoClientConf::setUri);
-        config.getOptional(MongoClientOptions.DATABASE).ifPresent(mongoClientConf::setDatabase);
-        config.getOptional(MongoClientOptions.COLLECTION).ifPresent(mongoClientConf::setCollection);
+        MongoClientConfig mongoClientConfig = new MongoClientConfig();
+        config.getOptional(MongoClientOptions.URI).ifPresent(mongoClientConfig::setUri);
+        config.getOptional(MongoClientOptions.DATABASE).ifPresent(mongoClientConfig::setDatabase);
+        config.getOptional(MongoClientOptions.COLLECTION)
+                .ifPresent(mongoClientConfig::setCollection);
 
-        config.getOptional(MongoClientOptions.USERNAME).ifPresent(mongoClientConf::setUsername);
-        config.getOptional(MongoClientOptions.PASSWORD).ifPresent(mongoClientConf::setPassword);
-        MongoWriteConf mongoWriteConf = new MongoWriteConf();
-        config.getOptional(SINK_PARALLELISM).ifPresent(mongoWriteConf::setParallelism);
-        config.getOptional(SINK_BUFFER_FLUSH_MAX_ROWS).ifPresent(mongoWriteConf::setFlushMaxRows);
-        config.getOptional(SINK_BUFFER_FLUSH_INTERVAL).ifPresent(mongoWriteConf::setFlushInterval);
-        return new MongodbDynamicTableSink(mongoClientConf, physicalSchema, mongoWriteConf);
+        config.getOptional(MongoClientOptions.USERNAME).ifPresent(mongoClientConfig::setUsername);
+        config.getOptional(MongoClientOptions.PASSWORD).ifPresent(mongoClientConfig::setPassword);
+        MongoWriteConfig mongoWriteConfig = new MongoWriteConfig();
+        config.getOptional(SINK_PARALLELISM).ifPresent(mongoWriteConfig::setParallelism);
+        config.getOptional(SINK_BUFFER_FLUSH_MAX_ROWS).ifPresent(mongoWriteConfig::setFlushMaxRows);
+        config.getOptional(SINK_BUFFER_FLUSH_INTERVAL)
+                .ifPresent(mongoWriteConfig::setFlushInterval);
+        return new MongodbDynamicTableSink(mongoClientConfig, physicalSchema, mongoWriteConfig);
     }
 }

@@ -18,10 +18,6 @@
 
 package com.dtstack.chunjun.decoder;
 
-/**
- * @author jiangbo
- * @date 2020/3/23
- */
 public enum DecodeEnum {
 
     /** json format */

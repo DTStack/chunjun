@@ -32,11 +32,6 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Reason: Date: 2018/6/22 Company: www.dtstack.com
- *
- * @author xuchao
- */
 public class DtStringUtil {
 
     private static final Pattern NO_VERSION_PATTERN = Pattern.compile("([a-zA-Z]+).*");

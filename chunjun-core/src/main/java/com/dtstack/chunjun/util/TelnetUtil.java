@@ -29,7 +29,6 @@ import java.net.InetAddress;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** @author jiangbo */
 public class TelnetUtil {
 
     protected static final Logger LOG = LoggerFactory.getLogger(TelnetUtil.class);

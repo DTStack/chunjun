@@ -34,7 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 
-/** @author liuliu 2022/5/12 */
 public class StringColumnSerializer extends TypeSerializer<AbstractBaseColumn> {
 
     private static final long serialVersionUID = 1L;

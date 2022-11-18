@@ -36,7 +36,6 @@ import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 import com.dtstack.chunjun.util.DateUtil;
 
-import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
@@ -44,6 +43,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DdlResult;
 import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DdlResultExtend;
 import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -69,11 +69,6 @@ import static com.dtstack.chunjun.constants.CDCConstantValue.TABLE;
 import static com.dtstack.chunjun.constants.CDCConstantValue.TS;
 import static com.dtstack.chunjun.constants.CDCConstantValue.TYPE;
 
-/**
- * Date: 2021/04/29 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRow, String> {
 
     public BinlogColumnConverter(boolean pavingData, boolean splitUpdate) {
@@ -200,18 +195,12 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
                                                                 .getChunjunEventType())) {
                                                     return swapEventToDdlRowData(binlogEventRow);
                                                 }
-                                                throw new RuntimeException(
-                                                        "not support sql: "
-                                                                + binlogEventRow
-                                                                        .getRowChange()
-                                                                        .getSql());
-                                            } else {
-                                                throw new RuntimeException(
-                                                        "not support sql: "
-                                                                + binlogEventRow
-                                                                        .getRowChange()
-                                                                        .getSql());
                                             }
+                                            throw new RuntimeException(
+                                                    "not support sql: "
+                                                            + binlogEventRow
+                                                                    .getRowChange()
+                                                                    .getSql());
                                         })
                                 .collect(Collectors.toList()));
             } else {

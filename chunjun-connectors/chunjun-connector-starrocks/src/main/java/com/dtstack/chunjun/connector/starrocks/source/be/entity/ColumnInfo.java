@@ -20,7 +20,8 @@ package com.dtstack.chunjun.connector.starrocks.source.be.entity;
 
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 
-/** @author liuliu 2022/7/22 */
+import java.util.StringJoiner;
+
 public class ColumnInfo {
     private String fieldName;
     private LogicalTypeRoot logicalTypeRoot;
@@ -69,17 +70,11 @@ public class ColumnInfo {
 
     @Override
     public String toString() {
-        return "ColumnInfo{"
-                + "fieldName='"
-                + fieldName
-                + '\''
-                + ", logicalTypeRoot="
-                + logicalTypeRoot
-                + ", starRocksType='"
-                + starRocksType
-                + '\''
-                + ", index="
-                + index
-                + '}';
+        return new StringJoiner(", ", ColumnInfo.class.getSimpleName() + "[", "]")
+                .add("fieldName='" + fieldName + "'")
+                .add("logicalTypeRoot=" + logicalTypeRoot)
+                .add("starRocksType='" + starRocksType + "'")
+                .add("index=" + index)
+                .toString();
     }
 }

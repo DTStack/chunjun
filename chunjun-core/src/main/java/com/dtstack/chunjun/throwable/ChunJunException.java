@@ -18,13 +18,8 @@
 
 package com.dtstack.chunjun.throwable;
 
-import org.apache.flink.util.FlinkException;
-
-/**
- * @author tiezhu
- * @implNote Base class of all DT specific unchecked exception
- */
-public class ChunJunException extends FlinkException {
+/** @implNote Base class of all specific unchecked exception */
+public class ChunJunException extends Exception {
 
     private static final long serialVersionUID = 2861589615825583973L;
 

@@ -23,11 +23,6 @@ import com.dtstack.chunjun.util.JsonUtil;
 import java.io.Serializable;
 import java.util.Map;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HiveFormatState implements Serializable {
 
     private static final long serialVersionUID = 1L;

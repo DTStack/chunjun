@@ -18,14 +18,13 @@
 
 package com.dtstack.chunjun.connector.dm.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.dm.dialect.DmDialect;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
 
-/** @author kunni */
 public class DmSinkFactory extends JdbcSinkFactory {
 
-    public DmSinkFactory(SyncConf syncConf) {
-        super(syncConf, new DmDialect());
+    public DmSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig, new DmDialect());
     }
 }

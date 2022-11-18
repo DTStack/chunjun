@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.sybase.dialect;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -35,7 +35,6 @@ import io.vertx.core.json.JsonArray;
 import java.sql.ResultSet;
 import java.util.Optional;
 
-/** @Author OT @Date 2022/6/16 13:54 @Version 1.0 */
 public class SybaseDialect implements JdbcDialect {
     private static final String DIALECT_NAME = "Sybase";
     private static final String DRIVER_NAME = "net.sourceforge.jtds.jdbc.Driver";
@@ -67,8 +66,8 @@ public class SybaseDialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
-        return new SybaseColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new SybaseColumnConverter(rowType, commonConfig);
     }
 
     @Override

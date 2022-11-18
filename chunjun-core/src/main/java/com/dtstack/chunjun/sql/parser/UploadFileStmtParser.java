@@ -25,14 +25,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * Remove add file and jar with statment etc. add file /etc/krb5.conf, add jar xxx.jar; This
- * statement is userd to upload files.
- *
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/08
- */
 public class UploadFileStmtParser extends AbstractStmtParser {
 
     private static final Pattern ADD_FILE_AND_JAR_PATTERN =

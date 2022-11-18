@@ -18,43 +18,41 @@
 
 package com.dtstack.chunjun.connector.starrocks.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRowConverter;
 import com.dtstack.chunjun.enums.CacheType;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelTableFunctionProvider;
 
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.Column;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
-import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/** @author liuliu 2022/7/19 */
 public class StarRocksDynamicTableSource
         implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
-    private final StarRocksConf starRocksConf;
-    private final LookupConf lookupConf;
-    private TableSchema tableSchema;
+    private final StarRocksConfig starRocksConfig;
+    private final LookupConfig lookupConfig;
+    private final ResolvedSchema tableSchema;
 
     public StarRocksDynamicTableSource(
-            StarRocksConf starRocksConf, LookupConf lookupConf, TableSchema tableSchema) {
-        this.starRocksConf = starRocksConf;
-        this.lookupConf = lookupConf;
+            StarRocksConfig starRocksConfig,
+            LookupConfig lookupConfig,
+            ResolvedSchema tableSchema) {
+        this.starRocksConfig = starRocksConfig;
+        this.lookupConfig = lookupConfig;
         this.tableSchema = tableSchema;
     }
 
@@ -67,24 +65,35 @@ public class StarRocksDynamicTableSource
                     innerKeyArr.length == 1, "StarRocks only support non-nested look up keys");
             keyIndexes[i] = innerKeyArr[0];
         }
-        final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
 
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+        if (lookupConfig.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
             return ParallelTableFunctionProvider.of(
                     new StarRocksAllTableFunction(
-                            starRocksConf,
-                            lookupConf,
+                            starRocksConfig,
+                            lookupConfig,
                             keyIndexes,
-                            new StarRocksRowConverter(rowType, null)),
-                    lookupConf.getParallelism());
+                            new StarRocksRowConverter(
+                                    InternalTypeInfo.of(
+                                                    tableSchema
+                                                            .toPhysicalRowDataType()
+                                                            .getLogicalType())
+                                            .toRowType(),
+                                    tableSchema.getColumnNames())),
+                    lookupConfig.getParallelism());
         }
         return ParallelAsyncTableFunctionProvider.of(
                 new StarRocksLruTableFunction(
-                        starRocksConf,
-                        lookupConf,
+                        starRocksConfig,
+                        lookupConfig,
                         keyIndexes,
-                        new StarRocksRowConverter(rowType, null)),
-                lookupConf.getParallelism());
+                        new StarRocksRowConverter(
+                                InternalTypeInfo.of(
+                                                tableSchema
+                                                        .toPhysicalRowDataType()
+                                                        .getLogicalType())
+                                        .toRowType(),
+                                tableSchema.getColumnNames())),
+                lookupConfig.getParallelism());
     }
 
     @Override
@@ -94,31 +103,35 @@ public class StarRocksDynamicTableSource
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
-        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
         StarRocksInputFormatBuilder builder =
                 new StarRocksInputFormatBuilder(new StarRocksInputFormat());
-        List<FieldConf> fieldConfList = new ArrayList<>(tableSchema.getFieldCount());
-        String[] fieldNames = tableSchema.getFieldNames();
-        for (int i = 0; i < tableSchema.getFieldCount(); i++) {
-            FieldConf fieldConf = new FieldConf();
-            fieldConf.setName(fieldNames[i]);
-            fieldConf.setType(rowType.getTypeAt(i).asSummaryString());
-            fieldConfList.add(fieldConf);
+        List<Column> columns = tableSchema.getColumns();
+        List<FieldConfig> fieldConfList = new ArrayList<>(columns.size());
+        for (Column column : columns) {
+            FieldConfig fieldConfig = new FieldConfig();
+            fieldConfig.setName(column.getName());
+            fieldConfig.setType(column.getDataType().getLogicalType().asSummaryString());
+            fieldConfList.add(fieldConfig);
         }
-        starRocksConf.setColumn(fieldConfList);
-        builder.setStarRocksConf(starRocksConf);
-        builder.setRowConverter(new StarRocksRowConverter(rowType, null));
+        starRocksConfig.setColumn(fieldConfList);
+        builder.setStarRocksConf(starRocksConfig);
+        builder.setRowConverter(
+                new StarRocksRowConverter(
+                        InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType())
+                                .toRowType(),
+                        tableSchema.getColumnNames()));
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
+                new DtInputFormatSourceFunction<>(
+                        builder.finish(),
+                        InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType())),
                 false,
-                starRocksConf.getParallelism());
+                starRocksConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new StarRocksDynamicTableSource(starRocksConf, lookupConf, tableSchema);
+        return new StarRocksDynamicTableSource(starRocksConfig, lookupConfig, tableSchema);
     }
 
     @Override
@@ -129,10 +142,5 @@ public class StarRocksDynamicTableSource
     @Override
     public boolean supportsNestedProjection() {
         return false;
-    }
-
-    @Override
-    public void applyProjection(int[][] projectedFields) {
-        this.tableSchema = TableSchemaUtils.projectSchema(tableSchema, projectedFields);
     }
 }
