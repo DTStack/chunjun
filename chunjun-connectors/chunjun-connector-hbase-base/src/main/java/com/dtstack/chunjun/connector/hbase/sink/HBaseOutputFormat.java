@@ -25,6 +25,7 @@ import com.dtstack.chunjun.throwable.WriteRecordException;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
@@ -41,14 +42,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * The Hbase Implementation of OutputFormat
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+/** The Hbase Implementation of OutputFormat */
+@Slf4j
 public class HBaseOutputFormat extends BaseRichOutputFormat {
+
+    private static final long serialVersionUID = 7187047918877677797L;
 
     private Map<String, Object> hbaseConfig;
 
@@ -85,7 +83,7 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
     }
 
     public void openConnection() {
-        LOG.info("HbaseOutputFormat configure start");
+        log.info("HbaseOutputFormat configure start");
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() != 0, "hbaseConfig不能为空Map结构!");
 
         try {
@@ -112,7 +110,7 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
             throw new IllegalArgumentException(e);
         }
 
-        LOG.info("HbaseOutputFormat configure end");
+        log.info("HbaseOutputFormat configure end");
     }
 
     @Override
@@ -133,7 +131,7 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
             for (int i = 0; i < Objects.requireNonNull(results).length; i++) {
                 if (results[i] instanceof Exception) {
                     Exception exception = (Exception) results[i];
-                    LOG.error(exception.getMessage(), exception);
+                    log.error(exception.getMessage(), exception);
                 }
             }
         }

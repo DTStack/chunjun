@@ -20,13 +20,6 @@ package com.dtstack.chunjun.enums;
 
 import java.text.DecimalFormat;
 
-/**
- * This class defines UNIT TYPE
- *
- * <p>Company: www.dtstack.com
- *
- * @author shifang@Dtstack.com
- */
 public enum SizeUnitType {
 
     /** B */

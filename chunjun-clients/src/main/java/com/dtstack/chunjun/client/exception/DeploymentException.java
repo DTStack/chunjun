@@ -21,6 +21,8 @@ package com.dtstack.chunjun.client.exception;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 public class DeploymentException extends ChunJunRuntimeException {
+    private static final long serialVersionUID = 6322898726420815918L;
+
     public DeploymentException(String message) {
         super(message);
     }

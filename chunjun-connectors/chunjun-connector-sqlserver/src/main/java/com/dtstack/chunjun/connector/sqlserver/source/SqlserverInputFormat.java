@@ -23,38 +23,37 @@ import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Company：www.dtstack.com
- *
- * @author shitou
- * @date 2021/5/19 13:57
- */
+@Slf4j
 public class SqlserverInputFormat extends JdbcInputFormat {
+
+    private static final long serialVersionUID = 8149670373029375238L;
 
     @Override
     public boolean reachedEnd() {
         if (hasNext) {
             return false;
         } else {
-            if (jdbcConf.isPolling()) {
+            if (jdbcConfig.isPolling()) {
                 try {
-                    TimeUnit.MILLISECONDS.sleep(jdbcConf.getPollingInterval());
+                    TimeUnit.MILLISECONDS.sleep(jdbcConfig.getPollingInterval());
                     // 间隔轮询检测数据库连接是否断开，超时时间三秒，断开后自动重连
-                    if (!isValid(dbConn, 3)) {
+                    if (checkConnectionIsValid(dbConn)) {
                         dbConn = getConnection();
                         // 重新连接后还是不可用则认为数据库异常，任务失败
-                        if (!isValid(dbConn, 3)) {
+                        if (checkConnectionIsValid(dbConn)) {
                             String message =
                                     String.format(
                                             "cannot connect to %s, username = %s, please check %s is available.",
-                                            jdbcConf.getJdbcUrl(),
-                                            jdbcConf.getUsername(),
+                                            jdbcConfig.getJdbcUrl(),
+                                            jdbcConfig.getUsername(),
                                             jdbcDialect.dialectName());
                             throw new ChunJunRuntimeException(message);
                         }
@@ -67,13 +66,13 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                     queryForPolling(incrementKeyUtil.transToLocationValue(state).toString());
                     return false;
                 } catch (InterruptedException e) {
-                    LOG.warn("interrupted while waiting for polling, e = {}", e);
+                    log.warn("interrupted while waiting for polling", e);
                 } catch (SQLException e) {
                     JdbcUtil.closeDbResources(resultSet, ps, null, false);
                     String message =
                             String.format(
                                     "error to execute sql = %s, startLocation = %s, e = %s",
-                                    jdbcConf.getQuerySql(),
+                                    jdbcConfig.getQuerySql(),
                                     state,
                                     ExceptionUtil.getErrorMessage(e));
                     throw new ChunJunRuntimeException(message, e);
@@ -87,29 +86,22 @@ public class SqlserverInputFormat extends JdbcInputFormat {
      * Returns true if the connection has not been closed and is still valid.
      *
      * @param connection jdbc connection
-     * @param timeOut The time in seconds to wait for the database operation.
      */
-    public boolean isValid(Connection connection, int timeOut) {
+    public boolean checkConnectionIsValid(Connection connection) {
         try {
             if (connection.isClosed()) {
-                return false;
+                return true;
             }
-            Statement statement = null;
-            ResultSet resultSet = null;
-            try {
-                final String validationQuery = "select 1";
-                statement = connection.createStatement();
-                statement.setQueryTimeout(timeOut);
-                resultSet = statement.executeQuery(validationQuery);
+            final String validationQuery = "select 1";
+            try (Statement statement = connection.createStatement();
+                    ResultSet resultSet = statement.executeQuery(validationQuery)) {
                 if (!resultSet.next()) {
-                    return false;
+                    return true;
                 }
-            } finally {
-                JdbcUtil.closeDbResources(resultSet, statement, null, false);
             }
         } catch (Throwable e) {
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 }

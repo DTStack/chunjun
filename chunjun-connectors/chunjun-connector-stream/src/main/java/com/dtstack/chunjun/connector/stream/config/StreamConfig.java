@@ -17,12 +17,18 @@
  */
 package com.dtstack.chunjun.connector.stream.config;
 
-import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.config.CommonConfig;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class StreamConfig extends CommonConfig {
 
+    private static final long serialVersionUID = -3991527187819329815L;
     // reader
     private List<Long> sliceRecordCount;
 
@@ -30,40 +36,4 @@ public class StreamConfig extends CommonConfig {
     private boolean print = true;
 
     private long permitsPerSecond = 0;
-
-    public List<Long> getSliceRecordCount() {
-        return sliceRecordCount;
-    }
-
-    public void setSliceRecordCount(List<Long> sliceRecordCount) {
-        this.sliceRecordCount = sliceRecordCount;
-    }
-
-    public boolean getPrint() {
-        return print;
-    }
-
-    public void setPrint(boolean print) {
-        this.print = print;
-    }
-
-    public long getPermitsPerSecond() {
-        return permitsPerSecond;
-    }
-
-    public void setPermitsPerSecond(long permitsPerSecond) {
-        this.permitsPerSecond = permitsPerSecond;
-    }
-
-    @Override
-    public String toString() {
-        return "StreamConf{"
-                + "sliceRecordCount="
-                + sliceRecordCount
-                + ", print="
-                + print
-                + ", permitsPerSecond="
-                + permitsPerSecond
-                + '}';
-    }
 }

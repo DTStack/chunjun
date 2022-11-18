@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.solr.source;
 
-import com.dtstack.chunjun.connector.solr.SolrConf;
+import com.dtstack.chunjun.connector.solr.SolrConfig;
 import com.dtstack.chunjun.connector.solr.client.CloudSolrClientKerberosWrapper;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
@@ -37,30 +37,25 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/15
- */
 public class SolrInputFormat extends BaseRichInputFormat {
+    private static final long serialVersionUID = 1959502927016035403L;
 
     public static final String QUERY_ALL = "*:*";
-    private final SolrConf solrConf;
+    private final SolrConfig solrConfig;
     protected String[] fieldNames;
     private CloudSolrClientKerberosWrapper solrClientWrapper;
     private SolrQuery solrQuery;
     private Long startRows;
-    private Long queryRows;
     private Long maxRows;
     private Iterator<SolrDocument> iterator;
 
-    public SolrInputFormat(SolrConf solrConf, String[] fieldNames) {
-        this.solrConf = solrConf;
+    public SolrInputFormat(SolrConfig solrConfig, String[] fieldNames) {
+        this.solrConfig = solrConfig;
         this.fieldNames = fieldNames;
     }
 
     @Override
-    protected InputSplit[] createInputSplitsInternal(int splitNum) throws Exception {
+    protected InputSplit[] createInputSplitsInternal(int splitNum) {
         InputSplit[] splits = new InputSplit[splitNum];
         for (int i = 1; i <= splitNum; i++) {
             splits[i - 1] = new GenericInputSplit(i, splitNum);
@@ -72,7 +67,7 @@ public class SolrInputFormat extends BaseRichInputFormat {
     protected void openInternal(InputSplit inputSplit) {
         solrClientWrapper =
                 new CloudSolrClientKerberosWrapper(
-                        solrConf, getRuntimeContext().getDistributedCache());
+                        solrConfig, getRuntimeContext().getDistributedCache());
         solrClientWrapper.init();
 
         GenericInputSplit genericInputSplit = (GenericInputSplit) inputSplit;
@@ -81,14 +76,14 @@ public class SolrInputFormat extends BaseRichInputFormat {
         solrQuery.setStart(0);
         solrQuery.setRows(0);
         solrQuery.setFields(fieldNames);
-        List<String> filterQueries = solrConf.getFilterQueries();
+        List<String> filterQueries = solrConfig.getFilterQueries();
         if (CollectionUtils.isNotEmpty(filterQueries)) {
             solrQuery.setFilterQueries(filterQueries.toArray(new String[filterQueries.size()]));
         }
         QueryResponse response = solrClientWrapper.query(solrQuery);
         SolrDocumentList solrDocumentList = response.getResults();
         long numFound = solrDocumentList.getNumFound();
-        queryRows = numFound / genericInputSplit.getTotalNumberOfSplits();
+        Long queryRows = numFound / genericInputSplit.getTotalNumberOfSplits();
         startRows = queryRows * (genericInputSplit.getSplitNumber() - 1);
         if (genericInputSplit.getTotalNumberOfSplits() == genericInputSplit.getSplitNumber()) {
             queryRows += numFound % genericInputSplit.getTotalNumberOfSplits();
@@ -107,7 +102,7 @@ public class SolrInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected void closeInternal() throws IOException {
+    protected void closeInternal() {
         if (solrClientWrapper != null) {
             solrClientWrapper.close();
         }
@@ -126,7 +121,7 @@ public class SolrInputFormat extends BaseRichInputFormat {
         if (startRows >= maxRows) {
             return true;
         }
-        Long batchSize = Math.min(solrConf.getBatchSize(), maxRows - startRows);
+        Long batchSize = Math.min(solrConfig.getBatchSize(), maxRows - startRows);
 
         solrQuery.setStart(Integer.valueOf(startRows.toString()));
         solrQuery.setRows(Integer.valueOf(batchSize.toString()));

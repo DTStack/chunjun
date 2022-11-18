@@ -21,10 +21,6 @@ package com.dtstack.chunjun.security;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * @author tiezhu
- * @since 2021/6/28 星期一
- */
 public class KerberosOptions {
 
     public static final ConfigOption<String> PRINCIPAL =

@@ -44,13 +44,6 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * String Utilities
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public class StringUtil {
 
     public static final int STEP_SIZE = 2;
@@ -445,5 +438,96 @@ public class StringUtil {
             }
         }
         return sw.toString();
+    }
+
+    /**
+     * add line Number after new line
+     *
+     * @param str
+     * @return
+     */
+    public static String addLineNumber(String str) {
+        String[] lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(str, "\n");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 1; i <= lines.length; i++) {
+            int length = String.valueOf(i).length();
+            switch (length) {
+                case 1:
+                    sb.append(i).append(">    ");
+                    break;
+                case 2:
+                    sb.append(i).append(">   ");
+                    break;
+                case 3:
+                    sb.append(i).append(">  ");
+                    break;
+                default:
+                    sb.append(i).append("> ");
+                    break;
+            }
+            sb.append(lines[i - 1]).append("\n");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 处理 sql 中 "--" 注释，而不删除引号内的内容
+     *
+     * @param sql 解析出来的 sql
+     * @return 返回无注释内容的 sql
+     */
+    public static String dealSqlComment(String sql) {
+        boolean inQuotes = false;
+        boolean inSingleQuotes = false;
+        StringBuilder b = new StringBuilder(sql.length());
+        char[] chars = sql.toCharArray();
+        for (int index = 0; index < chars.length; index++) {
+            StringBuilder tempSb = new StringBuilder(2);
+            if (index >= 1) {
+                tempSb.append(chars[index - 1]);
+                tempSb.append(chars[index]);
+            }
+
+            if ("--".equals(tempSb.toString())) {
+                if (inQuotes) {
+                    b.append(chars[index]);
+                } else if (inSingleQuotes) {
+                    b.append(chars[index]);
+                } else {
+                    b.deleteCharAt(b.length() - 1);
+                    while (chars[index] != '\n') {
+                        // 判断注释内容是不是行尾或者 sql 的最后一行
+                        if (index == chars.length - 1) {
+                            break;
+                        }
+                        index++;
+                    }
+                }
+            } else if (chars[index] == '\"' && '\\' != chars[index] && !inSingleQuotes) {
+                inQuotes = !inQuotes;
+                b.append(chars[index]);
+            } else if (chars[index] == '\'' && '\\' != chars[index] && !inQuotes) {
+                inSingleQuotes = !inSingleQuotes;
+                b.append(chars[index]);
+            } else {
+                b.append(chars[index]);
+            }
+        }
+        return b.toString();
+    }
+
+    /**
+     * Capitalize the first letter. The ascii encoding of the letters is moved forward, and the
+     * efficiency is higher than the operation of intercepting the string for conversion
+     *
+     * @param str the string which the first letter should be capitalized.
+     * @return the string which the first letter has been capitalized.
+     */
+    public static String captureFirstLetter(String str) {
+        char[] cs = str.toCharArray();
+        if (cs[0] > 32) {
+            cs[0] -= 32;
+        }
+        return String.valueOf(cs);
     }
 }

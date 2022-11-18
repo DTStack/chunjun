@@ -22,8 +22,12 @@ import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryBeXTablets;
 
 import org.apache.flink.core.io.GenericInputSplit;
 
-/** @author liuliu 2022/7/26 */
+import lombok.Getter;
+
+@Getter
 public class StarRocksInputSplit extends GenericInputSplit {
+
+    private static final long serialVersionUID = -8022476790996978880L;
 
     private final QueryBeXTablets queryBeXTablets;
     private final String opaquedQueryPlan;
@@ -42,13 +46,5 @@ public class StarRocksInputSplit extends GenericInputSplit {
         super(partitionNumber, totalNumberOfPartitions);
         this.queryBeXTablets = queryBeXTablets;
         this.opaquedQueryPlan = opaquedQueryPlan;
-    }
-
-    public QueryBeXTablets getQueryBeXTablets() {
-        return queryBeXTablets;
-    }
-
-    public String getOpaquedQueryPlan() {
-        return opaquedQueryPlan;
     }
 }

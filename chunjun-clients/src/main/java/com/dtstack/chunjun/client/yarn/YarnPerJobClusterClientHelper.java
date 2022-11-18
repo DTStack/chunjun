@@ -42,13 +42,12 @@ import org.apache.flink.yarn.configuration.YarnConfigOptions;
 import org.apache.flink.yarn.configuration.YarnConfigOptionsInternal;
 import org.apache.flink.yarn.configuration.YarnLogConfigUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,9 +59,8 @@ import java.util.Properties;
 
 import static org.apache.flink.configuration.TaskManagerOptions.NUM_TASK_SLOTS;
 
+@Slf4j
 public class YarnPerJobClusterClientHelper implements ClusterClientHelper<ApplicationId> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(YarnPerJobClusterClientHelper.class);
 
     public static final int MIN_JM_MEMORY = 1024;
     public static final int MIN_TM_MEMORY = 1024;
@@ -92,7 +90,7 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper<Applic
                             clusterSpecification, new JobGraph("chunjun"), true);
             String applicationId = provider.getClusterClient().getClusterId().toString();
             String flinkJobId = clusterSpecification.getJobGraph().getJobID().toString();
-            LOG.info("deploy per_job with appId: {}}, jobId: {}", applicationId, flinkJobId);
+            log.info("deploy per_job with appId: {}}, jobId: {}", applicationId, flinkJobId);
 
             return provider.getClusterClient();
         }

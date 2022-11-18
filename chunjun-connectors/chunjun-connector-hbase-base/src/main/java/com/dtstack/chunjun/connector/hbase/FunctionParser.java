@@ -24,10 +24,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author jiangbo
- * @date 2019/7/24
- */
 public class FunctionParser {
 
     private static final String COL_REGEX = "\\$\\([^\\(\\)]+?\\)";
@@ -106,7 +102,7 @@ public class FunctionParser {
             }
 
             FunctionTree child = new FunctionTree();
-            child.setFunction(FunctionFactory.createFuntion(splits[splits.length - 1]));
+            child.setFunction(FunctionFactory.createFunction(splits[splits.length - 1]));
             root.addInputFunction(child);
 
             String subExpress = express.substring(leftBracketsIndex + 1, rightBracketsIndex);

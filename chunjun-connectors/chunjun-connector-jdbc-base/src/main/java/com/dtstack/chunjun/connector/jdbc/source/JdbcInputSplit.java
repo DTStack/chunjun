@@ -20,12 +20,16 @@ package com.dtstack.chunjun.connector.jdbc.source;
 
 import org.apache.flink.core.io.GenericInputSplit;
 
-/**
- * @author jiangbo
- * @explanation
- * @date 2019/3/6
- */
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@ToString
 public class JdbcInputSplit extends GenericInputSplit {
+
+    private static final long serialVersionUID = 125517234990349263L;
 
     private int mod;
 
@@ -82,98 +86,5 @@ public class JdbcInputSplit extends GenericInputSplit {
         this.endLocationOfSplit = endLocationOfSplit;
         this.splitStrategy = splitStrategy;
         this.isPolling = isPolling;
-    }
-
-    public int getMod() {
-        return mod;
-    }
-
-    public void setMod(int mod) {
-        this.mod = mod;
-    }
-
-    public String getEndLocation() {
-        return endLocation;
-    }
-
-    public void setEndLocation(String endLocation) {
-        this.endLocation = endLocation;
-    }
-
-    public String getStartLocation() {
-        return startLocation;
-    }
-
-    public void setStartLocation(String startLocation) {
-        this.startLocation = startLocation;
-    }
-
-    public String getStartLocationOfSplit() {
-        return startLocationOfSplit;
-    }
-
-    public void setStartLocationOfSplit(String startLocationOfSplit) {
-        this.startLocationOfSplit = startLocationOfSplit;
-    }
-
-    public String getEndLocationOfSplit() {
-        return endLocationOfSplit;
-    }
-
-    public void setEndLocationOfSplit(String endLocationOfSplit) {
-        this.endLocationOfSplit = endLocationOfSplit;
-    }
-
-    public String getRangeEndLocationOperator() {
-        return rangeEndLocationOperator;
-    }
-
-    public void setRangeEndLocationOperator(String rangeEndLocationOperator) {
-        this.rangeEndLocationOperator = rangeEndLocationOperator;
-    }
-
-    public boolean isPolling() {
-        return isPolling;
-    }
-
-    public void setPolling(boolean polling) {
-        isPolling = polling;
-    }
-
-    public String getSplitStrategy() {
-        return splitStrategy;
-    }
-
-    public void setSplitStrategy(String splitStrategy) {
-        this.splitStrategy = splitStrategy;
-    }
-
-    @Override
-    public String toString() {
-        return "JdbcInputSplit{"
-                + "mod="
-                + mod
-                + ", endLocation='"
-                + endLocation
-                + '\''
-                + ", startLocation='"
-                + startLocation
-                + '\''
-                + ", startLocationOfSplit='"
-                + startLocationOfSplit
-                + '\''
-                + ", endLocationOfSplit='"
-                + endLocationOfSplit
-                + '\''
-                + ", isPolling="
-                + isPolling
-                + ", splitStrategy='"
-                + splitStrategy
-                + '\''
-                + ", rangeEndLocationOperator='"
-                + rangeEndLocationOperator
-                + '\''
-                + '}'
-                + super.toString();
     }
 }

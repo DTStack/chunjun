@@ -36,11 +36,11 @@ import com.dtstack.chunjun.element.column.TimeColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 import com.dtstack.chunjun.util.StringUtil;
 
-import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
-import java.math.BigDecimal;
+import com.google.common.collect.Maps;
+
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
@@ -63,13 +63,10 @@ import static com.dtstack.chunjun.constants.CDCConstantValue.TABLE;
 import static com.dtstack.chunjun.constants.CDCConstantValue.TS;
 import static com.dtstack.chunjun.constants.CDCConstantValue.TYPE;
 
-/**
- * Date: 2021/05/12 Company: www.dtstack.com
- *
- * @author shifang
- */
 public class SqlServerCdcColumnConverter
         extends AbstractCDCRowConverter<SqlServerCdcEventRow, String> {
+
+    private static final long serialVersionUID = -8218965790709917537L;
 
     public SqlServerCdcColumnConverter(boolean pavingData, boolean splitUpdate) {
         super.pavingData = pavingData;
@@ -77,7 +74,6 @@ public class SqlServerCdcColumnConverter
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public LinkedList<RowData> toInternal(SqlServerCdcEventRow sqlServerCdcEventRow)
             throws Exception {
         LinkedList<RowData> result = new LinkedList<>();
@@ -93,7 +89,7 @@ public class SqlServerCdcColumnConverter
             converters =
                     Arrays.asList(
                             columnTypes.stream()
-                                    .map(x -> createInternalConverter(x))
+                                    .map(this::createInternalConverter)
                                     .toArray(IDeserializationConverter[]::new));
             cdcConverterCacheMap.put(key, converters);
         }
@@ -228,14 +224,6 @@ public class SqlServerCdcColumnConverter
         return result;
     }
 
-    /**
-     * parse sqlServer.Column
-     *
-     * @param converters
-     * @param columnList
-     * @param headerList
-     * @param after
-     */
     private void parseColumnList(
             List<IDeserializationConverter> converters,
             Object[] data,
@@ -265,25 +253,19 @@ public class SqlServerCdcColumnConverter
         }
         switch (substring.toUpperCase(Locale.ENGLISH)) {
             case "BIT":
-                return (IDeserializationConverter<Boolean, AbstractBaseColumn>)
-                        val -> new BooleanColumn(val);
+                return (IDeserializationConverter<Boolean, AbstractBaseColumn>) BooleanColumn::new;
             case "TINYINT":
-                return (IDeserializationConverter<Short, AbstractBaseColumn>) BigDecimalColumn::new;
+            case "DECIMAL":
+            case "NUMERIC":
+            case "BIGINT":
             case "INT":
             case "INTEGER":
             case "SMALLINT":
-                return (IDeserializationConverter<Integer, AbstractBaseColumn>)
-                        BigDecimalColumn::new;
+                return (IDeserializationConverter<Short, AbstractBaseColumn>) BigDecimalColumn::new;
             case "FLOAT":
             case "REAL":
                 return (IDeserializationConverter<Object, AbstractBaseColumn>)
                         val -> (new BigDecimalColumn(val.toString()));
-            case "BIGINT":
-                return (IDeserializationConverter<Long, AbstractBaseColumn>) BigDecimalColumn::new;
-            case "DECIMAL":
-            case "NUMERIC":
-                return (IDeserializationConverter<BigDecimal, AbstractBaseColumn>)
-                        BigDecimalColumn::new;
             case "CHAR":
             case "NCHAR":
             case "VARCHAR":
@@ -315,12 +297,6 @@ public class SqlServerCdcColumnConverter
                             long longValue = new BigInteger(hexString, 16).longValue();
                             return new BigDecimalColumn(longValue);
                         };
-                //            case "ROWVERSION":
-                //            case "UNIQUEIDENTIFIER":
-                //            case "CURSOR":
-                //            case "TABLE":
-                //            case "SQL_VARIANT":
-                //            case "XML":
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }

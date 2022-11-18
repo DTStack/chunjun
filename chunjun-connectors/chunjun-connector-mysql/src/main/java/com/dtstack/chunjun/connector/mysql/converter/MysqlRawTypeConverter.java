@@ -25,11 +25,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * @program: ChunJun
- * @author: wuren
- * @create: 2021/04/14
- */
 public class MysqlRawTypeConverter {
 
     /**

@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>chunjun</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -74,7 +74,7 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-hdfs</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-cli</artifactId>
@@ -98,7 +98,7 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-cli</artifactId>
@@ -130,7 +130,7 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-yarn-common</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-cli</artifactId>
@@ -158,7 +158,7 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-yarn-client</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-cli</artifactId>
@@ -173,7 +173,7 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-mapreduce-client-core</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>slf4j-api</artifactId>
@@ -188,7 +188,7 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-yarn-api</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-logging</artifactId>
@@ -208,86 +208,24 @@
 			</exclusions>
 		</dependency>
 
+		<!-- flink dependency start -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-json</artifactId>
-			<version>${flink.version}</version>
+			<artifactId>flink-clients</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-table-planner-loader</artifactId>
+		</dependency>
+		<!-- flink dependency end -->
 
 	</dependencies>
 
 	<build>
 		<plugins>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<!--exclude all log api and impls -->
-							<artifactSet>
-								<excludes>
-									<exclude>org.slf4j:*</exclude>
-									<exclude>org.apache.logging.log4j:*</exclude>
-									<exclude>ch.qos.logback:*</exclude>
-									<exclude>ch.qos.reload4j:*</exclude>
-									<exclude>commons-logging:*</exclude>
-									<exclude>log4j:log4j</exclude>
-								</excludes>
-							</artifactSet>
-							<createDependencyReducedPom>false</createDependencyReducedPom>
-							<transformers>
-
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"/>
-								<!-- The service transformer is needed to merge META-INF/services files -->
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer"/>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-									<resource>reference.conf</resource>
-								</transformer>
-
-								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
-									<resource>core-default.xml</resource>
-								</transformer>
-
-								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
-									<resource>core-site.xml</resource>
-								</transformer>
-
-								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
-									<resource>yarn-default.xml</resource>
-								</transformer>
-
-								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
-									<resource>mapred-default.xml</resource>
-								</transformer>
-
-								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
-									<resource>mapred-site.xml</resource>
-								</transformer>
-							</transformers>
-
-							<filters>
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<executions>
 					<execution>
@@ -298,17 +236,17 @@
 							<goal>run</goal>
 						</goals>
 						<configuration>
-							<tasks>
-								<copy file="${basedir}/target/${artifactId}-${project.version}.jar"
-									  tofile="${basedir}/target/${artifactId}.jar"/>
-								<copy todir="${basedir}/../lib/"
-									  file="${basedir}/target/${artifactId}.jar"/>
+							<target>
+								<copy file="${basedir}/target/${project.artifactId}-${project.version}.jar"
+									  tofile="${basedir}/target/${project.artifactId}.jar"/>
+								<copy todir="${basedir}/../client/"
+									  file="${basedir}/target/${project.artifactId}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../lib"
-											 includes="${artifactId}-*.jar"
-											 excludes="${artifactId}.jar"/>
+									<fileset dir="${basedir}/../client"
+											 includes="${project.artifactId}-*.jar"
+											 excludes="${project.artifactId}.jar"/>
 								</delete>
-							</tasks>
+							</target>
 						</configuration>
 					</execution>
 				</executions>

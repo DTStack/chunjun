@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.cdc.handler;
 
 import com.dtstack.chunjun.cdc.cache.Cache;
-import com.dtstack.chunjun.cdc.conf.CacheConf;
+import com.dtstack.chunjun.cdc.config.CacheConfig;
 import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
 import com.dtstack.chunjun.util.GsonUtil;
 
@@ -28,8 +28,7 @@ import org.apache.flink.table.data.RowData;
 import com.google.common.collect.Queues;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -40,9 +39,10 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Slf4j
 public abstract class CacheHandler implements Serializable {
+    private static final long serialVersionUID = 6758334667931679889L;
 
-    protected static final Logger LOG = LoggerFactory.getLogger(CacheHandler.class);
     protected static final Gson GSON =
             GsonUtil.setTypeAdapter(
                     new GsonBuilder()
@@ -50,15 +50,15 @@ public abstract class CacheHandler implements Serializable {
                             .disableHtmlEscaping()
                             .create());
 
-    protected final CacheConf cacheConf;
+    protected final CacheConfig cacheConfig;
     private final Map<TableIdentifier, Cache> cacheMap = new ConcurrentHashMap<>();
     private final Map<TableIdentifier, Queue<RowData>> temporaryQueueMap =
             new ConcurrentHashMap<>();
     private final List<TableIdentifier> blockedTableIdentifiers = new CopyOnWriteArrayList<>();
     private final List<TableIdentifier> unblockedTableIdentifiers = new CopyOnWriteArrayList<>();
 
-    public CacheHandler(CacheConf cacheConf) {
-        this.cacheConf = cacheConf;
+    public CacheHandler(CacheConfig cacheConfig) {
+        this.cacheConfig = cacheConfig;
     }
 
     public boolean contains(TableIdentifier tableIdentifier) {
@@ -70,7 +70,7 @@ public abstract class CacheHandler implements Serializable {
     }
 
     public void open() throws Exception {
-        Properties properties = cacheConf.getProperties();
+        Properties properties = cacheConfig.getProperties();
         init(properties);
     }
 
@@ -79,7 +79,7 @@ public abstract class CacheHandler implements Serializable {
     }
 
     public void addNewBlockCache(TableIdentifier tableIdentifier) {
-        Cache cache = new Cache(cacheConf.getCacheSize(), cacheConf.getCacheTimeout());
+        Cache cache = new Cache(cacheConfig.getCacheSize(), cacheConfig.getCacheTimeout());
         blockedTableIdentifiers.add(tableIdentifier);
         cacheMap.put(tableIdentifier, cache);
     }
@@ -90,7 +90,7 @@ public abstract class CacheHandler implements Serializable {
             cache = cacheMap.get(tableIdentifier);
             cache.add(data);
         } else {
-            cache = new Cache(cacheConf.getCacheSize(), cacheConf.getCacheTimeout());
+            cache = new Cache(cacheConfig.getCacheSize(), cacheConfig.getCacheTimeout());
             cache.add(data);
             unblockedTableIdentifiers.add(tableIdentifier);
             cacheMap.put(tableIdentifier, cache);

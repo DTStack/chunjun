@@ -21,12 +21,16 @@ package com.dtstack.chunjun.connector.oraclelogminer.entity;
 import com.dtstack.chunjun.connector.oraclelogminer.util.SqlUtil;
 
 import com.google.common.collect.Sets;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+@Getter
+@AllArgsConstructor
 public class ColumnInfo {
     private final Set<String> charType = Sets.newHashSet("CHAR", "NVARCHAR2", "VARCHAR2", "NCHAR");
 
@@ -41,73 +45,10 @@ public class ColumnInfo {
     private final String comment;
     private final boolean pk;
 
-    public ColumnInfo(
-            String name,
-            String type,
-            Integer precision,
-            Integer charLength,
-            Integer dataLength,
-            Integer scale,
-            String defaultValue,
-            boolean nullAble,
-            String comment,
-            boolean pk) {
-        this.name = name;
-        this.type = type;
-        this.precision = precision;
-        this.charLength = charLength;
-        this.dataLength = dataLength;
-        this.scale = scale;
-        this.defaultValue = defaultValue;
-        this.nullAble = nullAble;
-        this.comment = comment;
-        this.pk = pk;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public Integer getPrecision() {
-        return precision;
-    }
-
-    public Integer getCharLength() {
-        return charLength;
-    }
-
-    public Integer getScale() {
-        return scale;
-    }
-
-    public String getDefaultValue() {
-        return defaultValue;
-    }
-
-    public boolean isNullAble() {
-        return nullAble;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public boolean isPk() {
-        return pk;
-    }
-
-    public Integer getDataLength() {
-        return dataLength;
-    }
-
     public String conventToSql() {
         StringBuilder sb = new StringBuilder();
         sb.append(SqlUtil.quote(name, "\"")).append(" ").append(type);
-        if (Objects.nonNull(charLength) && isCharFamilry()) {
+        if (Objects.nonNull(charLength) && isCharFamily()) {
             sb.append("(").append(charLength).append(")");
         } else if (type.equals("NUMBER")) {
             sb.append("(").append(precision);
@@ -134,13 +75,8 @@ public class ColumnInfo {
         if (pk) {
             sb.append("constraint")
                     .append(" ")
-                    .append(
-                            "flinkx_pk"
-                                    + UUID.randomUUID()
-                                            .toString()
-                                            .trim()
-                                            .replace("-", "")
-                                            .substring(0, 12))
+                    .append("chunjun_pk")
+                    .append(UUID.randomUUID().toString().trim().replace("-", ""), 0, 12)
                     .append(" primary key");
         }
 
@@ -157,7 +93,7 @@ public class ColumnInfo {
         return null;
     }
 
-    private boolean isCharFamilry() {
+    private boolean isCharFamily() {
         return charType.contains(type);
     }
 }

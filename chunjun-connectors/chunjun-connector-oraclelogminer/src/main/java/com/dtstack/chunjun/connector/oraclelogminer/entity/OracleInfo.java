@@ -18,12 +18,9 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.entity;
 
-/**
- * Date: 2021/08/13 Company: www.dtstack.com
- *
- * @author dujie
- *     <p>logminer监听的oracle数据源信息
- */
+import lombok.Data;
+
+@Data
 public class OracleInfo {
 
     /** 数据库版本 * */
@@ -35,58 +32,11 @@ public class OracleInfo {
     /** 数据库字符编码 * */
     private String encoding;
 
-    public int getVersion() {
-        return version;
-    }
-
-    public void setVersion(int version) {
-        this.version = version;
-    }
-
-    public boolean isRacMode() {
-        return isRacMode;
-    }
-
-    public void setRacMode(boolean racMode) {
-        isRacMode = racMode;
-    }
-
-    public boolean isCdbMode() {
-        return isCdbMode;
-    }
-
-    public void setCdbMode(boolean cdbMode) {
-        isCdbMode = cdbMode;
-    }
-
-    public String getEncoding() {
-        return encoding;
-    }
-
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
-    }
-
     public boolean isGbk() {
         return encoding.contains("GBK");
     }
 
     public boolean isOracle10() {
         return version == 10;
-    }
-
-    @Override
-    public String toString() {
-        return "OracleInfo{"
-                + "version="
-                + version
-                + ", isRacMode="
-                + isRacMode
-                + ", isCdbMode="
-                + isCdbMode
-                + ", encoding='"
-                + encoding
-                + '\''
-                + '}';
     }
 }

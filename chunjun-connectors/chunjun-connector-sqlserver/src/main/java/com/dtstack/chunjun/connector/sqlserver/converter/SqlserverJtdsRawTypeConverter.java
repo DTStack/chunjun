@@ -25,21 +25,9 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * Company：www.dtstack.com
- *
- * @author shitou
- * @date 2021/5/19 14:26
- */
 public class SqlserverJtdsRawTypeConverter {
 
-    /**
-     * Convert the data type in SqlServer to the DataType type in flink
-     *
-     * @param type
-     * @return
-     * @throws UnsupportedTypeException
-     */
+    // Convert the data type in SqlServer to the DataType type in flink
     public static DataType apply(String type) throws UnsupportedTypeException {
         // like numeric() identity, decimal() identity
         if (type.contains("identity")) {
@@ -65,17 +53,19 @@ public class SqlserverJtdsRawTypeConverter {
                 return DataTypes.DOUBLE();
             case "DECIMAL":
             case "NUMERIC":
+            case "MONEY":
+            case "SMALLMONEY":
                 return DataTypes.DECIMAL(1, 0);
             case "CHAR":
             case "VARCHAR":
             case "VARCHAR(MAX)":
             case "TEXT":
             case "XML":
-                return DataTypes.STRING();
             case "NCHAR":
             case "NVARCHAR":
             case "NVARCHAR(MAX)":
             case "NTEXT":
+            case "UNIQUEIDENTIFIER":
                 return DataTypes.STRING();
             case "TIME":
                 return DataTypes.TIME();
@@ -83,8 +73,6 @@ public class SqlserverJtdsRawTypeConverter {
                 return DataTypes.TIMESTAMP(7);
             case "DATETIMEOFFSET":
                 return DataTypes.TIMESTAMP_WITH_TIME_ZONE(7);
-            case "UNIQUEIDENTIFIER":
-                return DataTypes.STRING();
             case "DATE":
                 return DataTypes.DATE();
             case "DATETIME":
@@ -96,9 +84,6 @@ public class SqlserverJtdsRawTypeConverter {
             case "IMAGE":
             case "TIMESTAMP":
                 return DataTypes.BYTES();
-            case "MONEY":
-            case "SMALLMONEY":
-                return DataTypes.DECIMAL(1, 0);
             default:
                 throw new UnsupportedTypeException(type);
         }

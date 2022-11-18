@@ -23,14 +23,12 @@ import org.apache.flink.core.io.InputSplit;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/06/24
- */
 public class FileInputSplit implements InputSplit {
 
-    private int splitNumber;
+    private static final long serialVersionUID = -7369448840361207579L;
+
+    private final int splitNumber;
+
     private List<String> paths = new ArrayList<>();
 
     public FileInputSplit(int splitNumber) {

@@ -21,15 +21,14 @@ package com.dtstack.chunjun.cdc.handler;
 import com.dtstack.chunjun.cdc.DdlRowData;
 import com.dtstack.chunjun.cdc.QueuesChamberlain;
 import com.dtstack.chunjun.cdc.WrapCollector;
-import com.dtstack.chunjun.cdc.conf.DDLConf;
+import com.dtstack.chunjun.cdc.config.DDLConfig;
 import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
 import com.dtstack.chunjun.cdc.utils.ExecutorUtils;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.flink.table.data.RowData;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -38,14 +37,15 @@ import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public abstract class DDLHandler implements Serializable {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(DDLHandler.class);
+    private static final long serialVersionUID = 3290050614715459635L;
 
     protected final List<TableIdentifier> blockedIdentifiers = new ArrayList<>();
 
     // 定时线程池的间隔时间
-    private final DDLConf ddlConf;
+    private final DDLConfig ddlConfig;
 
     protected QueuesChamberlain chamberlain;
 
@@ -56,8 +56,8 @@ public abstract class DDLHandler implements Serializable {
 
     private transient ScheduledExecutorService sendDDLChangeService;
 
-    public DDLHandler(DDLConf ddlConf) {
-        this.ddlConf = ddlConf;
+    public DDLHandler(DDLConfig ddlConfig) {
+        this.ddlConfig = ddlConfig;
     }
 
     public void setCollector(WrapCollector<RowData> collector) {
@@ -69,7 +69,7 @@ public abstract class DDLHandler implements Serializable {
     }
 
     public void open() throws Exception {
-        Properties properties = ddlConf.getProperties();
+        Properties properties = ddlConfig.getProperties();
 
         if (null == properties || properties.isEmpty()) {
             throw new ChunJunRuntimeException(
@@ -83,7 +83,7 @@ public abstract class DDLHandler implements Serializable {
         chamberlain.block(ddlUnchanged);
         blockedIdentifiers.addAll(ddlUnchanged);
 
-        int fetchInterval = ddlConf.getFetchInterval();
+        int fetchInterval = ddlConfig.getFetchInterval();
         findDDLChangeService = ExecutorUtils.scheduleThreadExecutor(1, "ddl-change-finder");
         findDDLChangeService.scheduleAtFixedRate(
                 this::handleUnblock, fetchInterval, fetchInterval, TimeUnit.MILLISECONDS);
@@ -92,7 +92,7 @@ public abstract class DDLHandler implements Serializable {
         sendDDLChangeService.scheduleAtFixedRate(
                 this::handleBlock, fetchInterval, fetchInterval, TimeUnit.MILLISECONDS);
 
-        LOG.info("DDL-Handler-finder open succeed! Fetch interval: " + fetchInterval);
+        log.info("DDL-Handler-finder open succeed! Fetch interval: " + fetchInterval);
     }
 
     public void close() throws Exception {

@@ -18,10 +18,10 @@
 
 package com.dtstack.chunjun.connector.hbase.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseColumnConverter;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseFlatRowConverter;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseRawTypeConverter;
@@ -45,21 +45,21 @@ import java.util.Map;
 
 public class HBaseSinkFactoryBase extends SinkFactory {
 
-    protected final HBaseConf hBaseConf;
+    protected final HBaseConfig hBaseConfig;
 
-    public HBaseSinkFactoryBase(SyncConf config) {
+    public HBaseSinkFactoryBase(SyncConfig config) {
         super(config);
-        hBaseConf =
+        hBaseConfig =
                 GsonUtil.GSON.fromJson(
-                        GsonUtil.GSON.toJson(config.getWriter().getParameter()), HBaseConf.class);
-        super.initCommonConf(hBaseConf);
-        hBaseConf.setColumn(syncConf.getWriter().getFieldList());
-        hBaseConf.setColumnMetaInfos(syncConf.getReader().getFieldList());
+                        GsonUtil.GSON.toJson(config.getWriter().getParameter()), HBaseConfig.class);
+        super.initCommonConf(hBaseConfig);
+        hBaseConfig.setColumn(syncConfig.getWriter().getFieldList());
+        hBaseConfig.setColumnMetaInfos(syncConfig.getReader().getFieldList());
 
         if (config.getWriter().getParameter().get("rowkeyColumn") != null) {
             String rowkeyColumn =
                     buildRowKeyExpress(config.getWriter().getParameter().get("rowkeyColumn"));
-            hBaseConf.setRowkeyExpress(rowkeyColumn);
+            hBaseConfig.setRowkeyExpress(rowkeyColumn);
         }
 
         if (config.getWriter().getParameter().get("versionColumn") != null) {
@@ -67,13 +67,13 @@ public class HBaseSinkFactoryBase extends SinkFactory {
                     (Map<String, Object>) config.getWriter().getParameter().get("versionColumn");
             if (null != versionColumn.get("index")
                     && StringUtils.isNotBlank(versionColumn.get("index").toString())) {
-                hBaseConf.setVersionColumnIndex(
+                hBaseConfig.setVersionColumnIndex(
                         Integer.valueOf(versionColumn.get("index").toString()));
             }
 
             if (null != versionColumn.get("value")
                     && StringUtils.isNotBlank(versionColumn.get("value").toString())) {
-                hBaseConf.setVersionColumnValue(versionColumn.get("value").toString());
+                hBaseConfig.setVersionColumnValue(versionColumn.get("value").toString());
             }
         }
     }
@@ -81,18 +81,18 @@ public class HBaseSinkFactoryBase extends SinkFactory {
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         HBaseOutputFormatBuilder builder = new HBaseOutputFormatBuilder();
-        builder.setConfig(hBaseConf);
+        builder.setConfig(hBaseConfig);
 
-        builder.setHbaseConfig(hBaseConf.getHbaseConfig());
-        builder.setTableName(hBaseConf.getTable());
-        builder.setWriteBufferSize(hBaseConf.getWriteBufferSize());
-        // if use transform, use HBaseFlatRowConverter
+        builder.setHbaseConfig(hBaseConfig.getHbaseConfig());
+        builder.setTableName(hBaseConfig.getTable());
+        builder.setWriteBufferSize(hBaseConfig.getWriteBufferSize());
+        // if you use transform, use HBaseFlatRowConverter
         final RowType rowType =
-                TableUtil.createRowType(hBaseConf.getColumn(), getRawTypeConverter());
-        AbstractRowConverter rowConverter =
+                TableUtil.createRowType(hBaseConfig.getColumn(), getRawTypeConverter());
+        AbstractRowConverter<?, ?, ?, ?> rowConverter =
                 useAbstractBaseColumn
-                        ? new HBaseColumnConverter(hBaseConf, rowType)
-                        : new HBaseFlatRowConverter(hBaseConf, rowType);
+                        ? new HBaseColumnConverter(hBaseConfig, rowType)
+                        : new HBaseFlatRowConverter(hBaseConfig, rowType);
         builder.setRowConverter(rowConverter);
         return createOutput(dataSet, builder.finish());
     }
@@ -122,7 +122,7 @@ public class HBaseSinkFactoryBase extends SinkFactory {
             Integer index = ValueUtil.getInt(item.get("index"));
             if (index != null && index != -1) {
                 expressBuilder.append(
-                        String.format("$(%s)", hBaseConf.getColumn().get(index).getName()));
+                        String.format("$(%s)", hBaseConfig.getColumn().get(index).getName()));
                 continue;
             }
 
@@ -135,13 +135,13 @@ public class HBaseSinkFactoryBase extends SinkFactory {
         return expressBuilder.toString();
     }
 
-    HBaseTableSchema buildHBaseTableSchema(String tableName, List<FieldConf> fieldConfList) {
+    HBaseTableSchema buildHBaseTableSchema(String tableName, List<FieldConfig> FieldConfigList) {
         HBaseTableSchema hbaseSchema = new HBaseTableSchema();
         hbaseSchema.setTableName(tableName);
         RawTypeConverter rawTypeConverter = getRawTypeConverter();
-        for (FieldConf fieldConf : fieldConfList) {
-            String fieldName = fieldConf.getName();
-            DataType dataType = rawTypeConverter.apply(fieldConf.getType());
+        for (FieldConfig config : FieldConfigList) {
+            String fieldName = config.getName();
+            DataType dataType = rawTypeConverter.apply(config.getType());
             if ("rowkey".equalsIgnoreCase(fieldName)) {
                 hbaseSchema.setRowKey(fieldName, dataType);
             } else if (fieldName.contains(":")) {

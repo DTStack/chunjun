@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.sqlserver.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -28,20 +28,14 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * Company：www.dtstack.com
- *
- * @author shitou
- * @date 2021/5/19 15:31
- */
 public class SqlserverSourceFactory extends JdbcSourceFactory {
 
-    public SqlserverSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, null);
+    public SqlserverSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env, null);
         super.jdbcDialect =
                 new SqlserverDialect(
-                        jdbcConf.isWithNoLock(),
-                        jdbcConf.getJdbcUrl().startsWith("jdbc:jtds:sqlserver"));
+                        jdbcConfig.isWithNoLock(),
+                        jdbcConfig.getJdbcUrl().startsWith("jdbc:jtds:sqlserver"));
     }
 
     @Override
@@ -52,10 +46,10 @@ public class SqlserverSourceFactory extends JdbcSourceFactory {
     /** table字段有可能是[schema].[table]格式 需要转换为对应的schema 和 table 字段* */
     @Override
     protected void rebuildJdbcConf() {
-        if (jdbcConf.getTable().startsWith("[")
-                && jdbcConf.getTable().endsWith("]")
-                && StringUtils.isBlank(jdbcConf.getSchema())) {
-            JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+        if (jdbcConfig.getTable().startsWith("[")
+                && jdbcConfig.getTable().endsWith("]")
+                && StringUtils.isBlank(jdbcConfig.getSchema())) {
+            JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\[", "\\]");
         } else {
             super.rebuildJdbcConf();
         }

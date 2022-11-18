@@ -66,7 +66,7 @@ public class TableOperator extends DdlOperator {
         this.newTableIdentifier = newTableIdentifier;
         Preconditions.checkArgument(
                 getSupportEventType().contains(type),
-                "OperateTableDefinition not support type" + type);
+                "OperateTableDefinition not support type " + type);
     }
 
     public boolean isLikeTable() {
@@ -126,5 +126,96 @@ public class TableOperator extends DdlOperator {
                 + ", newTableIdentifier="
                 + newTableIdentifier
                 + '}';
+    }
+
+    public static class Builder {
+        private EventType type = null;
+        private String sql = null;
+        private TableIdentifier tableIdentifier = null;
+        private List<ColumnDefinition> columnList = null;
+        private List<IndexDefinition> indexList = null;
+        private String comment = null;
+        private List<ConstraintDefinition> constraintList = null;
+        private boolean isTemporary = false;
+        private boolean ifNotExists = false;
+        private boolean likeTable = false;
+        private TableIdentifier likeTableIdentifier = null;
+        private TableIdentifier newTableIdentifier = null;
+
+        public Builder type(EventType type) {
+            this.type = type;
+            return this;
+        }
+
+        public Builder sql(String sql) {
+            this.sql = sql;
+            return this;
+        }
+
+        public Builder tableIdentifier(TableIdentifier tableIdentifier) {
+            this.tableIdentifier = tableIdentifier;
+            return this;
+        }
+
+        public Builder columnList(List<ColumnDefinition> columnList) {
+            this.columnList = columnList;
+            return this;
+        }
+
+        public Builder indexList(List<IndexDefinition> indexList) {
+            this.indexList = indexList;
+            return this;
+        }
+
+        public Builder comment(String comment) {
+            this.comment = comment;
+            return this;
+        }
+
+        public Builder constraintList(List<ConstraintDefinition> constraintList) {
+            this.constraintList = constraintList;
+            return this;
+        }
+
+        public Builder isTemporary(boolean isTemporary) {
+            this.isTemporary = isTemporary;
+            return this;
+        }
+
+        public Builder ifNotExists(boolean ifNotExists) {
+            this.ifNotExists = ifNotExists;
+            return this;
+        }
+
+        public Builder likeTable(boolean likeTable) {
+            this.likeTable = likeTable;
+            return this;
+        }
+
+        public Builder likeTableIdentifier(TableIdentifier likeTableIdentifier) {
+            this.likeTableIdentifier = likeTableIdentifier;
+            return this;
+        }
+
+        public Builder newTableIdentifier(TableIdentifier newTableIdentifier) {
+            this.newTableIdentifier = newTableIdentifier;
+            return this;
+        }
+
+        public TableOperator build() {
+            return new TableOperator(
+                    type,
+                    sql,
+                    tableIdentifier,
+                    columnList,
+                    indexList,
+                    comment,
+                    constraintList,
+                    isTemporary,
+                    ifNotExists,
+                    likeTable,
+                    likeTableIdentifier,
+                    newTableIdentifier);
+        }
     }
 }

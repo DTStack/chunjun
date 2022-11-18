@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.cassandra.source;
 
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraSourceConf;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraSourceConfig;
 import com.dtstack.chunjun.connector.cassandra.util.CassandraService;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
@@ -33,32 +33,31 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import static com.dtstack.chunjun.connector.cassandra.util.CassandraService.quoteColumn;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
+@Slf4j
 public class CassandraInputFormat extends BaseRichInputFormat {
 
-    private CassandraSourceConf sourceConf;
+    private static final long serialVersionUID = -5354898494437278362L;
+
+    private CassandraSourceConfig sourceConfig;
 
     private transient Session session;
 
     protected transient Iterator<Row> cursor;
 
     @Override
-    protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
+    protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
         ArrayList<CassandraInputSplit> splits = new ArrayList<>();
 
         try {
-            Preconditions.checkNotNull(sourceConf.getTableName(), "table must not null");
-            return CassandraService.splitJob(sourceConf, minNumSplits, splits);
+            Preconditions.checkNotNull(sourceConfig.getTableName(), "table must not null");
+            return CassandraService.splitJob(sourceConfig, minNumSplits, splits);
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -67,27 +66,27 @@ public class CassandraInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
+    protected void openInternal(InputSplit inputSplit) {
         CassandraInputSplit split = (CassandraInputSplit) inputSplit;
 
-        String tableName = sourceConf.getTableName();
-        String keyspaces = sourceConf.getKeyspaces();
+        String tableName = sourceConfig.getTableName();
+        String keyspaces = sourceConfig.getKeyspaces();
 
-        sourceConf
+        sourceConfig
                 .getColumn()
-                .forEach(fieldConf -> columnNameList.add(quoteColumn(fieldConf.getName())));
+                .forEach(fieldConfig -> columnNameList.add(quoteColumn(fieldConfig.getName())));
 
         Preconditions.checkNotNull(tableName, "table must not null");
-        session = CassandraService.session(sourceConf);
+        session = CassandraService.session(sourceConfig);
 
-        String consistency = sourceConf.getConsistency();
+        String consistency = sourceConfig.getConsistency();
         ConsistencyLevel consistencyLevel = CassandraService.consistencyLevel(consistency);
 
         Select select = QueryBuilder.select(columnNameList.toArray()).from(keyspaces, tableName);
         select.setConsistencyLevel(consistencyLevel);
         // TODO where ? group by ? order by ?
 
-        LOG.info("split: {}, {}", split.getMinToken(), split.getMaxToken());
+        log.info("split: {}, {}", split.getMinToken(), split.getMaxToken());
         ResultSet resultSet = session.execute(select);
         cursor = resultSet.all().iterator();
     }
@@ -106,20 +105,20 @@ public class CassandraInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected void closeInternal() throws IOException {
+    protected void closeInternal() {
         CassandraService.close(session);
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
+    public boolean reachedEnd() {
         return !cursor.hasNext();
     }
 
-    public CassandraSourceConf getSourceConf() {
-        return sourceConf;
+    public CassandraSourceConfig getSourceConfig() {
+        return sourceConfig;
     }
 
-    public void setSourceConf(CassandraSourceConf sourceConf) {
-        this.sourceConf = sourceConf;
+    public void setSourceConfig(CassandraSourceConfig sourceConfig) {
+        this.sourceConfig = sourceConfig;
     }
 }

@@ -18,32 +18,27 @@
 
 package com.dtstack.chunjun.connector.solr.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.solr.SolrConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.solr.SolrConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import java.util.List;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/28
- */
 public class SolrInputFormatBuilder extends BaseRichInputFormatBuilder<SolrInputFormat> {
 
-    public static SolrInputFormatBuilder newBuild(SolrConf solrConf) {
-        List<FieldConf> fields = solrConf.getColumn();
+    public static SolrInputFormatBuilder newBuild(SolrConfig solrConfig) {
+        List<FieldConfig> fields = solrConfig.getColumn();
         String[] fieldNames = new String[fields.size()];
         for (int i = 0; i < fields.size(); i++) {
             fieldNames[i] = fields.get(i).getName();
         }
-        SolrInputFormat format = new SolrInputFormat(solrConf, fieldNames);
-        return new SolrInputFormatBuilder(format, solrConf);
+        SolrInputFormat format = new SolrInputFormat(solrConfig, fieldNames);
+        return new SolrInputFormatBuilder(format, solrConfig);
     }
 
-    private SolrInputFormatBuilder(SolrInputFormat solrInputFormat, SolrConf solrConf) {
+    private SolrInputFormatBuilder(SolrInputFormat solrInputFormat, SolrConfig solrConfig) {
         super(solrInputFormat);
-        setConfig(solrConf);
+        setConfig(solrConfig);
     }
 
     @Override

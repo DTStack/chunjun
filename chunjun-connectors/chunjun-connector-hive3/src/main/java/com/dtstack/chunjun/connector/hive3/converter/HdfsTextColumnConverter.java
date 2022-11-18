@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.hive3.converter;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -49,15 +49,16 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 
-/** @author liuliu 2022/3/22 */
 public class HdfsTextColumnConverter
         extends AbstractRowConverter<RowData, RowData, List<String>, LogicalType> {
 
-    HdfsConf hdfsConf;
+    private static final long serialVersionUID = -6245541661525501806L;
 
-    public HdfsTextColumnConverter(RowType rowType, HdfsConf hdfsConf) {
-        super(rowType, hdfsConf);
-        this.hdfsConf = hdfsConf;
+    HdfsConfig hdfsConfig;
+
+    public HdfsTextColumnConverter(RowType rowType, HdfsConfig hdfsConfig) {
+        super(rowType, hdfsConfig);
+        this.hdfsConfig = hdfsConfig;
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
@@ -72,7 +73,7 @@ public class HdfsTextColumnConverter
     public RowData toInternal(RowData input) throws Exception {
         ColumnRowData row = new ColumnRowData(input.getArity());
         if (input instanceof GenericRowData) {
-            List<FieldConf> fieldConfList = commonConf.getColumn();
+            List<FieldConfig> fieldConfList = commonConfig.getColumn();
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < fieldConfList.size(); i++) {
                 row.addField(
@@ -94,8 +95,8 @@ public class HdfsTextColumnConverter
 
     @Override
     public List<String> toExternal(RowData rowData, List<String> output) throws Exception {
-        for (int index = 0; index < hdfsConf.getFullColumnName().size(); index++) {
-            int columnIndex = hdfsConf.getFullColumnIndexes()[index];
+        for (int index = 0; index < hdfsConfig.getFullColumnName().size(); index++) {
+            int columnIndex = hdfsConfig.getFullColumnIndexes()[index];
             if (columnIndex == -1) {
                 output.add("");
             } else {

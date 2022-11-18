@@ -18,12 +18,16 @@
 
 package com.dtstack.chunjun.connector.ftp.extend.ftp.concurrent;
 
-import java.io.Serializable;
-import java.util.StringJoiner;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
+import java.io.Serializable;
+
+@AllArgsConstructor
+@Data
 public class FtpFileSplit implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -5408358718251478998L;
 
     /** 这个分片处理文件的开始位置 */
     private long startPosition = 0;
@@ -48,59 +52,7 @@ public class FtpFileSplit implements Serializable {
         this.filename = filename;
     }
 
-    public FtpFileSplit(
-            long startPosition,
-            long endPosition,
-            String fileAbsolutePath,
-            String filename,
-            String compressType) {
-        this.startPosition = startPosition;
-        this.endPosition = endPosition;
-        this.fileAbsolutePath = fileAbsolutePath;
-        this.filename = filename;
-        this.compressType = compressType;
-    }
-
-    public String getFilename() {
-        return this.filename;
-    }
-
-    public String getFileAbsolutePath() {
-        return this.fileAbsolutePath;
-    }
-
-    public long getStartPosition() {
-        return this.startPosition;
-    }
-
-    public void setStartPosition(long position) {
-        this.startPosition = position;
-    }
-
-    public long getEndPosition() {
-        return this.endPosition;
-    }
-
-    public void setEndPosition(long position) {
-        this.endPosition = position;
-    }
-
-    public String getCompressType() {
-        return this.compressType;
-    }
-
     public long getReadLimit() {
-        return this.endPosition - this.startPosition;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", FtpFileSplit.class.getSimpleName() + "[", "]")
-                .add("startPosition=" + startPosition)
-                .add("endPosition=" + endPosition)
-                .add("filename='" + filename + "'")
-                .add("fileAbsolutePath='" + fileAbsolutePath + "'")
-                .add("compressType='" + compressType + "'")
-                .toString();
+        return endPosition - startPosition;
     }
 }

@@ -27,8 +27,9 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalTime;
 
-/** @author liuliu 2022/1/12 */
 public class TimeColumn extends AbstractBaseColumn {
+
+    private static final long serialVersionUID = -1556675149388070369L;
 
     public TimeColumn(Time data) {
         super(data, 8);

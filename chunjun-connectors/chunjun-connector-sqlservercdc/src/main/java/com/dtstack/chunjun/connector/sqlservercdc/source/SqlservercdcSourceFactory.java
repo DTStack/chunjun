@@ -18,11 +18,12 @@
 
 package com.dtstack.chunjun.connector.sqlservercdc.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.sqlservercdc.conf.SqlServerCdcConf;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.sqlservercdc.config.SqlServerCdcConfig;
 import com.dtstack.chunjun.connector.sqlservercdc.convert.SqlServerCdcColumnConverter;
 import com.dtstack.chunjun.connector.sqlservercdc.convert.SqlServerCdcRawTypeConverter;
 import com.dtstack.chunjun.connector.sqlservercdc.convert.SqlServerCdcRowConverter;
+import com.dtstack.chunjun.connector.sqlservercdc.format.TimestampFormat;
 import com.dtstack.chunjun.connector.sqlservercdc.inputFormat.SqlServerCdcInputFormatBuilder;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -30,42 +31,39 @@ import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
 
-import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
-@SuppressWarnings("all")
 public class SqlservercdcSourceFactory extends SourceFactory {
 
-    private final SqlServerCdcConf sqlServerCdcConf;
+    private final SqlServerCdcConfig sqlServerCdcConfig;
 
-    public SqlservercdcSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
+    public SqlservercdcSourceFactory(SyncConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        sqlServerCdcConf =
+        sqlServerCdcConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(config.getReader().getParameter()), SqlServerCdcConf.class);
-        sqlServerCdcConf.setColumn(config.getReader().getFieldList());
-        super.initCommonConf(sqlServerCdcConf);
+                        JsonUtil.toJson(config.getReader().getParameter()),
+                        SqlServerCdcConfig.class);
+        sqlServerCdcConfig.setColumn(config.getReader().getFieldList());
+        super.initCommonConf(sqlServerCdcConfig);
     }
 
     @Override
     public DataStream<RowData> createSource() {
         SqlServerCdcInputFormatBuilder builder = new SqlServerCdcInputFormatBuilder();
-        builder.setSqlServerCdcConf(sqlServerCdcConf);
+        builder.setSqlServerCdcConf(sqlServerCdcConfig);
         AbstractCDCRowConverter rowConverter;
         if (useAbstractBaseColumn) {
             rowConverter =
                     new SqlServerCdcColumnConverter(
-                            sqlServerCdcConf.isPavingData(), sqlServerCdcConf.isSplitUpdate());
+                            sqlServerCdcConfig.isPavingData(), sqlServerCdcConfig.isSplitUpdate());
         } else {
             final RowType rowType =
-                    (RowType)
-                            TableUtil.createRowType(
-                                    sqlServerCdcConf.getColumn(), getRawTypeConverter());
+                    TableUtil.createRowType(sqlServerCdcConfig.getColumn(), getRawTypeConverter());
             TimestampFormat format =
-                    "sql".equalsIgnoreCase(sqlServerCdcConf.getTimestampFormat())
+                    "sql".equalsIgnoreCase(sqlServerCdcConfig.getTimestampFormat())
                             ? TimestampFormat.SQL
                             : TimestampFormat.ISO_8601;
             rowConverter = new SqlServerCdcRowConverter(rowType, format);

@@ -20,26 +20,16 @@ package com.dtstack.chunjun.connector.kudu.source;
 
 import org.apache.flink.core.io.InputSplit;
 
-/**
- * @author tiezhu
- * @since 2021/6/9 星期三
- */
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public class KuduInputSplit implements InputSplit {
+
+    private static final long serialVersionUID = 4856154259477431970L;
+
     private final byte[] token;
 
     private final int splitNumber;
-
-    public KuduInputSplit(byte[] token, int splitNumber) {
-        this.token = token;
-        this.splitNumber = splitNumber;
-    }
-
-    @Override
-    public int getSplitNumber() {
-        return splitNumber;
-    }
-
-    public byte[] getToken() {
-        return token;
-    }
 }

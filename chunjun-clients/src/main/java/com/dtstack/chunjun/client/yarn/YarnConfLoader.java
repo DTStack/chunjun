@@ -37,7 +37,10 @@ public class YarnConfLoader {
             if (dir.exists() && dir.isDirectory()) {
 
                 File[] xmlFileList =
-                        new File(yarnConfDir).listFiles((dir1, name) -> name.endsWith(ConstantValue.FILE_SUFFIX_XML));
+                        new File(yarnConfDir)
+                                .listFiles(
+                                        (dir1, name) ->
+                                                name.endsWith(ConstantValue.FILE_SUFFIX_XML));
 
                 if (xmlFileList != null) {
                     for (File xmlFile : xmlFileList) {

@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.solr.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.solr.SolrConf;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.solr.SolrConfig;
 import com.dtstack.chunjun.connector.solr.SolrConverterFactory;
 import com.dtstack.chunjun.connector.solr.converter.SolrRawTypeConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -34,20 +34,16 @@ import org.apache.flink.table.data.RowData;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/20
- */
 public class SolrSourceFactory extends SourceFactory {
 
-    private final SolrConf solrConf;
+    private final SolrConfig solrConfig;
 
-    public SolrSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
+    public SolrSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
         Gson gson = new GsonBuilder().create();
         GsonUtil.setTypeAdapter(gson);
-        solrConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), SolrConf.class);
+        solrConfig =
+                gson.fromJson(gson.toJson(syncConfig.getReader().getParameter()), SolrConfig.class);
     }
 
     @Override
@@ -57,8 +53,8 @@ public class SolrSourceFactory extends SourceFactory {
 
     @Override
     public DataStream<RowData> createSource() {
-        SolrInputFormatBuilder builder = SolrInputFormatBuilder.newBuild(solrConf);
-        SolrConverterFactory converterFactory = new SolrConverterFactory(solrConf);
+        SolrInputFormatBuilder builder = SolrInputFormatBuilder.newBuild(solrConfig);
+        SolrConverterFactory converterFactory = new SolrConverterFactory(solrConfig);
         AbstractRowConverter converter;
         if (useAbstractBaseColumn) {
             converter = converterFactory.createColumnConverter();

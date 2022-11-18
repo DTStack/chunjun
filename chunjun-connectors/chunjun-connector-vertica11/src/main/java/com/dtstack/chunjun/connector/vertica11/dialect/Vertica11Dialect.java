@@ -18,12 +18,12 @@
 
 package com.dtstack.chunjun.connector.vertica11.dialect;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.chunjun.connector.vertica11.converter.Vertica11ColumnConverter;
 import com.dtstack.chunjun.connector.vertica11.converter.Vertica11RawTypeConverter;
-import com.dtstack.chunjun.connector.vertica11.converter.Vertica11RowConverter;
+import com.dtstack.chunjun.connector.vertica11.converter.Vertica11SqlConverter;
+import com.dtstack.chunjun.connector.vertica11.converter.Vertica11SyncConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 
@@ -40,8 +40,9 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-/** @author menghan */
 public class Vertica11Dialect implements JdbcDialect {
+
+    private static final long serialVersionUID = -5097687228210606349L;
 
     private static final String DIALECT_NAME = "VERTICA11";
 
@@ -75,13 +76,13 @@ public class Vertica11Dialect implements JdbcDialect {
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
             getRowConverter(RowType rowType) {
-        return new Vertica11RowConverter(rowType);
+        return new Vertica11SqlConverter(rowType);
     }
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
-        return new Vertica11ColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new Vertica11SyncConverter(rowType, commonConfig);
     }
 
     public Optional<String> getUpsertStatement(

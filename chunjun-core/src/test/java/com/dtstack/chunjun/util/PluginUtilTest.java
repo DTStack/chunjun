@@ -18,13 +18,13 @@
 
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.conf.ContentConf;
-import com.dtstack.chunjun.conf.JobConfBuilder;
-import com.dtstack.chunjun.conf.OperatorConf;
-import com.dtstack.chunjun.conf.SettingConfBuilder;
-import com.dtstack.chunjun.conf.SpeedConf;
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.conf.SyncConfBuilder;
+import com.dtstack.chunjun.config.ContentConfig;
+import com.dtstack.chunjun.config.JobConfigBuilder;
+import com.dtstack.chunjun.config.OperatorConfig;
+import com.dtstack.chunjun.config.SettingConfigBuilder;
+import com.dtstack.chunjun.config.SpeedConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.config.SyncConfigBuilder;
 import com.dtstack.chunjun.constants.ConfigConstant;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.enums.ClusterMode;
@@ -56,7 +56,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** @author tiezhu Date 2020/6/19 星期五 */
 public class PluginUtilTest {
 
     @TempDir static File localPluginRoot;
@@ -138,43 +137,43 @@ public class PluginUtilTest {
     @Test
     public void testRegisterPluginUrlToCachedFile() throws IOException {
         Options options = new Options();
-        SpeedConf speedConf = new SpeedConf();
-        speedConf.setChannel(5);
-        speedConf.setWriterChannel(3);
+        SpeedConfig speedConfig = new SpeedConfig();
+        speedConfig.setChannel(5);
+        speedConfig.setWriterChannel(3);
 
-        ContentConf contentConf = new ContentConf();
-        OperatorConf reader = new OperatorConf();
+        ContentConfig contentConfig = new ContentConfig();
+        OperatorConfig reader = new OperatorConfig();
         reader.setName("hbasereader");
         reader.setParameter(
                 ImmutableMap.<String, Object>builder()
                         .put(ConfigConstant.KEY_COLUMN, ImmutableList.of(ConstantValue.STAR_SYMBOL))
                         .build());
-        contentConf.setReader(reader);
-        OperatorConf writer = new OperatorConf();
+        contentConfig.setReader(reader);
+        OperatorConfig writer = new OperatorConfig();
         writer.setName("hbasewriter");
         writer.setParameter(
                 ImmutableMap.<String, Object>builder()
                         .put(ConfigConstant.KEY_COLUMN, ImmutableList.of(ConstantValue.STAR_SYMBOL))
                         .build());
-        contentConf.setWriter(writer);
-        SyncConf syncConf =
-                SyncConfBuilder.newBuilder()
+        contentConfig.setWriter(writer);
+        SyncConfig syncConfig =
+                SyncConfigBuilder.newBuilder()
                         .job(
-                                JobConfBuilder.newBuilder()
+                                JobConfigBuilder.newBuilder()
                                         .setting(
-                                                SettingConfBuilder.newBuilder()
-                                                        .speed(speedConf)
+                                                SettingConfigBuilder.newBuilder()
+                                                        .speed(speedConfig)
                                                         .build())
-                                        .content(new LinkedList<>(ImmutableList.of(contentConf)))
+                                        .content(new LinkedList<>(ImmutableList.of(contentConfig)))
                                         .build())
                         .pluginRoot(localPluginRoot.getPath())
                         .build();
         StreamExecutionEnvironment environment =
                 new SourceFactoryTest.DummyStreamExecutionEnvironment();
 
-        PluginUtil.registerPluginUrlToCachedFile(options, syncConf, environment);
+        PluginUtil.registerPluginUrlToCachedFile(options, syncConfig, environment);
 
-        List<String> jarList = syncConf.getSyncJarList();
+        List<String> jarList = syncConfig.getSyncJarList();
 
         assertTrue(jarList.contains(testJar.getPath()));
     }

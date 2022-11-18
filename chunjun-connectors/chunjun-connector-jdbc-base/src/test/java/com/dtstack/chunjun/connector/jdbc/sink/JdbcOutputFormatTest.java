@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.jdbc.sink;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
-import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRawTypeConverterTest;
+import com.dtstack.chunjun.connector.jdbc.converter.JdbcSyncConverter;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -31,14 +31,12 @@ import com.dtstack.chunjun.enums.EWriteMode;
 import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.metrics.AccumulatorCollector;
 import com.dtstack.chunjun.metrics.BigIntegerAccumulator;
-import com.dtstack.chunjun.metrics.CustomReporter;
 import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.api.common.accumulators.LongCounter;
-import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.table.data.RowData;
 
 import org.junit.Assert;
@@ -47,7 +45,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -82,12 +79,12 @@ import static org.powermock.reflect.Whitebox.setInternalState;
 public class JdbcOutputFormatTest {
     JdbcOutputFormat jdbcOutputFormat;
     JdbcDialect jdbcDialect;
-    JdbcConfig jdbcConf;
+    JdbcConfig jdbcConfig;
 
     AccumulatorCollector accumulatorCollector;
     BigIntegerAccumulator endLocationAccumulator;
     FormatState formatState;
-    JdbcColumnConverter rowConverter;
+    JdbcSyncConverter rowConverter;
     PreparedStmtProxy stmtProxy;
     LongCounter snapshotWriteCounter;
 
@@ -103,20 +100,17 @@ public class JdbcOutputFormatTest {
 
         jdbcOutputFormat = mock(JdbcOutputFormat.class);
         jdbcDialect = mock(JdbcDialect.class);
-        Logger LOG = mock(Logger.class);
-        jdbcConf = mock(JdbcConfig.class);
-        CustomReporter customReporter = mock(CustomReporter.class);
-        RuntimeContext runtimeContext = mock(RuntimeContext.class);
+        jdbcConfig = mock(JdbcConfig.class);
         accumulatorCollector = mock(AccumulatorCollector.class);
         endLocationAccumulator = mock(BigIntegerAccumulator.class);
         formatState = mock(FormatState.class);
-        rowConverter = mock(JdbcColumnConverter.class);
+        rowConverter = mock(JdbcSyncConverter.class);
         stmtProxy = mock(PreparedStmtProxy.class);
         snapshotWriteCounter = mock(LongCounter.class);
 
         setInternalState(jdbcOutputFormat, "dbConn", connection);
         setInternalState(jdbcOutputFormat, "formatState", formatState);
-        setInternalState(jdbcOutputFormat, "jdbcConf", jdbcConf);
+        setInternalState(jdbcOutputFormat, "jdbcConfig", jdbcConfig);
         setInternalState(jdbcOutputFormat, "jdbcDialect", jdbcDialect);
         setInternalState(jdbcOutputFormat, "stmtProxy", stmtProxy);
         setInternalState(jdbcOutputFormat, "snapshotWriteCounter", snapshotWriteCounter);
@@ -128,10 +122,10 @@ public class JdbcOutputFormatTest {
         doCallRealMethod().when(jdbcOutputFormat).openInternal(anyInt(), anyInt());
         when(jdbcOutputFormat.getConnection()).thenReturn(connection);
         setInternalState(jdbcOutputFormat, "semantic", Semantic.EXACTLY_ONCE);
-        when(jdbcConf.getMode()).thenReturn(EWriteMode.UPDATE.name());
-        when(jdbcConf.getUniqueKey()).thenReturn(new ArrayList<>());
-        when(jdbcConf.getSchema()).thenReturn("test_schema");
-        when(jdbcConf.getTable()).thenReturn("test_sink");
+        when(jdbcConfig.getMode()).thenReturn(EWriteMode.UPDATE.name());
+        when(jdbcConfig.getUniqueKey()).thenReturn(new ArrayList<>());
+        when(jdbcConfig.getSchema()).thenReturn("test_schema");
+        when(jdbcConfig.getTable()).thenReturn("test_sink");
         when(JdbcUtil.getTableIndex("test_schema", "test_sink", connection))
                 .thenAnswer(invocation -> Collections.singletonList("id"));
         jdbcOutputFormat.openInternal(1, 1);
@@ -144,10 +138,10 @@ public class JdbcOutputFormatTest {
     public void buildStmtProxyTest() throws SQLException {
         doCallRealMethod().when(jdbcOutputFormat).buildStmtProxy();
         setInternalState(jdbcOutputFormat, "columnNameList", Collections.singletonList("id"));
-        when(jdbcConf.getTable()).thenReturn("*");
+        when(jdbcConfig.getTable()).thenReturn("*");
         jdbcOutputFormat.buildStmtProxy();
 
-        when(jdbcConf.getTable()).thenReturn("test_sink");
+        when(jdbcConfig.getTable()).thenReturn("test_sink");
         when(jdbcDialect.getRawTypeConverter()).thenReturn(JdbcRawTypeConverterTest::apply);
         jdbcOutputFormat.buildStmtProxy();
     }
@@ -207,7 +201,7 @@ public class JdbcOutputFormatTest {
     @Test
     public void preCommitTest() throws Exception {
         doCallRealMethod().when(jdbcOutputFormat).preCommit();
-        when(jdbcConf.getRestoreColumnIndex()).thenReturn(0);
+        when(jdbcConfig.getRestoreColumnIndex()).thenReturn(0);
 
         ColumnRowData columnRowData = new ColumnRowData(1);
         columnRowData.addField(new StringColumn("123"));
@@ -244,8 +238,8 @@ public class JdbcOutputFormatTest {
     @Test
     public void prepareTemplatesTest() {
         when(jdbcOutputFormat.prepareTemplates()).thenCallRealMethod();
-        when(jdbcConf.getSchema()).thenReturn("test_schema");
-        when(jdbcConf.getTable()).thenReturn("test_sink");
+        when(jdbcConfig.getSchema()).thenReturn("test_schema");
+        when(jdbcConfig.getTable()).thenReturn("test_sink");
 
         List<String> columnNameList = new ArrayList<>();
         columnNameList.add("id");
@@ -254,24 +248,24 @@ public class JdbcOutputFormatTest {
 
         String expect;
         // insert
-        when(jdbcConf.getMode()).thenReturn(EWriteMode.INSERT.name());
+        when(jdbcConfig.getMode()).thenReturn(EWriteMode.INSERT.name());
         when(jdbcDialect.getInsertIntoStatement(any(), any(), any())).thenCallRealMethod();
         expect = "INSERT INTO null(null, null) VALUES (:id, :name)";
         Assert.assertEquals(expect, jdbcOutputFormat.prepareTemplates());
         // replace
-        when(jdbcConf.getMode()).thenReturn(EWriteMode.REPLACE.name());
+        when(jdbcConfig.getMode()).thenReturn(EWriteMode.REPLACE.name());
         when(jdbcDialect.getReplaceStatement(any(), any(), any())).thenCallRealMethod();
         Assert.assertThrows(
                 NoSuchElementException.class, () -> jdbcOutputFormat.prepareTemplates());
         // update
-        when(jdbcConf.getMode()).thenReturn(EWriteMode.UPDATE.name());
+        when(jdbcConfig.getMode()).thenReturn(EWriteMode.UPDATE.name());
         when(jdbcDialect.getUpdateStatement(any(), any(), any(), any())).thenCallRealMethod();
-        when(jdbcConf.getUniqueKey()).thenReturn(Collections.singletonList("id"));
-        when(jdbcConf.isAllReplace()).thenReturn(true);
+        when(jdbcConfig.getUniqueKey()).thenReturn(Collections.singletonList("id"));
+        when(jdbcConfig.isAllReplace()).thenReturn(true);
         Assert.assertThrows(
                 NoSuchElementException.class, () -> jdbcOutputFormat.prepareTemplates());
         // exception
-        when(jdbcConf.getMode()).thenReturn("asd");
+        when(jdbcConfig.getMode()).thenReturn("asd");
         Assert.assertThrows(
                 IllegalArgumentException.class, () -> jdbcOutputFormat.prepareTemplates());
     }

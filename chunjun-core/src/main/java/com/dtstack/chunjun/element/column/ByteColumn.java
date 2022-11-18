@@ -26,11 +26,10 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/**
- * @author tiezhu
- * @since 2021/6/25 星期五
- */
 public class ByteColumn extends AbstractBaseColumn {
+
+    private static final long serialVersionUID = -7151575051615132219L;
+
     public ByteColumn(byte data) {
         super(data, 1);
     }

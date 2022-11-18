@@ -21,11 +21,6 @@ package com.dtstack.chunjun.connector.solr.table;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/15
- */
 public class SolrClientOptions {
 
     public static final ConfigOption<String> ZK_HOSTS =

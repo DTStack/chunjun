@@ -20,9 +20,10 @@ package com.dtstack.chunjun.connector.doris.rest.module;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import lombok.Data;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Data
 public class BackendRow {
 
     @JsonProperty(value = "HttpPort")
@@ -33,37 +34,4 @@ public class BackendRow {
 
     @JsonProperty(value = "Alive")
     private Boolean Alive;
-
-    public String getHttpPort() {
-        return HttpPort;
-    }
-
-    public void setHttpPort(String httpPort) {
-        HttpPort = httpPort;
-    }
-
-    public String getIP() {
-        return IP;
-    }
-
-    public void setIP(String IP) {
-        this.IP = IP;
-    }
-
-    public Boolean getAlive() {
-        return Alive;
-    }
-
-    public void setAlive(Boolean alive) {
-        Alive = alive;
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("HttpPort", HttpPort)
-                .append("IP", IP)
-                .append("Alive", Alive)
-                .toString();
-    }
 }

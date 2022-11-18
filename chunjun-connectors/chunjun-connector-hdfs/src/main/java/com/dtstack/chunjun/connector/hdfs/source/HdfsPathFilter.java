@@ -25,11 +25,6 @@ import org.apache.hadoop.mapred.JobConfigurable;
 
 import java.util.regex.Pattern;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsPathFilter implements PathFilter, JobConfigurable {
 
     public static final String KEY_REGEX = "file.path.regexFilter";
@@ -41,8 +36,6 @@ public class HdfsPathFilter implements PathFilter, JobConfigurable {
             };
     private static Pattern PATTERN;
     private String regex;
-
-    public HdfsPathFilter() {}
 
     public HdfsPathFilter(String regex) {
         this.regex = regex;

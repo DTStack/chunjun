@@ -17,14 +17,13 @@
  */
 package com.dtstack.chunjun.connector.http.common;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.protocol.HttpContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
 
@@ -32,14 +31,10 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.UnknownHostException;
 
-/**
- * @author : shifang
- * @date : 2020/3/12
- */
+@Slf4j
 public class HttpRequestRetryHandlerImpl implements HttpRequestRetryHandler {
-    protected static final Logger LOG = LoggerFactory.getLogger(HttpRequestRetryHandlerImpl.class);
 
-    private int executionMaxCount;
+    private final int executionMaxCount;
 
     public HttpRequestRetryHandlerImpl(Builder builder) {
         this.executionMaxCount = builder.executionMaxCount;
@@ -47,7 +42,7 @@ public class HttpRequestRetryHandlerImpl implements HttpRequestRetryHandler {
 
     @Override
     public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
-        LOG.info("第" + executionCount + "次重试");
+        log.info("第" + executionCount + "次重试");
 
         if (executionCount >= this.executionMaxCount) {
             // Do not retry if over max retry count

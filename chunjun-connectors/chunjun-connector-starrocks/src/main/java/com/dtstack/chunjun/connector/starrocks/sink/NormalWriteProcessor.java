@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.starrocks.sink;
 
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.streamload.StreamLoadManager;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 
@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** @author liuliu 2022/7/28 */
 public class NormalWriteProcessor extends StarRocksWriteProcessor {
 
     private final AbstractRowConverter<Object[], Object[], Map<String, Object>, LogicalType>
@@ -40,9 +39,9 @@ public class NormalWriteProcessor extends StarRocksWriteProcessor {
     public NormalWriteProcessor(
             AbstractRowConverter<Object[], Object[], Map<String, Object>, LogicalType> converter,
             StreamLoadManager streamLoadManager,
-            StarRocksConf starRocksConf,
+            StarRocksConfig starRocksConfig,
             List<String> columnNameList) {
-        super(streamLoadManager, starRocksConf);
+        super(streamLoadManager, starRocksConfig);
         this.rowConverter = converter;
         this.columnNameList = columnNameList;
     }
@@ -50,7 +49,7 @@ public class NormalWriteProcessor extends StarRocksWriteProcessor {
     @Override
     public void write(List<RowData> rowDataList) throws Exception {
         String identify =
-                String.format("%s.%s", starRocksConf.getDatabase(), starRocksConf.getTable());
+                String.format("%s.%s", starRocksConfig.getDatabase(), starRocksConfig.getTable());
         List<Map<String, Object>> values = new ArrayList<>(rowDataList.size());
         for (RowData rowData : rowDataList) {
             values.add(rowConverter.toExternal(rowData, new HashMap<>(columnNameList.size())));

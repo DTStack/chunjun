@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.s3.table;
 
-import com.dtstack.chunjun.connector.s3.conf.S3Conf;
+import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.connector.s3.sink.S3DynamicTableSink;
 import com.dtstack.chunjun.connector.s3.source.S3DynamicTableSource;
 import com.dtstack.chunjun.connector.s3.table.options.S3Options;
@@ -26,16 +26,15 @@ import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
+
+import com.google.common.collect.Sets;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Set;
 
 public class S3DynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
@@ -49,20 +48,18 @@ public class S3DynamicTableFactory implements DynamicTableSourceFactory, Dynamic
 
         ReadableConfig options = helper.getOptions();
 
-        S3Conf s3Conf = new S3Conf();
-        s3Conf.setAccessKey(options.get(S3Options.ACCESS_Key));
-        s3Conf.setSecretKey(options.get(S3Options.SECRET_Key));
-        s3Conf.setBucket(options.get(S3Options.BUCKET));
-        s3Conf.setObjects(GsonUtil.GSON.fromJson(options.get(S3Options.OBJECTS), ArrayList.class));
-        s3Conf.setFieldDelimiter(options.get(S3Options.FIELD_DELIMITER).trim().toCharArray()[0]);
-        s3Conf.setEncoding(options.get(S3Options.ENCODING));
-        s3Conf.setRegion(options.get(S3Options.REGION));
-        s3Conf.setIsFirstLineHeader(options.get(S3Options.IS_FIRST_LINE_HEADER));
+        S3Config s3Config = new S3Config();
+        s3Config.setAccessKey(options.get(S3Options.ACCESS_Key));
+        s3Config.setSecretKey(options.get(S3Options.SECRET_Key));
+        s3Config.setBucket(options.get(S3Options.BUCKET));
+        s3Config.setObjects(
+                GsonUtil.GSON.fromJson(options.get(S3Options.OBJECTS), ArrayList.class));
+        s3Config.setFieldDelimiter(options.get(S3Options.FIELD_DELIMITER).trim().toCharArray()[0]);
+        s3Config.setEncoding(options.get(S3Options.ENCODING));
+        s3Config.setRegion(options.get(S3Options.REGION));
+        s3Config.setFirstLineHeader(options.get(S3Options.IS_FIRST_LINE_HEADER));
 
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-
-        return new S3DynamicTableSource(physicalSchema, s3Conf);
+        return new S3DynamicTableSource(context.getCatalogTable().getResolvedSchema(), s3Config);
     }
 
     @Override
@@ -72,7 +69,7 @@ public class S3DynamicTableFactory implements DynamicTableSourceFactory, Dynamic
 
     @Override
     public Set<ConfigOption<?>> requiredOptions() {
-        Set<ConfigOption<?>> options = new HashSet();
+        Set<ConfigOption<?>> options = Sets.newHashSet();
         options.add(S3Options.ACCESS_Key);
         options.add(S3Options.SECRET_Key);
         options.add(S3Options.BUCKET);
@@ -82,7 +79,7 @@ public class S3DynamicTableFactory implements DynamicTableSourceFactory, Dynamic
 
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
-        Set<ConfigOption<?>> options = new HashSet();
+        Set<ConfigOption<?>> options = Sets.newHashSet();
         options.add(S3Options.ENCODING);
         options.add(S3Options.REGION);
         options.add(S3Options.IS_FIRST_LINE_HEADER);
@@ -99,19 +96,16 @@ public class S3DynamicTableFactory implements DynamicTableSourceFactory, Dynamic
 
         ReadableConfig options = helper.getOptions();
 
-        S3Conf s3Conf = new S3Conf();
-        s3Conf.setAccessKey(options.get(S3Options.ACCESS_Key));
-        s3Conf.setSecretKey(options.get(S3Options.SECRET_Key));
-        s3Conf.setBucket(options.get(S3Options.BUCKET));
-        s3Conf.setObject(options.get(S3Options.OBJECT));
-        s3Conf.setFieldDelimiter(options.get(S3Options.FIELD_DELIMITER).trim().toCharArray()[0]);
-        s3Conf.setEncoding(options.get(S3Options.ENCODING));
-        s3Conf.setRegion(options.get(S3Options.REGION));
-        s3Conf.setIsFirstLineHeader(options.get(S3Options.IS_FIRST_LINE_HEADER));
+        S3Config s3Config = new S3Config();
+        s3Config.setAccessKey(options.get(S3Options.ACCESS_Key));
+        s3Config.setSecretKey(options.get(S3Options.SECRET_Key));
+        s3Config.setBucket(options.get(S3Options.BUCKET));
+        s3Config.setObject(options.get(S3Options.OBJECT));
+        s3Config.setFieldDelimiter(options.get(S3Options.FIELD_DELIMITER).trim().toCharArray()[0]);
+        s3Config.setEncoding(options.get(S3Options.ENCODING));
+        s3Config.setRegion(options.get(S3Options.REGION));
+        s3Config.setFirstLineHeader(options.get(S3Options.IS_FIRST_LINE_HEADER));
 
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-
-        return new S3DynamicTableSink(physicalSchema, s3Conf);
+        return new S3DynamicTableSink(context.getCatalogTable().getResolvedSchema(), s3Config);
     }
 }

@@ -26,6 +26,8 @@ import java.util.Optional;
 
 public class GreenplumDialect extends PostgresqlDialect {
 
+    private static final long serialVersionUID = -3047306110114350759L;
+
     private static final String DIALECT_NAME = "Greenplum";
     private static final String DRIVER = "com.pivotal.jdbc.GreenplumDriver";
     public static final String URL_START = "jdbc:pivotal:greenplum:";

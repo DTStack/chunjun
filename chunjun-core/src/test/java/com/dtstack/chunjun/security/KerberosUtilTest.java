@@ -101,7 +101,7 @@ class KerberosUtilTest {
         kdc = new MiniKdc(kdcConf, kdcDir);
         kdc.start();
         keytab = new File(kdcDir, "keytab");
-        List<String> principals = new ArrayList<String>();
+        List<String> principals = new ArrayList<>();
         principals.add("hdfs");
         for (Type type : Type.values()) {
             principals.add(type.toString());
@@ -181,7 +181,7 @@ class KerberosUtilTest {
         refreshMethod.invoke(classRef);
         KerberosUtil.refreshConfig();
 
-        assertEquals("CHUNJUN.COM", KerberosName.getDefaultRealm());
+        assertEquals("CHUNJUN.COM", kerberosName.getDefaultRealm());
     }
 
     @Test
@@ -219,15 +219,15 @@ class KerberosUtilTest {
 
         KerberosName kerberosName = new KerberosName(TEST_PRINCIPAL);
 
-        assertNotEquals(errorRealm, KerberosName.getDefaultRealm());
+        assertNotEquals(errorRealm, kerberosName.getDefaultRealm());
 
         KerberosUtil.reloadKrb5conf(errorKrb5file.getPath());
 
-        assertEquals(errorRealm, KerberosName.getDefaultRealm());
+        assertEquals(errorRealm, kerberosName.getDefaultRealm());
 
         KerberosUtil.reloadKrb5conf(kdc.getKrb5conf().getPath());
 
-        assertEquals("CHUNJUN.COM", KerberosName.getDefaultRealm());
+        assertEquals("CHUNJUN.COM", kerberosName.getDefaultRealm());
     }
 
     @Test
@@ -261,7 +261,7 @@ class KerberosUtilTest {
 
     @Test
     @DisplayName("test login and get ugi when use kerberos by hadoopConfig")
-    public void testLoginAndReturnUgiWithHadoopConfig() throws IOException {
+    public void testLoginAndReturnUgiWithHadoopConfig() {
         Map<String, Object> hadoopConfig =
                 new HashMap<>(
                         ImmutableMap.<String, Object>builder()

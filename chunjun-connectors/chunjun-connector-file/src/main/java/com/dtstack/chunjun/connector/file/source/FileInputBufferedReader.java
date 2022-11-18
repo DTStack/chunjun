@@ -18,33 +18,28 @@
 
 package com.dtstack.chunjun.connector.file.source;
 
-import com.dtstack.chunjun.conf.BaseFileConf;
+import com.dtstack.chunjun.config.BaseFileConfig;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/06/24
- */
 public class FileInputBufferedReader {
 
-    private Iterator<String> pathIterator;
+    private final Iterator<String> pathIterator;
+
+    private final BaseFileConfig fileConfig;
 
     private LineNumberReader lr;
 
-    private BaseFileConf fileConf;
-
     private boolean hasNext = true;
 
-    public FileInputBufferedReader(List<String> paths, BaseFileConf fileConf) {
-        this.fileConf = fileConf;
+    public FileInputBufferedReader(List<String> paths, BaseFileConfig fileConfig) {
+        this.fileConfig = fileConfig;
         pathIterator = paths.iterator();
     }
 
@@ -56,12 +51,12 @@ public class FileInputBufferedReader {
         }
 
         if (!hasNext) {
-            return line;
+            return null;
         }
 
         if (lr != null) {
-            if (lr.getLineNumber() < fileConf.getFromLine()) {
-                while (lr.getLineNumber() < fileConf.getFromLine()) {
+            if (lr.getLineNumber() < fileConfig.getFromLine()) {
+                while (lr.getLineNumber() < fileConfig.getFromLine()) {
                     line = lr.readLine();
                 }
             } else {
@@ -79,9 +74,10 @@ public class FileInputBufferedReader {
     public void nextFileStream() throws IOException {
         if (pathIterator.hasNext()) {
             String filePath = pathIterator.next();
-            String encoding = fileConf.getEncoding();
+            String encoding = fileConfig.getEncoding();
             InputStreamReader isr =
-                    new InputStreamReader(new FileInputStream(new File(filePath)), encoding);
+                    new InputStreamReader(
+                            Files.newInputStream(new File(filePath).toPath()), encoding);
             lr = new LineNumberReader(isr);
         } else {
             lr = null;

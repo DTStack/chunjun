@@ -25,14 +25,7 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * Company：www.dtstack.com
- *
- * <p>** sql task currently only supports Microsoft driver **
- *
- * @author shitou
- * @date 2021/8/13 22:29
- */
+/** sql task currently only supports Microsoft driver ** */
 public class SqlserverMicroSoftRawTypeConverter {
     /**
      * Convert the data type in SqlServer to the DataType type in flink
@@ -67,19 +60,19 @@ public class SqlserverMicroSoftRawTypeConverter {
                 return DataTypes.DOUBLE();
             case "DECIMAL":
             case "NUMERIC":
+            case "MONEY":
+            case "SMALLMONEY":
                 return DataTypes.DECIMAL(1, 0);
             case "CHAR":
             case "VARCHAR":
             case "VARCHAR(MAX)":
             case "TEXT":
             case "XML":
-                return DataTypes.STRING();
+            case "UNIQUEIDENTIFIER":
             case "NCHAR":
             case "NVARCHAR":
             case "NVARCHAR(MAX)":
             case "NTEXT":
-                return DataTypes.STRING();
-            case "UNIQUEIDENTIFIER":
                 return DataTypes.STRING();
             case "TIME":
                 return DataTypes.TIME();
@@ -98,9 +91,6 @@ public class SqlserverMicroSoftRawTypeConverter {
             case "IMAGE":
             case "TIMESTAMP":
                 return DataTypes.BYTES();
-            case "MONEY":
-            case "SMALLMONEY":
-                return DataTypes.DECIMAL(1, 0);
             default:
                 throw new UnsupportedTypeException(type);
         }

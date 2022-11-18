@@ -18,27 +18,21 @@
 
 package com.dtstack.chunjun.connector.postgresql.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.chunjun.connector.postgresql.dialect.PostgresqlDialect;
 
-/**
- * Starting with Postgresql that is for compatible with 1.10 API.
- *
- * @program: ChunJun
- * @author: wuren
- * @create: 2021/04/26
- */
+/** Starting with Postgresql that is for compatible with 1.10 API. */
 public class PostgresqlSinkFactory extends JdbcSinkFactory {
 
-    public PostgresqlSinkFactory(SyncConf syncConf) {
-        super(syncConf, new PostgresqlDialect());
+    public PostgresqlSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig, new PostgresqlDialect());
     }
 
-    public PostgresqlSinkFactory(SyncConf syncConf, JdbcDialect dialect) {
-        super(syncConf, dialect);
+    public PostgresqlSinkFactory(SyncConfig syncConfig, JdbcDialect dialect) {
+        super(syncConfig, dialect);
     }
 
     @Override

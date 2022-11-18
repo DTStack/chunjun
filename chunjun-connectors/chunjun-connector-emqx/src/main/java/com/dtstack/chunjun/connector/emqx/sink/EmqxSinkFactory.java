@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.emqx.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.emqx.conf.EmqxConf;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.emqx.config.EmqxConfig;
 import com.dtstack.chunjun.connector.emqx.converter.EmqxColumnConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.sink.SinkFactory;
@@ -29,23 +29,18 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 
-/**
- * @author chuixue
- * @create 2021-06-01 20:08
- * @description
- */
 public class EmqxSinkFactory extends SinkFactory {
 
-    private final EmqxConf emqxConf;
+    private final EmqxConfig emqxConfig;
 
-    public EmqxSinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        emqxConf =
+    public EmqxSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
+        emqxConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getWriter().getParameter()), EmqxConf.class);
-        emqxConf.setColumn(syncConf.getReader().getFieldList());
-        super.initCommonConf(emqxConf);
-        emqxConf.setParallelism(1);
+                        JsonUtil.toJson(syncConfig.getWriter().getParameter()), EmqxConfig.class);
+        emqxConfig.setColumn(syncConfig.getReader().getFieldList());
+        super.initCommonConf(emqxConfig);
+        emqxConfig.setParallelism(1);
     }
 
     @Override
@@ -59,8 +54,8 @@ public class EmqxSinkFactory extends SinkFactory {
             throw new UnsupportedOperationException("Emqx not support transform");
         }
         EmqxOutputFormatBuilder builder = new EmqxOutputFormatBuilder();
-        builder.setEmqxConf(emqxConf);
-        builder.setRowConverter(new EmqxColumnConverter(emqxConf), useAbstractBaseColumn);
+        builder.setEmqxConf(emqxConfig);
+        builder.setRowConverter(new EmqxColumnConverter(emqxConfig), useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());
     }
 }

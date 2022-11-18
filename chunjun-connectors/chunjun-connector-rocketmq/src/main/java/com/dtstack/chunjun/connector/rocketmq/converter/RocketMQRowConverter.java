@@ -41,9 +41,10 @@ import java.sql.Timestamp;
 import java.util.Map;
 import java.util.Objects;
 
-/** @author shitou @date 2022/5/27 * */
 public class RocketMQRowConverter
         extends AbstractRowConverter<byte[], byte[], Message, LogicalType> {
+
+    private static final long serialVersionUID = 7501509569174874833L;
 
     private final String encoding;
     private final String[] filedNames;
@@ -79,7 +80,7 @@ public class RocketMQRowConverter
     }
 
     @Override
-    public Message toExternal(RowData rowData, Message output) throws Exception {
+    public Message toExternal(RowData rowData, Message output) {
         return null;
     }
 

@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.kudu.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduSourceConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.kudu.config.KuduSourceConfig;
 import com.dtstack.chunjun.connector.kudu.converter.KuduColumnConverter;
 import com.dtstack.chunjun.connector.kudu.converter.KuduRawTypeConverter;
 import com.dtstack.chunjun.connector.kudu.util.KuduUtil;
@@ -32,6 +32,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kudu.client.KuduClient;
 import org.apache.kudu.client.KuduException;
 import org.apache.kudu.client.KuduScanToken;
@@ -43,13 +44,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author tiezhu
- * @since 2021/6/9 星期三
- */
+@Slf4j
 public class KuduInputFormat extends BaseRichInputFormat {
 
-    private KuduSourceConf sourceConf;
+    private static final long serialVersionUID = -2213920219898440077L;
+
+    private KuduSourceConfig sourceConf;
 
     private transient KuduClient client;
 
@@ -59,7 +59,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
-        LOG.info("execute createInputSplits,minNumSplits:{}", minNumSplits);
+        log.info("execute createInputSplits,minNumSplits:{}", minNumSplits);
         List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(sourceConf);
         KuduInputSplit[] inputSplits = new KuduInputSplit[scanTokens.size()];
         for (int i = 0; i < scanTokens.size(); i++) {
@@ -79,7 +79,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
 
-        LOG.info(
+        log.info(
                 "Execute openInternal: splitNumber = {}, indexOfSubtask  = {}",
                 inputSplit.getSplitNumber(),
                 indexOfSubTask);
@@ -89,7 +89,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
 
         if (rowConverter == null) {
             List<String> columnNames = new ArrayList<>();
-            List<FieldConf> fieldConfList = sourceConf.getColumn();
+            List<FieldConfig> fieldConfList = sourceConf.getColumn();
             fieldConfList.forEach(field -> columnNames.add(field.getName()));
             RowType rowType = TableUtil.createRowType(fieldConfList, KuduRawTypeConverter::apply);
             setRowConverter(new KuduColumnConverter(rowType, columnNames));
@@ -111,14 +111,14 @@ public class KuduInputFormat extends BaseRichInputFormat {
     @Override
     protected void closeInternal() {
 
-        LOG.info("closeInternal: closing input format.");
+        log.info("closeInternal: closing input format.");
 
         if (scanner != null) {
             try {
                 scanner.close();
                 scanner = null;
             } catch (KuduException e) {
-                LOG.warn("Kudu Scanner close failed.", e);
+                log.warn("Kudu Scanner close failed.", e);
             }
         }
     }
@@ -133,7 +133,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
                 client = null;
             }
         } catch (KuduException e) {
-            LOG.error("Close kudu client failed.", e);
+            log.error("Close kudu client failed.", e);
         }
     }
 
@@ -149,15 +149,15 @@ public class KuduInputFormat extends BaseRichInputFormat {
         }
     }
 
-    public void setSourceConf(KuduSourceConf sourceConf) {
+    public void setSourceConf(KuduSourceConfig sourceConf) {
         this.sourceConf = sourceConf;
     }
 
-    public KuduSourceConf getSourceConf() {
+    public KuduSourceConfig getSourceConf() {
         return sourceConf;
     }
 
-    public AbstractRowConverter getRowConverter() {
+    public AbstractRowConverter getCdcRowConverter() {
         return rowConverter;
     }
 }

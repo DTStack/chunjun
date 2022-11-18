@@ -22,11 +22,6 @@ import com.dtstack.chunjun.connector.hive.entity.TableInfo;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class Apache2MetadataParser extends AbstractHiveMetadataParser {
 
     @Override

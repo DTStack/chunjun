@@ -30,12 +30,11 @@ import com.dtstack.chunjun.util.StringUtil;
 
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -50,10 +49,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class DefaultRestHandler implements RestHandler {
     private final SnowflakeIdWorker snowflakeIdWorker = new SnowflakeIdWorker(1, 1);
-
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultRestHandler.class);
 
     /** match number */
     public static Pattern p = Pattern.compile("(?<!\\d)-?\\d+(\\.\\d+)?|[+\\-]");
@@ -70,17 +68,14 @@ public class DefaultRestHandler implements RestHandler {
 
         // origin param converter to  HttpRequestParam
         HttpRequestParam originParam = new HttpRequestParam();
-        metaParams.forEach(
-                i -> {
-                    originParam.putValue(i, restConfig.getFieldDelimiter(), i);
-                });
+        metaParams.forEach(i -> originParam.putValue(i, restConfig.getFieldDelimiter(), i));
 
         return strategies.stream()
                 .filter(
                         i -> {
                             MetaParam metaParam = new MetaParam();
                             // Strategy里指定的动态变量不知道是不是嵌套的
-                            metaParam.setNest(null);
+                            metaParam.setIsNest(null);
                             // key一定是一个动态变量且不是内置变量
                             if (!MetaparamUtils.isDynamic(i.getKey())
                                     && !MetaparamUtils.isInnerParam(i.getKey())) {
@@ -124,14 +119,14 @@ public class DefaultRestHandler implements RestHandler {
                                                 .toString();
                             }
                             if (object.toString().equals(value)) {
-                                LOG.info(
+                                log.info(
                                         "select a Strategy, key {}  value is {} ,key {} value is {} ,responseValue is {} ,httpRequestParam {}",
                                         i.getKey(),
-                                        object.toString(),
+                                        object,
                                         i.getValue(),
                                         value,
                                         GsonUtil.GSON.toJson(responseValue),
-                                        httpRequestParam.toString());
+                                        httpRequestParam);
                                 return true;
                             } else {
                                 return false;
@@ -180,10 +175,12 @@ public class DefaultRestHandler implements RestHandler {
         }
         HashMap<String, Object> data = new HashMap<>();
         filedValue.forEach(
-                (k, v) -> {
-                    MapUtil.buildMap(
-                            k, com.dtstack.chunjun.constants.ConstantValue.POINT_SYMBOL, v, data);
-                });
+                (k, v) ->
+                        MapUtil.buildMap(
+                                k,
+                                com.dtstack.chunjun.constants.ConstantValue.POINT_SYMBOL,
+                                v,
+                                data));
         return data;
     }
 
@@ -217,10 +214,7 @@ public class DefaultRestHandler implements RestHandler {
         metaParams.addAll(originBodyList);
 
         HttpRequestParam originParam = new HttpRequestParam();
-        metaParams.forEach(
-                i -> {
-                    originParam.putValue(i, restConfig.getFieldDelimiter(), i);
-                });
+        metaParams.forEach(i -> originParam.putValue(i, restConfig.getFieldDelimiter(), i));
         // 对header param header 参数解析，获取最终的值
         metaParams.forEach(
                 i ->
@@ -268,7 +262,7 @@ public class DefaultRestHandler implements RestHandler {
         // 获取 value 里关联到的所有动态变量
         List<MetaParam> metaParams =
                 MetaparamUtils.getValueOfMetaParams(
-                        value, metaParam.getNest(), restConfig, originParam);
+                        value, metaParam.getIsNest(), restConfig, originParam);
 
         // 对变量 按照内置变量还是其他变量分类  因为内置变量 currentTime intervalTime uuid 其实都是常量
         if (CollectionUtils.isNotEmpty(metaParams)) {
@@ -293,7 +287,7 @@ public class DefaultRestHandler implements RestHandler {
                                         prevRequestParam
                                                 .getValue(
                                                         i,
-                                                        metaParam.getNest()
+                                                        metaParam.getIsNest()
                                                                 ? restConfig.getFieldDelimiter()
                                                                 : null)
                                                 .toString();
@@ -386,7 +380,7 @@ public class DefaultRestHandler implements RestHandler {
                 }
 
                 // 如果是数字类型就直接替换
-                if (NumberUtils.isNumber(right)) {
+                if (NumberUtils.isCreatable(right)) {
                     value.set(
                             value.get()
                                     .replaceFirst(
@@ -405,7 +399,7 @@ public class DefaultRestHandler implements RestHandler {
                                                     left.getTimeFormat().parse(right).getTime()
                                                             + ""));
                         } catch (ParseException e) {
-                            LOG.info(
+                            log.info(
                                     left.getTimeFormat().toPattern()
                                             + " parse "
                                             + right
@@ -425,7 +419,7 @@ public class DefaultRestHandler implements RestHandler {
                                                                 .getTime()
                                                         + ""));
                     } catch (RuntimeException e1) {
-                        LOG.info(
+                        log.info(
                                 "parse "
                                         + right
                                         + " failed,error info "
@@ -458,7 +452,7 @@ public class DefaultRestHandler implements RestHandler {
                 a = s.substring(0, i);
                 b = s.substring(i + 1);
             }
-            if (NumberUtils.isNumber(a) && NumberUtils.isNumber(b)) {
+            if (NumberUtils.isCreatable(a) && NumberUtils.isCreatable(b)) {
                 if ("+".equalsIgnoreCase(operation)) {
                     decimal = new BigDecimal(a).add(new BigDecimal(b));
                 } else {
@@ -468,7 +462,7 @@ public class DefaultRestHandler implements RestHandler {
             }
 
         } catch (Exception e) {
-            LOG.warn(
+            log.warn(
                     "parse metaParam {} ,variableValues {},to BigDecimal, error info{}",
                     metaParam,
                     GsonUtil.GSON.toJson(variableValues),

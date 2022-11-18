@@ -21,15 +21,15 @@ package com.alibaba.otter.canal.parse.inbound.mysql.ddl;
 import com.dtstack.chunjun.cdc.EventType;
 
 public class DdlResultExtend extends DdlResult {
-    private EventType flinkxEventType;
+    private EventType ddlEventType;
 
     public DdlResultExtend() {}
 
     public EventType getChunjunEventType() {
-        return flinkxEventType;
+        return ddlEventType;
     }
 
-    public void setChunjunEventType(EventType flinkxEventType) {
-        this.flinkxEventType = flinkxEventType;
+    public void setChunjunEventType(EventType eventType) {
+        this.ddlEventType = eventType;
     }
 }

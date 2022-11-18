@@ -17,27 +17,20 @@
  */
 package com.dtstack.chunjun.connector.oraclelogminer.table;
 
-import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
+import com.dtstack.chunjun.connector.oraclelogminer.config.LogMinerConfig;
 import com.dtstack.chunjun.connector.oraclelogminer.options.LogminerOptions;
 import com.dtstack.chunjun.connector.oraclelogminer.source.OraclelogminerDynamicTableSource;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.formats.json.JsonOptions;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Date: 2021/04/27 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFactory {
     public static final String IDENTIFIER = "oraclelogminer-x";
 
@@ -70,7 +63,7 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
         options.add(LogminerOptions.MAX_LOAD_FILE_SIZE);
         options.add(LogminerOptions.TRANSACTION_CACHE_NUM_SIZE);
         options.add(LogminerOptions.TRANSACTION_EXPIRE_TIME);
-        options.add(JsonOptions.TIMESTAMP_FORMAT);
+        options.add(LogminerOptions.TIMESTAMP_FORMAT);
         return options;
     }
 
@@ -85,11 +78,10 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
         helper.validate();
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        LogMinerConf logMinerConf = getLogMinerConf(config);
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+        LogMinerConfig logMinerConfig = getLogMinerConf(config);
         return new OraclelogminerDynamicTableSource(
-                physicalSchema, logMinerConf, JsonOptions.getTimestampFormat(config));
+                resolvedSchema, logMinerConfig, LogminerOptions.getTimestampFormat(config));
     }
 
     /**
@@ -98,33 +90,34 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
      * @param config LogMinerConf
      * @return
      */
-    private LogMinerConf getLogMinerConf(ReadableConfig config) {
-        LogMinerConf logMinerConf = new LogMinerConf();
-        logMinerConf.setUsername(config.get(LogminerOptions.USERNAME));
-        logMinerConf.setPassword(config.get(LogminerOptions.PASSWORD));
-        logMinerConf.setJdbcUrl(config.get(LogminerOptions.JDBC_URL));
+    private LogMinerConfig getLogMinerConf(ReadableConfig config) {
+        LogMinerConfig logMinerConfig = new LogMinerConfig();
+        logMinerConfig.setUsername(config.get(LogminerOptions.USERNAME));
+        logMinerConfig.setPassword(config.get(LogminerOptions.PASSWORD));
+        logMinerConfig.setJdbcUrl(config.get(LogminerOptions.JDBC_URL));
 
-        logMinerConf.setReadPosition(config.get(LogminerOptions.POSITION));
-        logMinerConf.setStartTime(config.get(LogminerOptions.START_TIME));
-        logMinerConf.setStartScn(config.get(LogminerOptions.START_SCN));
+        logMinerConfig.setReadPosition(config.get(LogminerOptions.POSITION));
+        logMinerConfig.setStartTime(config.get(LogminerOptions.START_TIME));
+        logMinerConfig.setStartScn(config.get(LogminerOptions.START_SCN));
 
-        logMinerConf.setListenerTables(config.get(LogminerOptions.TABLE));
-        logMinerConf.setCat(config.get(LogminerOptions.CAT));
+        logMinerConfig.setListenerTables(config.get(LogminerOptions.TABLE));
+        logMinerConfig.setCat(config.get(LogminerOptions.CAT));
 
-        logMinerConf.setFetchSize(config.get(LogminerOptions.FETCHSIZE));
-        logMinerConf.setQueryTimeout(config.get(LogminerOptions.QUERY_TIMEOUT));
-        logMinerConf.setSupportAutoAddLog(config.get(LogminerOptions.SUPPORT_AUTO_LOG));
-        logMinerConf.setMaxLogFileSize(config.get(LogminerOptions.MAX_LOAD_FILE_SIZE));
+        logMinerConfig.setFetchSize(config.get(LogminerOptions.FETCHSIZE));
+        logMinerConfig.setQueryTimeout(config.get(LogminerOptions.QUERY_TIMEOUT));
+        logMinerConfig.setSupportAutoAddLog(config.get(LogminerOptions.SUPPORT_AUTO_LOG));
+        logMinerConfig.setMaxLogFileSize(config.get(LogminerOptions.MAX_LOAD_FILE_SIZE));
 
-        logMinerConf.setIoThreads(config.get(LogminerOptions.IO_THREADS));
+        logMinerConfig.setIoThreads(config.get(LogminerOptions.IO_THREADS));
 
-        logMinerConf.setTransactionCacheNumSize(
+        logMinerConfig.setTransactionCacheNumSize(
                 config.get(LogminerOptions.TRANSACTION_CACHE_NUM_SIZE));
-        logMinerConf.setTransactionExpireTime(config.get(LogminerOptions.TRANSACTION_EXPIRE_TIME));
+        logMinerConfig.setTransactionExpireTime(
+                config.get(LogminerOptions.TRANSACTION_EXPIRE_TIME));
 
-        logMinerConf.setPavingData(true);
-        logMinerConf.setSplit(true);
+        logMinerConfig.setPavingData(true);
+        logMinerConfig.setSplit(true);
 
-        return logMinerConf;
+        return logMinerConfig;
     }
 }

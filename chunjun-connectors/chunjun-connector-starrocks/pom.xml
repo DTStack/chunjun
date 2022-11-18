@@ -22,18 +22,17 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-starrocks</artifactId>
-	<name>ChunJun : Connectors : StarRocks</name>
+	<name>ChunJun : Connector : StarRocks</name>
 
 
 	<properties>
-		<maven.compiler.source>8</maven.compiler.source>
-		<maven.compiler.target>8</maven.compiler.target>
 		<arrow.version>5.0.0</arrow.version>
+		<connector.dir>starrocks</connector.dir>
 	</properties>
 
 	<dependencies>
@@ -119,28 +118,9 @@
 			</plugin>
 
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<!-- here the phase you need -->
-						<phase>package</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/connector/starrocks" file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../${dist.dir}/connector/starrocks/${project.artifactId}-${project.version}.jar" tofile="${basedir}/../../${dist.dir}/connector/starrocks/${project.artifactId}.jar"/>
-								<delete>
-									<fileset dir="${basedir}/../../${dist.dir}/connector/starrocks/" includes="${project.artifactId}-*.jar" excludes="${project.artifactId}.jar"/>
-								</delete>
-							</tasks>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>
-
 </project>

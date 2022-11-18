@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.starrocks.source.be;
 
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.ColumnInfo;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
@@ -38,19 +38,16 @@ import com.starrocks.thrift.TScanOpenParams;
 import com.starrocks.thrift.TScanOpenResult;
 import com.starrocks.thrift.TStarrocksExternalService;
 import com.starrocks.thrift.TStatusCode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/** @author liuliu 2022/7/20 */
+@Slf4j
 public class StarRocksSourceBeReader {
 
-    private static final Logger LOG = LoggerFactory.getLogger(StarRocksSourceBeReader.class);
-
-    private final StarRocksConf starRocksConf;
+    private final StarRocksConfig starRocksConfig;
     private final String beHost;
 
     private final TStarrocksExternalService.Client client;
@@ -61,8 +58,8 @@ public class StarRocksSourceBeReader {
     private Object[] curData;
     private List<ColumnInfo> columnInfoList;
 
-    public StarRocksSourceBeReader(String beNode, StarRocksConf starRocksConf) {
-        this.starRocksConf = starRocksConf;
+    public StarRocksSourceBeReader(String beNode, StarRocksConfig starRocksConfig) {
+        this.starRocksConfig = starRocksConfig;
         String[] beNodeInfo = beNode.split(":");
         this.beHost = beNodeInfo[0].trim();
         int bePort = Integer.parseInt(beNodeInfo[1].trim());
@@ -71,8 +68,8 @@ public class StarRocksSourceBeReader {
                 new TSocket(
                         beHost,
                         bePort,
-                        starRocksConf.getBeClientTimeout(),
-                        starRocksConf.getBeClientTimeout());
+                        starRocksConfig.getBeClientTimeout(),
+                        starRocksConfig.getBeClientTimeout());
         try {
             socket.open();
         } catch (TTransportException e) {
@@ -88,17 +85,17 @@ public class StarRocksSourceBeReader {
         params.setTablet_ids(tablets);
         params.setOpaqued_query_plan(opaqued_query_plan);
         params.setCluster("default_cluster");
-        params.setDatabase(starRocksConf.getDatabase());
-        params.setTable(starRocksConf.getTable());
-        params.setUser(starRocksConf.getUsername());
-        params.setPasswd(starRocksConf.getPassword());
-        params.setBatch_size(starRocksConf.getBeFetchRows());
-        params.setMem_limit(starRocksConf.getBeFetchMaxBytes());
-        params.setProperties(starRocksConf.getBeSocketProperties());
-        params.setKeep_alive_min((short) starRocksConf.getBeClientKeepLiveMin());
-        params.setQuery_timeout(starRocksConf.getBeQueryTimeoutSecond());
-        LOG.info("open Scan params.mem_limit {} B", params.getMem_limit());
-        LOG.info("open Scan params.keep-alive-min {} min", params.getKeep_alive_min());
+        params.setDatabase(starRocksConfig.getDatabase());
+        params.setTable(starRocksConfig.getTable());
+        params.setUser(starRocksConfig.getUsername());
+        params.setPasswd(starRocksConfig.getPassword());
+        params.setBatch_size(starRocksConfig.getBeFetchRows());
+        params.setMem_limit(starRocksConfig.getBeFetchMaxBytes());
+        params.setProperties(starRocksConfig.getBeSocketProperties());
+        params.setKeep_alive_min((short) starRocksConfig.getBeClientKeepLiveMin());
+        params.setQuery_timeout(starRocksConfig.getBeQueryTimeoutSecond());
+        log.info("open Scan params.mem_limit {} B", params.getMem_limit());
+        log.info("open Scan params.keep-alive-min {} min", params.getKeep_alive_min());
         TScanOpenResult result;
         int times = 0;
         while (true) {
@@ -112,8 +109,8 @@ public class StarRocksSourceBeReader {
                 }
                 break;
             } catch (TException e) {
-                if (++times <= starRocksConf.getMaxRetries()) {
-                    LOG.info(
+                if (++times <= starRocksConfig.getMaxRetries()) {
+                    log.info(
                             String.format("failed to open beScanner,current retryTimes:%s", times));
                 } else {
                     throw new ChunJunRuntimeException(
@@ -127,8 +124,8 @@ public class StarRocksSourceBeReader {
 
     private void initNameTypeMap(List<TScanColumnDesc> selectedColumnList) {
         columnInfoList = new ArrayList<>(selectedColumnList.size());
-        String[] fieldNames = starRocksConf.getFieldNames();
-        DataType[] dataTypes = starRocksConf.getDataTypes();
+        String[] fieldNames = starRocksConfig.getFieldNames();
+        DataType[] dataTypes = starRocksConfig.getDataTypes();
         if (selectedColumnList.size() != fieldNames.length) {
             throw new ChunJunRuntimeException(
                     "be selected column size does not match configuration column size");
@@ -173,8 +170,8 @@ public class StarRocksSourceBeReader {
                 }
                 break;
             } catch (Exception e) {
-                if (++times <= starRocksConf.getMaxRetries()) {
-                    LOG.info(String.format("failed to scan from be,current retryTimes:%s", times));
+                if (++times <= starRocksConfig.getMaxRetries()) {
+                    log.info(String.format("failed to scan from be,current retryTimes:%s", times));
                 } else {
                     throw new ChunJunRuntimeException(
                             String.format("failed to scan from be,scanParams[%s]", params), e);

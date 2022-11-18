@@ -38,7 +38,7 @@ public class HBaseRawTypeConverter implements RawTypeConverter {
         int rightIndex = type.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
         String dataType = type;
         String precision = null;
-        String[] split = null;
+        String[] split;
         if (leftIndex > 0 && rightIndex > 0) {
             dataType = type.substring(0, leftIndex);
             precision = type.substring(leftIndex + 1, type.length() - 1);

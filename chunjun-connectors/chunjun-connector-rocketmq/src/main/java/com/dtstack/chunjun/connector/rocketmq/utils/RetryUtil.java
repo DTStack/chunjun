@@ -17,19 +17,20 @@
 
 package com.dtstack.chunjun.connector.rocketmq.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Callable;
 
+@Slf4j
 public class RetryUtil {
-    private static final Logger log = LoggerFactory.getLogger(RetryUtil.class);
 
     private static final long INITIAL_BACKOFF = 200;
     private static final long MAX_BACKOFF = 5000;
     private static final int MAX_ATTEMPTS = 5;
 
-    private RetryUtil() {}
+    private RetryUtil() throws IllegalAccessException {
+        throw new IllegalAccessException(getClass() + " can not be instantiated.");
+    }
 
     public static void waitForMs(long sleepMs) {
         try {
@@ -39,12 +40,13 @@ public class RetryUtil {
         }
     }
 
-    public static <T> T call(Callable<T> callable, String errorMsg) throws Exception {
+    public static <T> void call(Callable<T> callable, String errorMsg) throws Exception {
         long backoff = INITIAL_BACKOFF;
         int retries = 0;
         do {
             try {
-                return callable.call();
+                callable.call();
+                return;
             } catch (Exception ex) {
                 if (retries >= MAX_ATTEMPTS) {
                     throw ex;

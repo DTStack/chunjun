@@ -24,16 +24,13 @@ import org.apache.flink.core.io.InputSplit;
 
 import java.util.Properties;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class SaphanaInputFormat extends JdbcInputFormat {
+
+    private static final long serialVersionUID = -1068852381723024237L;
 
     @Override
     public void openInternal(InputSplit inputSplit) {
-        Properties properties = jdbcConf.getProperties();
+        Properties properties = jdbcConfig.getProperties();
         properties.setProperty("zeroDateTimeBehavior", "convertToNull");
         super.openInternal(inputSplit);
     }

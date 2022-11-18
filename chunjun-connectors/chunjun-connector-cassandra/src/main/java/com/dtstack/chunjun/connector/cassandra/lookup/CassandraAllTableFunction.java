@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.cassandra.lookup;
 
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraCommonConf;
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraLookupConf;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraCommonConfig;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraLookupConfig;
 import com.dtstack.chunjun.connector.cassandra.util.CassandraService;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
@@ -32,8 +32,7 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,27 +42,22 @@ import java.util.Map;
 
 import static com.dtstack.chunjun.connector.cassandra.util.CassandraService.quoteColumn;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
+@Slf4j
 public class CassandraAllTableFunction extends AbstractAllTableFunction {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -7838106494289424452L;
 
-    private static final Logger LOG = LoggerFactory.getLogger(CassandraAllTableFunction.class);
-
-    private final CassandraLookupConf cassandraLookupConf;
+    private final CassandraLookupConfig cassandraLookupConfig;
 
     private transient Session session;
 
     public CassandraAllTableFunction(
-            CassandraLookupConf lookupConf,
+            CassandraLookupConfig lookupConfig,
             AbstractRowConverter<?, ?, ?, ?> rowConverter,
             String[] fieldNames,
             String[] keyNames) {
-        super(fieldNames, keyNames, lookupConf, rowConverter);
-        this.cassandraLookupConf = lookupConf;
+        super(fieldNames, keyNames, lookupConfig, rowConverter);
+        this.cassandraLookupConfig = lookupConfig;
     }
 
     @Override
@@ -75,12 +69,12 @@ public class CassandraAllTableFunction extends AbstractAllTableFunction {
     protected void loadData(Object cacheRef) {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
-        CassandraCommonConf commonConf = cassandraLookupConf.getCommonConf();
+        CassandraCommonConfig commonConfig = cassandraLookupConfig.getCommonConfig();
 
-        session = CassandraService.session(commonConf);
+        session = CassandraService.session(commonConfig);
 
-        String keyspaces = commonConf.getKeyspaces();
-        String tableName = commonConf.getTableName();
+        String keyspaces = commonConfig.getKeyspaces();
+        String tableName = commonConfig.getTableName();
 
         List<String> quotedColumnNameList = new ArrayList<>();
         Arrays.stream(fieldsName).forEach(name -> quotedColumnNameList.add(quoteColumn(name)));
@@ -102,7 +96,7 @@ public class CassandraAllTableFunction extends AbstractAllTableFunction {
                 }
                 buildCache(oneRow, tmpCache);
             } catch (Exception e) {
-                LOG.error("", e);
+                log.error("", e);
             }
         }
     }

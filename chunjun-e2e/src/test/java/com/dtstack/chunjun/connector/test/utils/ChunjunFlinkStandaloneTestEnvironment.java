@@ -34,13 +34,12 @@ import org.apache.flink.runtime.client.JobStatusMessage;
 import org.apache.flink.table.api.ValidationException;
 
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -62,14 +61,8 @@ import java.util.stream.Stream;
 
 import static org.apache.flink.util.Preconditions.checkState;
 
-/**
- * @author jayce
- * @version 1.0
- * @date 2022/8/11 11:18
- */
+@Slf4j
 public class ChunjunFlinkStandaloneTestEnvironment {
-    private static final Logger LOG =
-            LoggerFactory.getLogger(ChunjunFlinkStandaloneTestEnvironment.class);
 
     public static final String CHUNJUN_HOME =
             new File(System.getProperty("user.dir")).getParentFile().getAbsolutePath();
@@ -109,7 +102,7 @@ public class ChunjunFlinkStandaloneTestEnvironment {
     public void before() throws Exception {
         Assert.assertTrue("chunjun-dist directory must exists", new File(CHUNJUN_DIST).exists());
 
-        LOG.info("Starting flink standalone containers...");
+        log.info("Starting flink standalone containers...");
 
         flinkStandaloneContainer =
                 new FlinkStandaloneContainer(FLINK_STANDALONE_HOST)
@@ -119,11 +112,11 @@ public class ChunjunFlinkStandaloneTestEnvironment {
                         .withFileSystemBind(CHUNJUN_DIST, CHUNJUN_DIST)
                         .withFileSystemBind(CHUNJUN_LIB, CHUNJUN_LIB)
                         .withFileSystemBind(CHUNJUN_EXAMPLES, CHUNJUN_EXAMPLES)
-                        .withLogConsumer(new Slf4jLogConsumer(LOG));
+                        .withLogConsumer(new Slf4jLogConsumer(log));
         Startables.deepStart(Stream.of(flinkStandaloneContainer)).join();
         flinkStandaloneContainer.copyFileToContainer(
                 MountableFile.forHostPath(CHUNJUN_BIN + "/submit.sh"), CHUNJUN_BIN + "/submit.sh");
-        LOG.info("Containers are started.");
+        log.info("Containers are started.");
     }
 
     @After
@@ -159,17 +152,17 @@ public class ChunjunFlinkStandaloneTestEnvironment {
         return restClusterClient;
     }
 
-    protected void submitSyncJobOnStandLone(String syncConf) throws Exception {
-        this.submitSyncJobOnStandLoneWithParameters(syncConf, null);
+    protected void submitSyncJobOnStandLone(String syncConfig) throws Exception {
+        this.submitSyncJobOnStandLoneWithParameters(syncConfig, null);
     }
 
     protected void submitSyncJobOnStandLoneWithParameters(
-            String syncConf, Map<String, String> parameters) throws Exception {
+            String syncConfig, Map<String, String> parameters) throws Exception {
         String[] syncs =
                 new LaunchCommandBuilder("sync")
                         .withFlinkConfDir("/opt/flink/conf")
                         .withRunningMode(ClusterMode.standalone)
-                        .withJobContentPath(syncConf)
+                        .withJobContentPath(syncConfig)
                         .withChunJunDistDir(CHUNJUN_DIST)
                         .withFlinkLibDir(CHUNJUN_LIB)
                         .withParameters(parameters)
@@ -177,8 +170,8 @@ public class ChunjunFlinkStandaloneTestEnvironment {
         Container.ExecResult execResult =
                 flinkStandaloneContainer.execInContainer(
                         "bash", CHUNJUN_BIN + "/submit.sh", String.join(" ", syncs));
-        LOG.info(execResult.getStdout());
-        LOG.error(execResult.getStderr());
+        log.info(execResult.getStdout());
+        log.error(execResult.getStderr());
         if (execResult.getExitCode() != 0) {
             throw new AssertionError("Failed when submitting the SQL job.");
         }
@@ -198,7 +191,7 @@ public class ChunjunFlinkStandaloneTestEnvironment {
                     throw new RuntimeException("Error when fetching job status.", e);
                 }
                 Thread.sleep(5000L);
-                LOG.warn("Error when fetching job status.", e);
+                log.warn("Error when fetching job status.", e);
                 continue;
             }
 
@@ -237,7 +230,7 @@ public class ChunjunFlinkStandaloneTestEnvironment {
             try {
                 jobStatusMessages = clusterClient.listJobs().get(10, TimeUnit.SECONDS);
             } catch (Exception e) {
-                LOG.warn("Error when fetching job status.", e);
+                log.warn("Error when fetching job status.", e);
                 continue;
             }
             if (jobStatusMessages != null && !jobStatusMessages.isEmpty()) {
@@ -284,7 +277,7 @@ public class ChunjunFlinkStandaloneTestEnvironment {
             }
         }
         builder.append("\n*********************************************\n");
-        LOG.info(builder.toString());
+        log.info(builder.toString());
 
         return GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(result), JobAccumulatorResult.class);
     }

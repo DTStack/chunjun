@@ -20,14 +20,9 @@ package com.dtstack.chunjun.lookup.cache;
 
 import com.dtstack.chunjun.enums.ECacheContentType;
 
-/**
- * Only the data marked to dimension table miss Date: 2018/8/28 Company: www.dtstack.com
- *
- * @author xuchao
- */
 public class CacheMissVal {
 
-    private static CacheObj missObj = CacheObj.buildCacheObj(ECacheContentType.MissVal, null);
+    private static final CacheObj missObj = CacheObj.buildCacheObj(ECacheContentType.MissVal, null);
 
     public static CacheObj getMissKeyObj() {
         return missObj;

@@ -29,19 +29,10 @@ import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.yarn.configuration.YarnConfigOptions;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.StringJoiner;
 
-/**
- * Date: 2021/03/18 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class Options {
-
-    private static final Logger LOG = LoggerFactory.getLogger(Options.class);
 
     @OptionRequired(description = "job type:sql or sync")
     private String jobType;
@@ -112,8 +103,6 @@ public class Options {
                 flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "parent-first");
             }
             flinkConfiguration.setString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY, pluginLoadMode);
-
-            flinkConfiguration.set(CoreOptions.CHECK_LEAKED_CLASSLOADER, false);
         }
         return flinkConfiguration;
     }

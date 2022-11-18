@@ -30,7 +30,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import java.sql.Timestamp;
 import java.util.function.BiFunction;
 
-/** @author liuliu 2022/5/13 */
 public class TimestampColumnSerializerTest extends SerializerTestBase<AbstractBaseColumn> {
 
     @Override

@@ -18,30 +18,30 @@
 
 package com.dtstack.chunjun.connector.ftp.source;
 
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.converter.FtpRowConverter;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.format.DecodingFormat;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.DataType;
 
 public class FtpDynamicTableSource implements ScanTableSource {
 
-    private TableSchema schema;
-    private FtpConfig ftpConfig;
-    private DecodingFormat<DeserializationSchema<RowData>> decodingFormat;
+    private final ResolvedSchema schema;
+    private final FtpConfig ftpConfig;
+    private final DecodingFormat<DeserializationSchema<RowData>> decodingFormat;
 
     public FtpDynamicTableSource(
-            TableSchema schema,
+            ResolvedSchema schema,
             FtpConfig ftpConfig,
             DecodingFormat<DeserializationSchema<RowData>> decodingFormat) {
         this.schema = schema;
@@ -56,18 +56,19 @@ public class FtpDynamicTableSource implements ScanTableSource {
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        final RowType rowType = (RowType) schema.toRowDataType().getLogicalType();
-        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
+        DataType dataType = schema.toPhysicalRowDataType();
+        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(dataType.getLogicalType());
 
         FtpInputFormatBuilder builder = new FtpInputFormatBuilder();
         builder.setFtpConfig(ftpConfig);
         builder.setRowConverter(
                 new FtpRowConverter(
-                        decodingFormat.createRuntimeDecoder(
-                                runtimeProviderContext, schema.toRowDataType())));
+                        decodingFormat.createRuntimeDecoder(runtimeProviderContext, dataType)));
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
+                false,
+                ftpConfig.getParallelism());
     }
 
     @Override

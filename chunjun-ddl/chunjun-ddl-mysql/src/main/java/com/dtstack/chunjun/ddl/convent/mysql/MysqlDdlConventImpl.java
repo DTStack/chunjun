@@ -26,7 +26,7 @@ import com.dtstack.chunjun.cdc.ddl.definition.DdlOperator;
 import com.dtstack.chunjun.cdc.ddl.definition.TableOperator;
 import com.dtstack.chunjun.ddl.convent.mysql.parse.impl.ChunjunMySqlParserImpl;
 import com.dtstack.chunjun.ddl.parse.util.SqlNodeUtil;
-import com.dtstack.chunjun.mapping.MappingConf;
+import com.dtstack.chunjun.mapping.MappingConfig;
 import com.dtstack.chunjun.mapping.MappingRule;
 import com.dtstack.chunjun.throwable.ConventException;
 
@@ -42,6 +42,7 @@ import java.util.List;
 
 public class MysqlDdlConventImpl implements DdlConvent {
 
+    private static final long serialVersionUID = 6427759469833888308L;
     private final SqlVisitor<List<DdlOperator>> mysqlVisitor =
             new SqlNodeConventVisitor(new SqlNodeParseImpl());
 
@@ -52,9 +53,9 @@ public class MysqlDdlConventImpl implements DdlConvent {
         this(null);
     }
 
-    public MysqlDdlConventImpl(MappingConf mappingConf) {
-        if (null != mappingConf) {
-            this.sqlNodeReplaceVisitor = new SqlNodeReplaceVisitor(new MappingRule(mappingConf));
+    public MysqlDdlConventImpl(MappingConfig mappingConfig) {
+        if (null != mappingConfig) {
+            this.sqlNodeReplaceVisitor = new SqlNodeReplaceVisitor(new MappingRule(mappingConfig));
         }
     }
 

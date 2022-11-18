@@ -18,43 +18,46 @@
 
 package com.dtstack.chunjun.connector.doris.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.doris.converter.DorisHttpRowConverter;
-import com.dtstack.chunjun.connector.doris.converter.DorisJdbcRowConverter;
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
+import com.dtstack.chunjun.connector.doris.converter.DorisJdbcSqlConverter;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcDynamicTableSink;
+import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
 import com.dtstack.chunjun.enums.EWriteMode;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.Column;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.CollectionUtil;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class DorisDynamicTableSink extends JdbcDynamicTableSink {
 
-    private final TableSchema physicalSchema;
+    private final ResolvedSchema physicalSchema;
 
-    private final DorisConf dorisConf;
+    private final DorisConfig dorisConfig;
 
-    public DorisDynamicTableSink(TableSchema physicalSchema, DorisConf dorisConf) {
+    public DorisDynamicTableSink(ResolvedSchema physicalSchema, DorisConfig dorisConfig) {
         super(
-                dorisConf.setToJdbcConf(),
+                dorisConfig.setToJdbcConf(),
                 new MysqlDialect(),
                 physicalSchema,
-                new DorisJdbcOutputFormatBuilder(new DorisJdbcOutputFormat()));
+                new JdbcOutputFormatBuilder(new JdbcOutputFormat()));
         this.physicalSchema = physicalSchema;
-        this.dorisConf = dorisConf;
+        this.dorisConfig = dorisConfig;
     }
 
     @Override
@@ -64,65 +67,67 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
 
     @Override
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        String url = dorisConf.getUrl();
+        String url = dorisConfig.getUrl();
 
-        BaseRichOutputFormatBuilder builder =
+        RowType rowType =
+                InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType())
+                        .toRowType();
+        BaseRichOutputFormatBuilder<?> builder =
                 StringUtils.isBlank(url)
-                        ? httpBuilder(rowType, dorisConf)
-                        : jdbcBuilder(rowType, dorisConf);
+                        ? httpBuilder(rowType, dorisConfig)
+                        : jdbcBuilder(rowType, dorisConfig);
 
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction<>(builder.finish()), dorisConf.getParallelism());
+                new DtOutputFormatSinkFunction<>(builder.finish()), dorisConfig.getParallelism());
     }
 
-    private DorisHttpOutputFormatBuilder httpBuilder(RowType rowType, DorisConf dorisConf) {
+    private DorisHttpOutputFormatBuilder httpBuilder(RowType rowType, DorisConfig dorisConfig) {
         DorisHttpOutputFormatBuilder builder = new DorisHttpOutputFormatBuilder();
-        builder.setColumns(Arrays.asList(physicalSchema.getFieldNames()));
-        builder.setConfig(dorisConf);
-        builder.setDorisOptions(dorisConf);
+        builder.setColumns(tableSchema.getColumnNames());
+        builder.setConfig(dorisConfig);
+        builder.setDorisOptions(dorisConfig);
         builder.setRowConverter(new DorisHttpRowConverter(rowType));
         return builder;
     }
 
-    private DorisJdbcOutputFormatBuilder jdbcBuilder(RowType rowType, DorisConf dorisConf) {
-        DorisJdbcOutputFormatBuilder builder =
-                new DorisJdbcOutputFormatBuilder(new DorisJdbcOutputFormat());
+    private JdbcOutputFormatBuilder jdbcBuilder(RowType rowType, DorisConfig dorisConfig) {
+        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(new JdbcOutputFormat());
 
-        String[] fieldNames = tableSchema.getFieldNames();
-        List<String> columnNameList = new ArrayList<>(fieldNames.length);
-        List<String> columnTypeList = new ArrayList<>(fieldNames.length);
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        for (int i = 0; i < fieldNames.length; i++) {
-            String name = fieldNames[i];
-            String type = rowType.getTypeAt(i).asSummaryString();
-            FieldConf field = new FieldConf();
+        List<Column> columns = tableSchema.getColumns();
+        List<String> columnNameList = new ArrayList<>(columns.size());
+        List<String> columnTypeList = new ArrayList<>(columns.size());
+        List<FieldConfig> columnList = new ArrayList<>(columns.size());
+        for (int index = 0; index < columns.size(); index++) {
+            Column column = columns.get(index);
+            String name = column.getName();
+            String type = column.getDataType().getLogicalType().asSummaryString();
+            FieldConfig field = new FieldConfig();
             columnNameList.add(name);
             columnTypeList.add(type);
             field.setName(name);
             field.setType(type);
-            field.setIndex(i);
+            field.setIndex(index);
             columnList.add(field);
         }
-        jdbcConf.setColumn(columnList);
-        jdbcConf.setMode(
-                (CollectionUtil.isNullOrEmpty(jdbcConf.getUniqueKey()))
+        jdbcConfig.setColumn(columnList);
+        jdbcConfig.setMode(
+                (CollectionUtil.isNullOrEmpty(jdbcConfig.getUniqueKey()))
                         ? EWriteMode.INSERT.name()
                         : EWriteMode.UPDATE.name());
 
         builder.setColumnNameList(columnNameList);
         builder.setColumnTypeList(columnTypeList);
 
-        builder.setConfig(dorisConf);
+        builder.setConfig(dorisConfig);
         builder.setJdbcDialect(jdbcDialect);
-        builder.setJdbcConf(jdbcConf);
-        builder.setRowConverter(new DorisJdbcRowConverter(rowType));
+        builder.setJdbcConf(jdbcConfig);
+        builder.setRowConverter(new DorisJdbcSqlConverter(rowType));
         return builder;
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new DorisDynamicTableSink(physicalSchema, dorisConf);
+        return new DorisDynamicTableSink(physicalSchema, dorisConfig);
     }
 
     @Override

@@ -70,7 +70,7 @@ public class HttpDynamicTableSource implements ScanTableSource {
         builder.setMetaHeaders(httpRestConfig.getHeader());
         builder.setMetaParams(
                 httpRestConfig.getParam() == null ? new ArrayList<>() : httpRestConfig.getParam());
-        builder.setMetaBodys(httpRestConfig.getBody());
+        builder.setMetaBodies(httpRestConfig.getBody());
         if (HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode())
                 && httpRestConfig.getHeader().stream()
                         .noneMatch(i -> ConstantValue.CONTENT_TYPE_NAME.equals(i.getKey()))) {

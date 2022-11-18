@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.clickhouse.sink;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 
@@ -32,9 +32,9 @@ public class ClickhouseOutputFormatBuilder extends JdbcOutputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        JdbcConf jdbcConf = format.getJdbcConf();
+        JdbcConfig jdbcConfig = format.getJdbcConfig();
         StringBuilder sb = new StringBuilder(256);
-        if (StringUtils.isBlank(jdbcConf.getJdbcUrl())) {
+        if (StringUtils.isBlank(jdbcConfig.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }
         if (sb.length() > 0) {

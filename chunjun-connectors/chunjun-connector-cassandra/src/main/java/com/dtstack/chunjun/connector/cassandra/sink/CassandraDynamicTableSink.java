@@ -18,42 +18,38 @@
 
 package com.dtstack.chunjun.connector.cassandra.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraSinkConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraSinkConfig;
 import com.dtstack.chunjun.connector.cassandra.converter.CassandraRawTypeConverter;
 import com.dtstack.chunjun.connector.cassandra.converter.CassandraRowConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 import com.dtstack.chunjun.util.TableUtil;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.Column;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
-import org.apache.flink.table.types.AtomicDataType;
-import org.apache.flink.table.types.logical.NullType;
+import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
+
+import lombok.AllArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
+@AllArgsConstructor
 public class CassandraDynamicTableSink implements DynamicTableSink {
 
     private static final String IDENTIFIED = "Cassandra";
 
-    private final CassandraSinkConf sinkConf;
+    private final CassandraSinkConfig sinkConf;
 
-    private final TableSchema tableSchema;
+    private final ResolvedSchema tableSchema;
 
-    public CassandraDynamicTableSink(CassandraSinkConf sinkConf, TableSchema tableSchema) {
-        this.sinkConf = sinkConf;
-        this.tableSchema = tableSchema;
-    }
+    private final DataType dataType;
 
     @Override
     public ChangelogMode getChangelogMode(ChangelogMode requestedMode) {
@@ -69,23 +65,19 @@ public class CassandraDynamicTableSink implements DynamicTableSink {
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
         CassandraOutputFormatBuilder builder = new CassandraOutputFormatBuilder();
 
-        String[] fieldNames = tableSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
+        List<Column> columns = tableSchema.getColumns();
+
+        List<FieldConfig> columnList = new ArrayList<>(columns.size());
         List<String> columnNameList = new ArrayList<>();
 
-        for (int index = 0; index < fieldNames.length; index++) {
-            String name = fieldNames[index];
+        for (int index = 0; index < columns.size(); index++) {
+            Column column = columns.get(index);
+            String name = column.getName();
             columnNameList.add(name);
 
-            FieldConf field = new FieldConf();
+            FieldConfig field = new FieldConfig();
             field.setName(name);
-            field.setType(
-                    tableSchema
-                            .getFieldDataType(name)
-                            .orElse(new AtomicDataType(new NullType()))
-                            .getLogicalType()
-                            .getTypeRoot()
-                            .name());
+            field.setType(column.getDataType().getLogicalType().asSummaryString());
             field.setIndex(index);
             columnList.add(field);
         }
@@ -95,11 +87,11 @@ public class CassandraDynamicTableSink implements DynamicTableSink {
         final RowType rowType =
                 TableUtil.createRowType(sinkConf.getColumn(), CassandraRawTypeConverter::apply);
 
-        builder.setSinkConf(sinkConf);
+        builder.setSinkConfig(sinkConf);
         builder.setRowConverter(new CassandraRowConverter(rowType, columnNameList));
 
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction(builder.finish()), sinkConf.getParallelism());
+                new DtOutputFormatSinkFunction<>(builder.finish()), sinkConf.getParallelism());
     }
 
     @Override
@@ -109,7 +101,7 @@ public class CassandraDynamicTableSink implements DynamicTableSink {
 
     @Override
     public DynamicTableSink copy() {
-        return new CassandraDynamicTableSink(sinkConf, tableSchema);
+        return new CassandraDynamicTableSink(sinkConf, tableSchema, dataType);
     }
 
     @Override

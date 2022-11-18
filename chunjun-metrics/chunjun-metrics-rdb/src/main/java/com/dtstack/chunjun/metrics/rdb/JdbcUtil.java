@@ -22,10 +22,9 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.RetryUtil;
 import com.dtstack.chunjun.util.TelnetUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -33,45 +32,39 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * Utilities for relational database connection and sql execution company: www.dtstack.com
- *
- * @author huyifan_zju@
- */
+@Slf4j
 public class JdbcUtil {
 
     public static final String TEMPORARY_TABLE_NAME = "chunjun_tmp";
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcUtil.class);
 
     /**
      * 获取JDBC连接
      *
-     * @param jdbcConf
+     * @param jdbcConfig
      * @param jdbcDialect
      * @return
      */
-    public static Connection getConnection(JdbcMetricConf jdbcConf, JdbcDialect jdbcDialect) {
-        TelnetUtil.telnet(jdbcConf.getJdbcUrl());
+    public static Connection getConnection(JdbcMetricConf jdbcConfig, JdbcDialect jdbcDialect) {
+        TelnetUtil.telnet(jdbcConfig.getJdbcUrl());
         ClassUtil.forName(
                 jdbcDialect.defaultDriverName().get(),
                 Thread.currentThread().getContextClassLoader());
-        Map<String, String> properties = jdbcConf.getProperties();
+        Map<String, String> properties = jdbcConfig.getProperties();
         Properties prop = new Properties();
         if (MapUtils.isNotEmpty(properties)) {
             for (final Map.Entry<String, String> entry : properties.entrySet()) {
                 prop.setProperty(entry.getKey(), entry.getValue());
             }
         }
-        if (StringUtils.isNotBlank(jdbcConf.getUsername())) {
-            prop.put("user", jdbcConf.getUsername());
+        if (StringUtils.isNotBlank(jdbcConfig.getUsername())) {
+            prop.put("user", jdbcConfig.getUsername());
         }
-        if (StringUtils.isNotBlank(jdbcConf.getPassword())) {
-            prop.put("password", jdbcConf.getPassword());
+        if (StringUtils.isNotBlank(jdbcConfig.getPassword())) {
+            prop.put("password", jdbcConfig.getPassword());
         }
-        Properties finalProp = prop;
         synchronized (ClassUtil.LOCK_STR) {
             return RetryUtil.executeWithRetry(
-                    () -> DriverManager.getConnection(jdbcConf.getJdbcUrl(), finalProp),
+                    () -> DriverManager.getConnection(jdbcConfig.getJdbcUrl(), prop),
                     3,
                     2000,
                     false);
@@ -89,7 +82,7 @@ public class JdbcUtil {
                 conn.commit();
             }
         } catch (SQLException e) {
-            LOG.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
+            log.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 }

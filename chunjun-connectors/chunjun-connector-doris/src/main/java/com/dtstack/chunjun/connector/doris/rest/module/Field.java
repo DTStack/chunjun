@@ -18,96 +18,22 @@
 
 package com.dtstack.chunjun.connector.doris.rest.module;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Objects;
-
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class Field {
+
     private String name;
+
     private String type;
+
     private String comment;
+
     private int precision;
+
     private int scale;
-
-    public Field() {}
-
-    public Field(String name, String type, String comment, int precision, int scale) {
-        this.name = name;
-        this.type = type;
-        this.comment = comment;
-        this.precision = precision;
-        this.scale = scale;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public int getPrecision() {
-        return precision;
-    }
-
-    public void setPrecision(int precision) {
-        this.precision = precision;
-    }
-
-    public int getScale() {
-        return scale;
-    }
-
-    public void setScale(int scale) {
-        this.scale = scale;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        Field field = (Field) o;
-        return precision == field.precision
-                && scale == field.scale
-                && Objects.equals(name, field.name)
-                && Objects.equals(type, field.type)
-                && Objects.equals(comment, field.comment);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, type, comment, precision, scale);
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("name", name)
-                .append("type", type)
-                .append("comment", comment)
-                .append("precision", precision)
-                .append("scale", scale)
-                .toString();
-    }
 }

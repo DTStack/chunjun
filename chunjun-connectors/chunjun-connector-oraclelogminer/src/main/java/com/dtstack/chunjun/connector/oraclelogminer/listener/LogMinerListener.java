@@ -21,7 +21,7 @@ package com.dtstack.chunjun.connector.oraclelogminer.listener;
 import com.dtstack.chunjun.cdc.DdlRowData;
 import com.dtstack.chunjun.cdc.DdlRowDataBuilder;
 import com.dtstack.chunjun.cdc.EventType;
-import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
+import com.dtstack.chunjun.connector.oraclelogminer.config.LogMinerConfig;
 import com.dtstack.chunjun.connector.oraclelogminer.converter.LogMinerColumnConverter;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.ColumnInfo;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.QueueData;
@@ -38,11 +38,10 @@ import org.apache.flink.table.data.RowData;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.sql.Connection;
@@ -73,15 +72,11 @@ import java.util.stream.Collectors;
 import static com.dtstack.chunjun.connector.oraclelogminer.listener.LogMinerConnection.RETRY_TIMES;
 import static com.dtstack.chunjun.connector.oraclelogminer.listener.LogMinerConnection.SLEEP_TIME;
 
-/**
- * @author jiangbo
- * @date 2020/3/27
- */
+@Slf4j
 public class LogMinerListener implements Runnable {
     private final BigInteger MINUS_ONE = new BigInteger("-1");
 
-    public static Logger LOG = LoggerFactory.getLogger(LogMinerListener.class);
-    private final LogMinerConf logMinerConf;
+    private final LogMinerConfig logMinerConfig;
     private final PositionManager positionManager;
     private final AbstractCDCRowConverter rowConverter;
     private final LogMinerHelper logMinerHelper;
@@ -94,14 +89,14 @@ public class LogMinerListener implements Runnable {
     private int failedTimes = 0;
 
     public LogMinerListener(
-            LogMinerConf logMinerConf,
+            LogMinerConfig logMinerConfig,
             PositionManager positionManager,
             AbstractCDCRowConverter rowConverter) {
         this.positionManager = positionManager;
-        this.logMinerConf = logMinerConf;
+        this.logMinerConfig = logMinerConfig;
         this.listener = this;
         this.rowConverter = rowConverter;
-        this.logMinerHelper = new LogMinerHelper(listener, logMinerConf, null);
+        this.logMinerHelper = new LogMinerHelper(listener, logMinerConfig, null);
     }
 
     public void init() {
@@ -119,7 +114,7 @@ public class LogMinerListener implements Runnable {
                         namedThreadFactory,
                         new ThreadPoolExecutor.AbortPolicy());
 
-        logParser = new LogParser(logMinerConf);
+        logParser = new LogParser();
     }
 
     public void start() {
@@ -128,24 +123,24 @@ public class LogMinerListener implements Runnable {
                 RetryUtil.executeWithRetry(
                         () ->
                                 DriverManager.getConnection(
-                                        logMinerConf.getJdbcUrl(),
-                                        logMinerConf.getUsername(),
-                                        logMinerConf.getPassword()),
+                                        logMinerConfig.getJdbcUrl(),
+                                        logMinerConfig.getUsername(),
+                                        logMinerConfig.getPassword()),
                         RETRY_TIMES,
                         SLEEP_TIME,
                         false);
-        if (logMinerConf.getEnableFetchAll()) {
-            BigInteger cacheScn = positionManager.getPosition();
+        if (logMinerConfig.isEnableFetchAll()) {
+            BigInteger cacheScn = positionManager.getScn();
             if (null != cacheScn && cacheScn.compareTo(BigInteger.valueOf(-1)) != 0) {
                 startScn = cacheScn;
             } else {
                 startScn = oracleFullSyncOperation(connection);
             }
         } else {
-            startScn = logMinerHelper.getStartScn(positionManager.getPosition());
+            startScn = logMinerHelper.getStartScn(positionManager.getScn());
         }
 
-        positionManager.updatePosition(startScn);
+        positionManager.setScn(startScn);
         logMinerHelper.setStartScn(startScn);
         logMinerHelper.init();
 
@@ -155,7 +150,7 @@ public class LogMinerListener implements Runnable {
         }
 
         // 初始化
-        if (logMinerConf.isInitialTableStructure() && !logMinerConf.getEnableFetchAll()) {
+        if (logMinerConfig.isInitialTableStructure() && !logMinerConfig.isEnableFetchAll()) {
             initialTableStruct(connection);
         }
 
@@ -168,11 +163,11 @@ public class LogMinerListener implements Runnable {
         Thread.currentThread()
                 .setUncaughtExceptionHandler(
                         (t, e) -> {
-                            LOG.warn(
+                            log.warn(
                                     "LogMinerListener run failed, Throwable = {}",
                                     ExceptionUtil.getErrorMessage(e));
                             executor.execute(listener);
-                            LOG.info("Re-execute LogMinerListener successfully");
+                            log.info("Re-execute LogMinerListener successfully");
                         });
 
         while (running) {
@@ -189,21 +184,21 @@ public class LogMinerListener implements Runnable {
         }
     }
 
-    public void sendException(Exception e, QueueData log) {
+    public void sendException(Exception e, QueueData queueData) {
         StringBuilder sb = new StringBuilder(512);
         sb.append("LogMinerListener thread exception: current scn =")
-                .append(positionManager.getPosition());
-        if (Objects.nonNull(log)) {
-            sb.append(",\nlog = ").append(log);
+                .append(positionManager.getScn());
+        if (Objects.nonNull(queueData)) {
+            sb.append(",\nqueueData = ").append(queueData);
         }
         sb.append(",\ne = ").append(ExceptionUtil.getErrorMessage(e));
         String msg = sb.toString();
-        LOG.warn(msg);
+        log.warn(msg);
         try {
             queue.put(new QueueData(BigInteger.ZERO, new ErrorMsgRowData(msg)));
             Thread.sleep(2000L);
         } catch (InterruptedException ex) {
-            LOG.warn(
+            log.warn(
                     "error to put exception message into queue, e = {}",
                     ExceptionUtil.getErrorMessage(ex));
         }
@@ -224,20 +219,20 @@ public class LogMinerListener implements Runnable {
         }
     }
 
-    private void processData(QueueData log) throws Exception {
-        if (log.getData() instanceof DdlRowData) {
+    private void processData(QueueData queueData) throws Exception {
+        if (queueData.getData() instanceof DdlRowData) {
             rowConverter.clearConverterCache();
-            queue.put((new QueueData(log.getScn(), log.getData())));
+            queue.put((new QueueData(queueData.getScn(), queueData.getData())));
             return;
         }
-        LinkedList<RowData> rowDatalist = logParser.parse(log, rowConverter);
+        LinkedList<RowData> rowDatalist = logParser.parse(queueData, rowConverter);
         RowData rowData;
         try {
             while ((rowData = rowDatalist.poll()) != null) {
-                queue.put(new QueueData(log.getScn(), rowData));
+                queue.put(new QueueData(queueData.getScn(), rowData));
             }
         } catch (Exception e) {
-            LOG.error("{}", ExceptionUtil.getErrorMessage(e));
+            log.error("{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
@@ -249,7 +244,7 @@ public class LogMinerListener implements Runnable {
             if (Objects.nonNull(poll)) {
                 rowData = poll.getData();
                 if (rowData instanceof ErrorMsgRowData) {
-                    if (++failedTimes >= logMinerConf.getRetryTimes()) {
+                    if (++failedTimes >= logMinerConfig.getRetryTimes()) {
                         String errorMsg = rowData.toString();
                         StringBuilder sb = new StringBuilder(errorMsg.length() + 128);
                         sb.append("Error data is received ")
@@ -269,21 +264,21 @@ public class LogMinerListener implements Runnable {
                     rowData = null;
                 } else {
                     if (poll.getScn().compareTo(MINUS_ONE) != 0) {
-                        positionManager.updatePosition(poll.getScn());
+                        positionManager.setScn(poll.getScn());
                     }
                     failedTimes = 0;
                 }
             }
         } catch (InterruptedException e) {
-            LOG.warn("Get data from queue error:", e);
+            log.warn("Get data from queue error:", e);
         }
         return rowData;
     }
 
     private void initialTableStruct(Connection connection) {
-        if (CollectionUtils.isNotEmpty(logMinerConf.getTable())) {
+        if (CollectionUtils.isNotEmpty(logMinerConfig.getTable())) {
             Set<String> schemas = new HashSet<>();
-            logMinerConf
+            logMinerConfig
                     .getTable()
                     .forEach(
                             i -> {
@@ -294,7 +289,7 @@ public class LogMinerListener implements Runnable {
                             });
 
             List<Pattern> patterns =
-                    logMinerConf.getTable().stream()
+                    logMinerConfig.getTable().stream()
                             .map(Pattern::compile)
                             .collect(Collectors.toList());
 
@@ -422,17 +417,17 @@ public class LogMinerListener implements Runnable {
                                             .filter(c -> StringUtils.isNotBlank(c.getComment()))
                                             .map(ColumnInfo::getCommentSql)
                                             .collect(Collectors.toList());
-                            int lsn_sequencee = 1;
-                            for (int j = 0; j < comments.size(); j++) {
+                            int lsnSequences = 1;
+                            for (String comment : comments) {
                                 DdlRowData commentDdlData =
                                         DdlRowDataBuilder.builder()
                                                 .setDatabaseName(null)
                                                 .setSchemaName(entry.getKey().getLeft())
                                                 .setTableName(entry.getKey().getRight())
-                                                .setContent(comments.get(j))
+                                                .setContent(comment)
                                                 .setType(EventType.ALTER_COLUMN.name())
                                                 .setLsn("")
-                                                .setLsnSequence(String.valueOf(lsn_sequencee++))
+                                                .setLsnSequence(String.valueOf(lsnSequences++))
                                                 .setSnapShot(true)
                                                 .build();
                                 queue.put(new QueueData(new BigInteger("-1"), commentDdlData));
@@ -451,7 +446,7 @@ public class LogMinerListener implements Runnable {
                                                                 commentMap.get(entry.getKey())))
                                                 .setType(EventType.ALTER_TABLE_COMMENT.name())
                                                 .setLsn("")
-                                                .setLsnSequence(String.valueOf(lsn_sequencee++))
+                                                .setLsnSequence(String.valueOf(lsnSequences++))
                                                 .setSnapShot(true)
                                                 .build();
                                 queue.put(new QueueData(new BigInteger("-1"), commentDdlData));
@@ -466,7 +461,7 @@ public class LogMinerListener implements Runnable {
     }
 
     public BigInteger getCurrentPosition() {
-        return positionManager.getPosition();
+        return positionManager.getScn();
     }
 
     private List<String> readPrimaryKeyNames(DatabaseMetaData metadata, String schema, String table)
@@ -487,12 +482,12 @@ public class LogMinerListener implements Runnable {
      */
     public BigInteger oracleFullSyncOperation(Connection connection) {
         try {
-            if (logMinerConf.getTable().size() != 1) {
+            if (logMinerConfig.getTable().size() != 1) {
                 throw new ChunJunRuntimeException(
                         "oracle logminer full sync, only support one table");
             }
 
-            String tbnWithSchema = logMinerConf.getTable().get(0);
+            String tbnWithSchema = logMinerConfig.getTable().get(0);
             BigInteger scn = getLockTableScn(connection, tbnWithSchema);
 
             /* select data by scn, to columnRowData */
@@ -505,8 +500,8 @@ public class LogMinerListener implements Runnable {
     }
 
     private BigInteger getLockTableScn(Connection conn, String tbnWithSchema) {
-        try {
-            Statement stmt = conn.createStatement();
+        try (Statement stmt = conn.createStatement()) {
+
             String lockTableSql = SqlUtil.formatLockTableWithRowShare(tbnWithSchema);
 
             /* lock table */
@@ -524,16 +519,13 @@ public class LogMinerListener implements Runnable {
             }
 
             /* generate create table ddl */
-            if (logMinerConf.isInitialTableStructure()) {
+            if (logMinerConfig.isInitialTableStructure()) {
                 initialTableStruct(conn);
             }
 
             /* release lock */
             stmt.execute(SqlUtil.releaseTableLock());
 
-            if (stmt != null) {
-                stmt.close();
-            }
             return new BigInteger(scn);
         } catch (Exception e) {
             throw new ChunJunRuntimeException(e);
@@ -562,9 +554,9 @@ public class LogMinerListener implements Runnable {
         String tbn = tbnWithSchema.substring(tbnWithSchema.indexOf('.') + 1);
         List<ColumnInfo> columnInfos = new ArrayList<>();
 
-        try {
-            Statement stmt = conn.createStatement();
-            ResultSet resultSet = stmt.executeQuery(SqlUtil.formatGetTableInfoSql(schema, tbn));
+        try (Statement stmt = conn.createStatement();
+                ResultSet resultSet =
+                        stmt.executeQuery(SqlUtil.formatGetTableInfoSql(schema, tbn))) {
 
             while (resultSet.next()) {
                 String columnName = resultSet.getString(3);
@@ -602,10 +594,6 @@ public class LogMinerListener implements Runnable {
                                 isPk);
 
                 columnInfos.add(columnInfo);
-            }
-
-            if (stmt != null) {
-                stmt.close();
             }
             return columnInfos;
         } catch (Exception e) {

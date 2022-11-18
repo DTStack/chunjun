@@ -18,63 +18,62 @@
 
 package com.dtstack.chunjun.connector.redis.lookup;
 
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.connector.redis.connection.RedisSyncClient;
 import com.dtstack.chunjun.connector.redis.util.RedisUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
 
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import redis.clients.jedis.JedisCommands;
+import redis.clients.jedis.commands.JedisCommands;
 
-import java.util.Arrays;
+import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-/**
- * @author chuixue
- * @create 2021-06-16 15:17
- * @description
- */
+@Slf4j
 public class RedisAllTableFunction extends AbstractAllTableFunction {
 
-    private static final long serialVersionUID = 1L;
-    private static final Logger LOG = LoggerFactory.getLogger(RedisAllTableFunction.class);
-    private final RedisConf redisConf;
+    private static final long serialVersionUID = -1319108555631638546L;
+
+    private final RedisConfig redisConfig;
     private transient RedisSyncClient redisSyncClient;
 
     public RedisAllTableFunction(
-            RedisConf redisConf,
-            LookupConf lookupConf,
+            RedisConfig redisConfig,
+            LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             AbstractRowConverter rowConverter) {
-        super(fieldNames, keyNames, lookupConf, rowConverter);
-        this.redisConf = redisConf;
+        super(fieldNames, keyNames, lookupConfig, rowConverter);
+        this.redisConfig = redisConfig;
     }
 
     @Override
-    public void eval(Object... keys) {
-        String keyPattern =
-                redisConf.getTableName()
-                        + "_"
-                        + Arrays.stream(keys).map(String::valueOf).collect(Collectors.joining("_"));
+    public Collection<RowData> lookup(RowData keyRow) throws IOException {
+        List<String> dataList = Lists.newLinkedList();
+        List<RowData> hitRowData = Lists.newArrayList();
+        for (int i = 0; i < keyRow.getArity(); i++) {
+            dataList.add(String.valueOf(fieldGetters[i].getFieldOrNull(keyRow)));
+        }
+        String cacheKey = redisConfig.getTableName() + "_" + String.join("_", dataList);
         List<Map<String, Object>> cacheList =
-                ((Map<String, List<Map<String, Object>>>) cacheRef.get()).get(keyPattern);
-
+                ((Map<String, List<Map<String, Object>>>) (cacheRef.get())).get(cacheKey);
         // 有数据才往下发，(左/内)连接flink会做相应的处理
         if (!CollectionUtils.isEmpty(cacheList)) {
-            cacheList.forEach(one -> collect(fillData(one)));
+            cacheList.forEach(one -> hitRowData.add(fillData(one)));
         }
+
+        return hitRowData;
     }
 
     @Override
@@ -82,17 +81,17 @@ public class RedisAllTableFunction extends AbstractAllTableFunction {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
         if (redisSyncClient == null) {
-            redisSyncClient = new RedisSyncClient(redisConf);
+            redisSyncClient = new RedisSyncClient(redisConfig);
         }
         JedisCommands jedis = redisSyncClient.getJedis();
-        StringBuilder keyPattern = new StringBuilder(redisConf.getTableName());
+        StringBuilder keyPattern = new StringBuilder(redisConfig.getTableName());
         for (int i = 0; i < keyNames.length; i++) {
             keyPattern.append("_").append("*");
         }
 
         Set<String> keys =
                 RedisUtil.getRedisKeys(
-                        redisConf.getRedisConnectType(), jedis, keyPattern.toString());
+                        redisConfig.getRedisConnectType(), jedis, keyPattern.toString());
         if (CollectionUtils.isEmpty(keys)) {
             return;
         }
@@ -110,11 +109,11 @@ public class RedisAllTableFunction extends AbstractAllTableFunction {
                     }
                     tmpCache.computeIfAbsent(key, k -> Lists.newArrayList()).add(oneRow);
                 } catch (Exception e) {
-                    LOG.error("error:{} \n  data:{}", e.getMessage(), hgetAll);
+                    log.error("error:{} \n  data:{}", e.getMessage(), hgetAll);
                 }
             }
         } catch (Exception e) {
-            LOG.error("", e);
+            log.error("", e);
         } finally {
             redisSyncClient.closeJedis(jedis);
         }

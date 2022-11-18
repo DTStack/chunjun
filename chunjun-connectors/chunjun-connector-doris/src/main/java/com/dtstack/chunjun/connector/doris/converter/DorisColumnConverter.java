@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.doris.converter;
 
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
@@ -32,13 +32,14 @@ import java.util.StringJoiner;
 public class DorisColumnConverter
         extends AbstractRowConverter<RowData, RowData, StringJoiner, String> {
 
+    private static final long serialVersionUID = -4922719207762096570L;
     private List<String> fullColumn;
     private List<String> columnNames;
-    private final DorisConf options;
+    private final DorisConfig options;
 
     private static final String NULL_VALUE = "\\N";
 
-    public DorisColumnConverter(DorisConf options) {
+    public DorisColumnConverter(DorisConfig options) {
         super(options.getColumn().size());
         this.options = options;
         for (int i = 0; i < options.getColumn().size(); i++) {
@@ -55,7 +56,7 @@ public class DorisColumnConverter
     @Override
     public StringJoiner toExternal(RowData rowData, StringJoiner joiner) throws Exception {
         if (fullColumn.size() == options.getColumn().size()) {
-            for (int index = 0; index < rowData.getArity(); index++) {
+            for (int index = 0; index < fieldTypes.length; index++) {
                 toExternalConverters.get(index).serialize(rowData, index, joiner);
             }
         } else {

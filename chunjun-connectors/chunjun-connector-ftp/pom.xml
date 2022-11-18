@@ -24,19 +24,22 @@ under the License.
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-ftp</artifactId>
-	<name>ChunJun : Connectors : Ftp</name>
+	<name>ChunJun : Connector : Ftp</name>
+
+	<properties>
+		<connector.dir>ftp</connector.dir>
+	</properties>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
-			<version>0.1.54</version>
+			<version>0.1.55</version>
 		</dependency>
 
 		<dependency>
@@ -74,81 +77,14 @@ under the License.
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>com.diffplug.spotless</groupId>
-				<artifactId>spotless-maven-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
 			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<createDependencyReducedPom>false</createDependencyReducedPom>
-							<artifactSet>
-								<excludes>
-									<exclude>com.data-artisans:*</exclude>
-									<exclude>org.scala-lang:*</exclude>
-									<exclude>io.netty:*</exclude>
-									<exclude>org.slf4j:slf4j-api</exclude>
-									<exclude>log4j:log4j</exclude>
-									<exclude>ch.qos.logback:*</exclude>
-								</excludes>
-							</artifactSet>
-							<filters>
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-							<relocations>
-								<relocation>
-									<pattern>org.apache.commons.compress</pattern>
-									<shadedPattern>shade.org.apache.commons.compress</shadedPattern>
-								</relocation>
-							</relocations>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<!-- here the phase you need -->
-						<phase>package</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/connector/ftp/"
-									  file="${basedir}/target/${artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../${dist.dir}/connector/ftp/${artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/ftp/${artifactId}.jar"/>
-								<delete>
-									<fileset dir="${basedir}/../../${dist.dir}/connector/ftp/"
-											 includes="${artifactId}-*.jar"
-											 excludes="${artifactId}.jar"/>
-								</delete>
-							</tasks>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>
-
-
 </project>

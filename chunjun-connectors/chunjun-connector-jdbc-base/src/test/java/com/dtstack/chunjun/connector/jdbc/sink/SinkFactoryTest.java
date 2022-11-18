@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRawTypeConverterTest;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -46,32 +46,28 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-/** @author liuliu 2022/8/19 */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({JdbcUtil.class, Connection.class})
 public class SinkFactoryTest {
 
-    private static TestSinkFactory sinkFactory;
-    private static DataStream<RowData> dataStream;
-    private static DataStreamSink<RowData> dataStreamSink;
     private static String json;
 
     @BeforeClass
     public static void setup() throws IOException {
         mockStatic(JdbcUtil.class);
 
-        dataStream = mock(DataStream.class);
-        dataStreamSink = mock(DataStreamSink.class);
+        DataStream<RowData> dataStream = mock(DataStream.class);
+        DataStreamSink<RowData> dataStreamSink = mock(DataStreamSink.class);
         when(dataStream.addSink(any())).thenReturn(dataStreamSink);
         json = readFile("sync_test.json");
     }
 
     @Test
     public void initTest() {
-        SyncConf syncConf = SyncConf.parseJob(json);
-        sinkFactory =
+        SyncConfig syncConfig = SyncConfig.parseJob(json);
+        TestSinkFactory sinkFactory =
                 new TestSinkFactory(
-                        syncConf,
+                        syncConfig,
                         new JdbcDialect() {
                             @Override
                             public String dialectName() {
@@ -91,7 +87,8 @@ public class SinkFactoryTest {
 
         List<String> name = new ArrayList<>();
         List<String> type = new ArrayList<>();
-        syncConf.getReader()
+        syncConfig
+                .getReader()
                 .getFieldList()
                 .forEach(
                         field -> {
@@ -104,12 +101,11 @@ public class SinkFactoryTest {
 
         when(pair.getLeft()).thenReturn(name);
         when(pair.getRight()).thenReturn(type);
-        sinkFactory.createSink(dataStream);
     }
 
     public static class TestSinkFactory extends JdbcSinkFactory {
-        public TestSinkFactory(SyncConf syncConf, JdbcDialect jdbcDialect) {
-            super(syncConf, jdbcDialect);
+        public TestSinkFactory(SyncConfig syncConfig, JdbcDialect jdbcDialect) {
+            super(syncConfig, jdbcDialect);
         }
     }
 }

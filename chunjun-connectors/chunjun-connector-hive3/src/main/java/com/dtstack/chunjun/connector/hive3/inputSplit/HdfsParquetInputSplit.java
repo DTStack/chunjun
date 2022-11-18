@@ -20,25 +20,17 @@ package com.dtstack.chunjun.connector.hive3.inputSplit;
 
 import org.apache.flink.core.io.InputSplit;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.util.List;
 
-/** @author liuliu 2022/3/23 */
+@AllArgsConstructor
+@Getter
 public class HdfsParquetInputSplit implements InputSplit {
+    private static final long serialVersionUID = 5131187805925161220L;
+
     private final int splitNumber;
 
     private final List<String> paths;
-
-    public HdfsParquetInputSplit(int splitNumber, List<String> paths) {
-        this.splitNumber = splitNumber;
-        this.paths = paths;
-    }
-
-    @Override
-    public int getSplitNumber() {
-        return splitNumber;
-    }
-
-    public List<String> getPaths() {
-        return paths;
-    }
 }

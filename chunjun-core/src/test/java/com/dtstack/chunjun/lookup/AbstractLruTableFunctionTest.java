@@ -21,8 +21,8 @@ package com.dtstack.chunjun.lookup;
 import com.dtstack.chunjun.enums.CacheType;
 import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
-import com.dtstack.chunjun.lookup.conf.LookupConfFactory;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfigFactory;
 import com.dtstack.chunjun.source.format.MockInputFormat;
 import com.dtstack.chunjun.source.format.MockRowConverter;
 
@@ -57,9 +57,9 @@ public class AbstractLruTableFunctionTest {
 
     @BeforeEach
     public void setup() {
-        LookupConf lookupConf = new LookupConf();
+        LookupConfig lookupConfig = new LookupConfig();
         MockRowConverter mockRowConverter = new MockRowConverter();
-        this.lruTableFunction = new MockLruTableFunction(lookupConf, mockRowConverter);
+        this.lruTableFunction = new MockLruTableFunction(lookupConfig, mockRowConverter);
     }
 
     @Test
@@ -85,9 +85,9 @@ public class AbstractLruTableFunctionTest {
     @Test
     @DisplayName("when cache type is none, initCache should do nothing and sideCache is null")
     public void testInitCacheWhenCacheTypeIsNone() {
-        LookupConf lookupConf = LookupConfFactory.createLookupConf(new Configuration());
-        lookupConf.setCache(CacheType.NONE.name());
-        lruTableFunction.lookupConf = lookupConf;
+        LookupConfig lookupConfig = LookupConfigFactory.createLookupConfig(new Configuration());
+        lookupConfig.setCache(CacheType.NONE.name());
+        lruTableFunction.lookupConfig = lookupConfig;
         lruTableFunction.initCache();
         assertNull(lruTableFunction.sideCache);
     }
@@ -95,9 +95,9 @@ public class AbstractLruTableFunctionTest {
     @Test
     @DisplayName("when cache type is all, initCache should throw RuntimeException")
     public void testInitCacheWhenCacheTypeIsAll() {
-        LookupConf lookupConf = LookupConfFactory.createLookupConf(new Configuration());
-        lookupConf.setCache(CacheType.ALL.name());
-        lruTableFunction.lookupConf = lookupConf;
+        LookupConfig lookupConfig = LookupConfigFactory.createLookupConfig(new Configuration());
+        lookupConfig.setCache(CacheType.ALL.name());
+        lruTableFunction.lookupConfig = lookupConfig;
         RuntimeException thrown =
                 assertThrows(
                         RuntimeException.class,
@@ -109,9 +109,9 @@ public class AbstractLruTableFunctionTest {
     @Test
     @DisplayName("when cache type is lru, initCache should init sideCache")
     public void testInitCacheWhenCacheTypeIsLru() {
-        LookupConf lookupConf = LookupConfFactory.createLookupConf(new Configuration());
-        lookupConf.setCache(CacheType.LRU.name());
-        lruTableFunction.lookupConf = lookupConf;
+        LookupConfig lookupConfig = LookupConfigFactory.createLookupConfig(new Configuration());
+        lookupConfig.setCache(CacheType.LRU.name());
+        lruTableFunction.lookupConfig = lookupConfig;
         lruTableFunction.initCache();
         assertNotNull(lruTableFunction.sideCache);
     }
@@ -147,9 +147,9 @@ public class AbstractLruTableFunctionTest {
 
     @Test
     public void testDealCacheData() {
-        LookupConf lookupConf = LookupConfFactory.createLookupConf(new Configuration());
-        lookupConf.setCache(CacheType.LRU.name());
-        lruTableFunction.lookupConf = lookupConf;
+        LookupConfig lookupConfig = LookupConfigFactory.createLookupConfig(new Configuration());
+        lookupConfig.setCache(CacheType.LRU.name());
+        lruTableFunction.lookupConfig = lookupConfig;
         lruTableFunction.initCache();
         CacheObj cacheObjA = CacheObj.buildCacheObj(ECacheContentType.SingleLine, "");
         lruTableFunction.dealCacheData("a", cacheObjA);
@@ -161,7 +161,7 @@ public class AbstractLruTableFunctionTest {
     @DisplayName("it should return empty list when timeOutNum is not large than error limit")
     public void testTimeoutButNotLargeThanErrorLimit()
             throws ExecutionException, InterruptedException {
-        lruTableFunction.lookupConf.setErrorLimit(100);
+        lruTableFunction.lookupConfig.setErrorLimit(100);
         CompletableFuture<Collection<RowData>> future = new CompletableFuture<>();
         lruTableFunction.timeout(future, "a");
         Collection<RowData> data = future.get();
@@ -172,7 +172,7 @@ public class AbstractLruTableFunctionTest {
     @DisplayName("it should return empty list when timeOutNum is large than error limit")
     public void testTimeoutAndLargeThanErrorLimit()
             throws ExecutionException, InterruptedException {
-        lruTableFunction.lookupConf.setErrorLimit(0);
+        lruTableFunction.lookupConfig.setErrorLimit(0);
         CompletableFuture<Collection<RowData>> future = new CompletableFuture<>();
         lruTableFunction.timeout(future, "a");
         ExecutionException thrown =
@@ -212,7 +212,7 @@ public class AbstractLruTableFunctionTest {
                 new MockInputFormat.MockRuntimeContext(environment);
         FunctionContext functionContext = new FunctionContext(context);
         lruTableFunction.initMetric(functionContext);
-        lruTableFunction.lookupConf.setErrorLimit(100);
+        lruTableFunction.lookupConfig.setErrorLimit(100);
         long oldData = lruTableFunction.parseErrorRecords.getCount();
         CompletableFuture<Collection<RowData>> future = new CompletableFuture<>();
         RuntimeException e = new RuntimeException("error");
@@ -242,7 +242,7 @@ public class AbstractLruTableFunctionTest {
                 new MockInputFormat.MockRuntimeContext(environment);
         FunctionContext functionContext = new FunctionContext(context);
         lruTableFunction.initMetric(functionContext);
-        lruTableFunction.lookupConf.setErrorLimit(0);
+        lruTableFunction.lookupConfig.setErrorLimit(0);
         long oldData = lruTableFunction.parseErrorRecords.getCount();
         CompletableFuture<Collection<RowData>> future = new CompletableFuture<>();
         RuntimeException e = new RuntimeException("error");

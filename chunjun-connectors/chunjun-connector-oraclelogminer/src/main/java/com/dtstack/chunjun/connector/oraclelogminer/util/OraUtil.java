@@ -20,11 +20,6 @@ package com.dtstack.chunjun.connector.oraclelogminer.util;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-/**
- * Date: 2020/12/28 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class OraUtil {
 
     /**

@@ -24,10 +24,9 @@ import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -36,13 +35,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 
-/**
- * @author jiangbo
- * @date 2019/8/21
- */
+@Slf4j
 public class SftpHandler {
-
-    protected static final Logger LOG = LoggerFactory.getLogger(SftpHandler.class);
 
     private static final String KEY_USERNAME = "username";
     private static final String KEY_PASSWORD = "password";
@@ -54,8 +48,8 @@ public class SftpHandler {
 
     private static final int DEFAULT_HOST = 22;
 
-    private Session session;
-    private ChannelSftp channelSftp;
+    private final Session session;
+    private final ChannelSftp channelSftp;
 
     private SftpHandler(Session session, ChannelSftp channelSftp) {
         this.session = session;

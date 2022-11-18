@@ -21,9 +21,8 @@ package com.dtstack.chunjun.classloader;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.ReflectionUtils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -39,14 +38,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * @company: www.dtstack.com
- * @author: toutian
- * @create: 2019/10/14
- */
+@Slf4j
 public class ClassLoaderManager {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ClassLoaderManager.class);
 
     private static final Map<String, URLClassLoader> pluginClassLoader = new ConcurrentHashMap<>();
 
@@ -77,10 +70,10 @@ public class ClassLoaderManager {
                         ClassLoader parentClassLoader =
                                 Thread.currentThread().getContextClassLoader();
                         URLClassLoader classLoader = new URLClassLoader(urls, parentClassLoader);
-                        LOG.info("jarUrl:{} create ClassLoad successful...", jarUrlkey);
+                        log.info("jarUrl:{} create ClassLoad successful...", jarUrlkey);
                         return classLoader;
                     } catch (Throwable e) {
-                        LOG.error(
+                        log.error(
                                 "retrieve ClassLoad happens error:{}",
                                 ExceptionUtil.getErrorMessage(e));
                         throw new RuntimeException("retrieve ClassLoad happens error");

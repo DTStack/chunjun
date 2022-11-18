@@ -22,11 +22,6 @@ import com.dtstack.chunjun.connector.greenplum.dialect.GreenplumDialect;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.table.JdbcDynamicTableFactory;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class GreenplumDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** 通过该值查找具体插件 */

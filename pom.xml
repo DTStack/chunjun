@@ -25,68 +25,123 @@
 
 	<groupId>com.dtstack.chunjun</groupId>
 	<artifactId>chunjun</artifactId>
-	<name>ChunJun</name>
 	<packaging>pom</packaging>
-	<version>1.16-SNAPSHOT</version>
+	<version>${revision}</version>
+
+	<name>ChunJun</name>
 
 	<modules>
 		<module>chunjun-core</module>
 		<module>chunjun-connectors</module>
 		<module>chunjun-clients</module>
-		<module>chunjun-formats</module>
 		<module>chunjun-docker</module>
 		<module>chunjun-metrics</module>
 		<module>chunjun-dirty</module>
 		<module>chunjun-restore</module>
 		<module>chunjun-ddl</module>
 		<module>chunjun-assembly</module>
+		<module>chunjun-e2e</module>
 		<module>chunjun-local-test</module>
 	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<dist.dir>chunjun-dist</dist.dir>
+		<revision>master</revision>
+
+		<!-- Dependency Version Start -->
 		<target.java.version>1.8</target.java.version>
-		<flink.version>1.16.0</flink.version>
+		<flink.version>1.16.1</flink.version>
 		<flinkcdc.version>1.3.0</flinkcdc.version>
+		<scala.version>2.12.17</scala.version>
 		<scala.binary.version>2.12</scala.binary.version>
 		<prometheus.version>0.8.1</prometheus.version>
-		<hadoop.version>3.1.4</hadoop.version>
 		<http.version>4.5.3</http.version>
 		<chunjun.guava.version>27.0-jre</chunjun.guava.version>
-		<!-- fix CVE-2021-45105 -->
-		<log4j2.version>2.17.0</log4j2.version>
-		<dist.dir>chunjun-dist</dist.dir>
-		<log4j.version>1.2.17</log4j.version>
-		<slf4j.version>1.7.36</slf4j.version>
-		<logback.version>1.2.11</logback.version>
+		<guava.version>19.0</guava.version>
+		<auto-service.version>1.0.1</auto-service.version>
+		<hadoop2.version>2.8.5</hadoop2.version>
+		<hadoop3.version>3.2.4</hadoop3.version>
+		<snappy-java.version>1.1.8.3</snappy-java.version>
+		<checker.qual.version>3.10.0</checker.qual.version>
+		<awaitility.version>4.2.0</awaitility.version>
+		<spotless.version>2.28.0</spotless.version>
+		<iceberg.version>0.13.1</iceberg.version>
+		<codehaus.jackson.version>1.9.13</codehaus.jackson.version>
+		<jersey.version>1.19</jersey.version>
+		<javax.servlet.jap.version>2.1</javax.servlet.jap.version>
+		<hadoop.binary.version>2.7</hadoop.binary.version>
+		<jackson.version>2.12.6</jackson.version>
+		<protostuff.version>1.8.0</protostuff.version>
+		<avro.version>1.8.2</avro.version>
+		<codec.version>1.13</codec.version>
+		<jcommander.version>1.81</jcommander.version>
+		<p3c-pmd.version>1.3.0</p3c-pmd.version>
+		<lobmk.version>1.18.24</lobmk.version>
+		<!-- Dependency Version End -->
 
 		<!-- Unit Test Start -->
 		<junit4.version>4.13.2</junit4.version>
-		<junit5.version>5.8.1</junit5.version>
+		<junit5.version>5.9.0</junit5.version>
 		<archunit.version>0.22.0</archunit.version>
 		<mockito.version>3.4.6</mockito.version>
 		<powermock.version>2.0.9</powermock.version>
 		<hamcrest.version>1.3</hamcrest.version>
-		<assertj.version>3.21.0</assertj.version>
-		<testcontainers.version>1.17.2</testcontainers.version>
+		<assertj.version>3.23.1</assertj.version>
+		<testcontainer.version>1.17.6</testcontainer.version>
 		<!-- Unit Test End -->
-		<flink.XmxMax>3072m</flink.XmxMax>
-		<!-- XmxMax / forkCountITCase -->
-		<flink.XmxITCase>1536m</flink.XmxITCase>
-		<!-- XmxMax / forkCountUnitTest -->
-		<flink.XmxUnitTest>768m</flink.XmxUnitTest>
-		<!-- Need to use a user property here because the surefire
-			 forkCount is not exposed as a property. With this we can set
-			 it on the "mvn" commandline in travis. -->
-		<!-- Number of forkCounts for ITCase and UnitTest should take into account allocated memory
-			 to the jvm (-Xmx) and the available memory on the machine running the test -->
-		<flink.forkCountITCase>2</flink.forkCountITCase>
-		<flink.forkCountUnitTest>4</flink.forkCountUnitTest>
-		<flink.reuseForks>true</flink.reuseForks>
-		<flink.surefire.baseArgLine>-XX:+UseG1GC -Xms256m</flink.surefire.baseArgLine>
-		<test.unit.pattern>**/*Test.*</test.unit.pattern>
 
-		<spotless.version>2.13.0</spotless.version>
+		<!-- Log Dependency Start -->
+		<log4j.version>1.2.17</log4j.version>
+		<slf4j.version>1.7.36</slf4j.version>
+		<logback.version>1.2.11</logback.version>
+		<log4j2.version>2.17.1</log4j2.version>
+		<log4j2-disruptor.version>3.4.4</log4j2-disruptor.version>
+		<!-- Log Dependency End -->
+
+		<!-- Commons Utils Start -->
+		<commons-logging.version>1.2</commons-logging.version>
+		<commons.beanutils.version>1.9.4</commons.beanutils.version>
+		<commons.cli.version>1.4</commons.cli.version>
+		<commons.configuration.version>1.7</commons.configuration.version>
+		<commons.digester.version>1.8.1</commons.digester.version>
+		<commons-compress.version>1.20</commons-compress.version>
+		<commons-lang3.version>3.12.0</commons-lang3.version>
+		<commons-io.version>2.11.0</commons-io.version>
+		<commons-collections4.version>4.4</commons-collections4.version>
+		<!-- Commons Utils End -->
+
+		<!-- Maven Plugins Start -->
+		<maven.deploy.skip>false</maven.deploy.skip>
+		<maven.javadoc.skip>false</maven.javadoc.skip>
+		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+		<maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
+		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+		<maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
+		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
+		<maven-scala-plugin.version>4.4.0</maven-scala-plugin.version>
+		<maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+		<maven-pmd-plugin.version>3.8</maven-pmd-plugin.version>
+		<maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
+		<maven-shade-plugin.version>3.3.0</maven-shade-plugin.version>
+		<maven-helper-plugin.version>3.2.0</maven-helper-plugin.version>
+		<maven-flatten-plugin.version>1.3.0</maven-flatten-plugin.version>
+		<maven-license-plugin.version>1.20</maven-license-plugin.version>
+		<maven-exec-plugin.version>3.0.0</maven-exec-plugin.version>
+		<maven-scm-provider-jgit.version>1.9.5</maven-scm-provider-jgit.version>
+		<maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
+		<maven-docker-plugin.version>0.38.0</maven-docker-plugin.version>
+		<!-- Maven Plugins End -->
+
+		<!-- Option args -->
+		<skipUT>false</skipUT>
+		<skipIT>true</skipIT>
+		<skip.pmd.check>false</skip.pmd.check>
+		<e2e.dependency.skip>true</e2e.dependency.skip>
+
+		<!-- Shade Package Start -->
+		<chunjun.shade.package>com.dtstack.chunjun.shade</chunjun.shade.package>
+		<!-- Shade Package End -->
 	</properties>
 
 	<licenses>
@@ -98,47 +153,82 @@
 	</licenses>
 
 	<dependencies>
+		<!-- ***************** slf4j & provider & bridges start ***************** -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-1.2-api</artifactId>
+		</dependency>
+		<!-- ***************** slf4j & provider & bridges end ***************** -->
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.13.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
-			<version>3.0.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-inline</artifactId>
-			<version>2.13.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-module-junit4</artifactId>
-			<version>${powermock.version}</version>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>byte-buddy</artifactId>
+					<groupId>net.bytebuddy</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>byte-buddy-agent</artifactId>
+					<groupId>net.bytebuddy</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>objenesis</artifactId>
+					<groupId>org.objenesis</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito2</artifactId>
-			<version>${powermock.version}</version>
 			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.mockito</groupId>
-					<artifactId>mockito-core</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<!--Hadoop-->
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
@@ -149,13 +239,57 @@
 					<artifactId>guava</artifactId>
 					<groupId>com.google.guava</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>commons-collections</artifactId>
+					<groupId>commons-collections</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-lang</artifactId>
+					<groupId>commons-lang</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>avro</artifactId>
+					<groupId>org.apache.avro</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jackson-core-asl</artifactId>
+					<groupId>org.codehaus.jackson</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jackson-jaxrs</artifactId>
+					<groupId>org.codehaus.jackson</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jackson-mapper-asl</artifactId>
+					<groupId>org.codehaus.jackson</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jackson-xc</artifactId>
+					<groupId>org.codehaus.jackson</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>httpclient</artifactId>
+					<groupId>org.apache.httpcomponents</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>httpcore</artifactId>
+					<groupId>org.apache.httpcomponents</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>netty</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-hdfs</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
@@ -188,7 +322,7 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-yarn-common</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
@@ -229,7 +363,7 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-yarn-client</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
@@ -246,14 +380,20 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-mapreduce-client-core</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>avro</artifactId>
+					<groupId>org.apache.avro</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-yarn-api</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
@@ -266,22 +406,22 @@
 		<dependency>
 			<groupId>org.apache.avro</groupId>
 			<artifactId>avro</artifactId>
-			<version>1.8.2</version>
+			<version>${avro.version}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-			<version>3.2.2</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-collections4</artifactId>
 		</dependency>
 
 		<!-- test dependencies -->
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-annotations</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
@@ -295,15 +435,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.assertj</groupId>
-			<artifactId>assertj-core</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-all</artifactId>
-			<version>${hamcrest.version}</version>
 			<type>jar</type>
 			<scope>test</scope>
 		</dependency>
@@ -311,32 +444,6 @@
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>junit-jupiter</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- tests will have log4j as the default logging framework available -->
-
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<!-- API bridge between log4j 1 and 2 -->
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-1.2-api</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -373,13 +480,164 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<!-- ***************** slf4j & provider & bridges start ***************** -->
+			<!-- Declare slf4j-api -->
 			<dependency>
-				<groupId>com.google.guava</groupId>
-				<artifactId>guava</artifactId>
-				<version>${chunjun.guava.version}</version>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+			<!-- Declare slf4j-api provider: log4j2.x -->
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-slf4j-impl</artifactId>
+				<version>${log4j2.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-api</artifactId>
+				<version>${log4j2.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-core</artifactId>
+				<version>${log4j2.version}</version>
+			</dependency>
+			<!-- Declare log4j2 asynchronous loggers provider: disruptor -->
+			<dependency>
+				<groupId>com.lmax</groupId>
+				<artifactId>disruptor</artifactId>
+				<version>${log4j2-disruptor.version}</version>
+			</dependency>
+			<!-- Include the logging bridges -->
+			<!-- commons-logging bridge to slf4j -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>jcl-over-slf4j</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+			<!-- jdk-logging bridge to slf4j -->
+			<!-- low performance, see: https://www.slf4j.org/legacy.html#jul-to-slf4j
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>jul-to-slf4j</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+			-->
+			<!-- log4j1.x bridge to log4j2.x -->
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-1.2-api</artifactId>
+				<version>${log4j2.version}</version>
+			</dependency>
+			<!-- Exclude the logging bridges via provided scope -->
+			<!-- log4j1.x bridge to slf4j
+				 Use of the SLF4J adapter (log4j-over-slf4j) together with the SLF4J bridge (slf4j-log4j12) should never be attempted as it will cause events to endlessly be routed between SLF4J and Log4j 1
+			 -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>log4j-over-slf4j</artifactId>
+				<version>${slf4j.version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<!-- slf4j binding to log4j1.x -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-log4j12</artifactId>
+				<version>${slf4j.version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<!-- log4j2.x binding to slf4j.
+				 Use of the SLF4J adapter (log4j-to-slf4j-2.x.jar) together with the SLF4J bridge (log4j-slf4j-impl-2.x.jar) should never be attempted as it will cause events to endlessly be routed between SLF4J and Log4j 2
+			-->
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-to-slf4j</artifactId>
+				<version>${log4j2.version}</version>
+				<scope>provided</scope>
 			</dependency>
 
-			<!-- For dependency convergence -->
+			<!-- slf4j binding to jdk-logging -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-jdk14</artifactId>
+				<version>${slf4j.version}</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<!-- slf4j binding to commons-logging -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-jcl</artifactId>
+				<version>${slf4j.version}</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<!-- slf4j binding to nop -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-nop</artifactId>
+				<version>${slf4j.version}</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<!-- slf4j binding to simple -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-simple</artifactId>
+				<version>${slf4j.version}</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<!-- slf4j binding to reload4j -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-reload4j</artifactId>
+				<version>${slf4j.version}</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<!-- Exclude other logging provider via provided scope -->
+			<dependency>
+				<groupId>commons-logging</groupId>
+				<artifactId>commons-logging</artifactId>
+				<version>${commons-logging.version}</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>${logback.version}</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-core</artifactId>
+				<version>${logback.version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<!-- ***************** slf4j & provider & bridges end ***************** -->
+
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>${commons-lang3.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-collections4</artifactId>
+				<version>${commons-collections4.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>${lobmk.version}</version>
+			</dependency>
+
 			<dependency>
 				<groupId>org.junit</groupId>
 				<artifactId>junit-bom</artifactId>
@@ -389,11 +647,65 @@
 			</dependency>
 
 			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>${junit4.version}</version>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-annotations</artifactId>
+				<version>${jackson.version}</version>
 			</dependency>
 
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-core</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-compress</artifactId>
+				<version>${commons-compress.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>testcontainers</artifactId>
+				<version>${testcontainer.version}</version>
+				<scope>test</scope>
+				<exclusions>
+					<exclusion>
+						<groupId>org.slf4j</groupId>
+						<artifactId>slf4j-api</artifactId>
+					</exclusion>
+					<exclusion>
+						<artifactId>junit</artifactId>
+						<groupId>junit</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+
+			<dependency>
+				<groupId>org.scala-lang</groupId>
+				<artifactId>scala-library</artifactId>
+				<version>${scala.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>${commons-io.version}</version>
+			</dependency>
+
+			<!-- ***************** unit test & integration test start ***************** -->
 			<dependency>
 				<groupId>org.assertj</groupId>
 				<artifactId>assertj-core</artifactId>
@@ -403,36 +715,99 @@
 
 			<dependency>
 				<groupId>org.testcontainers</groupId>
-				<artifactId>testcontainers-bom</artifactId>
-				<version>${testcontainers.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
+				<artifactId>junit-jupiter</artifactId>
+				<version>${testcontainer.version}</version>
+				<scope>test</scope>
 			</dependency>
 
 			<dependency>
-				<groupId>org.apache.logging.log4j</groupId>
-				<artifactId>log4j-slf4j-impl</artifactId>
-				<version>${log4j2.version}</version>
+				<groupId>org.hamcrest</groupId>
+				<artifactId>hamcrest-all</artifactId>
+				<version>${hamcrest.version}</version>
+				<type>jar</type>
+				<scope>test</scope>
 			</dependency>
 
 			<dependency>
-				<groupId>org.apache.logging.log4j</groupId>
-				<artifactId>log4j-api</artifactId>
-				<version>${log4j2.version}</version>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit4.version}</version>
+				<scope>test</scope>
 			</dependency>
 
 			<dependency>
-				<groupId>org.apache.logging.log4j</groupId>
-				<artifactId>log4j-core</artifactId>
-				<version>${log4j2.version}</version>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>${mockito.version}</version>
+				<scope>test</scope>
 			</dependency>
 
 			<dependency>
-				<!-- API bridge between log4j 1 and 2 -->
-				<groupId>org.apache.logging.log4j</groupId>
-				<artifactId>log4j-1.2-api</artifactId>
-				<version>${log4j2.version}</version>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-inline</artifactId>
+				<version>${mockito.version}</version>
+				<scope>test</scope>
 			</dependency>
+
+			<dependency>
+				<groupId>org.powermock</groupId>
+				<artifactId>powermock-module-junit4</artifactId>
+				<version>${powermock.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.powermock</groupId>
+				<artifactId>powermock-api-mockito2</artifactId>
+				<version>${powermock.version}</version>
+				<scope>test</scope>
+				<exclusions>
+					<exclusion>
+						<groupId>org.mockito</groupId>
+						<artifactId>mockito-core</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+
+			<!-- ***************** unit test & integration test end ***************** -->
+
+			<!-- ***************** flink start *****************-->
+			<dependency>
+				<groupId>org.apache.flink</groupId>
+				<artifactId>flink-clients</artifactId>
+				<version>${flink.version}</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>slf4j-api</artifactId>
+						<groupId>org.slf4j</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.flink</groupId>
+				<artifactId>flink-runtime-web</artifactId>
+				<version>${flink.version}</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>slf4j-api</artifactId>
+						<groupId>org.slf4j</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.flink</groupId>
+				<artifactId>flink-table-planner-loader</artifactId>
+				<version>${flink.version}</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>slf4j-api</artifactId>
+						<groupId>org.slf4j</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<!-- ***************** flink end *****************-->
 		</dependencies>
 	</dependencyManagement>
 
@@ -444,22 +819,9 @@
 			</plugin>
 
 			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>prepare-agent</goal>
-							<goal>report</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>3.2.1</version>
+				<version>${maven-source-plugin.version}</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -468,15 +830,6 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<reportOutputDirectory>javadocs</reportOutputDirectory>
-					<destDir>chunjun-java-docs</destDir>
-				</configuration>
 			</plugin>
 
 			<plugin>
@@ -517,26 +870,14 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-antrun-plugin</artifactId>
-					<version>1.8</version>
-				</plugin>
-
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>2.9.1</version>
-				</plugin>
-
-				<plugin>
-					<groupId>org.jacoco</groupId>
-					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.7.8</version>
+					<version>3.1.0</version>
 				</plugin>
 
 				<!-- set scala maven plugin version -->
 				<plugin>
 					<groupId>net.alchim31.maven</groupId>
 					<artifactId>scala-maven-plugin</artifactId>
-					<version>3.2.2</version>
+					<version>${maven-scala-plugin.version}</version>
 					<configuration>
 						<args>
 							<arg>-nobootcp</arg>
@@ -580,29 +921,4 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<reportSets>
-					<reportSet>
-						<reports>
-							<report>report</report>
-						</reports>
-					</reportSet>
-				</reportSets>
-			</plugin>
-		</plugins>
-	</reporting>
-
-	<profiles>
-		<profile>
-			<id>e2e</id>
-			<modules>
-				<module>chunjun-e2e</module>
-			</modules>
-		</profile>
-	</profiles>
 </project>

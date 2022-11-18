@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 
 import org.junit.Assert;
@@ -31,31 +31,30 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-/** @author liuliu 2022/8/15 */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({JdbcInputFormat.class, JdbcConfig.class, JdbcDialect.class})
 public class JdbcInputFormatBuilderTest {
 
     private static JdbcInputFormatBuilder jdbcInputFormatBuilder;
-    private static JdbcConfig jdbcConf;
+    private static JdbcConfig jdbcConfig;
 
     @BeforeClass
     public static void setup() {
         JdbcInputFormat jdbcInputFormat = mock(JdbcInputFormat.class);
-        jdbcConf = mock(JdbcConfig.class);
+        jdbcConfig = mock(JdbcConfig.class);
         jdbcInputFormatBuilder = new JdbcInputFormatBuilder(jdbcInputFormat);
 
-        when(jdbcInputFormat.getJdbcConf()).thenReturn(jdbcConf);
-        when(jdbcConf.getParallelism()).thenReturn(3);
+        when(jdbcInputFormat.getJdbcConfig()).thenReturn(jdbcConfig);
+        when(jdbcConfig.getParallelism()).thenReturn(3);
     }
 
     @Test
     public void checkFormatTest() {
         // startLocation error
-        when(jdbcConf.getStartLocation()).thenReturn("10,11");
+        when(jdbcConfig.getStartLocation()).thenReturn("10,11");
 
         // semantic error
-        when(jdbcConf.getSemantic()).thenReturn("asd");
+        when(jdbcConfig.getSemantic()).thenReturn("asd");
         Exception e = null;
         try {
             jdbcInputFormatBuilder.checkFormat();

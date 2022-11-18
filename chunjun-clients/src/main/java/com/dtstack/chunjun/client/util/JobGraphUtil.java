@@ -18,6 +18,7 @@
 package com.dtstack.chunjun.client.util;
 
 import com.dtstack.chunjun.options.Options;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.PackagedProgram;
@@ -25,25 +26,22 @@ import org.apache.flink.client.program.PackagedProgramUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.flink.configuration.CoreOptions.DEFAULT_PARALLELISM;
 
-/**
- * @program: ChunJun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
+@Slf4j
 public class JobGraphUtil {
-
-    private static final Logger LOG = LoggerFactory.getLogger(JobGraphUtil.class);
 
     public static JobGraph buildJobGraph(Options launcherOptions, String[] programArgs)
             throws Exception {
@@ -54,6 +52,7 @@ public class JobGraphUtil {
         PackagedProgram program =
                 PackagedProgram.newBuilder()
                         .setJarFile(jarFile)
+                        .setUserClassPaths(Lists.newArrayList(getURLFromRootDir(pluginRoot)))
                         .setEntryPointClassName(PluginInfoUtil.getMainClass())
                         .setConfiguration(launcherOptions.loadFlinkConfiguration())
                         .setArguments(programArgs)
@@ -73,13 +72,47 @@ public class JobGraphUtil {
                                     try {
                                         return file.toURI().toURL();
                                     } catch (MalformedURLException e) {
-                                        LOG.error(e.getMessage());
+                                        log.error(e.getMessage());
                                     }
                                     return null;
                                 })
                         .collect(Collectors.toList());
         jobGraph.setClasspaths(pluginClassPath);
         return jobGraph;
+    }
+
+    public static Set<URL> getURLFromRootDir(String path) {
+        Set<URL> urlSet = Sets.newHashSet();
+        File plugins = new File(path);
+        if (!plugins.exists()) {
+            throw new ChunJunRuntimeException(
+                    path + " is not exist! Please check the configuration.");
+        }
+
+        addFileToURL(urlSet, Optional.of(plugins));
+        return urlSet;
+    }
+
+    public static void addFileToURL(Set<URL> urlSet, Optional<File> pluginFile) {
+        pluginFile.ifPresent(
+                item -> {
+                    File[] files = item.listFiles();
+                    assert files != null;
+                    for (File file : files) {
+                        if (file.isDirectory()) {
+                            addFileToURL(urlSet, Optional.of(file));
+                        }
+
+                        if (file.isFile() && file.isAbsolute()) {
+                            try {
+                                urlSet.add(file.toURI().toURL());
+                            } catch (MalformedURLException e) {
+                                throw new ChunJunRuntimeException(
+                                        "The error should not occur, please check the code.", e);
+                            }
+                        }
+                    }
+                });
     }
 
     public static PackagedProgram buildProgram(ClusterSpecification clusterSpecification)

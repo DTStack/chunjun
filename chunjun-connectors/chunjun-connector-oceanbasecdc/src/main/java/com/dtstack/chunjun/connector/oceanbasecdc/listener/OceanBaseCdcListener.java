@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oceanbasecdc.listener;
 
-import com.dtstack.chunjun.connector.oceanbasecdc.conf.OceanBaseCdcConf;
+import com.dtstack.chunjun.connector.oceanbasecdc.config.OceanBaseCdcConfig;
 import com.dtstack.chunjun.connector.oceanbasecdc.entity.OceanBaseCdcEventRow;
 import com.dtstack.chunjun.connector.oceanbasecdc.inputformat.OceanBaseCdcInputFormat;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -33,9 +33,8 @@ import com.oceanbase.clogproxy.client.exception.LogProxyClientException;
 import com.oceanbase.clogproxy.client.listener.RecordListener;
 import com.oceanbase.oms.logmessage.DataMessage;
 import com.oceanbase.oms.logmessage.LogMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -43,12 +42,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
+@Slf4j
 public class OceanBaseCdcListener implements Runnable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(OceanBaseCdcListener.class);
-
     private final OceanBaseCdcInputFormat format;
-    private final OceanBaseCdcConf cdcConf;
+    private final OceanBaseCdcConfig cdcConf;
     private final AbstractCDCRowConverter rowConverter;
     private final List<DataMessage.Record.Type> categories;
 
@@ -57,7 +55,7 @@ public class OceanBaseCdcListener implements Runnable {
     public OceanBaseCdcListener(OceanBaseCdcInputFormat format) {
         this.format = format;
         this.cdcConf = format.getCdcConf();
-        this.rowConverter = format.getRowConverter();
+        this.rowConverter = format.getCdcRowConverter();
         this.categories =
                 Arrays.stream(format.getCdcConf().getCat().split(ConstantValue.COMMA_SYMBOL))
                         .map(String::trim)
@@ -68,7 +66,7 @@ public class OceanBaseCdcListener implements Runnable {
 
     @Override
     public void run() {
-        LOG.info("OceanBaseCdcListener start running.....");
+        log.info("OceanBaseCdcListener start running.....");
 
         ObReaderConfig obReaderConfig = cdcConf.getObReaderConfig();
         if (StringUtils.isNotBlank(format.safeTimestamp)) {
@@ -89,8 +87,8 @@ public class OceanBaseCdcListener implements Runnable {
                             return;
                         }
 
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug(message.toString());
+                        if (log.isDebugEnabled()) {
+                            log.debug(message.toString());
                         }
 
                         switch (message.getOpt()) {
@@ -106,8 +104,8 @@ public class OceanBaseCdcListener implements Runnable {
                                 flushBuffer();
                                 break;
                             case DDL:
-                                if (LOG.isDebugEnabled()) {
-                                    LOG.debug(
+                                if (log.isDebugEnabled()) {
+                                    log.debug(
                                             "Ddl: {}",
                                             message.getFieldList().get(0).getValue().toString());
                                 }
@@ -120,7 +118,7 @@ public class OceanBaseCdcListener implements Runnable {
 
                     @Override
                     public void onException(LogProxyClientException e) {
-                        LOG.error("LogProxyClient exception", e);
+                        log.error("LogProxyClient exception", e);
                         client.stop();
                     }
                 });

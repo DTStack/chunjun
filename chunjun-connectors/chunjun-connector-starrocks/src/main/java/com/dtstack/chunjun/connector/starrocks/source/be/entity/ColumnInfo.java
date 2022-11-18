@@ -20,66 +20,14 @@ package com.dtstack.chunjun.connector.starrocks.source.be.entity;
 
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 
-/** @author liuliu 2022/7/22 */
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
 public class ColumnInfo {
     private String fieldName;
     private LogicalTypeRoot logicalTypeRoot;
     private String starRocksType;
     private int index;
-
-    public ColumnInfo(
-            String fieldName, LogicalTypeRoot logicalTypeRoot, String starRocksType, int index) {
-        this.fieldName = fieldName;
-        this.logicalTypeRoot = logicalTypeRoot;
-        this.starRocksType = starRocksType;
-        this.index = index;
-    }
-
-    public String getFieldName() {
-        return fieldName;
-    }
-
-    public void setFieldName(String fieldName) {
-        this.fieldName = fieldName;
-    }
-
-    public LogicalTypeRoot getLogicalTypeRoot() {
-        return logicalTypeRoot;
-    }
-
-    public void setLogicalTypeRoot(LogicalTypeRoot logicalTypeRoot) {
-        this.logicalTypeRoot = logicalTypeRoot;
-    }
-
-    public String getStarRocksType() {
-        return starRocksType;
-    }
-
-    public void setStarRocksType(String starRocksType) {
-        this.starRocksType = starRocksType;
-    }
-
-    public int getIndex() {
-        return index;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
-    @Override
-    public String toString() {
-        return "ColumnInfo{"
-                + "fieldName='"
-                + fieldName
-                + '\''
-                + ", logicalTypeRoot="
-                + logicalTypeRoot
-                + ", starRocksType='"
-                + starRocksType
-                + '\''
-                + ", index="
-                + index
-                + '}';
-    }
 }

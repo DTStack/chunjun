@@ -24,11 +24,6 @@ import org.apache.solr.common.SolrInputDocument;
 
 import java.io.Serializable;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/20
- */
 public interface SolrSerializationConverter extends Serializable {
 
     /**

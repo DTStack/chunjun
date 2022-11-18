@@ -18,19 +18,14 @@
 
 package com.dtstack.chunjun.connector.solr.sink;
 
-import com.dtstack.chunjun.connector.solr.SolrConf;
+import com.dtstack.chunjun.connector.solr.SolrConfig;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/28
- */
 public class SolrOutputFormatBuilder extends BaseRichOutputFormatBuilder<SolrOutputFormat> {
 
-    public SolrOutputFormatBuilder(SolrConf solrConf) {
-        super(new SolrOutputFormat(solrConf));
-        setConfig(solrConf);
+    public SolrOutputFormatBuilder(SolrConfig solrConfig) {
+        super(new SolrOutputFormat(solrConfig));
+        setConfig(solrConfig);
     }
 
     @Override

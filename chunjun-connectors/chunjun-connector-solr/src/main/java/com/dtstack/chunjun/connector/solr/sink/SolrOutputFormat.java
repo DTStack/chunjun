@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.solr.sink;
 
-import com.dtstack.chunjun.connector.solr.SolrConf;
+import com.dtstack.chunjun.connector.solr.SolrConfig;
 import com.dtstack.chunjun.connector.solr.client.CloudSolrClientKerberosWrapper;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
@@ -27,22 +27,17 @@ import org.apache.flink.table.data.RowData;
 
 import org.apache.solr.common.SolrInputDocument;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author wuren
- * @program chunjun
- * @create 2021/05/31
- */
 public class SolrOutputFormat extends BaseRichOutputFormat {
 
-    private final SolrConf solrConf;
+    private static final long serialVersionUID = 8630384526889401303L;
+    private final SolrConfig solrConfig;
     private CloudSolrClientKerberosWrapper solrClientWrapper;
 
-    public SolrOutputFormat(SolrConf solrConf) {
-        this.solrConf = solrConf;
+    public SolrOutputFormat(SolrConfig solrConfig) {
+        this.solrConfig = solrConfig;
     }
 
     @Override
@@ -74,10 +69,10 @@ public class SolrOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+    protected void openInternal(int taskNumber, int numTasks) {
         solrClientWrapper =
                 new CloudSolrClientKerberosWrapper(
-                        solrConf, getRuntimeContext().getDistributedCache());
+                        solrConfig, getRuntimeContext().getDistributedCache());
         solrClientWrapper.init();
     }
 

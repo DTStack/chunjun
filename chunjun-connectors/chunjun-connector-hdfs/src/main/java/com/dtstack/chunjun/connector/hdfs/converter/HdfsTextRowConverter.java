@@ -44,13 +44,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQueries;
 import java.util.Arrays;
 
-/**
- * Date: 2021/06/16 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsTextRowConverter
         extends AbstractRowConverter<RowData, RowData, String[], LogicalType> {
+
+    private static final long serialVersionUID = -165352676945714752L;
 
     public HdfsTextRowConverter(RowType rowType) {
         super(rowType);
@@ -86,7 +83,7 @@ public class HdfsTextRowConverter
     @Override
     @SuppressWarnings("unchecked")
     public String[] toExternal(RowData rowData, String[] data) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, data);
         }
         return data;

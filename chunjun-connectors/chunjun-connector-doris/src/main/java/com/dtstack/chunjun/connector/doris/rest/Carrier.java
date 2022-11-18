@@ -18,6 +18,7 @@
 
 package com.dtstack.chunjun.connector.doris.rest;
 
+import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -30,55 +31,23 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.IntStream;
 
+@Data
 public class Carrier implements Serializable {
     private static final long serialVersionUID = 1L;
-    private final List<Map<String, Object>> insertContent;
-    private final StringJoiner deleteContent;
+    private final List<Map<String, Object>> insertContent = new ArrayList<>();
+    private final StringJoiner deleteContent = new StringJoiner(" OR ");
     private int batch = 0;
     private String database;
     private String table;
     private List<String> columns;
     private final Set<Integer> rowDataIndexes = new HashSet<>();
 
-    public Carrier() {
-        insertContent = new ArrayList<>();
-        deleteContent = new StringJoiner(" OR ");
-    }
-
     public String getDatabase() {
         return database;
     }
 
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
-    public String getTable() {
-        return table;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
-    }
-
-    public List<Map<String, Object>> getInsertContent() {
-        return insertContent;
-    }
-
     public String getDeleteContent() {
         return deleteContent.toString();
-    }
-
-    public List<String> getColumns() {
-        return columns;
-    }
-
-    public void setColumns(List<String> columns) {
-        this.columns = columns;
-    }
-
-    public Set<Integer> getRowDataIndexes() {
-        return rowDataIndexes;
     }
 
     public void addRowDataIndex(int index) {

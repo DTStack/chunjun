@@ -34,12 +34,14 @@ import com.dtstack.chunjun.throwable.CastException;
 import com.dtstack.chunjun.util.DateUtil;
 import com.dtstack.chunjun.util.GsonUtil;
 
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
@@ -54,22 +56,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import scala.Tuple3;
-
-/**
- * @description:
- * @program: Chunjun
- * @author: lany
- * @create: 2021/06/27 13:23
- */
+@Slf4j
 public class ElasticsearchColumnConverter
         extends AbstractRowConverter<
                 Map<String, Object>, Object, Map<String, Object>, LogicalType> {
 
-    private static final long serialVersionUID = 2L;
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final long serialVersionUID = -4080093751566715519L;
 
-    private final List<Tuple3<String, Integer, LogicalType>> typeIndexList = new ArrayList<>();
+    private final List<Tuple2<String, Integer>> typeIndexList = new ArrayList<>();
     private final Map<Integer, SimpleDateFormat> dateFormatMap = new HashMap<>();
 
     public ElasticsearchColumnConverter(RowType rowType) {
@@ -91,7 +86,7 @@ public class ElasticsearchColumnConverter
             toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
                             createExternalConverter(fieldTypes[i]), fieldTypes[i]));
-            typeIndexList.add(new Tuple3<>(fieldNames.get(i), i, rowType.getTypeAt(i)));
+            typeIndexList.add(new Tuple2<>(fieldNames.get(i), i));
         }
     }
 
@@ -103,7 +98,7 @@ public class ElasticsearchColumnConverter
                     || val.isNullAt(index)
                     || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
                 Map<String, Object> result = (Map<String, Object>) rowData;
-                result.put(typeIndexList.get(index)._1(), null);
+                result.put(typeIndexList.get(index).f0, null);
             } else {
                 ISerializationConverter.serialize(val, index, rowData);
             }
@@ -115,18 +110,16 @@ public class ElasticsearchColumnConverter
         ColumnRowData columnRowData = new ColumnRowData(rowType.getFieldCount());
         for (int i = 0; i < toInternalConverters.size(); i++) {
             final int index = i;
-            List<Tuple3<String, Integer, LogicalType>> collect =
-                    typeIndexList.stream()
-                            .filter(x -> x._2() == index)
-                            .collect(Collectors.toList());
+            List<Tuple2<String, Integer>> collect =
+                    typeIndexList.stream().filter(x -> x.f1 == index).collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(collect)) {
-                LOG.warn("Result Map : key [{}] not in columns", typeIndexList.get(index)._2());
+                log.warn("Result Map : key [{}] not in columns", typeIndexList.get(index).f1);
                 continue;
             }
 
-            Tuple3<String, Integer, LogicalType> typeTuple = collect.get(0);
-            Object field = input.get(typeTuple._1());
+            Tuple2<String, Integer> typeTuple = collect.get(0);
+            Object field = input.get(typeTuple.f0);
             columnRowData.addField(
                     (AbstractBaseColumn) toInternalConverters.get(i).deserialize(field));
         }
@@ -136,7 +129,7 @@ public class ElasticsearchColumnConverter
     @Override
     public Map<String, Object> toExternal(RowData rowData, Map<String, Object> output)
             throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, output);
         }
         return output;
@@ -195,64 +188,55 @@ public class ElasticsearchColumnConverter
             LogicalType type) {
         switch (type.getTypeRoot()) {
             case BOOLEAN:
-                return (val, index, output) -> {
-                    output.put(
-                            typeIndexList.get(index)._1(),
-                            ((ColumnRowData) val).getField(index).asBoolean());
-                };
+                return (val, index, output) ->
+                        output.put(
+                                typeIndexList.get(index).f0,
+                                ((ColumnRowData) val).getField(index).asBoolean());
             case TINYINT:
-                return (val, index, output) -> {
-                    output.put(typeIndexList.get(index)._1(), val.getByte(index));
-                };
+                return (val, index, output) ->
+                        output.put(typeIndexList.get(index).f0, val.getByte(index));
             case SMALLINT:
             case INTEGER:
-                return (val, index, output) -> {
-                    output.put(
-                            typeIndexList.get(index)._1(),
-                            ((ColumnRowData) val).getField(index).asInt());
-                };
+                return (val, index, output) ->
+                        output.put(
+                                typeIndexList.get(index).f0,
+                                ((ColumnRowData) val).getField(index).asInt());
             case FLOAT:
-                return (val, index, output) -> {
-                    output.put(
-                            typeIndexList.get(index)._1(),
-                            ((ColumnRowData) val).getField(index).asFloat());
-                };
+                return (val, index, output) ->
+                        output.put(
+                                typeIndexList.get(index).f0,
+                                ((ColumnRowData) val).getField(index).asFloat());
             case DOUBLE:
-                return (val, index, output) -> {
-                    output.put(
-                            typeIndexList.get(index)._1(),
-                            ((ColumnRowData) val).getField(index).asDouble());
-                };
+                return (val, index, output) ->
+                        output.put(
+                                typeIndexList.get(index).f0,
+                                ((ColumnRowData) val).getField(index).asDouble());
 
             case BIGINT:
-                return (val, index, output) -> {
-                    output.put(
-                            typeIndexList.get(index)._1(),
-                            ((ColumnRowData) val).getField(index).asLong());
-                };
+                return (val, index, output) ->
+                        output.put(
+                                typeIndexList.get(index).f0,
+                                ((ColumnRowData) val).getField(index).asLong());
             case DECIMAL:
-                return (val, index, output) -> {
-                    output.put(
-                            typeIndexList.get(index)._1(),
-                            ((ColumnRowData) val).getField(index).asBigDecimal());
-                };
+                return (val, index, output) ->
+                        output.put(
+                                typeIndexList.get(index).f0,
+                                ((ColumnRowData) val).getField(index).asBigDecimal());
             case CHAR:
             case VARCHAR:
-                return (val, index, output) -> {
-                    output.put(
-                            typeIndexList.get(index)._1(),
-                            ((ColumnRowData) val).getField(index).asString());
-                };
+                return (val, index, output) ->
+                        output.put(
+                                typeIndexList.get(index).f0,
+                                ((ColumnRowData) val).getField(index).asString());
             case DATE:
-                return (val, index, output) -> {
-                    output.put(
-                            typeIndexList.get(index)._1(),
-                            ((ColumnRowData) val).getField(index).asSqlDate().toString());
-                };
+                return (val, index, output) ->
+                        output.put(
+                                typeIndexList.get(index).f0,
+                                ((ColumnRowData) val).getField(index).asSqlDate().toString());
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, output) ->
                         output.put(
-                                typeIndexList.get(index)._1(),
+                                typeIndexList.get(index).f0,
                                 ((ColumnRowData) val).getField(index).asTime().toString());
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
@@ -260,31 +244,30 @@ public class ElasticsearchColumnConverter
                     AbstractBaseColumn field = ((ColumnRowData) val).getField(index);
                     if (field instanceof StringColumn && ((StringColumn) field).isCustomFormat()
                             || null == dateFormatMap.get(index)) {
-                        output.put(typeIndexList.get(index)._1(), field.asTimestampStr());
+                        output.put(typeIndexList.get(index).f0, field.asTimestampStr());
                     } else {
                         output.put(
-                                typeIndexList.get(index)._1(),
+                                typeIndexList.get(index).f0,
                                 dateFormatMap.get(index).format(field.asTimestamp().getTime()));
                     }
                 };
             case BINARY:
             case VARBINARY:
-                return (val, index, output) -> {
-                    output.put(
-                            typeIndexList.get(index)._1(),
-                            ((ColumnRowData) val).getField(index).asBytes());
-                };
+                return (val, index, output) ->
+                        output.put(
+                                typeIndexList.get(index).f0,
+                                ((ColumnRowData) val).getField(index).asBytes());
             case STRUCTURED_TYPE:
                 return (val, index, output) -> {
                     String field = ((ColumnRowData) val).getField(index).asString();
                     try {
                         output.put(
-                                typeIndexList.get(index)._1(),
+                                typeIndexList.get(index).f0,
                                 GsonUtil.GSON.fromJson(field, Map.class));
                     } catch (Exception e) {
                         try {
                             output.put(
-                                    typeIndexList.get(index)._1(),
+                                    typeIndexList.get(index).f0,
                                     GsonUtil.GSON.fromJson(field, List.class));
                         } catch (Exception e1) {
                             throw new CastException("String", "Es Complex Type", field);

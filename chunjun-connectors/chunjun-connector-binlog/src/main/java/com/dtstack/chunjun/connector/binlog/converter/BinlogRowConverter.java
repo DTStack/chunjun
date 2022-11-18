@@ -17,11 +17,11 @@
  */
 package com.dtstack.chunjun.connector.binlog.converter;
 
+import com.dtstack.chunjun.connector.binlog.format.TimestampFormat;
 import com.dtstack.chunjun.connector.binlog.listener.BinlogEventRow;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 
-import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.RowData;
@@ -49,12 +49,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Date: 2021/04/29 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, LogicalType> {
+
+    private static final long serialVersionUID = 5788793678947004381L;
+
     private final TimestampFormat timestampFormat;
 
     public BinlogRowConverter(RowType rowType, TimestampFormat timestampFormat) {

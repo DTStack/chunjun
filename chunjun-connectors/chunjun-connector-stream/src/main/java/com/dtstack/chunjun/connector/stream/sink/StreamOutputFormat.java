@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.stream.sink;
 
 import com.dtstack.chunjun.cdc.DdlRowData;
-import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.stream.config.StreamConfig;
 import com.dtstack.chunjun.connector.stream.util.TablePrintUtil;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -36,6 +36,8 @@ import java.util.List;
 /** OutputFormat for stream writer */
 public class StreamOutputFormat extends BaseRichOutputFormat {
 
+    private static final long serialVersionUID = 341020012101206838L;
+
     private StreamConfig streamConfig;
 
     @Override
@@ -46,13 +48,13 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         try {
-            @SuppressWarnings("unchecked")
             RowData row =
                     (RowData)
                             rowConverter.toExternal(
                                     rowData,
                                     new GenericRowData(rowData.getRowKind(), rowData.getArity()));
-            if (streamConfig.getPrint()) {
+            row.setRowKind(rowData.getRowKind());
+            if (streamConfig.isPrint()) {
                 TablePrintUtil.printTable(row, getFieldNames(rowData));
             }
         } catch (Exception e) {

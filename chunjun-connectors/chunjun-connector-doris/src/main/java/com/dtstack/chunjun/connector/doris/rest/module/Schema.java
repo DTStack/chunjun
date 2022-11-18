@@ -18,46 +18,19 @@
 
 package com.dtstack.chunjun.connector.doris.rest.module;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Data
 public class Schema {
     private int status = 0;
-    private List<Field> properties;
-
-    public Schema() {
-        properties = new ArrayList<>();
-    }
-
-    public Schema(int fieldCount) {
-        properties = new ArrayList<>(fieldCount);
-    }
+    private List<Field> properties = new ArrayList<>();
 
     public int getStatus() {
         return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public List<Field> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(List<Field> properties) {
-        this.properties = properties;
-    }
-
-    public void put(String name, String type, String comment, int scale, int precision) {
-        properties.add(new Field(name, type, comment, scale, precision));
-    }
-
-    public void put(Field f) {
-        properties.add(f);
     }
 
     public Field get(int index) {
@@ -87,13 +60,5 @@ public class Schema {
     @Override
     public int hashCode() {
         return Objects.hash(status, properties);
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("status", status)
-                .append("properties", properties)
-                .toString();
     }
 }

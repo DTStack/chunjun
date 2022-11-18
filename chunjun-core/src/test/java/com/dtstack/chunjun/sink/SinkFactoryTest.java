@@ -18,14 +18,14 @@
 
 package com.dtstack.chunjun.sink;
 
-import com.dtstack.chunjun.conf.CommonConfig;
-import com.dtstack.chunjun.conf.ContentConf;
-import com.dtstack.chunjun.conf.JobConfBuilder;
-import com.dtstack.chunjun.conf.OperatorConf;
-import com.dtstack.chunjun.conf.SettingConfBuilder;
-import com.dtstack.chunjun.conf.SpeedConf;
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.conf.SyncConfBuilder;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.ContentConfig;
+import com.dtstack.chunjun.config.JobConfigBuilder;
+import com.dtstack.chunjun.config.OperatorConfig;
+import com.dtstack.chunjun.config.SettingConfigBuilder;
+import com.dtstack.chunjun.config.SpeedConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.config.SyncConfigBuilder;
 import com.dtstack.chunjun.constants.ConfigConstant;
 import com.dtstack.chunjun.constants.ConstantValue;
 
@@ -42,29 +42,29 @@ public class SinkFactoryTest {
 
     @Test
     @DisplayName("should use global channel when writer channel is -1")
-    public void testInitChunJunCommonConfUseGlobalChannel() {
-        SpeedConf speedConf = new SpeedConf();
-        speedConf.setChannel(5);
-        speedConf.setWriterChannel(-1);
-        ContentConf contentConf = new ContentConf();
-        OperatorConf writer = new OperatorConf();
+    public void testInitCommonConfigUseGlobalChannel() {
+        SpeedConfig speedConfig = new SpeedConfig();
+        speedConfig.setChannel(5);
+        speedConfig.setWriterChannel(-1);
+        ContentConfig contentConfig = new ContentConfig();
+        OperatorConfig writer = new OperatorConfig();
         writer.setParameter(
                 ImmutableMap.<String, Object>builder()
                         .put(ConfigConstant.KEY_COLUMN, ImmutableList.of(ConstantValue.STAR_SYMBOL))
                         .build());
-        contentConf.setWriter(writer);
-        SyncConf syncConf =
-                SyncConfBuilder.newBuilder()
+        contentConfig.setWriter(writer);
+        SyncConfig syncConfig =
+                SyncConfigBuilder.newBuilder()
                         .job(
-                                JobConfBuilder.newBuilder()
+                                JobConfigBuilder.newBuilder()
                                         .setting(
-                                                SettingConfBuilder.newBuilder()
-                                                        .speed(speedConf)
+                                                SettingConfigBuilder.newBuilder()
+                                                        .speed(speedConfig)
                                                         .build())
-                                        .content(new LinkedList<>(ImmutableList.of(contentConf)))
+                                        .content(new LinkedList<>(ImmutableList.of(contentConfig)))
                                         .build())
                         .build();
-        MockSinkFactory sinkFactory = new MockSinkFactory(syncConf);
+        MockSinkFactory sinkFactory = new MockSinkFactory(syncConfig);
         CommonConfig commonConfig = new CommonConfig();
         sinkFactory.initCommonConf(commonConfig);
         assertEquals(5, commonConfig.getParallelism());
@@ -72,61 +72,61 @@ public class SinkFactoryTest {
 
     @Test
     @DisplayName("should use writer channel first when writer channel is not -1")
-    public void testInitChunJunCommonConfUseWriterChannel() {
-        SpeedConf speedConf = new SpeedConf();
-        speedConf.setChannel(5);
-        speedConf.setWriterChannel(3);
+    public void testInitCommonConfigUseWriterChannel() {
+        SpeedConfig speedConfig = new SpeedConfig();
+        speedConfig.setChannel(5);
+        speedConfig.setWriterChannel(3);
 
-        ContentConf contentConf = new ContentConf();
-        OperatorConf writer = new OperatorConf();
+        ContentConfig contentConfig = new ContentConfig();
+        OperatorConfig writer = new OperatorConfig();
         writer.setParameter(
                 ImmutableMap.<String, Object>builder()
                         .put(ConfigConstant.KEY_COLUMN, ImmutableList.of(ConstantValue.STAR_SYMBOL))
                         .build());
-        contentConf.setWriter(writer);
-        SyncConf syncConf =
-                SyncConfBuilder.newBuilder()
+        contentConfig.setWriter(writer);
+        SyncConfig syncConfig =
+                SyncConfigBuilder.newBuilder()
                         .job(
-                                JobConfBuilder.newBuilder()
+                                JobConfigBuilder.newBuilder()
                                         .setting(
-                                                SettingConfBuilder.newBuilder()
-                                                        .speed(speedConf)
+                                                SettingConfigBuilder.newBuilder()
+                                                        .speed(speedConfig)
                                                         .build())
-                                        .content(new LinkedList<>(ImmutableList.of(contentConf)))
+                                        .content(new LinkedList<>(ImmutableList.of(contentConfig)))
                                         .build())
                         .build();
 
-        MockSinkFactory sinkFactory = new MockSinkFactory(syncConf);
+        MockSinkFactory sinkFactory = new MockSinkFactory(syncConfig);
         CommonConfig commonConfig = new CommonConfig();
         sinkFactory.initCommonConf(commonConfig);
         assertEquals(3, commonConfig.getParallelism());
     }
 
     public void testCreateOutput() {
-        SpeedConf speedConf = new SpeedConf();
-        speedConf.setChannel(5);
-        speedConf.setWriterChannel(3);
+        SpeedConfig speedConfig = new SpeedConfig();
+        speedConfig.setChannel(5);
+        speedConfig.setWriterChannel(3);
 
-        ContentConf contentConf = new ContentConf();
-        OperatorConf writer = new OperatorConf();
+        ContentConfig contentConfig = new ContentConfig();
+        OperatorConfig writer = new OperatorConfig();
         writer.setParameter(
                 ImmutableMap.<String, Object>builder()
                         .put(ConfigConstant.KEY_COLUMN, ImmutableList.of(ConstantValue.STAR_SYMBOL))
                         .build());
-        contentConf.setWriter(writer);
-        SyncConf syncConf =
-                SyncConfBuilder.newBuilder()
+        contentConfig.setWriter(writer);
+        SyncConfig syncConfig =
+                SyncConfigBuilder.newBuilder()
                         .job(
-                                JobConfBuilder.newBuilder()
+                                JobConfigBuilder.newBuilder()
                                         .setting(
-                                                SettingConfBuilder.newBuilder()
-                                                        .speed(speedConf)
+                                                SettingConfigBuilder.newBuilder()
+                                                        .speed(speedConfig)
                                                         .build())
-                                        .content(new LinkedList<>(ImmutableList.of(contentConf)))
+                                        .content(new LinkedList<>(ImmutableList.of(contentConfig)))
                                         .build())
                         .build();
 
-        MockSinkFactory sinkFactory = new MockSinkFactory(syncConf);
+        MockSinkFactory sinkFactory = new MockSinkFactory(syncConfig);
         //        sinkFactory.createOutput()
     }
 }

@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.table;
 
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.options.HdfsOptions;
 import com.dtstack.chunjun.connector.hdfs.sink.HdfsDynamicTableSink;
 import com.dtstack.chunjun.connector.hdfs.source.HdfsDynamicTableSource;
@@ -27,23 +27,17 @@ import com.dtstack.chunjun.table.options.SinkOptions;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Date: 2021/06/17 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     public static final String IDENTIFIER = "hdfs-x";
@@ -92,15 +86,14 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         helper.validateExcept("properties.");
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        HdfsConf hdfsConf = getHdfsConf(config);
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+        HdfsConfig hdfsConfig = getHdfsConfig(config);
         List<String> partitionKeys = context.getCatalogTable().getPartitionKeys();
-        hdfsConf.setParallelism(config.get(SourceOptions.SCAN_PARALLELISM));
-        hdfsConf.setHadoopConfig(
+        hdfsConfig.setParallelism(config.get(SourceOptions.SCAN_PARALLELISM));
+        hdfsConfig.setHadoopConfig(
                 HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
 
-        return new HdfsDynamicTableSource(hdfsConf, physicalSchema, partitionKeys);
+        return new HdfsDynamicTableSource(hdfsConfig, resolvedSchema, partitionKeys);
     }
 
     @Override
@@ -114,39 +107,38 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         helper.validateExcept("properties.");
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        HdfsConf hdfsConf = getHdfsConf(config);
-        hdfsConf.setParallelism(config.get(SinkOptions.SINK_PARALLELISM));
-        hdfsConf.setHadoopConfig(
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+        HdfsConfig hdfsConfig = getHdfsConfig(config);
+        hdfsConfig.setParallelism(config.get(SinkOptions.SINK_PARALLELISM));
+        hdfsConfig.setHadoopConfig(
                 HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
 
-        return new HdfsDynamicTableSink(hdfsConf, physicalSchema);
+        return new HdfsDynamicTableSink(hdfsConfig, resolvedSchema);
     }
 
     /**
-     * initialize HdfsConf
+     * initialize HdfsConfig
      *
      * @param config
      * @return
      */
-    private HdfsConf getHdfsConf(ReadableConfig config) {
-        HdfsConf hdfsConf = new HdfsConf();
+    private HdfsConfig getHdfsConfig(ReadableConfig config) {
+        HdfsConfig hdfsConfig = new HdfsConfig();
 
-        hdfsConf.setPath(config.get(BaseFileOptions.PATH));
-        hdfsConf.setFileName(config.get(BaseFileOptions.FILE_NAME));
-        hdfsConf.setWriteMode(config.get(BaseFileOptions.WRITE_MODE));
-        hdfsConf.setCompress(config.get(BaseFileOptions.COMPRESS));
-        hdfsConf.setEncoding(config.get(BaseFileOptions.ENCODING));
-        hdfsConf.setMaxFileSize(config.get(BaseFileOptions.MAX_FILE_SIZE));
-        hdfsConf.setNextCheckRows(config.get(BaseFileOptions.NEXT_CHECK_ROWS));
+        hdfsConfig.setPath(config.get(BaseFileOptions.PATH));
+        hdfsConfig.setFileName(config.get(BaseFileOptions.FILE_NAME));
+        hdfsConfig.setWriteMode(config.get(BaseFileOptions.WRITE_MODE));
+        hdfsConfig.setCompress(config.get(BaseFileOptions.COMPRESS));
+        hdfsConfig.setEncoding(config.get(BaseFileOptions.ENCODING));
+        hdfsConfig.setMaxFileSize(config.get(BaseFileOptions.MAX_FILE_SIZE));
+        hdfsConfig.setNextCheckRows(config.get(BaseFileOptions.NEXT_CHECK_ROWS));
 
-        hdfsConf.setDefaultFS(config.get(HdfsOptions.DEFAULT_FS));
-        hdfsConf.setFileType(config.get(HdfsOptions.FILE_TYPE));
-        hdfsConf.setFilterRegex(config.get(HdfsOptions.FILTER_REGEX));
-        hdfsConf.setFieldDelimiter(config.get(HdfsOptions.FIELD_DELIMITER));
-        hdfsConf.setEnableDictionary(config.get(HdfsOptions.ENABLE_DICTIONARY));
+        hdfsConfig.setDefaultFS(config.get(HdfsOptions.DEFAULT_FS));
+        hdfsConfig.setFileType(config.get(HdfsOptions.FILE_TYPE));
+        hdfsConfig.setFilterRegex(config.get(HdfsOptions.FILTER_REGEX));
+        hdfsConfig.setFieldDelimiter(config.get(HdfsOptions.FIELD_DELIMITER));
+        hdfsConfig.setEnableDictionary(config.get(HdfsOptions.ENABLE_DICTIONARY));
 
-        return hdfsConf;
+        return hdfsConfig;
     }
 }

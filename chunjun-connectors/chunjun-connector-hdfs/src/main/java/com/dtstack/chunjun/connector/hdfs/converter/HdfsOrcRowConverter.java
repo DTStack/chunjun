@@ -43,13 +43,10 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 
-/**
- * Date: 2021/06/16 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsOrcRowConverter
         extends AbstractRowConverter<RowData, RowData, Object[], LogicalType> {
+
+    private static final long serialVersionUID = 6632938157518455020L;
 
     public HdfsOrcRowConverter(RowType rowType) {
         super(rowType);
@@ -85,7 +82,7 @@ public class HdfsOrcRowConverter
     @Override
     @SuppressWarnings("unchecked")
     public Object[] toExternal(RowData rowData, Object[] data) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, data);
         }
         return data;

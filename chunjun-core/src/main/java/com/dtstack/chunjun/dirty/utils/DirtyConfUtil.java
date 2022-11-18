@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.dirty.utils;
 
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.options.Options;
 import com.dtstack.chunjun.throwable.NoRestartException;
 import com.dtstack.chunjun.util.PropertiesUtil;
@@ -32,10 +32,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * @author tiezhu@dtstack
- * @date 23/09/2021 Thursday
- */
 public class DirtyConfUtil {
 
     private static final String DEFAULT_TYPE = "default";
@@ -54,8 +50,8 @@ public class DirtyConfUtil {
 
     public static final String DIRTY_DIR_SUFFIX = "dirty-data-collector";
 
-    public static DirtyConf parseFromMap(Map<String, String> confMap) {
-        DirtyConf dirtyConf = new DirtyConf();
+    public static DirtyConfig parseFromMap(Map<String, String> confMap) {
+        DirtyConfig dirtyConfig = new DirtyConfig();
         Properties pluginProperties = new Properties();
 
         String type = String.valueOf(confMap.getOrDefault(TYPE_KEY, DEFAULT_TYPE));
@@ -83,17 +79,17 @@ public class DirtyConfUtil {
                                                 .trim(),
                                         item.getValue()));
 
-        dirtyConf.setType(type);
-        dirtyConf.setMaxConsumed(maxConsumed < 0 ? Long.MAX_VALUE : maxConsumed);
-        dirtyConf.setMaxFailedConsumed(maxFailed < 0 ? Long.MAX_VALUE : maxFailed);
-        dirtyConf.setPrintRate(printRate <= 0 ? Long.MAX_VALUE : printRate);
-        dirtyConf.setPluginProperties(pluginProperties);
-        dirtyConf.setLocalPluginPath(pluginDir);
+        dirtyConfig.setType(type);
+        dirtyConfig.setMaxConsumed(maxConsumed < 0 ? Long.MAX_VALUE : maxConsumed);
+        dirtyConfig.setMaxFailedConsumed(maxFailed < 0 ? Long.MAX_VALUE : maxFailed);
+        dirtyConfig.setPrintRate(printRate <= 0 ? Long.MAX_VALUE : printRate);
+        dirtyConfig.setPluginProperties(pluginProperties);
+        dirtyConfig.setLocalPluginPath(pluginDir);
 
-        return dirtyConf;
+        return dirtyConfig;
     }
 
-    public static DirtyConf parse(Options options) {
+    public static DirtyConfig parse(Options options) {
         try {
             Properties properties = PropertiesUtil.parseConf(options.getConfProp());
             properties.put(
@@ -106,7 +102,7 @@ public class DirtyConfUtil {
         }
     }
 
-    public static DirtyConf parse(Properties properties) {
+    public static DirtyConfig parse(Properties properties) {
         try {
             Map<String, String> confMap = Maps.fromProperties(properties);
             return parseFromMap(confMap);

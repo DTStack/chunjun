@@ -18,18 +18,16 @@
 
 package com.dtstack.chunjun.connector.oceanbasecdc.table;
 
-import com.dtstack.chunjun.connector.oceanbasecdc.conf.OceanBaseCdcConf;
+import com.dtstack.chunjun.connector.oceanbasecdc.config.OceanBaseCdcConfig;
 import com.dtstack.chunjun.connector.oceanbasecdc.options.OceanBaseCdcOptions;
 import com.dtstack.chunjun.connector.oceanbasecdc.source.OceanBaseCdcDynamicTableSource;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.formats.json.JsonOptions;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import com.oceanbase.clogproxy.client.config.ObReaderConfig;
 import org.apache.commons.lang3.StringUtils;
@@ -67,7 +65,7 @@ public class OceanBaseCdcDynamicTableFactory implements DynamicTableSourceFactor
         options.add(OceanBaseCdcOptions.TIMEZONE);
         options.add(OceanBaseCdcOptions.WORKING_MODE);
         options.add(OceanBaseCdcOptions.CAT);
-        options.add(JsonOptions.TIMESTAMP_FORMAT);
+        options.add(OceanBaseCdcOptions.TIMESTAMP_FORMAT);
         return options;
     }
 
@@ -76,16 +74,15 @@ public class OceanBaseCdcDynamicTableFactory implements DynamicTableSourceFactor
         final FactoryUtil.TableFactoryHelper helper =
                 FactoryUtil.createTableFactoryHelper(this, context);
         helper.validate();
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
         final ReadableConfig config = helper.getOptions();
-        OceanBaseCdcConf cdcConf = getOceanBaseCdcConf(config);
+        OceanBaseCdcConfig cdcConf = getOceanBaseCdcConf(config);
         return new OceanBaseCdcDynamicTableSource(
-                physicalSchema, cdcConf, JsonOptions.getTimestampFormat(config));
+                resolvedSchema, cdcConf, OceanBaseCdcOptions.getTimestampFormat(config));
     }
 
-    private OceanBaseCdcConf getOceanBaseCdcConf(ReadableConfig config) {
-        OceanBaseCdcConf cdcConf = new OceanBaseCdcConf();
+    private OceanBaseCdcConfig getOceanBaseCdcConf(ReadableConfig config) {
+        OceanBaseCdcConfig cdcConf = new OceanBaseCdcConfig();
         cdcConf.setLogProxyHost(config.get(OceanBaseCdcOptions.LOG_PROXY_HOST));
         cdcConf.setLogProxyPort(config.get(OceanBaseCdcOptions.LOG_PROXY_PORT));
         cdcConf.setCat(config.get(OceanBaseCdcOptions.CAT));
@@ -106,7 +103,7 @@ public class OceanBaseCdcDynamicTableFactory implements DynamicTableSourceFactor
             obReaderConfig.setClusterUrl(configUrl);
         }
         cdcConf.setObReaderConfig(obReaderConfig);
-        cdcConf.setTimestampFormat(config.get(JsonOptions.TIMESTAMP_FORMAT));
+        cdcConf.setTimestampFormat(config.get(OceanBaseCdcOptions.TIMESTAMP_FORMAT));
         return cdcConf;
     }
 }

@@ -28,13 +28,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsOrcInputSplit implements InputSplit {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 5542258359117122496L;
+
     int splitNumber;
     byte[] orcSplitData;
 

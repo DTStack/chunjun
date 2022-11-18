@@ -58,6 +58,7 @@ import static com.dtstack.chunjun.constants.CDCConstantValue.TYPE;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class OceanBaseCdcColumnConverter
         extends AbstractCDCRowConverter<OceanBaseCdcEventRow, String> {
+    private static final long serialVersionUID = 5527437395899252803L;
 
     /** Base column: type, schema, table, ts, opTime */
     private static final int BASE_COLUMN_SIZE = 5;

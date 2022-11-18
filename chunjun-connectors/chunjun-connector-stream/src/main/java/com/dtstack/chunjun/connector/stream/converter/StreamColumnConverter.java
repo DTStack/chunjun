@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.stream.converter;
 
-import com.dtstack.chunjun.conf.CommonConfig;
-import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -50,7 +50,8 @@ import java.util.stream.Collectors;
 public class StreamColumnConverter
         extends AbstractRowConverter<ColumnRowData, RowData, RowData, String> {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -3451666548578322227L;
+
     private static final AtomicLong id = new AtomicLong(0L);
 
     public StreamColumnConverter(CommonConfig commonConfig) {

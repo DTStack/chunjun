@@ -17,23 +17,22 @@
  */
 package com.dtstack.chunjun.connector.starrocks.table;
 
-import com.dtstack.chunjun.connector.starrocks.conf.LoadConf;
-import com.dtstack.chunjun.connector.starrocks.conf.LoadConfBuilder;
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.LoadConfig;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.sink.StarRocksDynamicTableSink;
 import com.dtstack.chunjun.connector.starrocks.source.StarRocksDynamicTableSource;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
-import com.dtstack.chunjun.lookup.conf.LookupConfFactory;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfigFactory;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
+import org.apache.flink.table.types.DataType;
 
 import java.util.HashSet;
 import java.util.List;
@@ -74,10 +73,6 @@ import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_MAX_RETRIE
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
 
-/**
- * @author lihongwei
- * @date 2022/04/11
- */
 public class StarRocksDynamicTableFactory
         implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
@@ -87,13 +82,12 @@ public class StarRocksDynamicTableFactory
     public DynamicTableSource createDynamicTableSource(Context context) {
         final FactoryUtil.TableFactoryHelper helper =
                 FactoryUtil.createTableFactoryHelper(this, context);
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
         return new StarRocksDynamicTableSource(
-                createSourceConfByOptions(helper.getOptions(), physicalSchema),
+                createSourceConfByOptions(helper.getOptions(), resolvedSchema),
                 createLookupConfByOptions(helper.getOptions()),
-                physicalSchema);
+                resolvedSchema);
     }
 
     @Override
@@ -101,10 +95,9 @@ public class StarRocksDynamicTableFactory
         final FactoryUtil.TableFactoryHelper helper =
                 FactoryUtil.createTableFactoryHelper(this, context);
         ReadableConfig options = helper.getOptions();
-        StarRocksConf sinkConf = createSinkConfByOptions(options);
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        return new StarRocksDynamicTableSink(sinkConf, physicalSchema);
+        StarRocksConfig sinkConf = createSinkConfByOptions(options);
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+        return new StarRocksDynamicTableSink(sinkConf, resolvedSchema);
     }
 
     @Override
@@ -112,9 +105,9 @@ public class StarRocksDynamicTableFactory
         return IDENTIFIER;
     }
 
-    private StarRocksConf createSourceConfByOptions(
-            ReadableConfig options, TableSchema tableSchema) {
-        StarRocksConf sourceConf = createCommonConfByOptions(options);
+    private StarRocksConfig createSourceConfByOptions(
+            ReadableConfig options, ResolvedSchema tableSchema) {
+        StarRocksConfig sourceConf = createCommonConfByOptions(options);
         // source options
         String filterStatement = options.get(FILTER_STATEMENT);
         Integer beClientKeepLiveMin = options.get(SCAN_BE_CLIENT_KEEP_LIVE_MIN);
@@ -133,45 +126,44 @@ public class StarRocksDynamicTableFactory
         sourceConf.setBeFetchMaxBytes(beFetchMaxBytes);
         sourceConf.setBeSocketProperties(beSocketProperties);
 
-        sourceConf.setFieldNames(tableSchema.getFieldNames());
-        sourceConf.setDataTypes(tableSchema.getFieldDataTypes());
+        sourceConf.setFieldNames(tableSchema.getColumnNames().toArray(new String[0]));
+        sourceConf.setDataTypes(tableSchema.getColumnDataTypes().toArray(new DataType[0]));
 
         return sourceConf;
     }
 
-    private LookupConf createLookupConfByOptions(ReadableConfig options) {
-        return LookupConfFactory.createLookupConf(options);
+    private LookupConfig createLookupConfByOptions(ReadableConfig options) {
+        return LookupConfigFactory.createLookupConfig(options);
     }
 
-    private StarRocksConf createSinkConfByOptions(ReadableConfig options) {
-        StarRocksConf sinkConf = createCommonConfByOptions(options);
+    private StarRocksConfig createSinkConfByOptions(ReadableConfig options) {
+        StarRocksConfig sinkConf = createCommonConfByOptions(options);
         // sink options
         boolean nameMapped = options.get(NAME_MAPPED);
         Integer batchSize = options.get(SINK_BUFFER_FLUSH_MAX_ROWS);
         Long sinkInternal = options.get(SINK_BUFFER_FLUSH_INTERVAL);
-        LoadConf loadConf = getLoadConf(options);
+        LoadConfig loadConfig = getLoadConfig(options);
         // loading
         sinkConf.setNameMapped(nameMapped);
         sinkConf.setBatchSize(batchSize);
         sinkConf.setFlushIntervalMills(sinkInternal);
-        sinkConf.setLoadConf(loadConf);
+        sinkConf.setLoadConfig(loadConfig);
         return sinkConf;
     }
 
-    private LoadConf getLoadConf(ReadableConfig options) {
-        LoadConfBuilder loadConfBuilder = new LoadConfBuilder();
-        return loadConfBuilder
-                .setBatchMaxSize(options.get(SINK_BATCH_MAX_BYTES))
-                .setBatchMaxRows(options.get(SINK_BATCH_MAX_ROWS))
-                .setHttpCheckTimeoutMs(options.get(HTTP_CHECK_TIMEOUT))
-                .setQueueOfferTimeoutMs(options.get(QUEUE_OFFER_TIMEOUT))
-                .setQueuePollTimeoutMs(options.get(QUEUE_POLL_TIMEOUT))
-                .setHeadProperties(options.get(STREAM_LOAD_HEAD_PROPERTIES))
+    private LoadConfig getLoadConfig(ReadableConfig options) {
+        return LoadConfig.builder()
+                .batchMaxSize(options.get(SINK_BATCH_MAX_BYTES))
+                .batchMaxRows(options.get(SINK_BATCH_MAX_ROWS))
+                .httpCheckTimeoutMs(options.get(HTTP_CHECK_TIMEOUT))
+                .queueOfferTimeoutMs(options.get(QUEUE_OFFER_TIMEOUT))
+                .queuePollTimeoutMs(options.get(QUEUE_POLL_TIMEOUT))
+                .headProperties(options.get(STREAM_LOAD_HEAD_PROPERTIES))
                 .build();
     }
 
-    protected StarRocksConf createCommonConfByOptions(ReadableConfig options) {
-        StarRocksConf conf = new StarRocksConf();
+    protected StarRocksConfig createCommonConfByOptions(ReadableConfig options) {
+        StarRocksConfig conf = new StarRocksConfig();
         // common options
         String url = options.get(URL);
         List<String> feNodes = options.get(FENODES);

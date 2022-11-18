@@ -18,13 +18,14 @@
 
 package com.dtstack.chunjun.connector.emqx.sink;
 
-import com.dtstack.chunjun.connector.emqx.conf.EmqxConf;
+import com.dtstack.chunjun.connector.emqx.config.EmqxConfig;
 import com.dtstack.chunjun.connector.emqx.util.MqttConnectUtil;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -35,15 +36,13 @@ import java.time.LocalTime;
 
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.CLIENT_ID_WRITER;
 
-/**
- * @author chuixue
- * @create 2021-06-01 20:09
- * @description
- */
+@Slf4j
 public class EmqxOutputFormat extends BaseRichOutputFormat {
 
+    private static final long serialVersionUID = 2234010364657826897L;
+
     /** emqx Conf */
-    private EmqxConf emqxConf;
+    private EmqxConfig emqxConfig;
     /** emqx client */
     private transient MqttClient client;
 
@@ -51,7 +50,7 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) {
         client =
                 MqttConnectUtil.getMqttClient(
-                        emqxConf,
+                        emqxConfig,
                         CLIENT_ID_WRITER.defaultValue() + LocalTime.now().toSecondOfDay() + jobId);
 
         client.setCallback(
@@ -59,19 +58,19 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
 
                     @Override
                     public void connectionLost(Throwable cause) {
-                        LOG.warn("connection lost and reconnect , e = {}", cause.getMessage());
+                        log.warn("connection lost and reconnect , e = {}", cause.getMessage());
                         if (client != null && client.isConnected()) {
                             try {
                                 client.disconnect();
                             } catch (MqttException e) {
-                                LOG.error(e.getMessage());
+                                log.error(e.getMessage());
                             }
                         }
 
                         try {
-                            client = MqttConnectUtil.getMqttClient(emqxConf, jobId);
+                            client = MqttConnectUtil.getMqttClient(emqxConfig, jobId);
                         } catch (Exception e) {
-                            LOG.error(
+                            log.error(
                                     e.getMessage()
                                             + "\n"
                                             + " can not reconnect success, please restart job!!!");
@@ -79,8 +78,7 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
                     }
 
                     @Override
-                    public void messageArrived(String s, MqttMessage mqttMessage)
-                            throws Exception {}
+                    public void messageArrived(String s, MqttMessage mqttMessage) {}
 
                     @Override
                     public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {}
@@ -91,8 +89,8 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         try {
             MqttMessage message = (MqttMessage) rowConverter.toExternal(rowData, new MqttMessage());
-            message.setQos(emqxConf.getQos());
-            client.publish(emqxConf.getTopic(), message);
+            message.setQos(emqxConfig.getQos());
+            client.publish(emqxConfig.getTopic(), message);
         } catch (Exception e) {
             throw new WriteRecordException("", e, 0, rowData);
         }
@@ -108,11 +106,11 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
         MqttConnectUtil.close(client);
     }
 
-    public EmqxConf getEmqxConf() {
-        return emqxConf;
+    public EmqxConfig getEmqxConf() {
+        return emqxConfig;
     }
 
-    public void setEmqxConf(EmqxConf emqxConf) {
-        this.emqxConf = emqxConf;
+    public void setEmqxConf(EmqxConfig emqxConfig) {
+        this.emqxConfig = emqxConfig;
     }
 }

@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.ftp.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.ftp.conf.ConfigConstants;
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.ftp.config.ConfigConstants;
+import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.converter.FtpColumnConverter;
 import com.dtstack.chunjun.connector.ftp.converter.FtpRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -36,9 +36,9 @@ import org.apache.flink.table.types.logical.RowType;
 
 public class FtpSourceFactory extends SourceFactory {
 
-    private FtpConfig ftpConfig;
+    private final FtpConfig ftpConfig;
 
-    public FtpSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public FtpSourceFactory(SyncConfig syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         ftpConfig =
                 JsonUtil.toObject(

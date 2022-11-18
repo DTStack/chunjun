@@ -17,22 +17,22 @@
  */
 package com.dtstack.chunjun.connector.http.common;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.http.client.Strategy;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * HttpRestConfig
- *
- * @author by shifang@dtstack.com @Date 2020/9/28
- */
-public class HttpRestConfig extends ChunJunCommonConf {
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class HttpRestConfig extends CommonConfig {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1100442976901794740L;
 
     /** https/http */
     private String protocol = "https";
@@ -93,182 +93,5 @@ public class HttpRestConfig extends ChunJunCommonConf {
 
     public boolean isJsonDecode() {
         return getDecode().equalsIgnoreCase(ConstantValue.DEFAULT_DECODE);
-    }
-
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getRequestMode() {
-        return requestMode;
-    }
-
-    public void setRequestMode(String requestMode) {
-        this.requestMode = requestMode;
-    }
-
-    public String getDecode() {
-        return decode;
-    }
-
-    public void setDecode(String decode) {
-        this.decode = decode;
-    }
-
-    public Long getIntervalTime() {
-        return intervalTime;
-    }
-
-    public void setIntervalTime(Long intervalTime) {
-        this.intervalTime = intervalTime;
-    }
-
-    public List<Strategy> getStrategy() {
-        return strategy;
-    }
-
-    public void setStrategy(List<Strategy> strategy) {
-        this.strategy = strategy;
-    }
-
-    public String getFields() {
-        return fields;
-    }
-
-    public void setFields(String fields) {
-        this.fields = fields;
-    }
-
-    public List<MetaParam> getHeader() {
-        return header;
-    }
-
-    public void setHeader(List<MetaParam> header) {
-        this.header = header;
-    }
-
-    public List<MetaParam> getParam() {
-        return param;
-    }
-
-    public void setParam(List<MetaParam> param) {
-        this.param = param;
-    }
-
-    public List<MetaParam> getBody() {
-        return body;
-    }
-
-    public void setBody(List<MetaParam> body) {
-        this.body = body;
-    }
-
-    public String getFieldDelimiter() {
-        return fieldDelimiter;
-    }
-
-    public void setFieldDelimiter(String fieldDelimiter) {
-        this.fieldDelimiter = fieldDelimiter;
-    }
-
-    public String getDataSubject() {
-        return dataSubject;
-    }
-
-    public void setDataSubject(String dataSubject) {
-        this.dataSubject = dataSubject;
-    }
-
-    public String getCsvDelimiter() {
-        return csvDelimiter;
-    }
-
-    public void setCsvDelimiter(String csvDelimiter) {
-        this.csvDelimiter = csvDelimiter;
-    }
-
-    public Map<String, Object> getCsvConfig() {
-        return csvConfig;
-    }
-
-    public void setCsvConfig(Map<String, Object> csvConfig) {
-        this.csvConfig = csvConfig;
-    }
-
-    public long getCycles() {
-        return cycles;
-    }
-
-    public void setCycles(long cycles) {
-        this.cycles = cycles;
-    }
-
-    public long getTimeOut() {
-        return timeOut;
-    }
-
-    public void setTimeOut(long timeOut) {
-        this.timeOut = timeOut;
-    }
-
-    @Override
-    public String toString() {
-        return "HttpRestConfig{"
-                + "protocol='"
-                + protocol
-                + '\''
-                + ", url='"
-                + url
-                + '\''
-                + ", requestMode='"
-                + requestMode
-                + '\''
-                + ", fieldDelimiter='"
-                + fieldDelimiter
-                + '\''
-                + ", dataSubject='"
-                + dataSubject
-                + '\''
-                + ", csvDelimiter='"
-                + csvDelimiter
-                + '\''
-                + ", csvConfig="
-                + csvConfig
-                + ", decode='"
-                + decode
-                + '\''
-                + ", fields='"
-                + fields
-                + '\''
-                + ", fieldTypes='"
-                + fieldTypes
-                + '\''
-                + ", intervalTime="
-                + intervalTime
-                + ", cycles="
-                + cycles
-                + ", header="
-                + header
-                + ", param="
-                + param
-                + ", body="
-                + body
-                + ", strategy="
-                + strategy
-                + ", timeOut="
-                + timeOut
-                + '}';
     }
 }

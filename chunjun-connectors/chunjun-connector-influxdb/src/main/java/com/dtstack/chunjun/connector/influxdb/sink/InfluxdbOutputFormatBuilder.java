@@ -18,12 +18,11 @@
 
 package com.dtstack.chunjun.connector.influxdb.sink;
 
-import com.dtstack.chunjun.connector.influxdb.conf.InfluxdbSinkConfig;
+import com.dtstack.chunjun.connector.influxdb.config.InfluxdbSinkConfig;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import org.apache.flink.util.CollectionUtil;
 
-/** @Author xirang @Company Dtstack @Date: 2022/3/14 2:57 PM */
 public class InfluxdbOutputFormatBuilder extends BaseRichOutputFormatBuilder<InfluxdbOutputFormat> {
 
     public InfluxdbOutputFormatBuilder() {

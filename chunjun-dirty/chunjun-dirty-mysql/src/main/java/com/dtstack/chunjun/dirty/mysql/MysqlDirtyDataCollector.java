@@ -18,13 +18,12 @@
 
 package com.dtstack.chunjun.dirty.mysql;
 
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.consumer.DirtyDataCollector;
 import com.dtstack.chunjun.dirty.impl.DirtyDataEntry;
 import com.dtstack.chunjun.factory.ChunJunThreadFactory;
 import com.dtstack.chunjun.throwable.NoRestartException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -42,13 +41,9 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * @author tiezhu@dtstack
- * @date 22/09/2021 Wednesday
- */
+@Slf4j
 public class MysqlDirtyDataCollector extends DirtyDataCollector {
-
-    private static final Logger LOG = LoggerFactory.getLogger(MysqlDirtyDataCollector.class);
+    private static final long serialVersionUID = -6019792640886034069L;
 
     private static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
 
@@ -141,7 +136,7 @@ public class MysqlDirtyDataCollector extends DirtyDataCollector {
     private void initScheduledTask(Long batchWaitInterval) {
         try {
             if (batchWaitInterval > 0) {
-                LOG.info("begin to init ScheduledTask");
+                log.info("begin to init ScheduledTask");
                 this.scheduler =
                         new ScheduledThreadPoolExecutor(
                                 1,
@@ -149,7 +144,7 @@ public class MysqlDirtyDataCollector extends DirtyDataCollector {
                                         "mysql-dirty-batch-flusher",
                                         true,
                                         (t, e) -> {
-                                            LOG.error("mysql-dirty-batch-flusher occur error!", e);
+                                            log.error("mysql-dirty-batch-flusher occur error!", e);
                                         }));
 
                 this.scheduledFuture =
@@ -157,17 +152,17 @@ public class MysqlDirtyDataCollector extends DirtyDataCollector {
                                 () -> {
                                     try {
                                         synchronized (this) {
-                                            LOG.debug("ready to add records");
+                                            log.debug("ready to add records");
                                             if (!entities.isEmpty()) {
-                                                LOG.debug(
+                                                log.debug(
                                                         "ready to add records,record num is "
                                                                 + entities.size());
                                                 flush();
-                                                LOG.debug("end add records");
+                                                log.debug("end add records");
                                             }
                                         }
                                     } catch (Exception e) {
-                                        LOG.error("ScheduledTask add record error", e);
+                                        log.error("ScheduledTask add record error", e);
                                     }
                                 },
                                 batchWaitInterval,
@@ -191,7 +186,7 @@ public class MysqlDirtyDataCollector extends DirtyDataCollector {
     }
 
     @Override
-    protected void init(DirtyConf conf) {
+    protected void init(DirtyConfig conf) {
         Properties mysqlProperties = conf.getPluginProperties();
         Object userName = mysqlProperties.get("jdbc.username");
         Object password = mysqlProperties.get("jdbc.password");
@@ -285,7 +280,7 @@ public class MysqlDirtyDataCollector extends DirtyDataCollector {
                 connection.close();
             }
         } catch (SQLException e) {
-            LOG.warn("Close mysql connection failed!", e);
+            log.warn("Close mysql connection failed!", e);
         }
 
         try {
@@ -293,7 +288,7 @@ public class MysqlDirtyDataCollector extends DirtyDataCollector {
                 statement.close();
             }
         } catch (SQLException e) {
-            LOG.warn("Close mysql statement failed!", e);
+            log.warn("Close mysql statement failed!", e);
         }
 
         if (scheduledFuture != null) {

@@ -17,9 +17,8 @@
  */
 package com.dtstack.chunjun.connector.jdbc.util;
 
-import com.dtstack.chunjun.conf.FieldConfig;
-import com.dtstack.chunjun.connector.jdbc.JdbcDialectWrapper;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -34,11 +33,10 @@ import com.dtstack.chunjun.util.TelnetUtil;
 
 import org.apache.flink.table.types.logical.LogicalType;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.sql.Clob;
@@ -57,11 +55,8 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Utilities for relational database connection and sql execution company: www.dtstack.com
- *
- * @author huyifan_zju@
- */
+/** Utilities for relational database connection and sql execution */
+@Slf4j
 public class JdbcUtil {
     /** 增量任务过滤条件占位符 */
     public static final String INCREMENT_FILTER_PLACEHOLDER = "${incrementFilter}";
@@ -70,7 +65,6 @@ public class JdbcUtil {
 
     public static final String TEMPORARY_TABLE_NAME = "chunjun_tmp";
     public static final String NULL_STRING = "null";
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcUtil.class);
     /** 数据库连接的最大重试次数 */
     private static final int MAX_RETRY_TIMES = 3;
     /** 秒级时间戳的长度为10位 */
@@ -86,41 +80,29 @@ public class JdbcUtil {
     private static final String ALL_TABLE = "*";
     public static int NANOS_PART_LENGTH = 9;
 
-    /**
-     * 获取JDBC连接
-     *
-     * @param jdbcConf
-     * @param jdbcDialect
-     * @return
-     */
-    public static Connection getConnection(JdbcConfig jdbcConf, JdbcDialect jdbcDialect) {
-        TelnetUtil.telnet(jdbcConf.getJdbcUrl());
+    public static Connection getConnection(JdbcConfig jdbcConfig, JdbcDialect jdbcDialect) {
+        TelnetUtil.telnet(jdbcConfig.getJdbcUrl());
         ClassUtil.forName(
-                jdbcDialect.defaultDriverName().get(),
+                jdbcDialect.defaultDriverName().orElseThrow(() -> new ChunJunRuntimeException("")),
                 Thread.currentThread().getContextClassLoader());
-        Properties prop = jdbcConf.getProperties();
+        Properties prop = jdbcConfig.getProperties();
         if (prop == null) {
             prop = new Properties();
         }
-        if (StringUtils.isNotBlank(jdbcConf.getUsername())) {
-            prop.put("user", jdbcConf.getUsername());
+        if (StringUtils.isNotBlank(jdbcConfig.getUsername())) {
+            prop.put("user", jdbcConfig.getUsername());
         }
-        if (StringUtils.isNotBlank(jdbcConf.getPassword())) {
-            prop.put("password", jdbcConf.getPassword());
+        if (StringUtils.isNotBlank(jdbcConfig.getPassword())) {
+            prop.put("password", jdbcConfig.getPassword());
         }
         Properties finalProp = prop;
         synchronized (ClassUtil.LOCK_STR) {
             return RetryUtil.executeWithRetry(
-                    () -> DriverManager.getConnection(jdbcConf.getJdbcUrl(), finalProp),
+                    () -> DriverManager.getConnection(jdbcConfig.getJdbcUrl(), finalProp),
                     3,
                     2000,
                     false);
         }
-    }
-
-    public static Connection getConnection(
-            JdbcConfig conf, org.apache.flink.connector.jdbc.dialect.JdbcDialect dialect) {
-        return getConnection(conf, new JdbcDialectWrapper(dialect));
     }
 
     /**
@@ -245,6 +227,7 @@ public class JdbcUtil {
         }
         return indexList;
     }
+
     /**
      * 关闭连接资源
      *
@@ -259,7 +242,7 @@ public class JdbcUtil {
             try {
                 rs.close();
             } catch (SQLException e) {
-                LOG.warn("Close resultSet error: {}", ExceptionUtil.getErrorMessage(e));
+                log.warn("Close resultSet error: {}", ExceptionUtil.getErrorMessage(e));
             }
         }
 
@@ -267,7 +250,7 @@ public class JdbcUtil {
             try {
                 stmt.close();
             } catch (SQLException e) {
-                LOG.warn("Close statement error:{}", ExceptionUtil.getErrorMessage(e));
+                log.warn("Close statement error:{}", ExceptionUtil.getErrorMessage(e));
             }
         }
 
@@ -281,7 +264,7 @@ public class JdbcUtil {
 
                 conn.close();
             } catch (SQLException e) {
-                LOG.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));
+                log.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));
             }
         }
     }
@@ -297,7 +280,7 @@ public class JdbcUtil {
                 conn.commit();
             }
         } catch (SQLException e) {
-            LOG.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
+            log.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
@@ -312,7 +295,7 @@ public class JdbcUtil {
                 conn.rollback();
             }
         } catch (SQLException e) {
-            LOG.warn("rollBack error:{}", ExceptionUtil.getErrorMessage(e));
+            log.warn("rollBack error:{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
@@ -347,7 +330,7 @@ public class JdbcUtil {
                             resultSet,
                             GsonUtil.GSON.toJson(columnTypeList),
                             ExceptionUtil.getErrorMessage(e));
-            LOG.error(message);
+            log.error(message);
             throw new RuntimeException(message);
         }
         return columnTypeList;
@@ -442,51 +425,51 @@ public class JdbcUtil {
     /**
      * Add additional parameters to jdbc properties，for MySQL
      *
-     * @param jdbcConf jdbc datasource configuration
+     * @param jdbcConfig jdbc datasource configuration
      * @return
      */
-    public static void putExtParam(JdbcConfig jdbcConf) {
-        Properties properties = jdbcConf.getProperties();
+    public static void putExtParam(JdbcConfig jdbcConfig) {
+        Properties properties = jdbcConfig.getProperties();
         if (properties == null) {
             properties = new Properties();
         }
         properties.putIfAbsent("useCursorFetch", "true");
         properties.putIfAbsent("rewriteBatchedStatements", "true");
-        jdbcConf.setProperties(properties);
+        jdbcConfig.setProperties(properties);
     }
 
     /**
      * Add additional parameters to jdbc properties，
      *
-     * @param jdbcConf jdbc datasource configuration
+     * @param jdbcConfig jdbc datasource configuration
      * @param extraProperties default customConfiguration
      * @return
      */
-    public static void putExtParam(JdbcConfig jdbcConf, Properties extraProperties) {
-        Properties properties = jdbcConf.getProperties();
+    public static void putExtParam(JdbcConfig jdbcConfig, Properties extraProperties) {
+        Properties properties = jdbcConfig.getProperties();
         if (properties == null) {
             properties = new Properties();
         }
         Properties finalProperties = properties;
         extraProperties.forEach(finalProperties::putIfAbsent);
 
-        jdbcConf.setProperties(finalProperties);
+        jdbcConfig.setProperties(finalProperties);
     }
 
     /**
      * 获取数据库的LogicalType
      *
-     * @param jdbcConf 连接信息
+     * @param jdbcConfig 连接信息
      * @param jdbcDialect 方言
      * @param converter 数据库数据类型到flink内部类型的映射
      * @return
      */
     public static LogicalType getLogicalTypeFromJdbcMetaData(
-            JdbcConfig jdbcConf, JdbcDialect jdbcDialect, RawTypeConverter converter) {
-        try (Connection conn = JdbcUtil.getConnection(jdbcConf, jdbcDialect)) {
+            JdbcConfig jdbcConfig, JdbcDialect jdbcDialect, RawTypeConverter converter) {
+        try (Connection conn = JdbcUtil.getConnection(jdbcConfig, jdbcDialect)) {
             Pair<List<String>, List<String>> pair =
                     JdbcUtil.getTableMetaData(
-                            null, jdbcConf.getSchema(), jdbcConf.getTable(), conn);
+                            null, jdbcConfig.getSchema(), jdbcConfig.getTable(), conn);
             List<String> rawFieldNames = pair.getLeft();
             List<String> rawFieldTypes = pair.getRight();
             return TableUtil.createRowType(rawFieldNames, rawFieldTypes, converter);
@@ -497,20 +480,20 @@ public class JdbcUtil {
 
     /** 解析schema.table 或者 "schema"."table"等格式的表名 获取对应的schema以及table * */
     public static void resetSchemaAndTable(
-            JdbcConfig jdbcConf, String leftQuote, String rightQuote) {
+            JdbcConfig jdbcConfig, String leftQuote, String rightQuote) {
         String pattern =
                 String.format(
                         "(?i)(%s(?<schema>(.*))%s\\.%s(?<table>(.*))%s)",
                         leftQuote, rightQuote, leftQuote, rightQuote);
         Pattern p = Pattern.compile(pattern);
-        Matcher matcher = p.matcher(jdbcConf.getTable());
+        Matcher matcher = p.matcher(jdbcConfig.getTable());
         String schema = null;
         String table = null;
         if (matcher.find()) {
             schema = matcher.group("schema");
             table = matcher.group("table");
         } else {
-            String[] split = jdbcConf.getTable().split("\\.");
+            String[] split = jdbcConfig.getTable().split("\\.");
             if (split.length == 2) {
                 schema = split[0];
                 table = split[1];
@@ -518,17 +501,17 @@ public class JdbcUtil {
         }
 
         if (StringUtils.isNotBlank(schema)) {
-            LOG.info(
+            log.info(
                     "before reset table info, schema: {}, table: {}",
-                    jdbcConf.getSchema(),
-                    jdbcConf.getTable());
+                    jdbcConfig.getSchema(),
+                    jdbcConfig.getTable());
 
-            jdbcConf.setSchema(schema);
-            jdbcConf.setTable(table);
-            LOG.info(
+            jdbcConfig.setSchema(schema);
+            jdbcConfig.setTable(table);
+            log.info(
                     "after reset table info,schema: {},table: {}",
-                    jdbcConf.getSchema(),
-                    jdbcConf.getTable());
+                    jdbcConfig.getSchema(),
+                    jdbcConfig.getTable());
         }
     }
 
@@ -551,13 +534,13 @@ public class JdbcUtil {
     }
 
     public static Pair<List<String>, List<String>> buildColumnWithMeta(
-            JdbcConfig jdbcConf,
+            JdbcConfig jdbcConfig,
             Pair<List<String>, List<String>> tableMetaData,
             String constantType) {
         List<String> metaColumnName = tableMetaData.getLeft();
         List<String> metaColumnType = tableMetaData.getRight();
 
-        List<FieldConfig> column = jdbcConf.getColumn();
+        List<FieldConfig> column = jdbcConfig.getColumn();
         int size = metaColumnName.size();
         List<String> columnNameList = new ArrayList<>(size);
         List<String> columnTypeList = new ArrayList<>(size);
@@ -572,12 +555,12 @@ public class JdbcUtil {
                 fieldConfig.setIndex(i);
                 metaColumn.add(fieldConfig);
             }
-            jdbcConf.setColumn(metaColumn);
+            jdbcConfig.setColumn(metaColumn);
             return Pair.of(columnNameList, columnTypeList);
         } else {
             return checkAndModifyColumnWithMeta(
-                    jdbcConf.getTable(),
-                    jdbcConf.getColumn(),
+                    jdbcConfig.getTable(),
+                    jdbcConfig.getColumn(),
                     metaColumnName,
                     metaColumnType,
                     constantType);

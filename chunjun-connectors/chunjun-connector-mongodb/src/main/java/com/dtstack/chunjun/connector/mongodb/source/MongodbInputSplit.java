@@ -20,45 +20,21 @@ package com.dtstack.chunjun.connector.mongodb.source;
 
 import org.apache.flink.core.io.InputSplit;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/24
- */
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@AllArgsConstructor
+@Data
 public class MongodbInputSplit implements InputSplit {
+
+    private static final long serialVersionUID = 7803273215947823806L;
 
     private int skip;
 
     private int limit;
 
-    public MongodbInputSplit(int skip, int limit) {
-        this.skip = skip;
-        this.limit = limit;
-    }
-
-    public int getSkip() {
-        return skip;
-    }
-
-    public void setSkip(int skip) {
-        this.skip = skip;
-    }
-
-    public int getLimit() {
-        return limit;
-    }
-
-    public void setLimit(int limit) {
-        this.limit = limit;
-    }
-
     @Override
     public int getSplitNumber() {
         return 0;
-    }
-
-    @Override
-    public String toString() {
-        return "MongodbInputSplit{" + "skip=" + skip + ", limit=" + limit + '}';
     }
 }

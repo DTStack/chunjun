@@ -21,11 +21,6 @@ package com.dtstack.chunjun.connector.mongodb.table.options;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
 public class MongoClientOptions {
 
     public static final ConfigOption<String> URI =

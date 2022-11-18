@@ -18,19 +18,20 @@
 
 package com.dtstack.chunjun.connector.redis.connection;
 
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import redis.clients.jedis.Connection;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisSentinelPool;
+import redis.clients.jedis.commands.JedisCommands;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.io.Closeable;
@@ -42,35 +43,27 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
-import static com.dtstack.chunjun.connector.redis.options.RedisOptions.REDIS_DEFAULT_PORT;
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.REDIS_HOST_PATTERN;
 
-/**
- * Utilities for redis database connection
- *
- * @author jiangbo @Company: www.dtstack.com
- */
+@Slf4j
 public class RedisSyncClient {
-
-    private static final Logger LOG = LoggerFactory.getLogger(RedisSyncClient.class);
 
     private JedisPool pool;
 
-    private JedisCommands jedis;
-
     private JedisSentinelPool jedisSentinelPool;
 
-    private final RedisConf redisConf;
+    private final RedisConfig redisConfig;
 
-    public RedisSyncClient(RedisConf redisConf) {
-        this.redisConf = redisConf;
+    public RedisSyncClient(RedisConfig redisConfig) {
+        this.redisConfig = redisConfig;
     }
 
     private JedisCommands getJedisInner() {
         JedisPoolConfig poolConfig = getConfig();
-        String[] nodes = StringUtils.split(redisConf.getHostPort(), ",");
+        String[] nodes = StringUtils.split(redisConfig.getHostPort(), ",");
 
-        switch (redisConf.getRedisConnectType()) {
+        JedisCommands jedis;
+        switch (redisConfig.getRedisConnectType()) {
             case STANDALONE:
                 String firstIp = null;
                 String firstPort = null;
@@ -78,7 +71,6 @@ public class RedisSyncClient {
                 if (standalone.find()) {
                     firstIp = standalone.group("host").trim();
                     firstPort = standalone.group("port").trim();
-                    firstPort = firstPort == null ? REDIS_DEFAULT_PORT.defaultValue() : firstPort;
                 }
                 if (Objects.nonNull(firstIp) && pool == null) {
                     pool =
@@ -86,9 +78,9 @@ public class RedisSyncClient {
                                     poolConfig,
                                     firstIp,
                                     Integer.parseInt(firstPort),
-                                    redisConf.getTimeout(),
-                                    redisConf.getPassword(),
-                                    redisConf.getDatabase());
+                                    redisConfig.getTimeout(),
+                                    redisConfig.getPassword(),
+                                    redisConfig.getDatabase());
                 } else {
                     throw new IllegalArgumentException(
                             String.format("redis url error. current url [%s]", nodes[0]));
@@ -101,12 +93,12 @@ public class RedisSyncClient {
                 if (jedisSentinelPool == null) {
                     jedisSentinelPool =
                             new JedisSentinelPool(
-                                    redisConf.getMasterName(),
+                                    redisConfig.getMasterName(),
                                     ipPorts,
                                     poolConfig,
-                                    redisConf.getTimeout(),
-                                    redisConf.getPassword(),
-                                    redisConf.getDatabase());
+                                    redisConfig.getTimeout(),
+                                    redisConfig.getPassword(),
+                                    redisConfig.getDatabase());
                 }
                 jedis = jedisSentinelPool.getResource();
                 break;
@@ -128,15 +120,15 @@ public class RedisSyncClient {
                 jedis =
                         new JedisCluster(
                                 addresses,
-                                redisConf.getTimeout(),
-                                redisConf.getTimeout(),
+                                redisConfig.getTimeout(),
+                                redisConfig.getTimeout(),
                                 10,
-                                redisConf.getPassword(),
-                                poolConfig);
+                                redisConfig.getPassword(),
+                                getObjectConfig());
                 break;
             default:
                 throw new IllegalArgumentException(
-                        "unsupported redis type[ " + redisConf.getType().getType() + "]");
+                        "unsupported redis type[ " + redisConfig.getType().getType() + "]");
         }
 
         return jedis;
@@ -166,16 +158,16 @@ public class RedisSyncClient {
         JedisCommands jedisInner = null;
         for (int i = 0; i <= 2; i++) {
             try {
-                LOG.info("connect " + (i + 1) + " times.");
+                log.info("connect " + (i + 1) + " times.");
                 jedisInner = getJedisInner();
                 if (jedisInner != null) {
-                    LOG.info("jedis is connected = {} ", jedisInner);
+                    log.info("jedis is connected = {} ", jedisInner);
                     break;
                 }
             } catch (IllegalArgumentException e) {
                 throw e;
             } catch (Exception e) {
-                LOG.error(
+                log.error(
                         "connect failed:{} , sleep 3 seconds reconnect",
                         ExceptionUtil.getErrorMessage(e));
                 try {
@@ -199,7 +191,7 @@ public class RedisSyncClient {
                 }
             }
         } catch (Exception e) {
-            LOG.error("close jedis error", e);
+            log.error("close jedis error", e);
         }
     }
 
@@ -215,15 +207,25 @@ public class RedisSyncClient {
                 pool.close();
             }
         } catch (Exception e) {
-            LOG.error(ExceptionUtil.getErrorMessage(e));
+            log.error(ExceptionUtil.getErrorMessage(e));
         }
     }
 
     private JedisPoolConfig getConfig() {
         JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-        jedisPoolConfig.setMaxTotal(redisConf.getMaxTotal());
-        jedisPoolConfig.setMaxIdle(redisConf.getMaxIdle());
-        jedisPoolConfig.setMinIdle(redisConf.getMinIdle());
+        jedisPoolConfig.setMaxTotal(redisConfig.getMaxTotal());
+        jedisPoolConfig.setMaxIdle(redisConfig.getMaxIdle());
+        jedisPoolConfig.setMinIdle(redisConfig.getMinIdle());
+        jedisPoolConfig.setTestOnBorrow(true);
+        jedisPoolConfig.setTestOnReturn(true);
+        return jedisPoolConfig;
+    }
+
+    private GenericObjectPoolConfig<Connection> getObjectConfig() {
+        GenericObjectPoolConfig<Connection> jedisPoolConfig = new GenericObjectPoolConfig<>();
+        jedisPoolConfig.setMaxTotal(redisConfig.getMaxTotal());
+        jedisPoolConfig.setMaxIdle(redisConfig.getMaxIdle());
+        jedisPoolConfig.setMinIdle(redisConfig.getMinIdle());
         jedisPoolConfig.setTestOnBorrow(true);
         jedisPoolConfig.setTestOnReturn(true);
         return jedisPoolConfig;

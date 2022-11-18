@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.s3.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -37,7 +37,9 @@ import java.time.LocalTime;
 
 public class S3RowConverter extends AbstractRowConverter<String[], RowData, String[], LogicalType> {
 
-    public S3RowConverter(RowType rowType, ChunJunCommonConf conf) {
+    private static final long serialVersionUID = 4835129977890244317L;
+
+    public S3RowConverter(RowType rowType, CommonConfig conf) {
         super(rowType, conf);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
@@ -52,7 +54,7 @@ public class S3RowConverter extends AbstractRowConverter<String[], RowData, Stri
     @Override
     public RowData toInternal(String[] input) throws Exception {
         GenericRowData rowData = new GenericRowData(input.length);
-        for (int i = 0; i < rowData.getArity(); i++) {
+        for (int i = 0; i < fieldTypes.length; i++) {
             rowData.setField(i, toInternalConverters.get(i).deserialize(input[i]));
         }
         return rowData;
@@ -60,8 +62,8 @@ public class S3RowConverter extends AbstractRowConverter<String[], RowData, Stri
 
     @Override
     public String[] toExternal(RowData rowData, String[] output) throws Exception {
-        output = new String[rowData.getArity()];
-        for (int i = 0; i < rowData.getArity(); i++) {
+        output = new String[fieldTypes.length];
+        for (int i = 0; i < fieldTypes.length; i++) {
             toExternalConverters.get(i).serialize(rowData, i, output);
         }
         return output;
@@ -129,7 +131,7 @@ public class S3RowConverter extends AbstractRowConverter<String[], RowData, Stri
 
     @Override
     protected ISerializationConverter<String[]> wrapIntoNullableExternalConverter(
-            ISerializationConverter<String[]> ISerializationConverter, LogicalType type) {
-        return (val, index, output) -> ISerializationConverter.serialize(val, index, output);
+            ISerializationConverter<String[]> converter, LogicalType type) {
+        return converter;
     }
 }

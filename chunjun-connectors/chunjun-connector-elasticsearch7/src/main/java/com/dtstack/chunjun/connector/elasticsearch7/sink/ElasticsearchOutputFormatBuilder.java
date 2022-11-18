@@ -19,38 +19,37 @@
 package com.dtstack.chunjun.connector.elasticsearch7.sink;
 
 import com.dtstack.chunjun.connector.elasticsearch.table.IndexGeneratorFactory;
-import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConf;
+import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 
 import com.google.common.base.Preconditions;
 
-/**
- * @description:
- * @program: ChunJun
- * @author: lany
- * @create: 2021/06/27 17:19
- */
 public class ElasticsearchOutputFormatBuilder
         extends BaseRichOutputFormatBuilder<ElasticsearchOutputFormat> {
 
-    public ElasticsearchOutputFormatBuilder(ElasticsearchConf conf, TableSchema schema) {
+    public ElasticsearchOutputFormatBuilder(ElasticsearchConfig config, ResolvedSchema schema) {
         super(
                 new ElasticsearchOutputFormat(
-                        conf, IndexGeneratorFactory.createIndexGenerator(conf.getIndex(), schema)));
-        super.setConfig(conf);
+                        config,
+                        IndexGeneratorFactory.createIndexGenerator(
+                                config.getIndex(),
+                                schema.getColumnNames(),
+                                schema.getColumnDataTypes())));
+        super.setConfig(config);
     }
 
     @Override
     protected void checkFormat() {
-        ElasticsearchConf esConf = format.elasticsearchConf;
-        Preconditions.checkNotNull(esConf.getHosts(), "elasticsearch7 type of address is required");
-        Preconditions.checkNotNull(esConf.getIndex(), "elasticsearch7 type of index is required");
+        ElasticsearchConfig esConfig = format.elasticsearchConfig;
+        Preconditions.checkNotNull(
+                esConfig.getHosts(), "elasticsearch7 type of address is required");
+        Preconditions.checkNotNull(esConfig.getIndex(), "elasticsearch7 type of index is required");
 
-        if (esConf.getUsername() != null) {
+        if (esConfig.getUsername() != null) {
             Preconditions.checkNotNull(
-                    esConf.getPassword(), "When set the username option, password is required");
+                    esConfig.getPassword(), "When set the username option, password is required");
         }
     }
 }

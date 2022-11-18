@@ -22,7 +22,7 @@ import com.dtstack.chunjun.connector.elasticsearch.KeyExtractor;
 import com.dtstack.chunjun.connector.elasticsearch.table.IndexGenerator;
 import com.dtstack.chunjun.connector.elasticsearch7.Elasticsearch7ClientFactory;
 import com.dtstack.chunjun.connector.elasticsearch7.Elasticsearch7RequestFactory;
-import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConf;
+import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 
@@ -42,27 +42,21 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @description:
- * @program: ChunJun
- * @author: lany
- * @create: 2021/06/27 17:19
- */
 public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
 
+    private static final long serialVersionUID = 4075917714665517802L;
+
     /** Elasticsearch Configuration */
-    ElasticsearchConf elasticsearchConf;
+    ElasticsearchConfig elasticsearchConfig;
 
     /** Elasticsearch High Level Client */
     private transient RestHighLevelClient rhlClient;
 
-    private transient BulkRequest bulkRequest;
-
     private final IndexGenerator indexGenerator;
 
     public ElasticsearchOutputFormat(
-            ElasticsearchConf elasticsearchConf, IndexGenerator indexGenerator) {
-        this.elasticsearchConf = elasticsearchConf;
+            ElasticsearchConfig elasticsearchConfig, IndexGenerator indexGenerator) {
+        this.elasticsearchConfig = elasticsearchConfig;
         this.indexGenerator = indexGenerator;
     }
 
@@ -96,7 +90,7 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        bulkRequest = new BulkRequest();
+        BulkRequest bulkRequest = new BulkRequest();
         for (RowData rowData : rows) {
             DocWriteRequest docWriteRequest;
             switch (rowData.getRowKind()) {
@@ -123,14 +117,14 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
     private void processFailResponse(BulkResponse response) {
         BulkItemResponse[] itemResponses = response.getItems();
         WriteRecordException exception;
-        for (int i = 0; i < itemResponses.length; i++) {
-            if (itemResponses[i].isFailed()) {
-                if (dirtyDataManager != null) {
+        for (BulkItemResponse itemResponds : itemResponses) {
+            if (itemResponds.isFailed()) {
+                if (dirtyManager != null) {
                     exception =
                             new WriteRecordException(
-                                    itemResponses[i].getFailureMessage(),
-                                    itemResponses[i].getFailure().getCause());
-                    dirtyDataManager.writeData(rows.get(i), exception);
+                                    itemResponds.getFailureMessage(),
+                                    itemResponds.getFailure().getCause());
+                    dirtyManager.collect(response, exception, null);
                 }
 
                 if (errCounter != null) {
@@ -144,7 +138,7 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         rhlClient =
                 Elasticsearch7ClientFactory.createClient(
-                        elasticsearchConf, getRuntimeContext().getDistributedCache());
+                        elasticsearchConfig, getRuntimeContext().getDistributedCache());
         indexGenerator.open();
     }
 
@@ -160,7 +154,7 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
                 (Map<String, Object>)
                         rowConverter.toExternal(rowData, new HashMap<String, Object>());
 
-        if (elasticsearchConf.getIds() == null || elasticsearchConf.getIds().size() == 0) {
+        if (elasticsearchConfig.getIds() == null || elasticsearchConfig.getIds().size() == 0) {
             IndexRequest indexRequest =
                     Elasticsearch7RequestFactory.createIndexRequest(
                             indexGenerator.generate(rowData), message);
@@ -168,13 +162,11 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
         } else {
             final String key =
                     KeyExtractor.getDocId(
-                            elasticsearchConf.getIds(),
+                            elasticsearchConfig.getIds(),
                             message,
-                            elasticsearchConf.getKeyDelimiter());
-            UpdateRequest updateRequest =
-                    Elasticsearch7RequestFactory.createUpdateRequest(
-                            indexGenerator.generate(rowData), key, message);
-            return updateRequest;
+                            elasticsearchConfig.getKeyDelimiter());
+            return Elasticsearch7RequestFactory.createUpdateRequest(
+                    indexGenerator.generate(rowData), key, message);
         }
     }
 
@@ -185,9 +177,10 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
 
         final String key =
                 KeyExtractor.getDocId(
-                        elasticsearchConf.getIds(), message, elasticsearchConf.getKeyDelimiter());
-        DeleteRequest deleteRequest =
-                Elasticsearch7RequestFactory.createDeleteRequest(elasticsearchConf.getIndex(), key);
-        return deleteRequest;
+                        elasticsearchConfig.getIds(),
+                        message,
+                        elasticsearchConfig.getKeyDelimiter());
+        return Elasticsearch7RequestFactory.createDeleteRequest(
+                elasticsearchConfig.getIndex(), key);
     }
 }

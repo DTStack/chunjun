@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.starrocks.source;
 
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.source.be.StarRocksQueryPlanVisitor;
 import com.dtstack.chunjun.connector.starrocks.source.be.StarRocksSourceBeReader;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryBeXTablets;
@@ -30,9 +30,8 @@ import com.dtstack.chunjun.throwable.ReadRecordException;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,20 +39,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.dtstack.chunjun.connector.starrocks.util.StarRocksUtil.splitQueryBeXTablets;
 
-/** @author liuliu 2022/7/26 */
+@Slf4j
 public class StarRocksInputFormat extends BaseRichInputFormat {
 
-    private final Logger LOG = LoggerFactory.getLogger(StarRocksInputFormat.class);
+    private static final long serialVersionUID = 8315233040239002065L;
 
-    private StarRocksConf starRocksConf;
+    private StarRocksConfig starRocksConfig;
 
     private StarRocksSourceBeReader reader;
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
         String querySql = getQueryStatement();
-        LOG.info(String.format("starRocksInputFormat querySql is %s", querySql));
-        StarRocksQueryPlanVisitor queryPlanVisitor = new StarRocksQueryPlanVisitor(starRocksConf);
+        log.info(String.format("starRocksInputFormat querySql is %s", querySql));
+        StarRocksQueryPlanVisitor queryPlanVisitor = new StarRocksQueryPlanVisitor(starRocksConfig);
         QueryInfo queryInfo = queryPlanVisitor.getQueryInfo(querySql);
         List<List<QueryBeXTablets>> lists = splitQueryBeXTablets(minNumSplits, queryInfo);
         List<QueryBeXTablets> queryBeXTabletsList = new ArrayList<>();
@@ -76,7 +75,7 @@ public class StarRocksInputFormat extends BaseRichInputFormat {
     protected void openInternal(InputSplit inputSplit) {
         StarRocksInputSplit starRocksInputSplit = ((StarRocksInputSplit) inputSplit);
         QueryBeXTablets queryBeXTablets = starRocksInputSplit.getQueryBeXTablets();
-        reader = new StarRocksSourceBeReader(queryBeXTablets.getBeNode(), starRocksConf);
+        reader = new StarRocksSourceBeReader(queryBeXTablets.getBeNode(), starRocksConfig);
         reader.openScanner(
                 queryBeXTablets.getTabletIds(), starRocksInputSplit.getOpaquedQueryPlan());
         reader.startToRead();
@@ -103,28 +102,29 @@ public class StarRocksInputFormat extends BaseRichInputFormat {
         return !reader.hasNext();
     }
 
-    public StarRocksConf getStarRocksConf() {
-        return starRocksConf;
+    public StarRocksConfig getStarRocksConf() {
+        return starRocksConfig;
     }
 
-    public void setStarRocksConf(StarRocksConf starRocksConf) {
-        this.starRocksConf = starRocksConf;
+    public void setStarRocksConf(StarRocksConfig starRocksConfig) {
+        this.starRocksConfig = starRocksConfig;
     }
 
     public String getQueryStatement() {
         StringBuilder builder = new StringBuilder("select ");
-        if (starRocksConf.getColumn().size() == 1
-                && starRocksConf.getColumn().get(0).getName().equals(ConstantValue.STAR_SYMBOL)) {
+        if (starRocksConfig.getColumn().size() == 1
+                && starRocksConfig.getColumn().get(0).getName().equals(ConstantValue.STAR_SYMBOL)) {
             builder.append(ConstantValue.STAR_SYMBOL);
         } else {
-            builder.append(String.join(",", starRocksConf.getFieldNames()));
+            builder.append(String.join(",", starRocksConfig.getFieldNames()));
         }
         builder.append(" from ")
                 .append(
                         String.format(
-                                "%s.%s", starRocksConf.getDatabase(), starRocksConf.getTable()));
-        if (StringUtils.isNotBlank(starRocksConf.getFilterStatement())) {
-            builder.append(" where ").append(starRocksConf.getFilterStatement());
+                                "%s.%s",
+                                starRocksConfig.getDatabase(), starRocksConfig.getTable()));
+        if (StringUtils.isNotBlank(starRocksConfig.getFilterStatement())) {
+            builder.append(" where ").append(starRocksConfig.getFilterStatement());
         }
         return builder.toString();
     }

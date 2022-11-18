@@ -18,14 +18,11 @@
 
 package com.dtstack.chunjun.connector.hbase.util;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -35,16 +32,10 @@ import java.util.Map;
 
 import static com.dtstack.chunjun.security.KerberosUtil.KRB_STR;
 
-/**
- * The utility class of HBase connection
- *
- * <p>Date: 2019/12/24 Company: www.dtstack.com
- *
- * @author maqi
- */
+/** The utility class of HBase connection */
+@Slf4j
 public class HBaseConfigUtils {
 
-    private static final Logger LOG = LoggerFactory.getLogger(HBaseConfigUtils.class);
     private static final String KEY_HBASE_SECURITY_AUTHENTICATION = "hbase.security.authentication";
     private static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
     private static final String KEY_HBASE_MASTER_KERBEROS_PRINCIPAL =
@@ -86,7 +77,7 @@ public class HBaseConfigUtils {
                 Boolean.getBoolean(configuration.get(KEY_HBASE_SECURITY_AUTH_ENABLE));
 
         if (hasAuthentication || hasAuthorization || hasAuthEnable) {
-            LOG.info("Enable kerberos for hbase.");
+            log.info("Enable kerberos for hbase.");
             return true;
         }
         return false;
@@ -103,7 +94,7 @@ public class HBaseConfigUtils {
                 MapUtils.getBooleanValue(hbaseConfigMap, KEY_HBASE_SECURITY_AUTH_ENABLE);
 
         if (hasAuthentication || hasAuthorization || hasAuthEnable) {
-            LOG.info("Enable kerberos for hbase.");
+            log.info("Enable kerberos for hbase.");
             setKerberosConf(hbaseConfigMap);
             return true;
         }
@@ -188,11 +179,6 @@ public class HBaseConfigUtils {
         config.set(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHORIZATION, KRB_STR);
     }
 
-    public static void loadKrb5Conf(Map<String, Object> config) {
-        String value = loadKeyFromConf(config, HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF);
-        System.setProperty(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF, value);
-    }
-
     public static String loadKeyFromConf(Map<String, Object> config, String key) {
         String value = MapUtils.getString(config, key);
         if (!StringUtils.isEmpty(value)) {
@@ -202,13 +188,9 @@ public class HBaseConfigUtils {
             } else {
                 krb5ConfPath = System.getProperty("user.dir") + File.separator + value;
             }
-            LOG.info("[{}]:{}", key, krb5ConfPath);
+            log.info("[{}]:{}", key, krb5ConfPath);
             return krb5ConfPath;
         }
         return value;
-    }
-
-    public static void checkOpt(String opt, String key) {
-        Preconditions.checkState(!Strings.isNullOrEmpty(opt), "%s must be set!", key);
     }
 }

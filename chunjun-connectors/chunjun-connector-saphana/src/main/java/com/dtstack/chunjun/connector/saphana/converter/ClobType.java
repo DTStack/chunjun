@@ -28,12 +28,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class ClobType extends LogicalType {
+
+    private static final long serialVersionUID = -2078317451026312905L;
 
     private static final Set<String> INPUT_CONVERSION =
             conversionSet(String.class.getName(), StringData.class.getName());

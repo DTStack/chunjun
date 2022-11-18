@@ -120,7 +120,7 @@ Standalone mode depend on the Flink Standalone environment and does not depend o
 ##### 1. add jars of chunjun 
 1) Find directory of jars:
    if you build this project using maven, the directory name is 'chunjun-dist' ;
-   if you download tar.gz file from release page, after decompression, the directory name would be like 'chunjun-assembly-1.12-SNAPSHOT-chunjun-dist'.
+   if you download tar.gz file from release page, after decompression, the directory name would be like 'chunjun-assembly-${revision}-chunjun-dist'.
 
 2) Copy jars to directory of Flink lib, command example:
 ```shell
@@ -202,6 +202,10 @@ Thanks to all contributors! We are very happy that you can contribute Chunjun.
 <a href="https://github.com/DTStack/chunjun/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=DTStack/chunjun"  alt="contributors"/>
 </a>
+
+## Contributor Over Time
+
+[![Stargazers Over Time](https://contributor-overtime-api.git-contributor.com/contributors-svg?chart=contributorOverTime&repo=DTStack/chunjun)](https://git-contributor.com?chart=contributorOverTime&repo=DTStack/chunjun)
 
 ## License
 

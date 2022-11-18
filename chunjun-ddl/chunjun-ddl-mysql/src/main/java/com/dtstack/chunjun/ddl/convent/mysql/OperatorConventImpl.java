@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.ddl.convent.mysql;
 
 import com.dtstack.chunjun.cdc.EventType;
-import com.dtstack.chunjun.cdc.ddl.ColumnTypeConvent;
+import com.dtstack.chunjun.cdc.ddl.ColumnTypeConvert;
 import com.dtstack.chunjun.cdc.ddl.definition.ColumnOperator;
 import com.dtstack.chunjun.cdc.ddl.definition.DataBaseOperator;
 import com.dtstack.chunjun.cdc.ddl.definition.IndexDefinition;
@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 
 public class OperatorConventImpl implements OperatorConvent, Serializable {
 
-    private final ColumnTypeConvent columnTypeConvent = new MysqlTypeConvent();
+    private final ColumnTypeConvert columnTypeConvert = new MysqlTypeConvert();
 
     @Override
     public String conventOperateTable(TableOperator operator) {
@@ -96,10 +96,10 @@ public class OperatorConventImpl implements OperatorConvent, Serializable {
                                             new SqlRenameTableSingleton(
                                                     SqlParserPos.ZERO,
                                                     SqlNodeUtil
-                                                            .conventTableIdentifierToSqlIdentifier(
+                                                            .convertTableIdentifierToSqlIdentifier(
                                                                     oldTableIdentifier),
                                                     SqlNodeUtil
-                                                            .conventTableIdentifierToSqlIdentifier(
+                                                            .convertTableIdentifierToSqlIdentifier(
                                                                     newTableIdentifier))),
                                     SqlParserPos.ZERO));
             return getSql(sqlRenameTable);
@@ -108,7 +108,7 @@ public class OperatorConventImpl implements OperatorConvent, Serializable {
         if (operator.getType().equals(EventType.TRUNCATE_TABLE)) {
             return new SqlTruncateTable(
                             SqlParserPos.ZERO,
-                            SqlNodeUtil.conventTableIdentifierToSqlIdentifier(
+                            SqlNodeUtil.convertTableIdentifierToSqlIdentifier(
                                     operator.getTableDefinition().getTableIdentifier()))
                     .toSqlString(getSqlDialect())
                     .getSql();
@@ -155,7 +155,7 @@ public class OperatorConventImpl implements OperatorConvent, Serializable {
                                     operator.getTableDefinition().getIndexList(),
                                     operator.getTableDefinition().getConstraintList(),
                                     sqlDialect,
-                                    columnTypeConvent))
+                                    columnTypeConvert))
                     .append(" ");
         }
         return sb.toString();
@@ -164,7 +164,7 @@ public class OperatorConventImpl implements OperatorConvent, Serializable {
     @Override
     public String conventOperateColumn(ColumnOperator operator) {
         SqlIdentifier sqlIdentifier =
-                SqlNodeUtil.conventTableIdentifierToSqlIdentifier(operator.getTableIdentifier());
+                SqlNodeUtil.convertTableIdentifierToSqlIdentifier(operator.getTableIdentifier());
 
         if (operator.getType().equals(EventType.ADD_COLUMN)) {
             List<String> columns =
@@ -172,7 +172,7 @@ public class OperatorConventImpl implements OperatorConvent, Serializable {
                             .map(
                                     i ->
                                             SqlNodeParseUtil.parseColumnDefinitionToString(
-                                                    i, getSqlDialect(), columnTypeConvent))
+                                                    i, getSqlDialect(), columnTypeConvert))
                             .collect(Collectors.toList());
 
             return "ALTER TABLE "
@@ -254,7 +254,7 @@ public class OperatorConventImpl implements OperatorConvent, Serializable {
 
     private String getDropIndexSql(IndexOperator operator) {
         SqlIdentifier sqlIdentifier =
-                SqlNodeUtil.conventTableIdentifierToSqlIdentifier(operator.getTableIdentifier());
+                SqlNodeUtil.convertTableIdentifierToSqlIdentifier(operator.getTableIdentifier());
 
         SqlDropIndex sqlDropIndex =
                 new SqlDropIndex(
@@ -273,7 +273,7 @@ public class OperatorConventImpl implements OperatorConvent, Serializable {
 
     private String getCreateIndexSql(IndexOperator operator) {
         SqlIdentifier sqlIdentifier =
-                SqlNodeUtil.conventTableIdentifierToSqlIdentifier(operator.getTableIdentifier());
+                SqlNodeUtil.convertTableIdentifierToSqlIdentifier(operator.getTableIdentifier());
 
         SqlNodeList sqlNodes = null;
         if (CollectionUtils.isNotEmpty(operator.getIndex().getColumns())) {
@@ -327,7 +327,7 @@ public class OperatorConventImpl implements OperatorConvent, Serializable {
 
     private String getRenameIndexSql(IndexOperator operator) {
         SqlIdentifier sqlIdentifier =
-                SqlNodeUtil.conventTableIdentifierToSqlIdentifier(operator.getTableIdentifier());
+                SqlNodeUtil.convertTableIdentifierToSqlIdentifier(operator.getTableIdentifier());
 
         SqlAlterTableRename sqlAlterTableRename =
                 new SqlAlterTableRename(

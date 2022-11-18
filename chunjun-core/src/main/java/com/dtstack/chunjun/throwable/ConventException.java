@@ -20,6 +20,8 @@ package com.dtstack.chunjun.throwable;
 
 public class ConventException extends Exception {
 
+    private static final long serialVersionUID = -1215585777057242662L;
+
     public ConventException(String sql, Exception cause) {
         super("convent sql [ " + sql + " ] error", cause);
     }

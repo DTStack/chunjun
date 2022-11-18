@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -27,8 +27,8 @@ import org.apache.flink.table.data.RowData;
 
 public class MockSinkFactory extends SinkFactory {
 
-    public MockSinkFactory(SyncConf syncConf) {
-        super(syncConf);
+    public MockSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
     }
 
     @Override

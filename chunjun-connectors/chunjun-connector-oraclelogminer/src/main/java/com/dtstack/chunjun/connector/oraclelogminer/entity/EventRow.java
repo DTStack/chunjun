@@ -18,19 +18,19 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.List;
 
-/**
- * Date: 2021/08/13 Company: www.dtstack.com
- *
- * @author dujie
- *     <p>事件数据
- */
+@Data
+@AllArgsConstructor
 public class EventRow implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = -7656744229551174891L;
 
     private List<EventRowData> beforeColumnList;
 
@@ -48,112 +48,4 @@ public class EventRow implements Serializable {
     private Long ts;
 
     private Timestamp opTime;
-
-    public EventRow(
-            List<EventRowData> beforeColumn,
-            List<EventRowData> afterColumn,
-            BigInteger scn,
-            String type,
-            String schema,
-            String table,
-            Long ts,
-            Timestamp timestamp) {
-        this.beforeColumnList = beforeColumn;
-        this.afterColumnList = afterColumn;
-        this.scn = scn;
-        this.type = type;
-        this.schema = schema;
-        this.table = table;
-        this.ts = ts;
-        this.opTime = timestamp;
-    }
-
-    public List<EventRowData> getBeforeColumnList() {
-        return beforeColumnList;
-    }
-
-    public void setBeforeColumnList(List<EventRowData> beforeColumnList) {
-        this.beforeColumnList = beforeColumnList;
-    }
-
-    public List<EventRowData> getAfterColumnList() {
-        return afterColumnList;
-    }
-
-    public void setAfterColumnList(List<EventRowData> afterColumnList) {
-        this.afterColumnList = afterColumnList;
-    }
-
-    public BigInteger getScn() {
-        return scn;
-    }
-
-    public void setScn(BigInteger scn) {
-        this.scn = scn;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getSchema() {
-        return schema;
-    }
-
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
-
-    public String getTable() {
-        return table;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
-    }
-
-    public Long getTs() {
-        return ts;
-    }
-
-    public void setTs(Long ts) {
-        this.ts = ts;
-    }
-
-    public Timestamp getOpTime() {
-        return opTime;
-    }
-
-    public void setOpTime(Timestamp opTime) {
-        this.opTime = opTime;
-    }
-
-    @Override
-    public String toString() {
-        return "LogminerEventRow{"
-                + "beforeColumn="
-                + beforeColumnList
-                + ", afterColumn="
-                + afterColumnList
-                + ", scn="
-                + scn
-                + ", type='"
-                + type
-                + '\''
-                + ", schema='"
-                + schema
-                + '\''
-                + ", table='"
-                + table
-                + '\''
-                + ", ts="
-                + ts
-                + ", timestamp="
-                + opTime
-                + '}';
-    }
 }

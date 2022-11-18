@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.postgresql.sink;
 
-import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
+import com.dtstack.chunjun.connector.jdbc.converter.JdbcSyncConverter;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.chunjun.connector.postgresql.converter.PostgresqlColumnConverter;
+import com.dtstack.chunjun.connector.postgresql.converter.PostgresqlSyncConverter;
 import com.dtstack.chunjun.connector.postgresql.dialect.PostgresqlDialect;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -32,6 +32,7 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.StringUtils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
@@ -42,12 +43,10 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-/**
- * @program: ChunJun
- * @author: wuren
- * @create: 2021/08/12
- */
+@Slf4j
 public class PostgresOutputFormat extends JdbcOutputFormat {
+
+    private static final long serialVersionUID = -1033183812204656713L;
 
     // pg 字符串里含有\u0000 会报错 ERROR: invalid byte sequence for encoding "UTF8": 0x00
     public static final String SPACE = "\u0000";
@@ -69,32 +68,32 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
         super.openInternal(taskNumber, numTasks);
         try {
             // check is use copy mode for insert
-            enableCopyMode = INSERT_SQL_MODE_TYPE.equalsIgnoreCase(jdbcConf.getInsertSqlMode());
-            if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode()) && enableCopyMode) {
+            enableCopyMode = INSERT_SQL_MODE_TYPE.equalsIgnoreCase(jdbcConfig.getInsertSqlMode());
+            if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConfig.getMode()) && enableCopyMode) {
                 copyManager = new CopyManager((BaseConnection) dbConn);
 
                 PostgresqlDialect pgDialect = (PostgresqlDialect) jdbcDialect;
                 copySql =
                         pgDialect.getCopyStatement(
-                                jdbcConf.getSchema(),
-                                jdbcConf.getTable(),
+                                jdbcConfig.getSchema(),
+                                jdbcConfig.getTable(),
                                 columnNameList.toArray(new String[0]),
-                                StringUtils.isNullOrWhitespaceOnly(jdbcConf.getFieldDelim().trim())
+                                StringUtils.isNullOrWhitespaceOnly(
+                                                jdbcConfig.getFieldDelim().trim())
                                         ? DEFAULT_FIELD_DELIMITER
-                                        : jdbcConf.getFieldDelim(),
-                                StringUtils.isNullOrWhitespaceOnly(jdbcConf.getNullDelim().trim())
+                                        : jdbcConfig.getFieldDelim(),
+                                StringUtils.isNullOrWhitespaceOnly(jdbcConfig.getNullDelim().trim())
                                         ? DEFAULT_NULL_VALUE
-                                        : jdbcConf.getNullDelim());
+                                        : jdbcConfig.getNullDelim());
 
-                LOG.info("write sql:{}", copySql);
+                log.info("write sql:{}", copySql);
             }
             checkUpsert();
-            if (rowConverter instanceof JdbcColumnConverter) {
+            if (rowConverter instanceof JdbcSyncConverter) {
                 if (jdbcDialect.dialectName().equals("PostgresSQL")) {
-                    ((PostgresqlColumnConverter) rowConverter)
-                            .setConnection((BaseConnection) dbConn);
+                    ((PostgresqlSyncConverter) rowConverter).setConnection((BaseConnection) dbConn);
                 }
-                ((PostgresqlColumnConverter) rowConverter).setFieldTypeList(columnTypeList);
+                ((PostgresqlSyncConverter) rowConverter).setFieldTypeList(columnTypeList);
             }
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("checkUpsert() failed.", sqe);
@@ -106,7 +105,7 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
         if (!enableCopyMode) {
             super.writeSingleRecordInternal(row);
         } else {
-            if (rowConverter instanceof JdbcColumnConverter) {
+            if (rowConverter instanceof JdbcSyncConverter) {
                 ColumnRowData colRowData = (ColumnRowData) row;
                 // write with copy
                 int index = 0;
@@ -134,7 +133,7 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
         if (!enableCopyMode) {
             super.writeMultipleRecordsInternal();
         } else {
-            if (rowConverter instanceof JdbcColumnConverter) {
+            if (rowConverter instanceof JdbcSyncConverter) {
                 StringBuilder rowsStrBuilder = new StringBuilder(128);
                 for (RowData row : rows) {
                     ColumnRowData colRowData = (ColumnRowData) row;
@@ -165,18 +164,18 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
         Object col = colRowData.getField(pos);
         if (col == null) {
             rowStr.append(
-                    StringUtils.isNullOrWhitespaceOnly(jdbcConf.getNullDelim().trim())
+                    StringUtils.isNullOrWhitespaceOnly(jdbcConfig.getNullDelim().trim())
                             ? DEFAULT_NULL_VALUE
-                            : jdbcConf.getNullDelim());
+                            : jdbcConfig.getNullDelim());
 
         } else {
             rowStr.append(col);
         }
         if (!isLast) {
             rowStr.append(
-                    StringUtils.isNullOrWhitespaceOnly(jdbcConf.getFieldDelim().trim())
+                    StringUtils.isNullOrWhitespaceOnly(jdbcConfig.getFieldDelim().trim())
                             ? DEFAULT_FIELD_DELIMITER
-                            : jdbcConf.getFieldDelim());
+                            : jdbcConfig.getFieldDelim());
         }
     }
 
@@ -217,13 +216,13 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
      * @throws SQLException
      */
     public void checkUpsert() throws SQLException {
-        if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())) {
+        if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConfig.getMode())) {
             try (Connection connection = getConnection()) {
 
                 // 效验版本
                 String databaseProductVersion =
                         connection.getMetaData().getDatabaseProductVersion();
-                LOG.info("source version is {}", databaseProductVersion);
+                log.info("source version is {}", databaseProductVersion);
                 String[] split = databaseProductVersion.split("\\.");
                 // 10.1.12
                 if (split.length > 2) {

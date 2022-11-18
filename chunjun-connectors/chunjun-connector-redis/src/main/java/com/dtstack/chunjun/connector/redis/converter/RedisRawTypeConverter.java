@@ -25,7 +25,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/** @Author OT @Date 2022/7/27 */
 public class RedisRawTypeConverter {
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {

@@ -24,12 +24,14 @@ import com.dtstack.chunjun.util.StringUtil;
 import org.apache.flink.types.Row;
 
 import java.io.BufferedWriter;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 /** A stream based writer for writing delimited text data to a file or a stream. */
@@ -45,13 +47,13 @@ public class WriterUtil {
     private Charset charset = null;
 
     // this holds all the values for switches that the user is allowed to set
-    private UserSettings userSettings = new UserSettings();
+    private final UserSettings userSettings = new UserSettings();
 
     private boolean initialized = false;
 
     private boolean closed = false;
 
-    private String systemRecordDelimiter = System.getProperty("line.separator");
+    private final String systemRecordDelimiter = System.getProperty("line.separator");
 
     /** Double up the text qualifier to represent an occurrence of the text qualifier. */
     public static final int ESCAPE_MODE_DOUBLED = 1;
@@ -77,7 +79,7 @@ public class WriterUtil {
     }
 
     public WriterUtil(String fileName) {
-        this(fileName, Letters.COMMA, Charset.forName("ISO-8859-1"));
+        this(fileName, Letters.COMMA, StandardCharsets.ISO_8859_1);
     }
 
     public WriterUtil(Writer outputStream, char delimiter) {
@@ -405,13 +407,13 @@ public class WriterUtil {
         firstColumn = true;
     }
 
-    /** */
     private void checkInit() throws IOException {
         if (!initialized) {
             if (fileName != null) {
                 outputStream =
                         new BufferedWriter(
-                                new OutputStreamWriter(new FileOutputStream(fileName), charset));
+                                new OutputStreamWriter(
+                                        Files.newOutputStream(Paths.get(fileName)), charset));
             }
 
             initialized = true;
@@ -438,7 +440,6 @@ public class WriterUtil {
         }
     }
 
-    /** */
     private void close(boolean closing) {
         if (!closed) {
             if (closing) {
@@ -459,19 +460,17 @@ public class WriterUtil {
         }
     }
 
-    /** */
     private void checkClosed() throws IOException {
         if (closed) {
             throw new IOException("This instance of the CsvWriter class has already been closed.");
         }
     }
 
-    /** */
     protected void finalize() {
         close(false);
     }
 
-    private class Letters {
+    private static class Letters {
         public static final char LF = '\n';
 
         public static final char CR = '\r';
@@ -491,7 +490,7 @@ public class WriterUtil {
         public static final char NULL = '\0';
     }
 
-    private class UserSettings {
+    private static class UserSettings {
         // having these as publicly accessible members will prevent
         // the overhead of the method call that exists on properties
         public char TextQualifier;
@@ -524,11 +523,11 @@ public class WriterUtil {
         int found = original.indexOf(pattern);
 
         if (found > -1) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             int start = 0;
 
             while (found != -1) {
-                sb.append(original.substring(start, found));
+                sb.append(original, start, found);
                 sb.append(replace);
                 start = found + len;
                 found = original.indexOf(pattern, start);

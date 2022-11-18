@@ -29,23 +29,17 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.api.config.TableConfigOptions;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.net.URL;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
-/**
- * @program chunjun
- * @author: wuren
- * @create: 2021/08/04
- */
 public class EnvFactory {
 
-    /**
-     * 创建StreamExecutionEnvironment
-     *
-     * @param options
-     * @return
-     */
     public static StreamExecutionEnvironment createStreamExecutionEnvironment(Options options) {
         Configuration flinkConf = new Configuration();
         Configuration cfg = Configuration.fromMap(PropertiesUtil.confToMap(options.getConfProp()));
@@ -62,6 +56,26 @@ public class EnvFactory {
         env.getConfig().disableClosureCleaner();
         env.getConfig().setGlobalJobParameters(cfg);
         return env;
+    }
+
+    public static void registerPluginIntoEnv(Configuration configuration, List<URL> pluginPaths) {
+        List<String> jars =
+                CollectionUtils.isEmpty(configuration.get(PipelineOptions.JARS))
+                        ? Lists.newArrayList()
+                        : configuration.get(PipelineOptions.JARS);
+        List<String> classpath =
+                CollectionUtils.isEmpty(configuration.get(PipelineOptions.CLASSPATHS))
+                        ? Lists.newArrayList()
+                        : configuration.get(PipelineOptions.JARS);
+
+        jars.addAll(pluginPaths.stream().map(URL::toString).collect(Collectors.toList()));
+        configuration.set(
+                PipelineOptions.JARS, jars.stream().distinct().collect(Collectors.toList()));
+
+        classpath.addAll(pluginPaths.stream().map(URL::toString).collect(Collectors.toList()));
+        configuration.set(
+                PipelineOptions.CLASSPATHS,
+                classpath.stream().distinct().collect(Collectors.toList()));
     }
 
     public static StreamTableEnvironment createStreamTableEnvironment(

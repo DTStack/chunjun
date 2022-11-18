@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.binlog.inputformat;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.connector.binlog.conf.BinlogConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.connector.binlog.config.BinlogConfig;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +27,6 @@ import org.powermock.reflect.Whitebox;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-/** @author liuliu 2021/12/30 */
 public class BinlogInputFormatBuilderTest {
 
     BinlogInputFormatBuilder builder;
@@ -41,14 +40,12 @@ public class BinlogInputFormatBuilderTest {
 
     @Test
     public void finishTest() {
-        ChunJunCommonConf commonConf = new ChunJunCommonConf();
-        commonConf.setCheckFormat(true);
-        BinlogConf binlogConf = new BinlogConf();
-        binlogConf.setUpdrdb(true);
-        Whitebox.setInternalState(inputFormat, "config", commonConf);
-        Whitebox.setInternalState(inputFormat, "binlogConf", binlogConf);
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setCheckFormat(true);
+        BinlogConfig binlogConfig = new BinlogConfig();
+        Whitebox.setInternalState(inputFormat, "config", commonConfig);
+        Whitebox.setInternalState(inputFormat, "binlogConfig", binlogConfig);
         Whitebox.setInternalState(builder, "format", inputFormat);
         when(builder.finish()).thenCallRealMethod();
-        assert builder.finish() instanceof UpdrdbBinlogInputFormat;
     }
 }

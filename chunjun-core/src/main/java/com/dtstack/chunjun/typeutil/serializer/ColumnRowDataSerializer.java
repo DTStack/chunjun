@@ -43,8 +43,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-/** @author liuliu 2022/5/12 */
 public class ColumnRowDataSerializer extends TypeSerializer<RowData> {
+
+    private static final long serialVersionUID = -3193875237503741622L;
 
     StringSerializer stringSerializer = StringSerializer.INSTANCE;
     int size;

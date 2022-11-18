@@ -28,10 +28,6 @@ import java.util.Map;
 /**
  * Kerberos of certain connectors could be enabled, it should use or extends this class. e.g.
  * KuduInputFormat class can combine it.
- *
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/15
  */
 public class KerberosConfig implements Serializable {
 

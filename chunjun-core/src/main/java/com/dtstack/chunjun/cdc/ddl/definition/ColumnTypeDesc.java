@@ -141,7 +141,7 @@ public class ColumnTypeDesc {
         return scale;
     }
 
-    public Integer getDefaultConventPrecision() {
+    public Integer getDefaultConvertPrecision() {
         if (!needPrecision) {
             return null;
         }
@@ -155,7 +155,7 @@ public class ColumnTypeDesc {
         return null;
     }
 
-    public Integer getDefaultConventScale(int precision) {
+    public Integer getDefaultConvertScale(int precision) {
         if (!needPrecision) {
             return null;
         }

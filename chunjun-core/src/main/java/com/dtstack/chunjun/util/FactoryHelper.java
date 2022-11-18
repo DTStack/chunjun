@@ -22,10 +22,8 @@ import com.dtstack.chunjun.constants.ConstantValue;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.factories.TableFactoryService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -34,11 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Date: 2021/08/05 Company: www.dtstack.com
- *
- * @author tudou
- */
+@Slf4j
 public class FactoryHelper {
     /** shipfile需要的jar的classPath name */
     public static final ConfigOption<String> CLASS_FILE_NAME_FMT =
@@ -47,7 +41,6 @@ public class FactoryHelper {
                     .defaultValue("class_path_%d")
                     .withDescription("");
 
-    private static final Logger LOG = LoggerFactory.getLogger(TableFactoryService.class);
     /** 插件路径 */
     protected String localPluginPath = null;
     /** 远端插件路径 */
@@ -95,7 +88,7 @@ public class FactoryHelper {
             }
             PluginUtil.setPipelineOptionsToEnvConfig(this.env, urlList, executionMode);
         } catch (Exception e) {
-            LOG.warn("can't add jar in {} to cachedFile, e = {}", urlSet, e.getMessage());
+            log.warn("can't add jar in {} to cachedFile, e = {}", urlSet, e.getMessage());
         }
     }
 

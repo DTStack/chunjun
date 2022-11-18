@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.http.common;
 
-import com.dtstack.chunjun.constants.ConstantValue;
-
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,15 +28,12 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * 原始header param body配置信息
- *
- * @author shifang
- */
+/** 原始header param body配置信息 */
+@NoArgsConstructor
+@Data
 public class MetaParam implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
+    private static final long serialVersionUID = -6189228623981302042L;
     private String key;
     private String value;
     private String nextValue;
@@ -46,8 +43,6 @@ public class MetaParam implements Serializable {
     private Boolean isNest = false;
 
     private ParamType paramType;
-
-    public MetaParam() {}
 
     public MetaParam(String key, String value, ParamType paramType) {
         this.key = key;
@@ -63,7 +58,7 @@ public class MetaParam implements Serializable {
     }
 
     /**
-     * metaparam设置各自类型
+     * metaParam设置各自类型
      *
      * @param params 参数
      * @param paramType 类型
@@ -92,7 +87,7 @@ public class MetaParam implements Serializable {
         }
     }
 
-    /** 获取一个metaparam的唯一名称 如body里的time参数 其全名称为body.name，因为name可能在body header里都有 */
+    /** 获取一个metaParam的唯一名称 如body里的time参数 其全名称为body.name，因为name可能在body header里都有 */
     public String getAllName() {
         switch (paramType) {
             case PARAM:
@@ -117,16 +112,12 @@ public class MetaParam implements Serializable {
     }
 
     /**
-     * 获取这个metaparam的变量名 如body里的参数name 其变量名为 ${body.name}
+     * 获取这个metaParam的变量名 如body里的参数name 其变量名为 ${body.name}
      *
-     * @return metaparam的变量名
+     * @return metaParam的变量名
      */
     public String getVariableName() {
-        return new StringBuilder()
-                .append(com.dtstack.chunjun.connector.http.common.ConstantValue.PREFIX)
-                .append(getAllName())
-                .append(com.dtstack.chunjun.connector.http.common.ConstantValue.SUFFIX)
-                .toString();
+        return ConstantValue.PREFIX + getAllName() + ConstantValue.SUFFIX;
     }
 
     /**
@@ -140,97 +131,5 @@ public class MetaParam implements Serializable {
             return value;
         }
         return isFirst ? value : nextValue;
-    }
-
-    public String getNextValue() {
-        return nextValue;
-    }
-
-    public void setNextValue(String nextValue) {
-        this.nextValue = nextValue;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public SimpleDateFormat getTimeFormat() {
-        return timeFormat;
-    }
-
-    public void setTimeFormat(SimpleDateFormat timeFormat) {
-        this.timeFormat = timeFormat;
-    }
-
-    public ParamType getParamType() {
-        return paramType;
-    }
-
-    public void setParamType(ParamType paramType) {
-        this.paramType = paramType;
-    }
-
-    public String getFormat() {
-        return format;
-    }
-
-    public void setFormat(String format) {
-        this.format = format;
-    }
-
-    public Boolean getNest() {
-        return isNest;
-    }
-
-    public void setNest(Boolean nest) {
-        isNest = nest;
-    }
-
-    @Override
-    public String toString() {
-        return "MetaParam{"
-                + "key='"
-                + key
-                + '\''
-                + ", value='"
-                + value
-                + '\''
-                + ", nextValue='"
-                + nextValue
-                + '\''
-                + ", timeFormat="
-                + timeFormat
-                + ", isNest="
-                + isNest
-                + ", format='"
-                + format
-                + '\''
-                + ", paramType="
-                + paramType
-                + '}';
-    }
-
-    @Override
-    public int hashCode() {
-        int result = 17;
-        result = 31 * result + (StringUtils.isBlank(key) ? 0 : key.hashCode());
-        result = 31 * result + (StringUtils.isBlank(value) ? 0 : value.hashCode());
-        result = 31 * result + (StringUtils.isBlank(nextValue) ? 0 : nextValue.hashCode());
-        result = 31 * result + (isNest == null ? 0 : isNest.hashCode());
-        result = 31 * result + (StringUtils.isBlank(format) ? 0 : format.hashCode());
-        result = 31 * result + (paramType == null ? 0 : paramType.hashCode());
-        return result;
     }
 }

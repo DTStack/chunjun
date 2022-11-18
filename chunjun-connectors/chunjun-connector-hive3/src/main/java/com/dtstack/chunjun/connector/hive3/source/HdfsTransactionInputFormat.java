@@ -24,6 +24,7 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 
 import org.apache.flink.core.io.InputSplit;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -47,12 +48,16 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-/** @author liuliu 2022/3/28 */
+@Slf4j
 public class HdfsTransactionInputFormat extends HdfsOrcInputFormat {
+
+    private static final long serialVersionUID = 7785120717862567959L;
+
     @Override
     protected InputSplit[] createHdfsSplit(int minNumSplits) {
-        LOG.info("To read hive transaction table, create OrcSplit.");
-        hadoopJobConf = Hive3Util.getJobConf(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
+        log.info("To read hive transaction table, create OrcSplit.");
+        hadoopJobConf =
+                Hive3Util.getJobConf(hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS());
         // hive3 事务表必须设置的属性
         hadoopJobConf.setBoolean(hive_metastoreConstants.TABLE_IS_TRANSACTIONAL, true);
         // 此处防止 shaded 后，文件系统改变,导致错误。
@@ -65,13 +70,13 @@ public class HdfsTransactionInputFormat extends HdfsOrcInputFormat {
         try {
             fileSystem =
                     Hive3Util.getFileSystem(
-                            hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), null);
+                            hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS(), null);
             // 递归找到所有分区路径
             Set<String> allPartitionPath =
                     Hive3Util.getAllPartitionPath(
-                            hdfsConf.getPath(),
+                            hdfsConfig.getPath(),
                             fileSystem,
-                            new HdfsPathFilter(hdfsConf.getFilterRegex()));
+                            new HdfsPathFilter(hdfsConfig.getFilterRegex()));
             // 每个分区路径
             LinkedList<HdfsOrcInputSplit> allSplit = new LinkedList<>();
             int splitNumber = 0;
@@ -93,7 +98,7 @@ public class HdfsTransactionInputFormat extends HdfsOrcInputFormat {
             }
             return allSplit.toArray(new HdfsOrcInputSplit[0]);
         } catch (Exception e) {
-            LOG.error("hive3 transaction table create split error", e);
+            log.error("hive3 transaction table create split error", e);
             throw new RuntimeException(e);
         }
     }
@@ -111,7 +116,7 @@ public class HdfsTransactionInputFormat extends HdfsOrcInputFormat {
         try {
             orcSplit = hdfsOrcInputSplit.getOrcSplit();
         } catch (IOException e) {
-            LOG.error(
+            log.error(
                     "Get orc split error, hdfsOrcInputSplit = {}, Exception = {}",
                     hdfsOrcInputSplit,
                     ExceptionUtil.getErrorMessage(e));
@@ -129,7 +134,7 @@ public class HdfsTransactionInputFormat extends HdfsOrcInputFormat {
         try {
             reader = OrcFile.createReader(path, readerOptions);
         } catch (IOException e) {
-            LOG.error(
+            log.error(
                     "Create reader error, path = {}, Exception = {}",
                     path,
                     ExceptionUtil.getErrorMessage(e));
@@ -147,7 +152,7 @@ public class HdfsTransactionInputFormat extends HdfsOrcInputFormat {
         startIndex = typeStruct.indexOf("<") + 1;
         endIndex = typeStruct.lastIndexOf(">");
         if (startIndex == 0 || endIndex == -1) {
-            LOG.error(
+            log.error(
                     "Please check whether the transaction table option(hiveTransactionTable=true) is used to synchronize non-transactional tables(check hdfs file format,except for base or delta), typeStruct = {}",
                     typeStruct);
             throw new RuntimeException(

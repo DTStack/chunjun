@@ -28,11 +28,6 @@ import javax.sql.DataSource;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * @program chunjun
- * @author: wuren
- * @create: 2021/04/28
- */
 public class DruidDataSourceProvider implements DataSourceProvider {
 
     @Override

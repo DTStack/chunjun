@@ -18,10 +18,10 @@
 
 package com.dtstack.chunjun.connector.redis.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.redis.adapter.RedisDataModeAdapter;
 import com.dtstack.chunjun.connector.redis.adapter.RedisDataTypeAdapter;
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.connector.redis.converter.RedisColumnConverter;
 import com.dtstack.chunjun.connector.redis.converter.RedisRawTypeConverter;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataMode;
@@ -37,22 +37,22 @@ import org.apache.flink.table.data.RowData;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-/** @Author OT @Date 2022/7/27 */
 public class RedisSourceFactory extends SourceFactory {
-    private RedisConf redisConf;
+    private final RedisConfig redisConfig;
 
-    public RedisSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
+    public RedisSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
         Gson gson =
                 new GsonBuilder()
                         .registerTypeAdapter(RedisDataMode.class, new RedisDataModeAdapter())
                         .registerTypeAdapter(RedisDataType.class, new RedisDataTypeAdapter())
                         .create();
         GsonUtil.setTypeAdapter(gson);
-        redisConf =
-                gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), RedisConf.class);
-        redisConf.setColumn(syncConf.getReader().getFieldList());
-        super.initCommonConf(redisConf);
+        redisConfig =
+                gson.fromJson(
+                        gson.toJson(syncConfig.getReader().getParameter()), RedisConfig.class);
+        redisConfig.setColumn(syncConfig.getReader().getFieldList());
+        super.initCommonConf(redisConfig);
     }
 
     @Override
@@ -66,8 +66,8 @@ public class RedisSourceFactory extends SourceFactory {
             throw new UnsupportedOperationException("redis not support transform");
         }
         RedisInputFormatBuilder builder = new RedisInputFormatBuilder();
-        builder.setRedisConf(redisConf);
-        builder.setRowConverter(new RedisColumnConverter(redisConf));
+        builder.setRedisConf(redisConfig);
+        builder.setRowConverter(new RedisColumnConverter(redisConfig));
         return createInput(builder.finish());
     }
 }

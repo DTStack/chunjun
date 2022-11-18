@@ -18,12 +18,11 @@
 package com.dtstack.chunjun.connector.binlog.inputformat;
 
 import com.dtstack.chunjun.cdc.EventType;
-import com.dtstack.chunjun.connector.binlog.conf.BinlogConf;
+import com.dtstack.chunjun.connector.binlog.config.BinlogConfig;
 import com.dtstack.chunjun.connector.binlog.util.BinlogUtil;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
-import com.dtstack.chunjun.throwable.ChunJunException;
 import com.dtstack.chunjun.util.ClassUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.GsonUtil;
@@ -43,20 +42,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 
-/**
- * Date: 2020/12/16 Company: www.dtstack.com
- *
- * @author dujie
- */
 public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogInputFormat> {
 
     public BinlogInputFormatBuilder() {
         super(new BinlogInputFormat());
     }
 
-    public void setBinlogConf(BinlogConf binlogConf) {
-        super.setConfig(binlogConf);
-        this.format.setBinlogConf(binlogConf);
+    public void setBinlogConf(BinlogConfig binlogConfig) {
+        super.setConfig(binlogConfig);
+        this.format.setBinlogConfig(binlogConfig);
     }
 
     public void setRowConverter(AbstractCDCRowConverter rowConverter) {
@@ -64,7 +58,7 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogI
     }
 
     public void setRowConverter(AbstractCDCRowConverter rowConverter, boolean useAbstractColumn) {
-        this.format.setRowConverter(rowConverter);
+        this.format.setCdcRowConverter(rowConverter);
         format.setUseAbstractColumn(useAbstractColumn);
     }
 
@@ -74,36 +68,29 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogI
         if (format.getConfig().isCheckFormat()) {
             checkFormat();
         }
-        if (format.getBinlogConf().isUpdrdb()) {
-            UpdrdbBinlogInputFormat updrdbBinlogInputFormat = new UpdrdbBinlogInputFormat();
-            updrdbBinlogInputFormat.setBinlogConf(format.binlogConf);
-            updrdbBinlogInputFormat.setConfig(format.binlogConf);
-            updrdbBinlogInputFormat.setRowConverter(format.rowConverter);
-            return updrdbBinlogInputFormat;
-        }
         return format;
     }
 
     @Override
     protected void checkFormat() {
         StringBuilder sb = new StringBuilder(256);
-        BinlogConf binlogConf = format.getBinlogConf();
-        if (StringUtils.isBlank(binlogConf.username)) {
+        BinlogConfig binlogConfig = format.getBinlogConfig();
+        if (StringUtils.isBlank(binlogConfig.username)) {
             sb.append("No username supplied;\n");
         }
 
-        if (StringUtils.isBlank(binlogConf.jdbcUrl)) {
+        if (StringUtils.isBlank(binlogConfig.jdbcUrl)) {
             sb.append("No url supplied;\n");
         } else {
             // 检测数据源连通性
-            TelnetUtil.telnet(binlogConf.jdbcUrl);
+            TelnetUtil.telnet(binlogConfig.jdbcUrl);
         }
 
-        if (StringUtils.isBlank(binlogConf.host)) {
+        if (StringUtils.isBlank(binlogConfig.host)) {
             sb.append("No host supplied;\n");
         }
 
-        if (StringUtils.isBlank(binlogConf.cat)) {
+        if (StringUtils.isBlank(binlogConfig.cat)) {
             sb.append("No cat supplied;\n");
         }
 
@@ -111,15 +98,15 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogI
             throw new IllegalArgumentException(sb.toString());
         }
 
-        if (binlogConf.getParallelism() > 1) {
+        if (binlogConfig.getParallelism() > 1) {
             sb.append("binLog can not support channel bigger than 1, current channel is [")
-                    .append(binlogConf.getParallelism())
+                    .append(binlogConfig.getParallelism())
                     .append("];\n");
         }
 
         // 校验binlog cat
-        if (StringUtils.isNotEmpty(binlogConf.getCat())) {
-            List<String> cats = Lists.newArrayList(binlogConf.getCat().toUpperCase().split(","));
+        if (StringUtils.isNotEmpty(binlogConfig.getCat())) {
+            List<String> cats = Lists.newArrayList(binlogConfig.getCat().toUpperCase().split(","));
             cats.removeIf(s -> EventType.contains(s.toUpperCase(Locale.ENGLISH)));
             if (CollectionUtils.isNotEmpty(cats)) {
                 sb.append("binlog cat not support-> ")
@@ -131,35 +118,35 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogI
         }
 
         // 校验binlog的start参数
-        if (MapUtils.isNotEmpty(binlogConf.getStart())) {
+        if (MapUtils.isNotEmpty(binlogConfig.getStart())) {
             try {
-                MapUtils.getLong(binlogConf.getStart(), "timestamp");
+                MapUtils.getLong(binlogConfig.getStart(), "timestamp");
             } catch (Exception e) {
                 sb.append(
                                 "binlog start parameter of timestamp  must be long type, but your value is -> ")
-                        .append(binlogConf.getStart().get("timestamp"))
+                        .append(binlogConfig.getStart().get("timestamp"))
                         .append(";\n");
             }
             try {
-                MapUtils.getLong(binlogConf.getStart(), "position");
+                MapUtils.getLong(binlogConfig.getStart(), "position");
             } catch (Exception e) {
                 sb.append(
                                 "binlog start parameter of position  must be long type, but your value is -> ")
-                        .append(binlogConf.getStart().get("timestamp"))
+                        .append(binlogConfig.getStart().get("timestamp"))
                         .append(";\n");
             }
         }
 
         ClassUtil.forName(BinlogUtil.DRIVER_NAME, getClass().getClassLoader());
         Properties properties = new Properties();
-        properties.put("user", binlogConf.getUsername());
-        properties.put("password", binlogConf.getPassword());
-        properties.put("socketTimeout", String.valueOf(binlogConf.getQueryTimeOut()));
-        properties.put("connectTimeout", String.valueOf(binlogConf.getConnectTimeOut()));
+        properties.put("user", binlogConfig.getUsername());
+        properties.put("password", binlogConfig.getPassword());
+        properties.put("socketTimeout", String.valueOf(binlogConfig.getQueryTimeOut()));
+        properties.put("connectTimeout", String.valueOf(binlogConfig.getConnectTimeOut()));
 
         try (Connection conn =
                 RetryUtil.executeWithRetry(
-                        () -> DriverManager.getConnection(binlogConf.getJdbcUrl(), properties),
+                        () -> DriverManager.getConnection(binlogConfig.getJdbcUrl(), properties),
                         BinlogUtil.RETRY_TIMES,
                         BinlogUtil.SLEEP_TIME,
                         false)) {
@@ -169,7 +156,7 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogI
                 sb.append(
                                 "\nyou need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation; you can execute sql ->")
                         .append("GRANT SELECT, REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO '")
-                        .append(binlogConf.getUsername())
+                        .append(binlogConfig.getUsername())
                         .append("'@'%' IDENTIFIED BY 'password';\n\n");
             }
 
@@ -189,60 +176,13 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogI
             }
 
             // 校验用户表是否有select权限
-            String database = BinlogUtil.getDataBaseByUrl(binlogConf.jdbcUrl);
+            String database = BinlogUtil.getDataBaseByUrl(binlogConfig.jdbcUrl);
             List<String> failedTable =
                     BinlogUtil.checkTablesPrivilege(
-                            conn, database, binlogConf.filter, binlogConf.table);
+                            conn, database, binlogConfig.filter, binlogConfig.table);
             if (CollectionUtils.isNotEmpty(failedTable)) {
                 sb.append("user has not select privilege on ")
                         .append(GsonUtil.GSON.toJson(failedTable));
-            }
-
-            // if (binlogConf.isPavingData() && binlogConf.isSplit()) {
-            //     throw new IllegalArgumentException(
-            //             "can't use pavingData and split at the same time");
-            // }
-
-            // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
-            try {
-                BinlogUtil.getUpdrdbMessage(conn, binlogConf);
-            } catch (ChunJunException e) {
-                sb.append(e.getMessage());
-            }
-
-            // updrdb支持多并发
-            if (binlogConf.getParallelism() > 1 && !binlogConf.isUpdrdb()) {
-                sb.append("binLog can not support channel bigger than 1, current channel is [")
-                        .append(binlogConf.getParallelism())
-                        .append("];\n");
-            }
-
-            // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
-            try {
-                BinlogUtil.getUpdrdbMessage(conn, binlogConf);
-            } catch (ChunJunException e) {
-                sb.append(e.getMessage());
-            }
-
-            // updrdb支持多并发
-            if (binlogConf.getParallelism() > 1 && !binlogConf.isUpdrdb()) {
-                sb.append("binLog can not support channel bigger than 1, current channel is [")
-                        .append(binlogConf.getParallelism())
-                        .append("];\n");
-            }
-
-            // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
-            try {
-                BinlogUtil.getUpdrdbMessage(conn, binlogConf);
-            } catch (ChunJunException e) {
-                sb.append(e.getMessage());
-            }
-
-            // updrdb支持多并发
-            if (binlogConf.getParallelism() > 1 && !binlogConf.isUpdrdb()) {
-                sb.append("binLog can not support channel bigger than 1, current channel is [")
-                        .append(binlogConf.getParallelism())
-                        .append("];\n");
             }
 
             if (sb.length() > 0) {

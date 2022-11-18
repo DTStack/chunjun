@@ -18,10 +18,6 @@
 
 package com.dtstack.chunjun.connector.http.common;
 
-/**
- * @author : shifang
- * @date : 2020/3/13
- */
 public enum HttpMethod {
     // http request method
     GET,

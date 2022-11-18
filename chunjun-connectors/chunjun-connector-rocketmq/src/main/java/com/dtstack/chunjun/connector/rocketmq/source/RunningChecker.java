@@ -17,16 +17,16 @@
 
 package com.dtstack.chunjun.connector.rocketmq.source;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 
+@Getter
+@Setter
 public class RunningChecker implements Serializable {
-    private volatile boolean isRunning = false;
 
-    public boolean isRunning() {
-        return isRunning;
-    }
+    private static final long serialVersionUID = -5981408552743652261L;
 
-    public void setRunning(boolean running) {
-        isRunning = running;
-    }
+    private volatile boolean running = false;
 }

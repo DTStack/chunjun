@@ -18,22 +18,13 @@
 
 package com.dtstack.chunjun.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.concurrent.Callable;
 
-/**
- * Utilities for handling operations that needs retrying several times
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+@Slf4j
 public final class RetryUtil {
-
-    private static final Logger LOG = LoggerFactory.getLogger(RetryUtil.class);
 
     private static final long MAX_SLEEP_MILLISECOND = 256 * 1000L;
 
@@ -63,7 +54,7 @@ public final class RetryUtil {
                 int retryTimes,
                 long sleepTimeInMilliSecond,
                 boolean exponential,
-                List<Class<?>> retryExceptionClasss) {
+                List<Class<?>> retryExceptionClazz) {
 
             if (null == callable) {
                 throw new IllegalArgumentException("系统编程错误, 入参callable不能为空 ! ");
@@ -71,7 +62,7 @@ public final class RetryUtil {
 
             if (retryTimes < 1) {
                 throw new IllegalArgumentException(
-                        String.format("系统编程错误, 入参retrytime[%d]不能小于1 !", retryTimes));
+                        String.format("系统编程错误, 入参retryTime[%d]不能小于1 !", retryTimes));
             }
 
             Exception saveException = null;
@@ -81,16 +72,16 @@ public final class RetryUtil {
                 } catch (Exception e) {
                     saveException = e;
                     if (i == 0) {
-                        LOG.error(
+                        log.error(
                                 String.format(
                                         "Exception when calling callable, 异常Msg:%s",
                                         ExceptionUtil.getErrorMessage(saveException)),
                                 saveException);
                     }
 
-                    if (null != retryExceptionClasss && !retryExceptionClasss.isEmpty()) {
+                    if (null != retryExceptionClazz && !retryExceptionClazz.isEmpty()) {
                         boolean needRetry = false;
-                        for (Class<?> eachExceptionClass : retryExceptionClasss) {
+                        for (Class<?> eachExceptionClass : retryExceptionClazz) {
                             if (eachExceptionClass == e.getClass()) {
                                 needRetry = true;
                                 break;
@@ -107,14 +98,11 @@ public final class RetryUtil {
                         long timeToSleep;
                         if (exponential) {
                             timeToSleep = sleepTimeInMilliSecond * (long) Math.pow(2, i);
-                            if (timeToSleep >= MAX_SLEEP_MILLISECOND) {
-                                timeToSleep = MAX_SLEEP_MILLISECOND;
-                            }
                         } else {
                             timeToSleep = sleepTimeInMilliSecond;
-                            if (timeToSleep >= MAX_SLEEP_MILLISECOND) {
-                                timeToSleep = MAX_SLEEP_MILLISECOND;
-                            }
+                        }
+                        if (timeToSleep >= MAX_SLEEP_MILLISECOND) {
+                            timeToSleep = MAX_SLEEP_MILLISECOND;
                         }
 
                         try {
@@ -124,7 +112,7 @@ public final class RetryUtil {
 
                         long realTimeSleep = System.currentTimeMillis() - startTime;
 
-                        LOG.error(
+                        log.error(
                                 String.format(
                                         "Exception when calling callable, 即将尝试执行第%s次重试.本次重试计划等待[%s]ms,实际等待[%s]ms, 异常Msg:[%s]",
                                         i + 1,

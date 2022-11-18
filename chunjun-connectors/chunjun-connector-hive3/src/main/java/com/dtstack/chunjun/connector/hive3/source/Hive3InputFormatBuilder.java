@@ -18,13 +18,13 @@
 
 package com.dtstack.chunjun.connector.hive3.source;
 
-import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
+import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hive3.enums.FileType;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
-/** @author liuliu 2022/3/23 */
 public class Hive3InputFormatBuilder extends BaseRichInputFormatBuilder<BaseHdfsInputFormat> {
+
     BaseHdfsInputFormat inputFormat;
 
     public Hive3InputFormatBuilder(String fileType, boolean isHiveTransactionTable) {
@@ -52,8 +52,8 @@ public class Hive3InputFormatBuilder extends BaseRichInputFormatBuilder<BaseHdfs
     @Override
     protected void checkFormat() {}
 
-    public void setHdfsConf(HdfsConf hdfsConf) {
-        super.setConfig(hdfsConf);
-        inputFormat.sethdfsConf(hdfsConf);
+    public void setHdfsConf(HdfsConfig hdfsConfig) {
+        super.setConfig(hdfsConfig);
+        inputFormat.sethdfsConf(hdfsConfig);
     }
 }

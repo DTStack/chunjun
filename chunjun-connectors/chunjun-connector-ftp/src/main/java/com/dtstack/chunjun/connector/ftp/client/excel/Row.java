@@ -18,86 +18,21 @@
 
 package com.dtstack.chunjun.connector.ftp.client.excel;
 
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.StringJoiner;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
 public class Row implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 3328638040683189716L;
 
     private String[] data;
     private int sheetIndex;
     private int rowIndex;
     private boolean end;
-
-    public Row(String[] data, int sheetIndex, int rowIndex, boolean end) {
-        this.data = data;
-        this.sheetIndex = sheetIndex;
-        this.rowIndex = rowIndex;
-        this.end = end;
-    }
-
-    public Row() {}
-
-    public String[] getData() {
-        return data;
-    }
-
-    public void setData(String[] data) {
-        this.data = data;
-    }
-
-    public int getSheetIndex() {
-        return sheetIndex;
-    }
-
-    public void setSheetIndex(int sheetIndex) {
-        this.sheetIndex = sheetIndex;
-    }
-
-    public int getRowIndex() {
-        return rowIndex;
-    }
-
-    public void setRowIndex(int rowIndex) {
-        this.rowIndex = rowIndex;
-    }
-
-    public boolean isEnd() {
-        return end;
-    }
-
-    public void setEnd(boolean end) {
-        this.end = end;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Row row = (Row) o;
-        return sheetIndex == row.sheetIndex
-                && rowIndex == row.rowIndex
-                && end == row.end
-                && Arrays.equals(data, row.data);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = Objects.hash(sheetIndex, rowIndex, end);
-        result = 31 * result + Arrays.hashCode(data);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", Row.class.getSimpleName() + "[", "]")
-                .add("data=" + Arrays.toString(data))
-                .add("sheetIndex=" + sheetIndex)
-                .add("rowIndex=" + rowIndex)
-                .add("end=" + end)
-                .toString();
-    }
 }

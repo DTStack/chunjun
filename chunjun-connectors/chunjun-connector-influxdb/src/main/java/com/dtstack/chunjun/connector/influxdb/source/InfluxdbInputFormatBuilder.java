@@ -19,18 +19,12 @@
 
 package com.dtstack.chunjun.connector.influxdb.source;
 
-import com.dtstack.chunjun.connector.influxdb.conf.InfluxdbSourceConfig;
+import com.dtstack.chunjun.connector.influxdb.config.InfluxdbSourceConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/3/8
- */
 public class InfluxdbInputFormatBuilder extends BaseRichInputFormatBuilder<InfluxdbInputFormat> {
 
     public InfluxdbInputFormatBuilder() {

@@ -24,7 +24,6 @@ import org.apache.flink.configuration.ConfigOptions;
 import java.util.HashMap;
 import java.util.Map;
 
-/** @author liuliu 2022/7/12 */
 public class StarRocksSourceOptions {
 
     public static final ConfigOption<String> FILTER_STATEMENT =

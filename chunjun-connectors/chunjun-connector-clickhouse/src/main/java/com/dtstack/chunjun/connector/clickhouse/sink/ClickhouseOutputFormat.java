@@ -24,16 +24,13 @@ import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/10
- */
 public class ClickhouseOutputFormat extends JdbcOutputFormat {
+
+    private static final long serialVersionUID = 8629752097265213952L;
 
     @Override
     protected Connection getConnection() throws SQLException {
         return ClickhouseUtil.getConnection(
-                jdbcConf.getJdbcUrl(), jdbcConf.getUsername(), jdbcConf.getPassword());
+                jdbcConfig.getJdbcUrl(), jdbcConfig.getUsername(), jdbcConfig.getPassword());
     }
 }

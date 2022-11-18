@@ -22,11 +22,10 @@ import org.apache.flink.annotation.Internal;
 
 import java.util.Objects;
 
-/** Base class for {@link IndexGenerator}. */
 @Internal
 public abstract class IndexGeneratorBase implements IndexGenerator {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -2370356516439169592L;
     protected final String index;
 
     public IndexGeneratorBase(String index) {

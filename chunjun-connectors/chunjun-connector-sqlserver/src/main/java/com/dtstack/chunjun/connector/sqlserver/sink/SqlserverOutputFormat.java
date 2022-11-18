@@ -19,36 +19,27 @@
 package com.dtstack.chunjun.connector.sqlserver.sink;
 
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.sqlserver.dialect.SqlserverDialect;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import java.sql.SQLException;
 import java.sql.Statement;
 
-/**
- * Company：www.dtstack.com
- *
- * @author shitou
- * @date 2021/5/19 20:03
- */
 public class SqlserverOutputFormat extends JdbcOutputFormat {
+
+    private static final long serialVersionUID = -663484948572872831L;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
 
-        Statement statement = null;
         String sql =
                 ((SqlserverDialect) jdbcDialect)
-                        .getIdentityInsertOnSql(jdbcConf.getSchema(), jdbcConf.getTable());
-        try {
-            statement = dbConn.createStatement();
+                        .getIdentityInsertOnSql(jdbcConfig.getSchema(), jdbcConfig.getTable());
+        try (Statement statement = dbConn.createStatement()) {
             statement.execute(sql);
         } catch (SQLException e) {
             throw new ChunJunRuntimeException(e);
-        } finally {
-            JdbcUtil.closeDbResources(null, statement, null, false);
         }
     }
 }

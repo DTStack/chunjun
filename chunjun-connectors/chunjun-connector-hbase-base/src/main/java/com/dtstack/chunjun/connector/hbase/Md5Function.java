@@ -22,12 +22,9 @@ import com.dtstack.chunjun.util.Md5Util;
 
 import java.io.Serializable;
 
-/**
- * @company: www.dtstack.com
- * @author: toutian
- * @create: 2019/7/23
- */
 public class Md5Function implements IFunction, Serializable {
+
+    private static final long serialVersionUID = -5521221333016435520L;
 
     @Override
     public String evaluate(Object str) throws Exception {

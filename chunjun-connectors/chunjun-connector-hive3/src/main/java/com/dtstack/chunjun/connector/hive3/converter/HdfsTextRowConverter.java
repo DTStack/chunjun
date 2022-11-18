@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hive3.converter;
 
-import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
+import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -47,15 +47,16 @@ import java.time.temporal.TemporalQueries;
 import java.util.Arrays;
 import java.util.List;
 
-/** @author liuliu 2022/3/22 */
 public class HdfsTextRowConverter
         extends AbstractRowConverter<RowData, RowData, List<String>, LogicalType> {
 
-    HdfsConf hdfsConf;
+    private static final long serialVersionUID = -2860279052347532462L;
 
-    public HdfsTextRowConverter(RowType rowType, HdfsConf hdfsConf) {
-        super(rowType, hdfsConf);
-        this.hdfsConf = hdfsConf;
+    HdfsConfig hdfsConfig;
+
+    public HdfsTextRowConverter(RowType rowType, HdfsConfig hdfsConfig) {
+        super(rowType, hdfsConfig);
+        this.hdfsConfig = hdfsConfig;
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
@@ -86,10 +87,9 @@ public class HdfsTextRowConverter
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<String> toExternal(RowData rowData, List<String> data) throws Exception {
-        for (int index = 0; index < hdfsConf.getFullColumnName().size(); index++) {
-            int columnIndex = hdfsConf.getFullColumnIndexes()[index];
+        for (int index = 0; index < hdfsConfig.getFullColumnName().size(); index++) {
+            int columnIndex = hdfsConfig.getFullColumnIndexes()[index];
             toExternalConverters.get(columnIndex).serialize(rowData, columnIndex, data);
         }
         return data;
@@ -101,7 +101,6 @@ public class HdfsTextRowConverter
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public ISerializationConverter<List<String>> wrapIntoNullableExternalConverter(
             ISerializationConverter serializationConverter, LogicalType type) {
         return (rowData, index, data) -> {

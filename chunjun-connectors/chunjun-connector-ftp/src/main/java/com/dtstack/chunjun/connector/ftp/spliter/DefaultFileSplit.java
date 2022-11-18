@@ -59,10 +59,6 @@ public class DefaultFileSplit implements ConcurrentFileSplit {
     @Override
     public Comparator<FtpFileSplit> compare() {
         return Comparator.comparing(FtpFileSplit::getFileAbsolutePath)
-                .thenComparing(
-                        FtpFileSplit::getStartPosition,
-                        (a, b) -> {
-                            return a.compareTo(b);
-                        });
+                .thenComparing(FtpFileSplit::getStartPosition, Long::compareTo);
     }
 }

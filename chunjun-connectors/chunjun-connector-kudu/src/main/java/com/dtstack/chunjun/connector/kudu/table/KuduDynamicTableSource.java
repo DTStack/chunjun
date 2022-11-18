@@ -18,19 +18,19 @@
 
 package com.dtstack.chunjun.connector.kudu.table;
 
-import com.dtstack.chunjun.connector.kudu.conf.KuduLookupConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduSourceConf;
+import com.dtstack.chunjun.connector.kudu.config.KuduLookupConfig;
+import com.dtstack.chunjun.connector.kudu.config.KuduSourceConfig;
 import com.dtstack.chunjun.connector.kudu.converter.KuduRowConverter;
 import com.dtstack.chunjun.connector.kudu.source.KuduInputFormatBuilder;
 import com.dtstack.chunjun.connector.kudu.table.lookup.KuduAllTableFunction;
 import com.dtstack.chunjun.connector.kudu.table.lookup.KuduLruTableFunction;
 import com.dtstack.chunjun.enums.CacheType;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
-import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
+import com.dtstack.chunjun.table.connector.source.ParallelAsyncLookupFunctionProvider;
+import com.dtstack.chunjun.table.connector.source.ParallelLookupFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
-import com.dtstack.chunjun.table.connector.source.ParallelTableFunctionProvider;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
@@ -39,43 +39,39 @@ import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushD
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
-import java.util.Arrays;
+import java.util.List;
 
-/**
- * @author tiezhu
- * @since 2021/6/9 星期三
- */
 public class KuduDynamicTableSource
         implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
     private static final String IDENTIFIER = "Kudu";
 
-    private final KuduSourceConf sourceConf;
+    private final KuduSourceConfig sourceConf;
 
-    private final KuduLookupConf kuduLookupConf;
+    private final KuduLookupConfig kuduLookupConfig;
 
-    private TableSchema tableSchema;
+    private final ResolvedSchema tableSchema;
 
     public KuduDynamicTableSource(
-            KuduSourceConf sourceConf, KuduLookupConf lookupConf, TableSchema tableSchema) {
+            KuduSourceConfig sourceConf,
+            KuduLookupConfig lookupConfig,
+            ResolvedSchema tableSchema) {
         this.sourceConf = sourceConf;
         this.tableSchema = tableSchema;
-        this.kuduLookupConf = lookupConf;
+        this.kuduLookupConfig = lookupConfig;
     }
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
         KuduInputFormatBuilder builder = new KuduInputFormatBuilder();
 
-        RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
+        RowType rowType = (RowType) tableSchema.toPhysicalRowDataType().getLogicalType();
         InternalTypeInfo<RowData> typeInfo = InternalTypeInfo.of(rowType);
 
         builder.setKuduSourceConf(sourceConf);
-        builder.setRowConverter(
-                new KuduRowConverter(rowType, Arrays.asList(tableSchema.getFieldNames())));
+        builder.setRowConverter(new KuduRowConverter(rowType, tableSchema.getColumnNames()));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInfo),
@@ -90,7 +86,7 @@ public class KuduDynamicTableSource
 
     @Override
     public DynamicTableSource copy() {
-        return new KuduDynamicTableSource(sourceConf, kuduLookupConf, tableSchema);
+        return new KuduDynamicTableSource(sourceConf, kuduLookupConfig, tableSchema);
     }
 
     @Override
@@ -100,43 +96,38 @@ public class KuduDynamicTableSource
 
     @Override
     public LookupRuntimeProvider getLookupRuntimeProvider(LookupContext context) {
+        List<String> columnNames = tableSchema.getColumnNames();
         String[] keyNames = new String[context.getKeys().length];
         for (int i = 0; i < keyNames.length; i++) {
             int[] innerKeyArr = context.getKeys()[i];
             Preconditions.checkArgument(
                     innerKeyArr.length == 1, "Kudu only support non-nested look up keys");
-            keyNames[i] = tableSchema.getFieldNames()[innerKeyArr[0]];
+            keyNames[i] = columnNames.get(innerKeyArr[0]);
         }
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
-        final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
+        final RowType rowType = (RowType) tableSchema.toPhysicalRowDataType().getLogicalType();
 
-        if (kuduLookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
-            return ParallelTableFunctionProvider.of(
+        if (kuduLookupConfig.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+            return ParallelLookupFunctionProvider.of(
                     new KuduAllTableFunction(
-                            kuduLookupConf,
-                            new KuduRowConverter(
-                                    rowType, Arrays.asList(tableSchema.getFieldNames())),
-                            tableSchema.getFieldNames(),
+                            kuduLookupConfig,
+                            new KuduRowConverter(rowType, columnNames),
+                            columnNames.toArray(new String[0]),
                             keyNames),
-                    kuduLookupConf.getParallelism());
+                    kuduLookupConfig.getParallelism());
         }
-        return ParallelAsyncTableFunctionProvider.of(
+        return ParallelAsyncLookupFunctionProvider.of(
                 new KuduLruTableFunction(
-                        kuduLookupConf,
-                        new KuduRowConverter(rowType, Arrays.asList(tableSchema.getFieldNames())),
-                        tableSchema.getFieldNames(),
+                        kuduLookupConfig,
+                        new KuduRowConverter(rowType, columnNames),
+                        columnNames.toArray(new String[0]),
                         keyNames),
-                kuduLookupConf.getParallelism());
+                kuduLookupConfig.getParallelism());
     }
 
     @Override
     public boolean supportsNestedProjection() {
         // kudu doesn't support nested projection
         return false;
-    }
-
-    @Override
-    public void applyProjection(int[][] projectedFields) {
-        this.tableSchema = TableSchemaUtils.projectSchema(tableSchema, projectedFields);
     }
 }

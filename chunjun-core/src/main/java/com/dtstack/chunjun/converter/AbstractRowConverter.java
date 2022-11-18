@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.converter;
 
-import com.dtstack.chunjun.conf.CommonConfig;
-import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.enums.ColumnType;
@@ -29,9 +29,8 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
@@ -45,10 +44,11 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * Converter that is responsible to convert between JDBC object and Flink SQL internal data
  * structure {@link RowData}.
  */
+@Slf4j
 public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implements Serializable {
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -7797305256083360152L;
+
     protected RowType rowType;
     protected ArrayList<IDeserializationConverter> toInternalConverters;
     protected ArrayList<ISerializationConverter> toExternalConverters;
@@ -96,7 +96,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
                 try {
                     return IDeserializationConverter.deserialize(val);
                 } catch (Exception e) {
-                    LOG.error("value [{}] convent failed ", val);
+                    log.error("value [{}] convent failed ", val);
                     throw e;
                 }
             }
@@ -149,7 +149,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
             try {
                 return String.valueOf(simpleDateFormat.parse(val).getTime());
             } catch (ParseException e) {
-                LOG.warn(
+                log.warn(
                         String.format(
                                 "Cannot parse val %s with the given parseFormat[%s],try parsing with format[%s]",
                                 val, parseFormat, format),
@@ -224,5 +224,9 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
 
     public void setCommonConfig(CommonConfig commonConfig) {
         this.commonConfig = commonConfig;
+    }
+
+    public RowType getRowType() {
+        return rowType;
     }
 }

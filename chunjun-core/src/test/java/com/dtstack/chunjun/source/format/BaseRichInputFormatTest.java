@@ -36,7 +36,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -194,7 +193,7 @@ public class BaseRichInputFormatTest {
     }
 
     @Test
-    public void testInitRestoreInfo() throws IOException {
+    public void testInitRestoreInfo() {
         // reset thread classloader otherwise it will affect other test classes
         classloaderSafeInvoke(
                 () -> {
@@ -205,7 +204,7 @@ public class BaseRichInputFormatTest {
                                     .put(Metrics.READ_BYTES, new LongCounter(2000L))
                                     .put(Metrics.READ_DURATION, new LongCounter(3000L))
                                     .build());
-                    inputFormat.setRestoreState(formatState);
+                    inputFormat.setFormatState(formatState);
                     inputFormat.open(new MockSplit(1, 1));
 
                     assertEquals(1000L, inputFormat.numReadCounter.getLocalValue());
@@ -215,7 +214,7 @@ public class BaseRichInputFormatTest {
     }
 
     @Test
-    public void testGetFormatState() throws IOException {
+    public void testGetFormatState() {
         // reset thread classloader otherwise it will affect other test classes
         classloaderSafeInvoke(
                 () -> {
@@ -226,7 +225,7 @@ public class BaseRichInputFormatTest {
                                     .put(Metrics.READ_BYTES, new LongCounter(0L))
                                     .put(Metrics.READ_DURATION, new LongCounter(0L))
                                     .build());
-                    inputFormat.setRestoreState(formatState);
+                    inputFormat.setFormatState(formatState);
                     inputFormat.open(new MockSplit(1, 1));
                     inputFormat.nextRecord(MockInputFormat.SUCCESS_DATA);
                     FormatState newFormatState = inputFormat.getFormatState();

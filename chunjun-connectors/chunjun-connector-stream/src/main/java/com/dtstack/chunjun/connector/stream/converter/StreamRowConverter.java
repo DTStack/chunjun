@@ -59,7 +59,7 @@ import static java.time.temporal.ChronoField.MILLI_OF_DAY;
 public class StreamRowConverter
         extends AbstractRowConverter<RowData, RowData, RowData, LogicalType> {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 6652637680662065910L;
 
     private final Random random = new Random();
 
@@ -100,7 +100,7 @@ public class StreamRowConverter
 
     @Override
     public RowData toExternal(RowData rowData, RowData output) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, output);
         }
         return output;

@@ -28,7 +28,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class OceanBaseCdcEventRow implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = -8615379237827243622L;
 
     /** The database name in log message, would be in format 'tenant.db'. */
     private final String database;

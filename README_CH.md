@@ -143,7 +143,7 @@ Standalone模式依赖Flink Standalone环境，不依赖Hadoop环境。
 ##### 1. 添加chunjun依赖包
 1) 根据实际情况找到依赖文件:
    通过maven编译的方式构建项目时，依赖文件目录为'chunjun-dist';
-   通过官网下载压缩包解压使用时，依赖文件目录为解压后的目录，例如'chunjun-assembly-1.12-SNAPSHOT-chunjun-dist'
+   通过官网下载压缩包解压使用时，依赖文件目录为解压后的目录，例如'chunjun-assembly-${revision}-chunjun-dist'
 
 2) 将依赖文件复制到Flink lib目录下,例如
 ```shell

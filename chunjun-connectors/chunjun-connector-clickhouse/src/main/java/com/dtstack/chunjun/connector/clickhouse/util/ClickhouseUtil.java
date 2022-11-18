@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.clickhouse.util;
 
-import com.dtstack.chunjun.util.SysUtil;
+import com.dtstack.chunjun.util.ThreadUtil;
 
 import ru.yandex.clickhouse.BalancedClickhouseDataSource;
 import ru.yandex.clickhouse.settings.ClickHouseQueryParam;
@@ -57,11 +57,10 @@ public class ClickhouseUtil {
                 if (i == MAX_RETRY_TIMES - 1) {
                     throw e;
                 } else {
-                    SysUtil.sleep(3000);
+                    ThreadUtil.sleepMilliseconds(3000);
                 }
             }
         }
-
         return conn;
     }
 }

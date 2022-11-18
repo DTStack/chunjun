@@ -18,39 +18,34 @@
 
 package com.dtstack.chunjun.connector.mongodb.table;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
-import com.dtstack.chunjun.connector.mongodb.conf.MongoWriteConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
+import com.dtstack.chunjun.connector.mongodb.config.MongoWriteConfig;
 import com.dtstack.chunjun.connector.mongodb.converter.MongodbRowConverter;
 import com.dtstack.chunjun.connector.mongodb.sink.MongodbOutputFormat;
 import com.dtstack.chunjun.connector.mongodb.sink.MongodbOutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
 public class MongodbDynamicTableSink implements DynamicTableSink {
 
-    private final MongoClientConf mongoClientConf;
-    private final TableSchema physicalSchema;
-    private final MongoWriteConf mongoWriteConf;
+    private final MongoClientConfig mongoClientConfig;
+    private final ResolvedSchema resolvedSchema;
+    private final MongoWriteConfig mongoWriteConfig;
 
     public MongodbDynamicTableSink(
-            MongoClientConf mongoClientConf,
-            TableSchema physicalSchema,
-            MongoWriteConf mongoWriteConf) {
-        this.mongoClientConf = mongoClientConf;
-        this.physicalSchema = physicalSchema;
-        this.mongoWriteConf = mongoWriteConf;
+            MongoClientConfig mongoClientConfig,
+            ResolvedSchema resolvedSchema,
+            MongoWriteConfig mongoWriteConfig) {
+        this.mongoClientConfig = mongoClientConfig;
+        this.resolvedSchema = resolvedSchema;
+        this.mongoWriteConfig = mongoWriteConfig;
     }
 
     @Override
@@ -64,24 +59,25 @@ public class MongodbDynamicTableSink implements DynamicTableSink {
 
     @Override
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        String[] fieldNames = physicalSchema.getFieldNames();
+        final RowType rowType = (RowType) resolvedSchema.toPhysicalRowDataType().getLogicalType();
+        String[] fieldNames = resolvedSchema.getColumnNames().toArray(new String[0]);
         MongodbOutputFormatBuilder builder =
                 new MongodbOutputFormatBuilder(
-                        null, mongoClientConf, null, MongodbOutputFormat.WriteMode.INSERT);
-        ChunJunCommonConf commonConf = new ChunJunCommonConf();
-        commonConf.setBatchSize(mongoWriteConf.getFlushMaxRows());
-        commonConf.setFlushIntervalMills(mongoWriteConf.getFlushInterval());
-        builder.setConfig(commonConf);
+                        null, mongoClientConfig, null, MongodbOutputFormat.WriteMode.INSERT);
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setBatchSize(mongoWriteConfig.getFlushMaxRows());
+        commonConfig.setFlushIntervalMills(mongoWriteConfig.getFlushInterval());
+        builder.setConfig(commonConfig);
 
         builder.setRowConverter(new MongodbRowConverter(rowType, fieldNames));
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction(builder.finish()), mongoWriteConf.getParallelism());
+                new DtOutputFormatSinkFunction<>(builder.finish()),
+                mongoWriteConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new MongodbDynamicTableSink(mongoClientConf, physicalSchema, mongoWriteConf);
+        return new MongodbDynamicTableSink(mongoClientConfig, resolvedSchema, mongoWriteConfig);
     }
 
     @Override

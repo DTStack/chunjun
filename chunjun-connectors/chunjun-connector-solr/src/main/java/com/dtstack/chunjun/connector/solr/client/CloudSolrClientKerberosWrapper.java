@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.solr.client;
 
-import com.dtstack.chunjun.connector.solr.SolrConf;
+import com.dtstack.chunjun.connector.solr.SolrConfig;
 import com.dtstack.chunjun.security.KerberosConfig;
 import com.dtstack.chunjun.security.KerberosUtil;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -27,6 +27,7 @@ import com.dtstack.chunjun.util.GsonUtil;
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.runtime.security.DynamicConfiguration;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -39,8 +40,6 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.security.auth.Subject;
 import javax.security.auth.login.AppConfigurationEntry;
@@ -48,7 +47,6 @@ import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -57,30 +55,26 @@ import java.util.Optional;
 
 import static com.dtstack.chunjun.connector.solr.client.ChunJunKrb5HttpClientBuilder.SOLR_KERBEROS_JAAS_APPNAME;
 
-/**
- * A CloudSolrClient wrapper for kerberos auth.
- *
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/15
- */
+/** A CloudSolrClient wrapper for kerberos auth. */
+@Slf4j
 public class CloudSolrClientKerberosWrapper extends SolrClient {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    private static final long serialVersionUID = 5571699508394128131L;
 
     private static final String JAAS_APP_NAME = "SolrJClient";
-    private final SolrConf solrConf;
+    private final SolrConfig solrConfig;
     private CloudSolrClient cloudSolrClient;
     private Subject subject;
-    private DistributedCache distributedCache;
+    private final DistributedCache distributedCache;
 
-    public CloudSolrClientKerberosWrapper(SolrConf solrConf, DistributedCache distributedCache) {
-        this.solrConf = solrConf;
+    public CloudSolrClientKerberosWrapper(
+            SolrConfig solrConfig, DistributedCache distributedCache) {
+        this.solrConfig = solrConfig;
         this.distributedCache = distributedCache;
     }
 
     public void init() {
-        if (solrConf.getKerberosConfig() != null) {
+        if (solrConfig.getKerberosConfig() != null) {
             try {
                 initKerberos();
             } catch (LoginException e) {
@@ -142,8 +136,7 @@ public class CloudSolrClientKerberosWrapper extends SolrClient {
     }
 
     @Override
-    public NamedList<Object> request(SolrRequest request, String collection)
-            throws SolrServerException, IOException {
+    public NamedList<Object> request(SolrRequest request, String collection) {
         throw new ChunJunRuntimeException("do not support");
     }
 
@@ -163,15 +156,16 @@ public class CloudSolrClientKerberosWrapper extends SolrClient {
     private void connect() {
         cloudSolrClient =
                 new CloudSolrClient.Builder(
-                                solrConf.getZkHosts(), Optional.ofNullable(solrConf.getZkChroot()))
+                                solrConfig.getZkHosts(),
+                                Optional.ofNullable(solrConfig.getZkChroot()))
                         .build();
-        String collectionName = solrConf.getCollection();
+        String collectionName = solrConfig.getCollection();
         cloudSolrClient.setDefaultCollection(collectionName);
         cloudSolrClient.connect();
     }
 
     private void initKerberos() throws LoginException {
-        KerberosConfig kerberosConfig = solrConf.getKerberosConfig();
+        KerberosConfig kerberosConfig = solrConfig.getKerberosConfig();
         Map<String, Object> kerberosConfigMap =
                 GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(kerberosConfig), Map.class);
         String principal = kerberosConfig.getPrincipal();
@@ -182,7 +176,7 @@ public class CloudSolrClientKerberosWrapper extends SolrClient {
         KerberosUtil.reloadKrb5conf(krb5conf);
         subject = createSubject(principal, keytab);
         setKrb5HttpClient(principal, keytab);
-        LOG.info("Kerberos login principal: {}, keytab: {}", principal, keytab);
+        log.info("Kerberos login principal: {}, keytab: {}", principal, keytab);
     }
 
     public String loadKrbFile(Map<String, Object> kerberosConfigMap, String filePath) {

@@ -25,13 +25,12 @@ import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.GsonUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,17 +45,15 @@ import static com.dtstack.chunjun.connector.http.common.ConstantValue.CSV_DECODE
 import static com.dtstack.chunjun.connector.http.common.ConstantValue.TEXT_DECODE;
 import static com.dtstack.chunjun.connector.http.common.ConstantValue.XML_DECODE;
 
-/**
- * httpClient
- *
- * @author by shifang@dtstack.com @Date 2020/9/25
- */
+@Slf4j
 public class HttpClient {
-    private static final Logger LOG = LoggerFactory.getLogger(HttpClient.class);
 
-    private ScheduledExecutorService scheduledExecutorService;
-    private transient CloseableHttpClient httpClient;
-    private BlockingQueue<ResponseValue> queue;
+    private final ScheduledExecutorService scheduledExecutorService;
+
+    private final transient CloseableHttpClient httpClient;
+
+    private final BlockingQueue<ResponseValue> queue;
+
     private static final String THREAD_NAME = "restApiReader-thread";
 
     protected HttpRestConfig restConfig;
@@ -145,10 +142,10 @@ public class HttpClient {
         Thread.currentThread()
                 .setUncaughtExceptionHandler(
                         (t, e) ->
-                                LOG.warn(
+                                log.warn(
                                         "HttpClient run failed, Throwable = {}, HttpClient->{}",
                                         ExceptionUtil.getErrorMessage(e),
-                                        this.toString()));
+                                        this));
 
         // 参数构建
         try {
@@ -180,7 +177,7 @@ public class HttpClient {
             return;
         }
 
-        LOG.debug("currentParam is {}", currentParam);
+        log.debug("currentParam is {}", currentParam);
         doExecute(ConstantValue.REQUEST_RETRY_TIME);
         first = false;
         requestRetryTime = 3;
@@ -196,7 +193,7 @@ public class HttpClient {
                             -1,
                             null,
                             "the maximum number of retries has been reached，task closed， httpClient value is "
-                                    + this.toString(),
+                                    + this,
                             null,
                             null));
             running = false;
@@ -204,7 +201,7 @@ public class HttpClient {
         }
 
         // 执行请求
-        String responseValue = null;
+        String responseValue;
         int responseStatus;
         try {
 
@@ -217,7 +214,7 @@ public class HttpClient {
                             restConfig.getUrl());
             CloseableHttpResponse httpResponse = httpClient.execute(request);
             if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                LOG.warn(
+                log.warn(
                         "httpStatus is {} and is not 200 ,try retry",
                         httpResponse.getStatusLine().getStatusCode());
                 doExecute(--requestRetryTime);
@@ -228,9 +225,9 @@ public class HttpClient {
             responseStatus = httpResponse.getStatusLine().getStatusCode();
         } catch (Throwable e) {
             // 只要本次请求中出现了异常 都会进行重试，如果重试次数达到了就真正结束任务
-            LOG.warn(
+            log.warn(
                     "httpClient value is {}, error info is {}",
-                    this.toString(),
+                    this,
                     ExceptionUtil.getErrorMessage(e));
             doExecute(--requestRetryTime);
             return;
@@ -286,9 +283,9 @@ public class HttpClient {
             prevResponse = responseValue;
         } catch (Throwable e) {
             // 只要出现了异常 就任务结束了
-            LOG.warn(
+            log.warn(
                     "httpClient value is {},responseValue is {}, error info is {}",
-                    this.toString(),
+                    this,
                     responseValue,
                     ExceptionUtil.getErrorMessage(e));
             processData(
@@ -309,7 +306,7 @@ public class HttpClient {
         try {
             queue.put(value);
         } catch (InterruptedException e1) {
-            LOG.warn(
+            log.warn(
                     "put value error,value is {},currentParam is {} ,errorInfo is {}",
                     value,
                     currentParam,
@@ -322,7 +319,7 @@ public class HttpClient {
         try {
             responseValue = queue.poll();
         } catch (Exception e) {
-            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
+            log.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
         }
 
         return responseValue;
@@ -333,7 +330,7 @@ public class HttpClient {
             HttpUtil.closeClient(httpClient);
             scheduledExecutorService.shutdown();
         } catch (Exception e) {
-            LOG.warn("close resource error,msg is " + ExceptionUtil.getErrorMessage(e));
+            log.warn("close resource error,msg is " + ExceptionUtil.getErrorMessage(e));
         }
     }
 

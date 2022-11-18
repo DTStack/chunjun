@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.hive3.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hive3.converter.HdfsRawTypeConverter;
 import com.dtstack.chunjun.connector.hive3.util.Hive3Util;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -38,22 +38,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** @author liuliu 2022/3/23 */
 public class Hive3SinkFactory extends SinkFactory {
-    private final HdfsConf hdfsConf;
+    private final HdfsConfig hdfsConfig;
 
-    public Hive3SinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        hdfsConf =
+    public Hive3SinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
+        hdfsConfig =
                 GsonUtil.GSON.fromJson(
-                        GsonUtil.GSON.toJson(syncConf.getWriter().getParameter()), HdfsConf.class);
-        hdfsConf.setColumn(syncConf.getWriter().getFieldList());
-        hdfsConf.setFieldDelimiter(
+                        GsonUtil.GSON.toJson(syncConfig.getWriter().getParameter()),
+                        HdfsConfig.class);
+        hdfsConfig.setColumn(syncConfig.getWriter().getFieldList());
+        hdfsConfig.setFieldDelimiter(
                 com.dtstack.chunjun.util.StringUtil.convertRegularExpr(
-                        hdfsConf.getFieldDelimiter()));
+                        hdfsConfig.getFieldDelimiter()));
 
-        initFullColumnMessage(hdfsConf);
-        super.initCommonConf(hdfsConf);
+        initFullColumnMessage(hdfsConfig);
+        super.initCommonConf(hdfsConfig);
     }
 
     @Override
@@ -64,41 +64,41 @@ public class Hive3SinkFactory extends SinkFactory {
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         Hive3OutputFormatBuilder builder =
-                Hive3OutputFormatBuilder.newBuild(hdfsConf.getFileType());
-        builder.setHdfsConf(hdfsConf);
+                Hive3OutputFormatBuilder.newBuild(hdfsConfig.getFileType());
+        builder.setHdfsConf(hdfsConfig);
         AbstractRowConverter rowConverter =
                 Hive3Util.createRowConverter(
                         useAbstractBaseColumn,
-                        hdfsConf.getFileType(),
-                        hdfsConf.getColumn(),
+                        hdfsConfig.getFileType(),
+                        hdfsConfig.getColumn(),
                         getRawTypeConverter(),
-                        hdfsConf);
+                        hdfsConfig);
 
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());
     }
 
-    public void initFullColumnMessage(HdfsConf hdfsConf) {
-        List<String> fullColumnNameList = hdfsConf.getFullColumnName();
-        List<String> fullColumnTypeList = hdfsConf.getFullColumnType();
+    public void initFullColumnMessage(HdfsConfig hdfsConfig) {
+        List<String> fullColumnNameList = hdfsConfig.getFullColumnName();
+        List<String> fullColumnTypeList = hdfsConfig.getFullColumnType();
         if (CollectionUtils.isEmpty(fullColumnNameList)) {
             fullColumnNameList =
-                    hdfsConf.getColumn().stream()
-                            .map(FieldConf::getName)
+                    hdfsConfig.getColumn().stream()
+                            .map(FieldConfig::getName)
                             .collect(Collectors.toList());
         }
         if (CollectionUtils.isEmpty(fullColumnTypeList)) {
             fullColumnTypeList = new ArrayList<>(fullColumnNameList.size());
         }
         int[] fullColumnIndexes = new int[fullColumnNameList.size()];
-        List<FieldConf> fieldConfList = hdfsConf.getColumn();
+        List<FieldConfig> fieldConfList = hdfsConfig.getColumn();
         for (int i = 0; i < fullColumnNameList.size(); i++) {
             String columnName = fullColumnNameList.get(i);
             int j = 0;
             for (; j < fieldConfList.size(); j++) {
-                FieldConf fieldConf = fieldConfList.get(j);
-                if (columnName.equalsIgnoreCase(fieldConf.getName())) {
-                    fullColumnTypeList.add(fieldConf.getType());
+                FieldConfig fieldConfig = fieldConfList.get(j);
+                if (columnName.equalsIgnoreCase(fieldConfig.getName())) {
+                    fullColumnTypeList.add(fieldConfig.getType());
                     break;
                 }
             }
@@ -107,8 +107,8 @@ public class Hive3SinkFactory extends SinkFactory {
             }
             fullColumnIndexes[i] = j;
         }
-        hdfsConf.setFullColumnName(fullColumnNameList);
-        hdfsConf.setFullColumnType(fullColumnTypeList);
-        hdfsConf.setFullColumnIndexes(fullColumnIndexes);
+        hdfsConfig.setFullColumnName(fullColumnNameList);
+        hdfsConfig.setFullColumnType(fullColumnTypeList);
+        hdfsConfig.setFullColumnIndexes(fullColumnIndexes);
     }
 }

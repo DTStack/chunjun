@@ -18,47 +18,18 @@
 
 package com.dtstack.chunjun.connector.starrocks.source.be.entity;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.List;
 
+@Data
 public class Tablet implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 8313899328024578523L;
 
-    private List<String> routings;
+    private List<String> routing;
     private int version;
     private long versionHash;
     private long schemaHash;
-
-    public List<String> getRoutings() {
-        return routings;
-    }
-
-    public void setRoutings(List<String> routingList) {
-        this.routings = routingList;
-    }
-
-    public int getVersion() {
-        return version;
-    }
-
-    public void setVersion(int version) {
-        this.version = version;
-    }
-
-    public long getVersionHash() {
-        return versionHash;
-    }
-
-    public void setVersionHash(long versionHash) {
-        this.versionHash = versionHash;
-    }
-
-    public long getSchemaHash() {
-        return schemaHash;
-    }
-
-    public void setSchemaHash(long schemaHash) {
-        this.schemaHash = schemaHash;
-    }
 }

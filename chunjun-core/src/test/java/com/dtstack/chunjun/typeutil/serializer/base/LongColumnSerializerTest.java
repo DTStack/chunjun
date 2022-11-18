@@ -30,7 +30,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import java.math.BigDecimal;
 import java.util.function.BiFunction;
 
-/** @author liuliu 2022/5/13 */
 public class LongColumnSerializerTest extends SerializerTestBase<AbstractBaseColumn> {
 
     @Override

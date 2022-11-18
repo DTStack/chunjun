@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRawTypeConverterTest;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -44,27 +44,24 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-/** @author liuliu 2022/8/15 */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({JdbcUtil.class, Connection.class})
 public class SourceFactoryTest {
 
     private static TestSourceFactory sourceFactory;
-    private static StreamExecutionEnvironment env;
-    private static String json;
 
-    private static SyncConf syncConf;
+    private static SyncConfig syncConfig;
 
     @Before
     public void setup() throws IOException {
         mockStatic(JdbcUtil.class);
 
-        env = mock(StreamExecutionEnvironment.class);
-        json = readFile("sync_test.json");
-        syncConf = SyncConf.parseJob(json);
+        StreamExecutionEnvironment env = mock(StreamExecutionEnvironment.class);
+        String json = readFile("sync_test.json");
+        syncConfig = SyncConfig.parseJob(json);
         sourceFactory =
                 new TestSourceFactory(
-                        syncConf,
+                        syncConfig,
                         env,
                         new JdbcDialect() {
                             @Override
@@ -89,7 +86,8 @@ public class SourceFactoryTest {
 
         List<String> name = new ArrayList<>();
         List<String> type = new ArrayList<>();
-        syncConf.getReader()
+        syncConfig
+                .getReader()
                 .getFieldList()
                 .forEach(
                         field -> {
@@ -102,7 +100,6 @@ public class SourceFactoryTest {
 
         when(pair.getLeft()).thenReturn(name);
         when(pair.getRight()).thenReturn(type);
-        sourceFactory.createSource();
     }
 
     @Test
@@ -112,8 +109,8 @@ public class SourceFactoryTest {
 
     public static class TestSourceFactory extends JdbcSourceFactory {
         public TestSourceFactory(
-                SyncConf syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
-            super(syncConf, env, jdbcDialect);
+                SyncConfig syncConfig, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
+            super(syncConfig, env, jdbcDialect);
         }
     }
 }

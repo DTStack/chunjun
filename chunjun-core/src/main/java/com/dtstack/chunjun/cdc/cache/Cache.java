@@ -19,15 +19,10 @@ package com.dtstack.chunjun.cdc.cache;
 
 import org.apache.flink.table.data.RowData;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Cache {
-
-    private static final Logger LOG = LoggerFactory.getLogger(Cache.class);
 
     private final AtomicBoolean isCached = new AtomicBoolean(false);
 

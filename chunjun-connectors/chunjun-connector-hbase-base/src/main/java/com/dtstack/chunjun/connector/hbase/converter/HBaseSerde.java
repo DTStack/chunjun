@@ -45,11 +45,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getPrecision;
-import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.hasFamily;
 import static org.apache.flink.util.Preconditions.checkArgument;
 
 /** Utilities for HBase serialization and deserialization. */
 public class HBaseSerde implements Serializable {
+
+    private static final long serialVersionUID = -4326665856298124101L;
 
     private static final byte[] EMPTY_BYTES = new byte[] {};
 
@@ -70,8 +71,8 @@ public class HBaseSerde implements Serializable {
 
     protected final int fieldLength;
 
-    private GenericRowData reusedRow;
-    private GenericRowData[] reusedFamilyRows;
+    private final GenericRowData reusedRow;
+    private final GenericRowData[] reusedFamilyRows;
 
     private final @Nullable FieldEncoder keyEncoder;
     protected final @Nullable FieldDecoder keyDecoder;
@@ -289,7 +290,7 @@ public class HBaseSerde implements Serializable {
             LogicalType fieldType, final byte[] nullStringBytes) {
         final FieldEncoder encoder = createFieldEncoder(fieldType);
         if (fieldType.isNullable()) {
-            if (hasFamily(fieldType, LogicalTypeFamily.CHARACTER_STRING)) {
+            if (fieldType.is(LogicalTypeFamily.CHARACTER_STRING)) {
                 // special logic for null string values, because HBase can store empty bytes for
                 // string
                 return (row, pos) -> {
@@ -403,7 +404,7 @@ public class HBaseSerde implements Serializable {
             LogicalType fieldType, final byte[] nullStringBytes) {
         final FieldDecoder decoder = createFieldDecoder(fieldType);
         if (fieldType.isNullable()) {
-            if (hasFamily(fieldType, LogicalTypeFamily.CHARACTER_STRING)) {
+            if (fieldType.is(LogicalTypeFamily.CHARACTER_STRING)) {
                 return value -> {
                     if (value == null || Arrays.equals(value, nullStringBytes)) {
                         return null;

@@ -29,9 +29,8 @@ import com.dtstack.chunjun.connector.ftp.extend.ftp.format.IFileReadFormat;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.read.builder.ExcelReaderBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,9 +42,9 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
+@Slf4j
 public class ExcelFileFormat implements IFileReadFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ExcelFileFormat.class);
     private BlockingQueue<Row> queue;
     private ThreadPoolExecutor executorService;
     /** The number of cells per row in the Excel file. */
@@ -57,8 +56,8 @@ public class ExcelFileFormat implements IFileReadFormat {
     private Row row;
 
     @Override
-    public void open(File file, InputStream inputStream, IFormatConfig config) throws IOException {
-        LOG.info("open file : {}", file.getFileName());
+    public void open(File file, InputStream inputStream, IFormatConfig config) {
+        log.info("open file : {}", file.getFileName());
         this.cellCount = config.getFields().length;
         ExcelReadListener listener = new ExcelReadListener();
         this.queue = listener.getQueue();
@@ -112,7 +111,7 @@ public class ExcelFileFormat implements IFileReadFormat {
     }
 
     @Override
-    public String[] nextRecord() throws IOException {
+    public String[] nextRecord() {
         String[] data;
         if (row.isEnd()) {
             try {

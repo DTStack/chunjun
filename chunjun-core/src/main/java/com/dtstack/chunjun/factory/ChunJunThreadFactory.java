@@ -21,7 +21,6 @@ package com.dtstack.chunjun.factory;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/** company: www.dtstack.com author: sishu.yss create: 2018/09/12 */
 public class ChunJunThreadFactory implements ThreadFactory {
     private static final AtomicInteger POOL_NUMBER = new AtomicInteger(1);
     private static final AtomicInteger THREAD_NUMBER = new AtomicInteger(1);

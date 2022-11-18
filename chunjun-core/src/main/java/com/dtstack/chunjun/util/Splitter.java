@@ -21,19 +21,12 @@ package com.dtstack.chunjun.util;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A DFA split string to SQL statements.
- *
- * @author Ada Wong
- * @program chunjun
- * @create 2021/05/31
- */
 public class Splitter {
 
     private static final char SINGLE_QUOTE = '\'';
     private static final char DOUBLE_QUOTE = '\"';
     private static final char BACKSLASH = '\\';
-    private char delimiter;
+    private final char delimiter;
 
     public Splitter(char delimiter) {
         this.delimiter = delimiter;
@@ -190,10 +183,10 @@ public class Splitter {
         UNQUOTED
     }
 
-    private class Token {
+    private static class Token {
 
-        private TokenKind kind;
-        private String val;
+        private final TokenKind kind;
+        private final String val;
 
         Token(TokenKind kind, String val) {
             this.kind = kind;

@@ -26,9 +26,8 @@ import com.dtstack.chunjun.util.TelnetUtil;
 
 import org.apache.flink.util.FlinkRuntimeException;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -47,13 +46,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/**
- * Date: 2019/12/03 Company: www.dtstack.com
- *
- * @author tudou
- */
+@Slf4j
 public class SqlServerCdcUtil {
-    private static final Logger LOG = LoggerFactory.getLogger(SqlServerCdcUtil.class);
 
     public static final String DRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     public static Pattern p = Pattern.compile("\\[(.*?)]");
@@ -84,14 +78,6 @@ public class SqlServerCdcUtil {
         }
     }
 
-    /**
-     * check database cdc is enable
-     *
-     * @param conn
-     * @param databaseName
-     * @return
-     * @throws SQLException
-     */
     public static boolean checkEnabledCdcDatabase(Connection conn, String databaseName)
             throws SQLException {
 
@@ -103,7 +89,7 @@ public class SqlServerCdcUtil {
                 ret = rs.next();
             }
         } catch (SQLException e) {
-            LOG.error(
+            log.error(
                     "error to query {} Enabled CDC or not, sql = {}, e = {}",
                     databaseName,
                     String.format(CHECK_CDC_DATABASE, databaseName),
@@ -113,14 +99,6 @@ public class SqlServerCdcUtil {
         return ret;
     }
 
-    /**
-     * check table is enable
-     *
-     * @param conn
-     * @param tableSet
-     * @return
-     * @throws SQLException
-     */
     public static Set<String> checkUnEnabledCdcTables(Connection conn, Collection<String> tableSet)
             throws SQLException {
         if (CollectionUtils.isEmpty(tableSet)) {
@@ -136,7 +114,7 @@ public class SqlServerCdcUtil {
                 }
             }
         } catch (SQLException e) {
-            LOG.error(
+            log.error(
                     "error to query UnEnabled CDC Tables, sql = {}, e = {}",
                     CHECK_CDC_TABLE,
                     ExceptionUtil.getErrorMessage(e));
@@ -145,14 +123,6 @@ public class SqlServerCdcUtil {
         return unEnabledCdcTables;
     }
 
-    /**
-     * get tables which changes
-     *
-     * @param conn
-     * @param databaseName
-     * @return
-     * @throws SQLException
-     */
     public static Set<ChangeTable> queryChangeTableSet(Connection conn, String databaseName)
             throws SQLException {
         Set<ChangeTable> changeTableSet = new HashSet<>();
@@ -177,19 +147,12 @@ public class SqlServerCdcUtil {
                 }
             }
         } catch (SQLException e) {
-            LOG.error("error to query change table set, e = {}", ExceptionUtil.getErrorMessage(e));
+            log.error("error to query change table set, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
         }
         return changeTableSet;
     }
 
-    /**
-     * get current max lsn
-     *
-     * @param conn
-     * @return
-     * @throws SQLException
-     */
     public static Lsn getMaxLsn(Connection conn) throws SQLException {
         Lsn lsn = null;
         try (Statement statement = conn.createStatement()) {
@@ -199,28 +162,19 @@ public class SqlServerCdcUtil {
                 lsn = Lsn.valueOf(rs.getBytes(1));
             }
         } catch (SQLException e) {
-            LOG.error("error to query change table set, e = {}", ExceptionUtil.getErrorMessage(e));
+            log.error("error to query change table set, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
         }
         return lsn;
     }
 
-    /**
-     * get tables detail changes
-     *
-     * @param conn
-     * @param databaseName
-     * @param tableList
-     * @return
-     * @throws SQLException
-     */
     public static ChangeTable[] getCdcTablesToQuery(
             Connection conn, String databaseName, List<String> tableList) throws SQLException {
         Set<ChangeTable> cdcEnabledTableSet =
                 SqlServerCdcUtil.queryChangeTableSet(conn, databaseName);
 
         if (cdcEnabledTableSet.isEmpty()) {
-            LOG.error(
+            log.error(
                     "No table has enabled CDC or security constraints prevents getting the list of change tables");
         }
 
@@ -249,7 +203,7 @@ public class SqlServerCdcUtil {
                 }
                 currentTable.setStopLsn(futureTable.getStartLsn());
                 changeTableList.add(futureTable);
-                LOG.info(
+                log.info(
                         "Multiple capture instances present for the same table: {} and {}",
                         currentTable,
                         futureTable);
@@ -270,22 +224,12 @@ public class SqlServerCdcUtil {
                 ret = Lsn.valueOf(rs.getBytes(1));
             }
         } catch (SQLException e) {
-            LOG.error("error to query increment lsn, e = {}", ExceptionUtil.getErrorMessage(e));
+            log.error("error to query increment lsn, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
         }
         return ret;
     }
 
-    /**
-     * get changes resultSet by tables
-     *
-     * @param conn
-     * @param changeTables
-     * @param intervalFromLsn
-     * @param intervalToLsn
-     * @return
-     * @throws SQLException
-     */
     public static StatementResult[] getChangesForTables(
             Connection conn, ChangeTable[] changeTables, Lsn intervalFromLsn, Lsn intervalToLsn)
             throws SQLException {
@@ -311,21 +255,12 @@ public class SqlServerCdcUtil {
                 idx++;
             }
         } catch (Exception e) {
-            LOG.error("error to getChangesForTables, e = {}", ExceptionUtil.getErrorMessage(e));
+            log.error("error to getChangesForTables, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
         }
         return resultSets;
     }
 
-    /**
-     * get jdbc connection
-     *
-     * @param url
-     * @param username
-     * @param password
-     * @return
-     * @throws SQLException
-     */
     public static Connection getConnection(String url, String username, String password)
             throws SQLException {
         Connection dbConn;

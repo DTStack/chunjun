@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.stream.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.stream.config.StreamConfig;
 import com.dtstack.chunjun.connector.stream.converter.StreamColumnConverter;
 import com.dtstack.chunjun.connector.stream.converter.StreamRawTypeConverter;
@@ -38,7 +38,7 @@ public class StreamSinkFactory extends SinkFactory {
 
     private final StreamConfig streamConfig;
 
-    public StreamSinkFactory(SyncConf config) {
+    public StreamSinkFactory(SyncConfig config) {
         super(config);
         streamConfig =
                 GsonUtil.GSON.fromJson(

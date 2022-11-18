@@ -18,14 +18,13 @@
 
 package com.dtstack.chunjun.dirty.consumer;
 
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.impl.DirtyDataEntry;
 import com.dtstack.chunjun.throwable.NoRestartException;
 
 import org.apache.flink.api.common.accumulators.LongCounter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -33,10 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.dtstack.chunjun.dirty.utils.LogUtil.warn;
 
-/**
- * @author tiezhu@dtstack
- * @date 22/09/2021 Wednesday
- */
+@Slf4j
 public abstract class DirtyDataCollector implements Runnable, Serializable {
 
     protected final LongCounter failedConsumedCounter = new LongCounter(0L);
@@ -44,8 +40,6 @@ public abstract class DirtyDataCollector implements Runnable, Serializable {
     protected final LongCounter consumedCounter = new LongCounter(0L);
 
     private static final long serialVersionUID = 1L;
-
-    private static final Logger LOG = LoggerFactory.getLogger(DirtyDataCollector.class);
 
     /** private dirty data every ${printRate} */
     protected long printRate = Long.MAX_VALUE;
@@ -79,7 +73,7 @@ public abstract class DirtyDataCollector implements Runnable, Serializable {
         addConsumed(1L);
     }
 
-    public void initializeConsumer(DirtyConf conf) {
+    public void initializeConsumer(DirtyConfig conf) {
         this.maxConsumed = conf.getMaxConsumed();
         this.maxFailedConsumed = conf.getMaxFailedConsumed();
 
@@ -111,7 +105,7 @@ public abstract class DirtyDataCollector implements Runnable, Serializable {
     protected void addFailedConsumed(Throwable cause, long failedCount) {
         failedConsumedCounter.add(failedCount);
         warn(
-                LOG,
+                log,
                 "dirty-plugins consume failed.",
                 cause,
                 printRate,
@@ -136,11 +130,11 @@ public abstract class DirtyDataCollector implements Runnable, Serializable {
     public void open() {}
 
     /**
-     * Initialize the consumer with {@link DirtyConf}
+     * Initialize the consumer with {@link DirtyConfig}
      *
      * @param conf dirty conf.
      */
-    protected abstract void init(DirtyConf conf);
+    protected abstract void init(DirtyConfig conf);
 
     /**
      * Consume the dirty data.

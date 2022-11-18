@@ -18,25 +18,24 @@
 
 package com.dtstack.chunjun.connector.starrocks.source;
 
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import com.google.common.base.Preconditions;
 
-/** @author liuliu 2022/7/26 */
 public class StarRocksInputFormatBuilder extends BaseRichInputFormatBuilder<StarRocksInputFormat> {
     public StarRocksInputFormatBuilder(StarRocksInputFormat format) {
         super(format);
     }
 
-    public void setStarRocksConf(StarRocksConf starRocksConf) {
-        super.setConfig(starRocksConf);
-        format.setStarRocksConf(starRocksConf);
+    public void setStarRocksConf(StarRocksConfig starRocksConfig) {
+        super.setConfig(starRocksConfig);
+        format.setStarRocksConf(starRocksConfig);
     }
 
     @Override
     protected void checkFormat() {
-        StarRocksConf conf = format.getStarRocksConf();
+        StarRocksConfig conf = format.getStarRocksConf();
         Preconditions.checkNotNull(conf.getUrl(), "starRocks url is required");
         Preconditions.checkNotNull(conf.getFeNodes(), "starRocks feNodes is required");
         Preconditions.checkNotNull(

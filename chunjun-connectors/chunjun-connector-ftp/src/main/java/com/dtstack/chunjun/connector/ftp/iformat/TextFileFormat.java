@@ -22,26 +22,25 @@ import com.dtstack.chunjun.connector.ftp.extend.ftp.File;
 import com.dtstack.chunjun.connector.ftp.extend.ftp.IFormatConfig;
 import com.dtstack.chunjun.connector.ftp.extend.ftp.format.IFileReadFormat;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+@Slf4j
 public class TextFileFormat implements IFileReadFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TextFileFormat.class);
     private BufferedReader bufferedReader;
     private String filedDelimiter;
     private String line;
 
     @Override
     public void open(File file, InputStream inputStream, IFormatConfig config) throws IOException {
-        LOG.info("open file : {}", file.getFileName());
+        log.info("open file : {}", file.getFileName());
         this.bufferedReader =
                 new BufferedReader(new InputStreamReader(inputStream, config.getEncoding()));
         this.filedDelimiter = config.getFieldDelimiter();
@@ -54,7 +53,7 @@ public class TextFileFormat implements IFileReadFormat {
     }
 
     @Override
-    public String[] nextRecord() throws IOException {
+    public String[] nextRecord() {
         return StringUtils.splitByWholeSeparatorPreserveAllTokens(line, filedDelimiter);
     }
 

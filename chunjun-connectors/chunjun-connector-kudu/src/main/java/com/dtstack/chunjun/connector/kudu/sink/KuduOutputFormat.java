@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.kudu.sink;
 
-import com.dtstack.chunjun.connector.kudu.conf.KuduSinkConf;
+import com.dtstack.chunjun.connector.kudu.config.KuduSinkConfig;
 import com.dtstack.chunjun.connector.kudu.util.KuduUtil;
 import com.dtstack.chunjun.sink.WriteMode;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
@@ -28,6 +28,7 @@ import com.dtstack.chunjun.throwable.WriteRecordException;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kudu.client.KuduClient;
 import org.apache.kudu.client.KuduException;
 import org.apache.kudu.client.KuduSession;
@@ -36,23 +37,16 @@ import org.apache.kudu.client.Operation;
 import org.apache.kudu.client.OperationResponse;
 import org.apache.kudu.client.RowError;
 import org.apache.kudu.client.SessionConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Locale;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
+@Slf4j
 public class KuduOutputFormat extends BaseRichOutputFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KuduOutputFormat.class);
+    private static final long serialVersionUID = -7721569835325272207L;
 
-    private static final long serialVersionUID = 1L;
-
-    private KuduSinkConf sinkConf;
+    private KuduSinkConfig sinkConfig;
 
     private KuduClient client;
 
@@ -102,7 +96,6 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void writeMultipleRecordsInternal() throws Exception {
         for (RowData rowData : rows) {
             Operation operation = toOperation(writeMode);
@@ -114,21 +107,21 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        writeMode = sinkConf.getWriteMode();
-        flushMode = transformFlushMode(sinkConf.getFlushMode());
+        writeMode = sinkConfig.getWriteMode();
+        flushMode = transformFlushMode(sinkConfig.getFlushMode());
         try {
-            client = KuduUtil.getKuduClient(sinkConf);
+            client = KuduUtil.getKuduClient(sinkConfig);
         } catch (Exception e) {
             throw new NoRestartException("Get KuduClient error", e);
         }
 
         session = client.newSession();
-        session.setMutationBufferSpace(sinkConf.getMaxBufferSize());
-        kuduTable = client.openTable(sinkConf.getTable());
+        session.setMutationBufferSpace(sinkConfig.getMaxBufferSize());
+        kuduTable = client.openTable(sinkConfig.getTable());
 
         switch (flushMode.name().toLowerCase(Locale.ENGLISH)) {
             case "auto_flush_background":
-                LOG.warn(
+                log.warn(
                         "Unable to determine the order of data at AUTO_FLUSH_BACKGROUND mode. "
                                 + "Only [batchWaitInterval] will effect.");
                 session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_BACKGROUND);
@@ -137,7 +130,7 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
                 session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
                 break;
             default:
-                LOG.warn("Parameter [batchSize] will not take effect at AUTO_FLUSH_SYNC mode.");
+                log.warn("Parameter [batchSize] will not take effect at AUTO_FLUSH_SYNC mode.");
                 session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_SYNC);
         }
     }
@@ -188,11 +181,11 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    public KuduSinkConf getKuduSinkConf() {
-        return sinkConf;
+    public KuduSinkConfig getKuduSinkConf() {
+        return sinkConfig;
     }
 
-    public void setKuduSinkConf(KuduSinkConf sinkConf) {
-        this.sinkConf = sinkConf;
+    public void setKuduSinkConf(KuduSinkConfig sinkConf) {
+        this.sinkConfig = sinkConf;
     }
 }

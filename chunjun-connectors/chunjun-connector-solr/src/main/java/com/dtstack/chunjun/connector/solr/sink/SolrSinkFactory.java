@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.solr.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.solr.SolrConf;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.solr.SolrConfig;
 import com.dtstack.chunjun.connector.solr.SolrConverterFactory;
 import com.dtstack.chunjun.connector.solr.converter.SolrRawTypeConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -34,20 +34,16 @@ import org.apache.flink.table.data.RowData;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/20
- */
 public class SolrSinkFactory extends SinkFactory {
 
-    private final SolrConf solrConf;
+    private final SolrConfig solrConfig;
 
-    public SolrSinkFactory(SyncConf syncConf) {
-        super(syncConf);
+    public SolrSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
         Gson gson = new GsonBuilder().create();
         GsonUtil.setTypeAdapter(gson);
-        solrConf = gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), SolrConf.class);
+        solrConfig =
+                gson.fromJson(gson.toJson(syncConfig.getWriter().getParameter()), SolrConfig.class);
     }
 
     @Override
@@ -57,8 +53,8 @@ public class SolrSinkFactory extends SinkFactory {
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
-        SolrOutputFormatBuilder builder = new SolrOutputFormatBuilder(solrConf);
-        SolrConverterFactory converterFactory = new SolrConverterFactory(solrConf);
+        SolrOutputFormatBuilder builder = new SolrOutputFormatBuilder(solrConfig);
+        SolrConverterFactory converterFactory = new SolrConverterFactory(solrConfig);
         AbstractRowConverter converter;
         if (useAbstractBaseColumn) {
             converter = converterFactory.createColumnConverter();

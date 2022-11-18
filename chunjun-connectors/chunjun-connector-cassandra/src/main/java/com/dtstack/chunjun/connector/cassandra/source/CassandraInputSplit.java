@@ -20,22 +20,18 @@ package com.dtstack.chunjun.connector.cassandra.source;
 
 import org.apache.flink.core.io.InputSplit;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+@AllArgsConstructor
+@NoArgsConstructor
 public class CassandraInputSplit implements InputSplit {
+
+    private static final long serialVersionUID = 8386123649902467209L;
 
     private String minToken;
 
     private String maxToken;
-
-    public CassandraInputSplit() {}
-
-    public CassandraInputSplit(String minToken, String maxToken) {
-        this.minToken = minToken;
-        this.maxToken = maxToken;
-    }
 
     public String getMinToken() {
         return minToken;

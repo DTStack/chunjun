@@ -44,9 +44,10 @@ import java.util.Map;
 
 import static com.dtstack.chunjun.connector.starrocks.util.StarRocksUtil.addStrForNum;
 
-/** @author liuliu 2022/7/12 */
 public class StarRocksRowConverter
         extends AbstractRowConverter<Object[], Object[], Map<String, Object>, LogicalType> {
+
+    private static final long serialVersionUID = -176225284276566894L;
 
     private final List<String> columnList;
     public static final String DATETIME_FORMAT_SHORT = "yyyy-MM-dd HH:mm:ss";

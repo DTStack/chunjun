@@ -28,18 +28,12 @@ import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.function.BiFunction;
 
-/** @author liuliu 2022/5/25 */
 public class NullColumnSerializerTest extends SerializerTestBase<AbstractBaseColumn> {
     @Override
     protected Tuple2<BiFunction<Object, Object, Boolean>, DeeplyEqualsChecker.CustomEqualityChecker>
             getCustomChecker() {
         return Tuple2.of(
-                new BiFunction<Object, Object, Boolean>() {
-                    @Override
-                    public Boolean apply(Object o, Object o2) {
-                        return o instanceof NullColumn && o2 instanceof NullColumn;
-                    }
-                },
+                (o, o2) -> o instanceof NullColumn && o2 instanceof NullColumn,
                 new NullColumnChecker());
     }
 

@@ -22,10 +22,6 @@ import com.dtstack.chunjun.dirty.impl.DirtyDataEntry;
 
 import org.slf4j.Logger;
 
-/**
- * @author tiezhu@dtstack
- * @date 22/09/2021 Wednesday
- */
 public class LogUtil {
 
     private LogUtil() {}

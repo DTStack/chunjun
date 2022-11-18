@@ -44,14 +44,10 @@ import java.sql.Date;
 import java.sql.Time;
 import java.util.List;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraRowConverter
         extends AbstractRowConverter<Row, Row, BoundStatement, LogicalType> {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -8976735679096609952L;
 
     private final List<String> columnNameList;
 
@@ -91,7 +87,7 @@ public class CassandraRowConverter
 
     @Override
     public BoundStatement toExternal(RowData rowData, BoundStatement statement) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, statement);
         }
         return statement;

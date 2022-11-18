@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.handler;
 
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.extend.ftp.IFtpHandler;
 
 import java.io.IOException;
@@ -38,11 +38,4 @@ public interface DTFtpHandler extends IFtpHandler {
      * @throws IOException logout error
      */
     void logoutFtpServer() throws IOException;
-
-    /**
-     * 关闭ftp输入流
-     *
-     * @throws IOException 文件句柄操作异常
-     */
-    void completePendingCommand() throws IOException;
 }

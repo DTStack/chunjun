@@ -18,39 +18,35 @@
 
 package com.dtstack.chunjun.connector.kudu.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduSourceConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.kudu.config.KuduSourceConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.chunjun.throwable.NoRestartException;
 
 import java.util.List;
 
-/**
- * @author tiezhu
- * @since 2021/6/9 星期三
- */
 public class KuduInputFormatBuilder extends BaseRichInputFormatBuilder<KuduInputFormat> {
 
     public KuduInputFormatBuilder() {
         super(new KuduInputFormat());
     }
 
-    public void setKuduSourceConf(KuduSourceConf conf) {
+    public void setKuduSourceConf(KuduSourceConfig conf) {
         super.setConfig(conf);
         format.setSourceConf(conf);
     }
 
     @Override
     protected void checkFormat() {
-        KuduSourceConf sourceConf = format.getSourceConf();
-        List<FieldConf> columns = sourceConf.getColumn();
+        KuduSourceConfig sourceConf = format.getSourceConf();
+        List<FieldConfig> columns = sourceConf.getColumn();
 
         String masters = sourceConf.getMasters();
         StringBuilder sb = new StringBuilder(256);
 
         if (columns == null || columns.size() == 0) {
-            if (format.getRowConverter() == null) {
+            if (format.getCdcRowConverter() == null) {
                 sb.append("At least one of the Column and rowConverter is not empty.\n");
             }
         }

@@ -32,15 +32,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2021/12/7
- */
 public class WorkerOverseer implements Runnable, Serializable {
 
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 177978497091465224L;
 
     private final transient ThreadPoolExecutor workerExecutor;
 

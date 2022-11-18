@@ -17,11 +17,6 @@
  */
 package com.dtstack.chunjun.connector.http.common;
 
-/**
- * ParamType
- *
- * @author by shifang@dtstack.com
- */
 public enum ParamType {
 
     /** request请求的header标识 * */

@@ -18,26 +18,21 @@
 
 package com.dtstack.chunjun.dirty.log;
 
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.consumer.DirtyDataCollector;
 import com.dtstack.chunjun.dirty.impl.DirtyDataEntry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.StringJoiner;
 
-/**
- * @author tiezhu@dtstack
- * @date 23/09/2021 Thursday
- */
+@Slf4j
 public class LogDirtyDataCollector extends DirtyDataCollector {
 
-    private static final Logger LOG = LoggerFactory.getLogger(LogDirtyDataCollector.class);
-
+    private static final long serialVersionUID = 7366317208451727471L;
     private Long printRate;
 
     @Override
-    protected void init(DirtyConf conf) {
+    protected void init(DirtyConfig conf) {
         this.printRate = conf.getPrintRate();
     }
 
@@ -49,13 +44,13 @@ public class LogDirtyDataCollector extends DirtyDataCollector {
                             .add("\n====================Dirty Data=====================")
                             .add(dirty.toString())
                             .add("\n===================================================");
-            LOG.warn(dirtyMessage.toString());
+            log.warn(dirtyMessage.toString());
         }
     }
 
     @Override
     public void close() {
         isRunning.compareAndSet(true, false);
-        LOG.info("Print consumer closed.");
+        log.info("Print consumer closed.");
     }
 }

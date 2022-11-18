@@ -18,26 +18,18 @@
 
 package com.dtstack.chunjun.connector.starrocks.source.be.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.util.List;
 
+@Getter
+@AllArgsConstructor
 public class QueryInfo implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 7267333352652631865L;
 
     private final QueryPlan queryPlan;
     private final List<QueryBeXTablets> beXTablets;
-
-    public QueryInfo(QueryPlan queryPlan, List<QueryBeXTablets> beXTablets) {
-        this.queryPlan = queryPlan;
-        this.beXTablets = beXTablets;
-    }
-
-    public QueryPlan getQueryPlan() {
-        return queryPlan;
-    }
-
-    public List<QueryBeXTablets> getBeXTablets() {
-        return beXTablets;
-    }
 }

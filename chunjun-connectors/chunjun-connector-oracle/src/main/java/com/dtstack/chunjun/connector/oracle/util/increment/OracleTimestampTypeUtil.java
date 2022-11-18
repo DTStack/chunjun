@@ -25,8 +25,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-/** @author liuliu 2022/6/22 */
 public class OracleTimestampTypeUtil extends TimestampTypeUtil {
+
+    private static final long serialVersionUID = 8359654027696724132L;
 
     @Override
     public void setPsWithLocationStr(PreparedStatement ps, int index, String value)

@@ -25,28 +25,27 @@ import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.streaming.connectors.rabbitmq.RMQSource;
 import org.apache.flink.streaming.connectors.rabbitmq.common.RMQConnectionConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.format.DecodingFormat;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.data.RowData;
 
-/** @Author OT @Date 2022/7/9 */
 public class RabbitmqDynamicTableSource implements ScanTableSource {
     private final DecodingFormat<DeserializationSchema<RowData>> messageDecodingFormat;
 
-    private final TableSchema physicalSchema;
+    private final ResolvedSchema resolvedSchema;
     private final ReadableConfig config;
 
     private final RMQConnectionConfig rmqConnectionConfig;
 
     public RabbitmqDynamicTableSource(
-            TableSchema physicalSchema,
+            ResolvedSchema resolvedSchema,
             ReadableConfig config,
             RMQConnectionConfig rmqConnectionConfig,
             DecodingFormat<DeserializationSchema<RowData>> messageDecodingFormat) {
-        this.physicalSchema = physicalSchema;
+        this.resolvedSchema = resolvedSchema;
         this.config = config;
         this.rmqConnectionConfig = rmqConnectionConfig;
         this.messageDecodingFormat = messageDecodingFormat;
@@ -61,10 +60,10 @@ public class RabbitmqDynamicTableSource implements ScanTableSource {
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
         final DeserializationSchema<RowData> messageDeserializationSchema =
                 messageDecodingFormat.createRuntimeDecoder(
-                        runtimeProviderContext, physicalSchema.toPhysicalRowDataType());
+                        runtimeProviderContext, resolvedSchema.toPhysicalRowDataType());
 
         return ParallelSourceFunctionProvider.of(
-                new RMQSource(
+                new RMQSource<>(
                         rmqConnectionConfig,
                         config.get(RabbitmqOptions.QUEUE_NAME),
                         config.get(RabbitmqOptions.USE_CORRELATION_ID),
@@ -76,7 +75,7 @@ public class RabbitmqDynamicTableSource implements ScanTableSource {
     @Override
     public DynamicTableSource copy() {
         return new RabbitmqDynamicTableSource(
-                physicalSchema, config, rmqConnectionConfig, messageDecodingFormat);
+                resolvedSchema, config, rmqConnectionConfig, messageDecodingFormat);
     }
 
     @Override

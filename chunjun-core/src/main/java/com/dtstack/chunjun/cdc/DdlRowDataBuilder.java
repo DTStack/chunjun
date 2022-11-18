@@ -21,9 +21,6 @@ package com.dtstack.chunjun.cdc;
 /**
  * 构建DdlRowData，header顺序如下： database -> 0 | schema -> 1 | table ->2 | type -> 3 | sql -> 4 | lsn ->
  * 5 | lsn_sequence -> 6
- *
- * @author tiezhu@dtstack.com
- * @since 2021/12/3 星期五
  */
 public class DdlRowDataBuilder {
 

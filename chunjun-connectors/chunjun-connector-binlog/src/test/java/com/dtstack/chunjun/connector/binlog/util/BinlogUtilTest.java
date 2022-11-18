@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.binlog.util;
 
-import com.dtstack.chunjun.connector.binlog.conf.BinlogConf;
+import com.dtstack.chunjun.connector.binlog.config.BinlogConfig;
 import com.dtstack.chunjun.throwable.ChunJunException;
 
 import org.junit.Before;
@@ -35,31 +35,22 @@ import java.util.Map;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-/** @author liuliu 2021/12/30 */
 public class BinlogUtilTest {
 
-    BinlogConf binlogConf;
+    BinlogConfig binlogConfig;
     Connection conn;
     Statement statement;
     ResultSet resultSet;
 
     @Before
     public void setup() throws SQLException {
-        binlogConf = new BinlogConf();
+        binlogConfig = new BinlogConfig();
         conn = mock(Connection.class);
         statement = mock(Statement.class);
         resultSet = mock(ResultSet.class);
         when(conn.createStatement()).thenReturn(statement);
         when(statement.executeQuery(ArgumentMatchers.any())).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(false);
-    }
-
-    @Test
-    public void checkIfUpdrdbAndGetGroupInfoTest() throws SQLException {
-        when(resultSet.next()).thenReturn(true, false);
-        when(resultSet.getString(1)).thenReturn("drdb");
-        BinlogUtil.checkIfUpdrdbAndGetGroupInfo(conn, binlogConf);
-        assert binlogConf.getNodeGroupList().get(0).equalsIgnoreCase("coprocessor");
     }
 
     @Test
@@ -82,12 +73,5 @@ public class BinlogUtilTest {
         assert filterInfo.length == 2;
         assert filterInfo[0].equals("defaultSchema");
         assert filterInfo[1].equals("test.*");
-    }
-
-    @Test
-    public void getUpdrdbTableInfoWithDatabaseTest() throws SQLException {
-        BinlogUtil.getUpdrdbTableInfoWithDatabase(conn, binlogConf, "testDatabase", null, ".*");
-        assert binlogConf.getInnodbTableNameList().isEmpty();
-        assert binlogConf.getLamostTableNameList().isEmpty();
     }
 }

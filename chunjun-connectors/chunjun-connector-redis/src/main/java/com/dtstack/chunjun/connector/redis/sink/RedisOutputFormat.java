@@ -18,34 +18,33 @@
 
 package com.dtstack.chunjun.connector.redis.sink;
 
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.connector.redis.connection.RedisSyncClient;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 
 import org.apache.flink.table.data.RowData;
 
-import redis.clients.jedis.JedisCommands;
+import lombok.extern.slf4j.Slf4j;
+import redis.clients.jedis.commands.JedisCommands;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
-/**
- * @author chuixue
- * @create 2021-06-16 15:12
- * @description
- */
+@Slf4j
 public class RedisOutputFormat extends BaseRichOutputFormat {
+
+    private static final long serialVersionUID = -5545866738532370105L;
 
     private transient RedisSyncClient redisSyncClient;
     /** redis Conf */
-    private RedisConf redisConf;
+    private RedisConfig redisConfig;
     /** jedis */
     private JedisCommands jedis;
 
-    private String TEST_KEY = "test";
+    private static final String TEST_KEY = "test";
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
-        redisSyncClient = new RedisSyncClient(redisConf);
+        redisSyncClient = new RedisSyncClient(redisConfig);
         jedis = redisSyncClient.getJedis();
     }
 
@@ -58,19 +57,13 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    /**
-     * insert data and jedis retry
-     *
-     * @param rowData
-     * @throws Exception
-     */
     private void writeSingleRecordWithRetry(RowData rowData) throws Exception {
         try {
             rowConverter.toExternal(rowData, jedis);
         } catch (JedisConnectionException e) {
             // JedisConnectionException may be caused by jedis time out ,retry to get jedis from
             // pool
-            LOG.error("retry get redis once");
+            log.error("retry get redis once");
             jedis = redisSyncClient.testTimeout(jedis, TEST_KEY);
             rowConverter.toExternal(rowData, jedis);
         }
@@ -86,11 +79,11 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
         redisSyncClient.close(jedis);
     }
 
-    public RedisConf getRedisConf() {
-        return redisConf;
+    public RedisConfig getRedisConf() {
+        return redisConfig;
     }
 
-    public void setRedisConf(RedisConf redisConf) {
-        this.redisConf = redisConf;
+    public void setRedisConf(RedisConfig redisConfig) {
+        this.redisConfig = redisConfig;
     }
 }

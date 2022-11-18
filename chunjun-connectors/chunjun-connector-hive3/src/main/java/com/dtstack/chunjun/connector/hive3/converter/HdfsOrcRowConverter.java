@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hive3.converter;
 
-import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
+import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -44,11 +44,12 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.List;
 
-/** @author liuliu 2022/3/23 */
 public class HdfsOrcRowConverter
         extends AbstractRowConverter<RowData, RowData, List<Object>, LogicalType> {
-    public HdfsOrcRowConverter(RowType rowType, HdfsConf hdfsConf) {
-        super(rowType, hdfsConf);
+    private static final long serialVersionUID = -3115772125863778621L;
+
+    public HdfsOrcRowConverter(RowType rowType, HdfsConfig hdfsConfig) {
+        super(rowType, hdfsConfig);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
@@ -79,7 +80,7 @@ public class HdfsOrcRowConverter
 
     @Override
     public List<Object> toExternal(RowData rowData, List<Object> data) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, data);
         }
         return data;

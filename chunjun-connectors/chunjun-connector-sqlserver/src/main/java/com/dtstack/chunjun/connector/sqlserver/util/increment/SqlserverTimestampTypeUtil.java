@@ -29,8 +29,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/** @author liuliu 2022/6/23 */
 public class SqlserverTimestampTypeUtil extends KeyUtil<byte[], BigInteger> {
+
+    private static final long serialVersionUID = 3245211271408129356L;
 
     @Override
     public byte[] getSqlValueFromRs(ResultSet rs, int index) throws SQLException {

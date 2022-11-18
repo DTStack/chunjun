@@ -18,31 +18,26 @@
 
 package com.dtstack.chunjun.connector.solr.table;
 
-import com.dtstack.chunjun.connector.solr.SolrConf;
+import com.dtstack.chunjun.connector.solr.SolrConfig;
 import com.dtstack.chunjun.connector.solr.converter.SolrRowConverter;
 import com.dtstack.chunjun.connector.solr.sink.SolrOutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/15
- */
 public class SolrDynamicTableSink implements DynamicTableSink {
 
-    private final SolrConf solrConf;
-    private final TableSchema physicalSchema;
+    private final SolrConfig solrConfig;
+    private final ResolvedSchema resolvedSchema;
 
-    public SolrDynamicTableSink(SolrConf solrConf, TableSchema physicalSchema) {
-        this.solrConf = solrConf;
-        this.physicalSchema = physicalSchema;
+    public SolrDynamicTableSink(SolrConfig solrConfig, ResolvedSchema resolvedSchema) {
+        this.solrConfig = solrConfig;
+        this.resolvedSchema = resolvedSchema;
     }
 
     @Override
@@ -56,19 +51,19 @@ public class SolrDynamicTableSink implements DynamicTableSink {
 
     @Override
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        String[] fieldNames = physicalSchema.getFieldNames();
+        final RowType rowType = (RowType) resolvedSchema.toPhysicalRowDataType().getLogicalType();
+        String[] fieldNames = resolvedSchema.getColumnNames().toArray(new String[0]);
 
-        SolrOutputFormatBuilder builder = new SolrOutputFormatBuilder(solrConf);
+        SolrOutputFormatBuilder builder = new SolrOutputFormatBuilder(solrConfig);
         builder.setRowConverter(new SolrRowConverter(rowType, fieldNames));
 
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction<>(builder.finish()), solrConf.getParallelism());
+                new DtOutputFormatSinkFunction<>(builder.finish()), solrConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new SolrDynamicTableSink(solrConf, physicalSchema);
+        return new SolrDynamicTableSink(solrConfig, resolvedSchema);
     }
 
     @Override

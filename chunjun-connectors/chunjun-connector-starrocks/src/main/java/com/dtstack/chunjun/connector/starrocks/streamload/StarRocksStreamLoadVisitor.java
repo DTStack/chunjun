@@ -18,9 +18,10 @@
 
 package com.dtstack.chunjun.connector.starrocks.streamload;
 
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 
 import com.alibaba.fastjson.JSON;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
@@ -33,8 +34,6 @@ import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -49,15 +48,13 @@ import java.util.concurrent.TimeUnit;
 
 import static com.dtstack.chunjun.connector.starrocks.util.StarRocksUtil.getBasicAuthHeader;
 
+@Slf4j
 public class StarRocksStreamLoadVisitor implements Serializable {
+    private static final long serialVersionUID = 2159752421788141274L;
 
-    private static final long serialVersionUID = 1L;
+    private static final int ERROR_log_MAX_LENGTH = 3000;
 
-    private static final Logger LOG = LoggerFactory.getLogger(StarRocksStreamLoadVisitor.class);
-
-    private static final int ERROR_LOG_MAX_LENGTH = 3000;
-
-    private final StarRocksConf starRocksConf;
+    private final StarRocksConfig starRocksConfig;
     private long pos;
     private static final String RESULT_FAILED = "Fail";
     private static final String RESULT_LABEL_EXISTED = "Label Already Exists";
@@ -67,8 +64,8 @@ public class StarRocksStreamLoadVisitor implements Serializable {
     private static final String RESULT_LABEL_ABORTED = "ABORTED";
     private static final String RESULT_LABEL_UNKNOWN = "UNKNOWN";
 
-    public StarRocksStreamLoadVisitor(StarRocksConf starRocksConf) {
-        this.starRocksConf = starRocksConf;
+    public StarRocksStreamLoadVisitor(StarRocksConfig starRocksConfig) {
+        this.starRocksConfig = starRocksConfig;
     }
 
     public void doStreamLoad(StarRocksSinkBufferEntity bufferEntity) throws IOException {
@@ -83,7 +80,7 @@ public class StarRocksStreamLoadVisitor implements Serializable {
                         + "/"
                         + bufferEntity.getTable()
                         + "/_stream_load";
-        LOG.info(String.format("Start to join batch data: label[%s].", bufferEntity.getLabel()));
+        log.info(String.format("Start to join batch data: label[%s].", bufferEntity.getLabel()));
         Map<String, Object> loadResult =
                 doHttpPut(
                         loadUrl,
@@ -101,8 +98,8 @@ public class StarRocksStreamLoadVisitor implements Serializable {
             throw new IOException(
                     "Unable to flush data to StarRocks: unknown result status, usually caused by: 1.authorization or permission related problems. 2.Wrong column_separator or row_delimiter. 3.Column count exceeded the limitation.");
         }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Stream Load response: \n%s\n", JSON.toJSONString(loadResult)));
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Stream Load response: \n%s\n", JSON.toJSONString(loadResult)));
         }
         if (RESULT_FAILED.equals(loadResult.get(keyStatus))) {
             Map<String, String> logMap = new HashMap<>();
@@ -116,7 +113,7 @@ public class StarRocksStreamLoadVisitor implements Serializable {
                     loadResult,
                     bufferEntity);
         } else if (RESULT_LABEL_EXISTED.equals(loadResult.get(keyStatus))) {
-            LOG.error(String.format("Stream Load response: \n%s\n", JSON.toJSONString(loadResult)));
+            log.error(String.format("Stream Load response: \n%s\n", JSON.toJSONString(loadResult)));
             // has to block-checking the state to get the final result
             checkLabelState(host, bufferEntity);
         }
@@ -137,13 +134,13 @@ public class StarRocksStreamLoadVisitor implements Serializable {
                         new HttpGet(
                                 host
                                         + "/api/"
-                                        + starRocksConf.getDatabase()
+                                        + starRocksConfig.getDatabase()
                                         + "/get_load_state?label="
                                         + bufferEntity.getLabel());
                 httpGet.setHeader(
                         "Authorization",
                         getBasicAuthHeader(
-                                starRocksConf.getUsername(), starRocksConf.getPassword()));
+                                starRocksConfig.getUsername(), starRocksConfig.getPassword()));
                 httpGet.setHeader("Connection", "close");
 
                 try (CloseableHttpResponse resp = httpclient.execute(httpGet)) {
@@ -169,7 +166,7 @@ public class StarRocksStreamLoadVisitor implements Serializable {
                                 null,
                                 bufferEntity);
                     }
-                    LOG.info(
+                    log.info(
                             String.format(
                                     "Checking label[%s] state[%s]\n",
                                     bufferEntity.getLabel(), labelState));
@@ -215,19 +212,19 @@ public class StarRocksStreamLoadVisitor implements Serializable {
                     return null;
                 }
                 String errorLog = EntityUtils.toString(respEntity);
-                if (errorLog != null && errorLog.length() > ERROR_LOG_MAX_LENGTH) {
-                    errorLog = errorLog.substring(0, ERROR_LOG_MAX_LENGTH);
+                if (errorLog != null && errorLog.length() > ERROR_log_MAX_LENGTH) {
+                    errorLog = errorLog.substring(0, ERROR_log_MAX_LENGTH);
                 }
                 return errorLog;
             }
         } catch (Exception e) {
-            LOG.warn("Failed to get error log.", e);
+            log.warn("Failed to get error log.", e);
             return "Failed to get error log: " + e.getMessage();
         }
     }
 
     private String getAvailableHost() {
-        List<String> hostList = starRocksConf.getFeNodes();
+        List<String> hostList = starRocksConfig.getFeNodes();
         long tmp = pos + hostList.size();
         for (; pos < tmp; pos++) {
             String host = "http://" + hostList.get((int) (pos % hostList.size()));
@@ -242,12 +239,12 @@ public class StarRocksStreamLoadVisitor implements Serializable {
         try {
             URL url = new URL(host);
             HttpURLConnection co = (HttpURLConnection) url.openConnection();
-            co.setConnectTimeout(starRocksConf.getLoadConf().getHttpCheckTimeoutMs());
+            co.setConnectTimeout(starRocksConfig.getLoadConfig().getHttpCheckTimeoutMs());
             co.connect();
             co.disconnect();
             return true;
         } catch (Exception e1) {
-            LOG.warn("Failed to connect to address:{}", host, e1);
+            log.warn("Failed to connect to address:{}", host, e1);
             return false;
         }
     }
@@ -271,7 +268,7 @@ public class StarRocksStreamLoadVisitor implements Serializable {
     @SuppressWarnings("unchecked")
     private Map<String, Object> doHttpPut(
             String loadUrl, String label, byte[] data, String httpHeadColumns) throws IOException {
-        LOG.info(
+        log.info(
                 String.format(
                         "Executing stream load to: '%s', size: '%s', thread: %d",
                         loadUrl, data.length, Thread.currentThread().getId()));
@@ -286,7 +283,7 @@ public class StarRocksStreamLoadVisitor implements Serializable {
                                 });
         try (CloseableHttpClient httpclient = httpClientBuilder.build()) {
             HttpPut httpPut = new HttpPut(loadUrl);
-            Map<String, String> props = starRocksConf.getLoadConf().getHeadProperties();
+            Map<String, String> props = starRocksConfig.getLoadConfig().getHeadProperties();
             for (Map.Entry<String, String> entry : props.entrySet()) {
                 httpPut.setHeader(entry.getKey(), entry.getValue());
             }
@@ -303,7 +300,8 @@ public class StarRocksStreamLoadVisitor implements Serializable {
             httpPut.setHeader("label", label);
             httpPut.setHeader(
                     "Authorization",
-                    getBasicAuthHeader(starRocksConf.getUsername(), starRocksConf.getPassword()));
+                    getBasicAuthHeader(
+                            starRocksConfig.getUsername(), starRocksConfig.getPassword()));
             httpPut.setEntity(new ByteArrayEntity(data));
             httpPut.setConfig(RequestConfig.custom().setRedirectsEnabled(true).build());
             try (CloseableHttpResponse resp = httpclient.execute(httpPut)) {
@@ -317,12 +315,12 @@ public class StarRocksStreamLoadVisitor implements Serializable {
     private HttpEntity getHttpEntity(CloseableHttpResponse resp) {
         int code = resp.getStatusLine().getStatusCode();
         if (200 != code) {
-            LOG.warn("Request failed with code:{}", code);
+            log.warn("Request failed with code:{}", code);
             return null;
         }
         HttpEntity respEntity = resp.getEntity();
         if (null == respEntity) {
-            LOG.warn("Request failed with empty response.");
+            log.warn("Request failed with empty response.");
             return null;
         }
         return respEntity;

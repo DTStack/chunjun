@@ -28,9 +28,12 @@ import org.apache.flink.table.data.RowData;
 
 import org.apache.flink.shaded.curator5.com.google.common.util.concurrent.RateLimiter;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
+@Slf4j
 public class StreamInputFormat extends BaseRichInputFormat {
+    private static final long serialVersionUID = 2470518342802925440L;
     private StreamConfig streamConfig;
     private RateLimiter rateLimiter;
     private long recordRead = 0;
@@ -55,7 +58,7 @@ public class StreamInputFormat extends BaseRichInputFormat {
         if (streamConfig.getPermitsPerSecond() > 0) {
             rateLimiter = RateLimiter.create(streamConfig.getPermitsPerSecond());
         }
-        LOG.info(
+        log.info(
                 "The record number of channel:[{}] is [{}]",
                 inputSplit.getSplitNumber(),
                 channelRecordNum);

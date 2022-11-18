@@ -28,8 +28,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/** @author liuliu 2022/6/22 */
 public class DateTypeUtil extends KeyUtil<Date, BigInteger> {
+
+    private static final long serialVersionUID = 3421622481648892359L;
 
     @Override
     public Date getSqlValueFromRs(ResultSet rs, int index) throws SQLException {

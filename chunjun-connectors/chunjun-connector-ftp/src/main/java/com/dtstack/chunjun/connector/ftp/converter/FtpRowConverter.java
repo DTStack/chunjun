@@ -27,6 +27,8 @@ import org.apache.flink.table.types.logical.LogicalType;
 
 public class FtpRowConverter extends AbstractRowConverter<String, String, String, LogicalType> {
 
+    private static final long serialVersionUID = 4127516611259169686L;
+
     private DeserializationSchema<RowData> valueDeserialization;
 
     private SerializationSchema<RowData> valueSerialization;

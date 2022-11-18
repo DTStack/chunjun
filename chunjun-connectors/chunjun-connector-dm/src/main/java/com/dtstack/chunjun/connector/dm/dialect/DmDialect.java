@@ -18,10 +18,10 @@
 
 package com.dtstack.chunjun.connector.dm.dialect;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.connector.dm.converter.DmColumnConverter;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.dm.converter.DmRawTypeConverter;
-import com.dtstack.chunjun.connector.dm.converter.DmRowConverter;
+import com.dtstack.chunjun.connector.dm.converter.DmSqlConverter;
+import com.dtstack.chunjun.connector.dm.converter.DmSyncConverter;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -40,8 +40,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/** @author kunni */
 public class DmDialect implements JdbcDialect {
+
+    private static final long serialVersionUID = 3647039829317998203L;
 
     @Override
     public String dialectName() {
@@ -174,12 +175,12 @@ public class DmDialect implements JdbcDialect {
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
             getRowConverter(RowType rowType) {
-        return new DmRowConverter(rowType);
+        return new DmSqlConverter(rowType);
     }
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
-        return new DmColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new DmSyncConverter(rowType, commonConfig);
     }
 }

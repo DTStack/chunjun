@@ -22,12 +22,11 @@ import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRawTypeConvert
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.ColumnInfo;
 
 import com.starrocks.thrift.TScanBatchResult;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.arrow.vector.ipc.ArrowStreamReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -38,9 +37,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
+@Slf4j
 public class StarRocksArrowReader {
 
-    private static final Logger LOG = LoggerFactory.getLogger(StarRocksArrowReader.class);
     private final List<ColumnInfo> columnInfoList;
     private int offsetOfBatchForRead;
     private int rowCountOfBatch;
@@ -92,7 +91,7 @@ public class StarRocksArrowReader {
 
     public Object[] next() {
         if (!hasNext()) {
-            LOG.error("offset larger than data count");
+            log.error("offset larger than data count");
             throw new RuntimeException("read offset larger than data count");
         }
         return sourceJavaRows.get(offsetOfBatchForRead++);
@@ -111,7 +110,7 @@ public class StarRocksArrowReader {
                 rootAllocator.close();
             }
         } catch (IOException e) {
-            LOG.error("Failed to close StarRocksArrowReader:" + e.getMessage());
+            log.error("Failed to close StarRocksArrowReader:" + e.getMessage());
             throw new RuntimeException("Failed to close StarRocksArrowReader:" + e.getMessage());
         }
     }

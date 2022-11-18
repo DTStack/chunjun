@@ -44,14 +44,10 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * @author tiezhu
- * @since 2021/6/10 星期四
- */
 public class KuduColumnConverter
         extends AbstractRowConverter<RowResult, RowResult, Operation, String> {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -2483096181893124988L;
 
     private final List<String> columnName;
 
@@ -70,7 +66,6 @@ public class KuduColumnConverter
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected ISerializationConverter<Operation> wrapIntoNullableExternalConverter(
             ISerializationConverter serializationConverter, String type) {
         return (val, index, operation) -> {
@@ -83,7 +78,6 @@ public class KuduColumnConverter
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public RowData toInternal(RowResult input) throws Exception {
         ColumnRowData data = new ColumnRowData(rowType.getFieldCount());
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
@@ -94,9 +88,8 @@ public class KuduColumnConverter
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Operation toExternal(RowData rowData, Operation operation) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, operation);
         }
         return operation;

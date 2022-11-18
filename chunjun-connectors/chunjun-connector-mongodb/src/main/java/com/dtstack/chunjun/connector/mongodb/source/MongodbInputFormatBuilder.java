@@ -18,32 +18,27 @@
 
 package com.dtstack.chunjun.connector.mongodb.source;
 
-import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
+import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
 import com.dtstack.chunjun.connector.mongodb.datasync.MongoClientConfFactory;
-import com.dtstack.chunjun.connector.mongodb.datasync.MongodbDataSyncConf;
+import com.dtstack.chunjun.connector.mongodb.datasync.MongodbDataSyncConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import com.mongodb.BasicDBObject;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.conversions.Bson;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/24
- */
 public class MongodbInputFormatBuilder extends BaseRichInputFormatBuilder<MongodbInputFormat> {
 
-    public static MongodbInputFormatBuilder newBuild(MongodbDataSyncConf mongodbDataSyncConf) {
-        MongoClientConf clientConf =
-                MongoClientConfFactory.createMongoClientConf(mongodbDataSyncConf);
-        Bson filter = parseFilter(mongodbDataSyncConf.getFilter());
-        return newBuild(clientConf, filter, mongodbDataSyncConf.getFetchSize());
+    public static MongodbInputFormatBuilder newBuild(MongodbDataSyncConfig mongodbDataSyncConfig) {
+        MongoClientConfig clientConf =
+                MongoClientConfFactory.createMongoClientConf(mongodbDataSyncConfig);
+        Bson filter = parseFilter(mongodbDataSyncConfig.getFilter());
+        return newBuild(clientConf, filter, mongodbDataSyncConfig.getFetchSize());
     }
 
     public static MongodbInputFormatBuilder newBuild(
-            MongoClientConf mongoClientConf, Bson filter, int fetchSize) {
-        MongodbInputFormat format = new MongodbInputFormat(mongoClientConf, filter, fetchSize);
+            MongoClientConfig mongoClientConfig, Bson filter, int fetchSize) {
+        MongodbInputFormat format = new MongodbInputFormat(mongoClientConfig, filter, fetchSize);
         return new MongodbInputFormatBuilder(format);
     }
 

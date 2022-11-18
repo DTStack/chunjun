@@ -31,6 +31,7 @@ import com.dtstack.chunjun.util.ReflectionUtils;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.orc.OrcFile;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
@@ -48,8 +49,6 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,8 +57,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-/** @author liuliu 2022/3/27 */
+@Slf4j
 public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
+    private static final long serialVersionUID = 1528560024520596147L;
+
     private RecordWriter recordWriter;
     private OrcSerde orcSerde;
     private StructObjectInspector inspector;
@@ -74,8 +75,6 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     protected boolean openKerberos;
     public static final String HADOOP_USER_NAME = "hadoop.user.name";
     public static final String KEY_PRINCIPAL = "principal";
-
-    protected final Logger LOG = LoggerFactory.getLogger(HdfsOrcOutputFormat.class);
 
     @Override
     protected void openSource() {
@@ -108,7 +107,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     protected CompressType getCompressType() {
-        return CompressType.getByTypeAndFileType(hdfsConf.getCompress(), FileType.ORC.name());
+        return CompressType.getByTypeAndFileType(hdfsConfig.getCompress(), FileType.ORC.name());
     }
 
     protected Class getOrcCodecClass(CompressType compressType) {
@@ -138,8 +137,8 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             currentFileIndex++;
 
             setFs();
-            LOG.info("nextBlock:Current block writer record:" + rowsOfCurrentBlock);
-            LOG.info("Current block file name:" + currentBlockTmpPath);
+            log.info("nextBlock:Current block writer record:" + rowsOfCurrentBlock);
+            log.info("Current block file name:" + currentBlockTmpPath);
         } catch (Exception e) {
             throw new RuntimeException(
                     Hive3Util.parseErrorMsg(null, ExceptionUtil.getErrorMessage(e)), e);
@@ -151,7 +150,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
      * 导致开启了kerberos的数据源在checkpoint时进行 recordWriter.close() 操作，会出现kerberos认证错误
      */
     private void setFs() throws IllegalAccessException {
-        if (Hive3Util.isOpenKerberos(hdfsConf.getHadoopConfig())) {
+        if (Hive3Util.isOpenKerberos(hdfsConfig.getHadoopConfig())) {
             Field declaredField = ReflectionUtils.getDeclaredField(recordWriter, "options");
             assert declaredField != null;
             declaredField.setAccessible(true);
@@ -191,7 +190,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
                     Hive3Util.parseErrorMsg(
                             String.format("writer hdfs error，row:{%s}", row),
                             ExceptionUtil.getErrorMessage(e));
-            LOG.error(errorMessage);
+            log.error(errorMessage);
             throw new WriteRecordException(errorMessage, e);
         }
     }
@@ -204,7 +203,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     protected void flushDataInternal() {
-        LOG.info(
+        log.info(
                 "Close current orc record writer, write data size:[{}]",
                 SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
 
@@ -224,7 +223,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     @Override
     protected void closeSource() {
         try {
-            LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);
+            log.info("close:Current block writer record:" + rowsOfCurrentBlock);
             RecordWriter rw = this.recordWriter;
             if (rw != null) {
                 rw.close(Reporter.NULL);

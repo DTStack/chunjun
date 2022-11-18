@@ -18,15 +18,15 @@
 
 package com.dtstack.chunjun.connector.mongodb.table;
 
-import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
+import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
 import com.dtstack.chunjun.connector.mongodb.table.lookup.MongoAllTableFunction;
 import com.dtstack.chunjun.connector.mongodb.table.lookup.MongoLruTableFunction;
 import com.dtstack.chunjun.enums.CacheType;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
-import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
-import com.dtstack.chunjun.table.connector.source.ParallelTableFunctionProvider;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
+import com.dtstack.chunjun.table.connector.source.ParallelAsyncLookupFunctionProvider;
+import com.dtstack.chunjun.table.connector.source.ParallelLookupFunctionProvider;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
@@ -34,62 +34,62 @@ import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Preconditions;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
+import java.util.List;
+
 public class MongodbDynamicTableSource implements ScanTableSource, LookupTableSource {
 
-    private final MongoClientConf mongoClientConf;
-    private final TableSchema physicalSchema;
-    private final LookupConf lookupConf;
+    private final MongoClientConfig mongoClientConfig;
+    private final ResolvedSchema resolvedSchema;
+    private final LookupConfig lookupConfig;
 
     public MongodbDynamicTableSource(
-            MongoClientConf mongoClientConf, LookupConf lookupConf, TableSchema physicalSchema) {
-        this.mongoClientConf = mongoClientConf;
-        this.lookupConf = lookupConf;
-        this.physicalSchema = physicalSchema;
+            MongoClientConfig mongoClientConfig,
+            LookupConfig lookupConfig,
+            ResolvedSchema resolvedSchema) {
+        this.mongoClientConfig = mongoClientConfig;
+        this.lookupConfig = lookupConfig;
+        this.resolvedSchema = resolvedSchema;
     }
 
     @Override
     public LookupRuntimeProvider getLookupRuntimeProvider(LookupContext context) {
         // 获取JOIN Key 名字
         String[] keyNames = new String[context.getKeys().length];
+        List<String> columnNames = resolvedSchema.getColumnNames();
         for (int i = 0; i < keyNames.length; i++) {
             int[] innerKeyArr = context.getKeys()[i];
             Preconditions.checkArgument(
                     innerKeyArr.length == 1, "MongoDB only support non-nested look up keys");
-            keyNames[i] = physicalSchema.getFieldNames()[innerKeyArr[0]];
+            keyNames[i] = columnNames.get(innerKeyArr[0]);
         }
 
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
-            return ParallelTableFunctionProvider.of(
+        final RowType rowType = (RowType) resolvedSchema.toPhysicalRowDataType().getLogicalType();
+        if (lookupConfig.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+            return ParallelLookupFunctionProvider.of(
                     new MongoAllTableFunction(
-                            mongoClientConf,
-                            lookupConf,
+                            mongoClientConfig,
+                            lookupConfig,
                             rowType,
                             keyNames,
-                            physicalSchema.getFieldNames()),
-                    lookupConf.getParallelism());
+                            columnNames.toArray(new String[0])),
+                    lookupConfig.getParallelism());
         } else {
-            return ParallelAsyncTableFunctionProvider.of(
+            return ParallelAsyncLookupFunctionProvider.of(
                     new MongoLruTableFunction(
-                            mongoClientConf,
-                            lookupConf,
+                            mongoClientConfig,
+                            lookupConfig,
                             rowType,
                             keyNames,
-                            physicalSchema.getFieldNames()),
-                    lookupConf.getParallelism());
+                            columnNames.toArray(new String[0])),
+                    lookupConfig.getParallelism());
         }
     }
 
     @Override
     public DynamicTableSource copy() {
         return new MongodbDynamicTableSource(
-                this.mongoClientConf, this.lookupConf, this.physicalSchema);
+                this.mongoClientConfig, this.lookupConfig, this.resolvedSchema);
     }
 
     @Override
@@ -97,22 +97,11 @@ public class MongodbDynamicTableSource implements ScanTableSource, LookupTableSo
         return "MongoDB Source";
     }
 
-    /**
-     * ScanTableSource独有
-     *
-     * @return
-     */
     @Override
     public ChangelogMode getChangelogMode() {
         return ChangelogMode.insertOnly();
     }
 
-    /**
-     * ScanTableSource独有
-     *
-     * @param runtimeProviderContext
-     * @return
-     */
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
         return null;

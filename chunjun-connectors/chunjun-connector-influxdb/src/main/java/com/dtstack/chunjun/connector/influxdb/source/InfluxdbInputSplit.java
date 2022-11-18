@@ -21,19 +21,19 @@ package com.dtstack.chunjun.connector.influxdb.source;
 
 import org.apache.flink.core.io.GenericInputSplit;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/3/10
- */
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@ToString
 public class InfluxdbInputSplit extends GenericInputSplit {
+
+    private static final long serialVersionUID = 6034593427931694722L;
 
     private int mod;
 
-    public InfluxdbInputSplit(int partitionNumber, int totalNumberOfPartitions) {
-        super(partitionNumber, totalNumberOfPartitions);
-    }
     /**
      * Creates a generic input split with the given split number.
      *
@@ -43,18 +43,5 @@ public class InfluxdbInputSplit extends GenericInputSplit {
     public InfluxdbInputSplit(int partitionNumber, int totalNumberOfPartitions, int mod) {
         super(partitionNumber, totalNumberOfPartitions);
         this.mod = mod;
-    }
-
-    public int getMod() {
-        return mod;
-    }
-
-    public void setMod(int mod) {
-        this.mod = mod;
-    }
-
-    @Override
-    public String toString() {
-        return "InfluxDBInputSplit{" + "mod=" + mod + '}';
     }
 }

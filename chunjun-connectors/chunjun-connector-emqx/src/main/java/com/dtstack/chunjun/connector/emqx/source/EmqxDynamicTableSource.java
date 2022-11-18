@@ -18,44 +18,36 @@
 
 package com.dtstack.chunjun.connector.emqx.source;
 
-import com.dtstack.chunjun.connector.emqx.conf.EmqxConf;
+import com.dtstack.chunjun.connector.emqx.config.EmqxConfig;
 import com.dtstack.chunjun.connector.emqx.converter.EmqxRowConverter;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.format.DecodingFormat;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.types.utils.DataTypeUtils;
+import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.Preconditions;
 
-import static com.dtstack.chunjun.connector.emqx.util.DataTypeConventerUtil.createValueFormatProjection;
-
-/**
- * @author chuixue
- * @create 2021-06-01 20:11
- * @description
- */
 public class EmqxDynamicTableSource implements ScanTableSource {
 
-    private final TableSchema physicalSchema;
-    private final EmqxConf emqxConf;
+    private final ResolvedSchema physicalSchema;
+    private final EmqxConfig emqxConfig;
     /** Format for decoding values from emqx. */
     private final DecodingFormat<DeserializationSchema<RowData>> valueDecodingFormat;
 
     public EmqxDynamicTableSource(
-            TableSchema physicalSchema,
-            EmqxConf emqxConf,
+            ResolvedSchema physicalSchema,
+            EmqxConfig emqxConfig,
             DecodingFormat<DeserializationSchema<RowData>> valueDecodingFormat) {
         this.physicalSchema = physicalSchema;
-        this.emqxConf = emqxConf;
+        this.emqxConfig = emqxConfig;
         this.valueDecodingFormat =
                 Preconditions.checkNotNull(
                         valueDecodingFormat, "Value decoding format must not be null.");
@@ -68,27 +60,24 @@ public class EmqxDynamicTableSource implements ScanTableSource {
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
-
+        LogicalType logicalType = physicalSchema.toPhysicalRowDataType().getLogicalType();
+        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(logicalType);
         EmqxInputFormatBuilder builder = new EmqxInputFormatBuilder();
-        builder.setEmqxConf(emqxConf);
+        builder.setEmqxConf(emqxConfig);
         builder.setRowConverter(
                 new EmqxRowConverter(
                         valueDecodingFormat.createRuntimeDecoder(
-                                runtimeProviderContext,
-                                DataTypeUtils.projectRow(
-                                        physicalSchema.toRowDataType(),
-                                        createValueFormatProjection(
-                                                physicalSchema.toRowDataType())))));
+                                runtimeProviderContext, physicalSchema.toPhysicalRowDataType())));
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
+                false,
+                emqxConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new EmqxDynamicTableSource(physicalSchema, emqxConf, valueDecodingFormat);
+        return new EmqxDynamicTableSource(physicalSchema, emqxConfig, valueDecodingFormat);
     }
 
     @Override

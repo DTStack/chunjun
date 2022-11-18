@@ -83,4 +83,54 @@ public class ForeignKeyDefinition extends ConstraintDefinition {
         SET_DEFAULT,
         NO_ACTION
     }
+
+    public static class Builder {
+        private String name = null;
+        private List<String> columns = null;
+        private String comment = null;
+        private TableIdentifier referenceTable = null;
+        private List<String> referenceColumns = null;
+        private Constraint onDelete = null;
+        private Constraint onUpdate = null;
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder columns(List<String> columns) {
+            this.columns = columns;
+            return this;
+        }
+
+        public Builder comment(String comment) {
+            this.comment = comment;
+            return this;
+        }
+
+        public Builder referenceTable(TableIdentifier referenceTable) {
+            this.referenceTable = referenceTable;
+            return this;
+        }
+
+        public Builder referenceColumns(List<String> referenceColumns) {
+            this.referenceColumns = referenceColumns;
+            return this;
+        }
+
+        public Builder onDelete(Constraint onDelete) {
+            this.onDelete = onDelete;
+            return this;
+        }
+
+        public Builder onUpdate(Constraint onUpdate) {
+            this.onUpdate = onUpdate;
+            return this;
+        }
+
+        public ForeignKeyDefinition build() {
+            return new ForeignKeyDefinition(
+                    name, columns, comment, referenceTable, referenceColumns, onDelete, onUpdate);
+        }
+    }
 }

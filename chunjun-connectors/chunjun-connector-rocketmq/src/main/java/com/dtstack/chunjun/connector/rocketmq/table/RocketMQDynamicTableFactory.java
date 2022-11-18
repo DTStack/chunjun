@@ -18,19 +18,17 @@
 
 package com.dtstack.chunjun.connector.rocketmq.table;
 
-import com.dtstack.chunjun.connector.rocketmq.conf.RocketMQConf;
+import com.dtstack.chunjun.connector.rocketmq.config.RocketMQConfig;
 import com.dtstack.chunjun.connector.rocketmq.source.RocketMQScanTableSource;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.source.DynamicTableSource;
-import org.apache.flink.table.descriptors.DescriptorProperties;
 import org.apache.flink.table.factories.DynamicTableFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.Factory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.StringUtils;
 
@@ -62,10 +60,9 @@ import static com.dtstack.chunjun.connector.rocketmq.table.RocketMQOptions.OPTIO
 import static com.dtstack.chunjun.connector.rocketmq.table.RocketMQOptions.OPTIONAL_TAG;
 import static com.dtstack.chunjun.connector.rocketmq.table.RocketMQOptions.OPTIONAL_TIME_ZONE;
 import static com.dtstack.chunjun.connector.rocketmq.table.RocketMQOptions.TOPIC;
-import static org.apache.flink.table.factories.FactoryUtil.SCAN_PARALLELISM;
+import static com.dtstack.chunjun.source.options.SourceOptions.SCAN_PARALLELISM;
 import static org.apache.flink.table.factories.FactoryUtil.createTableFactoryHelper;
 
-/** @author shitou @date 2022/5/17 * */
 public class RocketMQDynamicTableFactory implements DynamicTableSourceFactory {
 
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
@@ -80,22 +77,14 @@ public class RocketMQDynamicTableFactory implements DynamicTableSourceFactory {
 
         final ReadableConfig config = helper.getOptions();
 
-        Map<String, String> rawProperties = context.getCatalogTable().getOptions();
-
-        final DescriptorProperties descriptorProperties = new DescriptorProperties();
-        descriptorProperties.putProperties(rawProperties);
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-
-        descriptorProperties.putTableSchema("schema", physicalSchema);
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
         Integer parallelism = config.get(SCAN_PARALLELISM);
 
-        return new RocketMQScanTableSource(
-                descriptorProperties, physicalSchema, getSourceConfig(config), parallelism);
+        return new RocketMQScanTableSource(resolvedSchema, getSourceConfig(config), parallelism);
     }
 
-    private RocketMQConf getSourceConfig(ReadableConfig config) {
+    private RocketMQConfig getSourceConfig(ReadableConfig config) {
         String topic = config.get(TOPIC);
         String consumerGroup = config.get(CONSUMER_GROUP);
         String nameServerAddress = config.get(NAME_SERVER_ADDRESS);
@@ -145,23 +134,23 @@ public class RocketMQDynamicTableFactory implements DynamicTableSourceFactory {
                     stopInMs >= startTime, "Start time should be less than stop time.");
         }
 
-        return new RocketMQConf.Builder()
-                .setStartTimeMs(startMessageOffset < 0 ? startTime : -1L)
-                .setPersistConsumerOffsetInterval(persistInterval)
-                .setStartMessageTimeStamp(startMessageTimeStamp)
-                .setMode(RocketMQConf.StartMode.getFromName(mode))
-                .setStartMessageOffset(startMessageOffset)
-                .setHeartbeatBrokerInterval(heartbeat)
-                .setNameserverAddress(nameServerAddress)
-                .setConsumerGroup(consumerGroup)
-                .setAccessChannel(accessChannel)
-                .setAccessKey(accessKey)
-                .setSecretKey(secretKey)
-                .setFetchSize(batchSize)
-                .setEncoding(encoding)
-                .setEndTimeMs(stopInMs)
-                .setTopic(topic)
-                .setTag(tag)
+        return RocketMQConfig.builder()
+                .startTimeMs(startMessageOffset < 0 ? startTime : -1L)
+                .persistConsumerOffsetInterval(persistInterval)
+                .startMessageTimeStamp(startMessageTimeStamp)
+                .mode(RocketMQConfig.StartMode.getFromName(mode))
+                .startMessageOffset(startMessageOffset)
+                .heartbeatBrokerInterval(heartbeat)
+                .nameserverAddress(nameServerAddress)
+                .consumerGroup(consumerGroup)
+                .accessChannel(accessChannel)
+                .accessKey(accessKey)
+                .secretKey(secretKey)
+                .fetchSize(batchSize)
+                .encoding(encoding)
+                .endTimeMs(stopInMs)
+                .topic(topic)
+                .tag(tag)
                 .build();
     }
 

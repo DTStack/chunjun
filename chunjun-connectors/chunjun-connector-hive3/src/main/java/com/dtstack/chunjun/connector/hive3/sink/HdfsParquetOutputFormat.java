@@ -30,6 +30,7 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.parquet.column.ParquetProperties;
@@ -51,8 +52,9 @@ import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Locale;
 
-/** @author liuliu 2022/3/23 */
+@Slf4j
 public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
+    private static final long serialVersionUID = 7468612312577174864L;
 
     private static final ColumnTypeUtil.DecimalInfo PARQUET_DEFAULT_DECIMAL_INFO =
             new ColumnTypeUtil.DecimalInfo(10, 0);
@@ -104,15 +106,15 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                             .withCompressionCodec(compressionCodecName)
                             .withConf(conf)
                             .withType(schema)
-                            .withDictionaryEncoding(hdfsConf.isEnableDictionary())
-                            .withRowGroupSize(hdfsConf.getRowGroupSize());
+                            .withDictionaryEncoding(hdfsConfig.isEnableDictionary())
+                            .withRowGroupSize(hdfsConfig.getRowGroupSize());
 
             // 开启kerberos 需要在ugi里进行build
-            if (Hive3Util.isOpenKerberos(hdfsConf.getHadoopConfig())) {
+            if (Hive3Util.isOpenKerberos(hdfsConfig.getHadoopConfig())) {
                 UserGroupInformation ugi =
                         Hive3Util.getUGI(
-                                hdfsConf.getHadoopConfig(),
-                                hdfsConf.getDefaultFS(),
+                                hdfsConfig.getHadoopConfig(),
+                                hdfsConfig.getDefaultFS(),
                                 getRuntimeContext().getDistributedCache());
                 ugi.doAs(
                         (PrivilegedAction<Object>)
@@ -136,7 +138,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public void flushDataInternal() {
-        LOG.info(
+        log.info(
                 "Close current parquet record writer, write data size:[{}]",
                 SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
         try {
@@ -182,7 +184,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
     @Override
     protected void closeSource() {
         try {
-            LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);
+            log.info("close:Current block writer record:" + rowsOfCurrentBlock);
             if (writer != null) {
                 writer.close();
             }
@@ -195,7 +197,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public CompressType getCompressType() {
-        return CompressType.getByTypeAndFileType(hdfsConf.getCompress(), FileType.PARQUET.name());
+        return CompressType.getByTypeAndFileType(hdfsConfig.getCompress(), FileType.PARQUET.name());
     }
 
     @SuppressWarnings("all")

@@ -46,6 +46,8 @@ import java.util.Map;
 public class HttpRowConverter
         extends AbstractRowConverter<Map<String, Object>, RowData, RowData, LogicalType> {
 
+    private static final long serialVersionUID = -9145005567073875082L;
+
     private HttpRestConfig httpRestConfig;
 
     public HttpRowConverter(RowType rowType, HttpRestConfig httpRestConfig) {
@@ -165,7 +167,7 @@ public class HttpRowConverter
 
     @Override
     public RowData toExternal(RowData rowData, RowData output) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, output);
         }
         return output;
