@@ -451,10 +451,10 @@
                             </transformers>
                             <artifactSet>
                                 <includes>
+									<!--only include slf4j api , exclude other log api & impls -->
+									<include>org.slf4j:slf4j-api</include>
                                     <include>com.google.guava:*</include>
                                     <include>com.google.code.gson:*</include>
-                                    <include>ch.qos.logback:*</include>
-                                    <include>org.slf4j:*</include>
                                     <include>org.apache.httpcomponents:*</include>
                                     <include>io.prometheus:*</include>
                                     <include>org.apache.avro:*</include>
@@ -508,10 +508,10 @@
 							</transformers>
 							<artifactSet>
 								<includes>
+									<!--only include slf4j api -->
+									<include>org.slf4j:slf4j-api</include>
 									<include>com.google.guava:*</include>
 									<include>com.google.code.gson:*</include>
-									<include>ch.qos.logback:*</include>
-									<include>org.slf4j:*</include>
 									<include>org.apache.httpcomponents:*</include>
 									<include>io.prometheus:*</include>
 									<include>org.apache.avro:*</include>

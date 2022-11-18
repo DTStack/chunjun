@@ -130,6 +130,16 @@
 						<artifactId>freemarker</artifactId>
 						<version>2.3.28</version>
 					</dependency>
+					<dependency>
+						<groupId>org.beanshell</groupId>
+						<artifactId>bsh</artifactId>
+						<version>2.0b5</version>
+					</dependency>
+					<dependency>
+						<groupId>xml-resolver</groupId>
+						<artifactId>xml-resolver</artifactId>
+						<version>1.2</version>
+					</dependency>
 				</dependencies>
 				<executions>
 					<execution>
@@ -184,9 +194,13 @@
 						<configuration>
 							<artifactSet>
 								<excludes>
-									<exclude>org.slf4j:slf4j-api</exclude>
-									<exclude>log4j:log4j</exclude>
+									<!--exclude all log api and impls -->
+									<exclude>org.slf4j:*</exclude>
+									<exclude>org.apache.logging.log4j:*</exclude>
 									<exclude>ch.qos.logback:*</exclude>
+									<exclude>ch.qos.reload4j:*</exclude>
+									<exclude>commons-logging:*</exclude>
+									<exclude>log4j:log4j</exclude>
 								</excludes>
 							</artifactSet>
 							<filters>

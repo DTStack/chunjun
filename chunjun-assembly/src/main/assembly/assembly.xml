@@ -59,8 +59,12 @@
 			<outputDirectory>lib</outputDirectory>
 			<useTransitiveDependencies>true</useTransitiveDependencies>
 			<unpack>false</unpack>
-			<scope>package</scope>
+			<scope>provided</scope>
 			<useProjectArtifact>false</useProjectArtifact>
+			<!-- only include log4j-*.jars -->
+			<includes>
+				<include>org.apache.logging.log4j:*</include>
+			</includes>
 		</dependencySet>
 	</dependencySets>
 </assembly>
