@@ -20,13 +20,7 @@ package com.dtstack.chunjun.connector.hbase.source;
 
 import org.apache.flink.core.io.InputSplit;
 
-/**
- * The Class describing each InputSplit of HBase
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+/** The Class describing each InputSplit of HBase */
 public class HBaseInputSplit implements InputSplit {
 
     private final String startkey;

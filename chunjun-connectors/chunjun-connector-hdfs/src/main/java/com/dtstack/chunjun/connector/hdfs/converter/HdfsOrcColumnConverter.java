@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.hdfs.converter;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -51,21 +51,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Date: 2021/06/16 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsOrcColumnConverter
         extends AbstractRowConverter<RowData, RowData, Object[], String> {
 
     private List<String> ColumnNameList;
     private transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
-    public HdfsOrcColumnConverter(List<FieldConf> fieldConfList, HdfsConf hdfsConf) {
-        super(fieldConfList.size(), hdfsConf);
-        for (int i = 0; i < fieldConfList.size(); i++) {
-            String type = fieldConfList.get(i).getType();
+    public HdfsOrcColumnConverter(List<FieldConfig> fieldConfigList, HdfsConfig hdfsConfig) {
+        super(fieldConfigList.size(), hdfsConfig);
+        for (FieldConfig fieldConfig : fieldConfigList) {
+            String type = fieldConfig.getType();
             int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
             int right = type.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
             if (left > 0 && right > 0) {
@@ -84,7 +79,7 @@ public class HdfsOrcColumnConverter
         ColumnRowData row = new ColumnRowData(input.getArity());
         if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
-            List<FieldConf> fieldConfList = commonConf.getColumn();
+            List<FieldConfig> fieldConfList = commonConfig.getColumn();
             for (int i = 0; i < input.getArity(); i++) {
                 row.addField(
                         assembleFieldProps(

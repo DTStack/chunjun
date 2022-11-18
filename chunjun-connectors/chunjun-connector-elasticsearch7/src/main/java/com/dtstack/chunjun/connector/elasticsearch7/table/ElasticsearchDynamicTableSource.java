@@ -19,19 +19,19 @@
 package com.dtstack.chunjun.connector.elasticsearch7.table;
 
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRowConverter;
-import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConf;
+import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
 import com.dtstack.chunjun.connector.elasticsearch7.source.ElasticsearchInputFormatBuilder;
 import com.dtstack.chunjun.connector.elasticsearch7.table.lookup.ElasticsearchAllTableFunction;
 import com.dtstack.chunjun.connector.elasticsearch7.table.lookup.ElasticsearchLruTableFunction;
 import com.dtstack.chunjun.enums.CacheType;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelTableFunctionProvider;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
@@ -39,35 +39,29 @@ import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.utils.TableSchemaUtils;
+import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.Preconditions;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/27 17:24
- */
 public class ElasticsearchDynamicTableSource
         implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
-    protected final ElasticsearchConf elasticsearchConf;
-    protected final LookupConf lookupConf;
-    private TableSchema physicalSchema;
+    protected final ElasticsearchConfig elasticsearchConfig;
+    protected final LookupConfig lookupConfig;
+    private final ResolvedSchema physicalSchema;
 
     public ElasticsearchDynamicTableSource(
-            TableSchema physicalSchema,
-            ElasticsearchConf elasticsearchConf,
-            LookupConf lookupConf) {
+            ResolvedSchema physicalSchema,
+            ElasticsearchConfig elasticsearchConfig,
+            LookupConfig lookupConfig) {
         this.physicalSchema = physicalSchema;
-        this.elasticsearchConf = elasticsearchConf;
-        this.lookupConf = lookupConf;
+        this.elasticsearchConfig = elasticsearchConfig;
+        this.lookupConfig = lookupConfig;
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new ElasticsearchDynamicTableSource(physicalSchema, elasticsearchConf, lookupConf);
+        return new ElasticsearchDynamicTableSource(
+                physicalSchema, elasticsearchConfig, lookupConfig);
     }
 
     @Override
@@ -82,14 +76,15 @@ public class ElasticsearchDynamicTableSource
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
+        LogicalType logicalType = physicalSchema.toPhysicalRowDataType().getLogicalType();
+        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(logicalType);
 
         ElasticsearchInputFormatBuilder builder = new ElasticsearchInputFormatBuilder();
-        builder.setRowConverter(new ElasticsearchRowConverter(rowType));
-        String[] fieldNames = physicalSchema.getFieldNames();
-        elasticsearchConf.setFieldNames(fieldNames);
-        builder.setEsConf(elasticsearchConf);
+        builder.setRowConverter(
+                new ElasticsearchRowConverter(InternalTypeInfo.of(logicalType).toRowType()));
+        String[] fieldNames = physicalSchema.getColumnNames().toArray(new String[0]);
+        elasticsearchConfig.setFieldNames(fieldNames);
+        builder.setEsConf(elasticsearchConfig);
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
@@ -102,37 +97,34 @@ public class ElasticsearchDynamicTableSource
             int[] innerKeyArr = context.getKeys()[i];
             Preconditions.checkArgument(
                     innerKeyArr.length == 1, "elasticsearch only support non-nested look up keys");
-            keyNames[i] = physicalSchema.getFieldNames()[innerKeyArr[0]];
+            keyNames[i] = physicalSchema.getColumnNames().toArray(new String[0])[innerKeyArr[0]];
         }
 
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+        LogicalType logicalType = physicalSchema.toPhysicalRowDataType().getLogicalType();
+        if (lookupConfig.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
             return ParallelTableFunctionProvider.of(
                     new ElasticsearchAllTableFunction(
-                            elasticsearchConf,
-                            lookupConf,
-                            physicalSchema.getFieldNames(),
+                            elasticsearchConfig,
+                            lookupConfig,
+                            physicalSchema.getColumnNames().toArray(new String[0]),
                             keyNames,
-                            new ElasticsearchRowConverter(rowType)),
-                    lookupConf.getParallelism());
+                            new ElasticsearchRowConverter(
+                                    InternalTypeInfo.of(logicalType).toRowType())),
+                    lookupConfig.getParallelism());
         }
         return ParallelAsyncTableFunctionProvider.of(
                 new ElasticsearchLruTableFunction(
-                        elasticsearchConf,
-                        lookupConf,
-                        physicalSchema.getFieldNames(),
+                        elasticsearchConfig,
+                        lookupConfig,
+                        physicalSchema.getColumnNames().toArray(new String[0]),
                         keyNames,
-                        new ElasticsearchRowConverter(rowType)),
-                lookupConf.getParallelism());
+                        new ElasticsearchRowConverter(
+                                InternalTypeInfo.of(logicalType).toRowType())),
+                lookupConfig.getParallelism());
     }
 
     @Override
     public boolean supportsNestedProjection() {
         return false;
-    }
-
-    @Override
-    public void applyProjection(int[][] projectedFields) {
-        this.physicalSchema = TableSchemaUtils.projectSchema(physicalSchema, projectedFields);
     }
 }

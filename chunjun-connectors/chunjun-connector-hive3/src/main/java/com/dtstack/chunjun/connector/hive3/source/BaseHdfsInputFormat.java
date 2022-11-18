@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.hive3.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hive3.util.Hive3Util;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -38,10 +38,9 @@ import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Map;
 
-/** @author liuliu 2022/3/23 */
 public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
-    protected HdfsConf hdfsConf;
+    protected HdfsConfig hdfsConfig;
 
     /** the key to read data into */
     protected Object key;
@@ -57,12 +56,14 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
-        if (Hive3Util.isOpenKerberos(hdfsConf.getHadoopConfig())) {
+        if (Hive3Util.isOpenKerberos(hdfsConfig.getHadoopConfig())) {
             DistributedCache distributedCache =
                     PluginUtil.createDistributedCacheFromContextClassLoader();
             UserGroupInformation ugi =
                     Hive3Util.getUGI(
-                            hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), distributedCache);
+                            hdfsConfig.getHadoopConfig(),
+                            hdfsConfig.getDefaultFS(),
+                            distributedCache);
             return ugi.doAs(
                     (PrivilegedExceptionAction<InputSplit[]>)
                             () -> {
@@ -80,8 +81,9 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     /** init Hadoop Job Config */
     protected void initHadoopJobConf() {
-        hadoopJobConf = Hive3Util.getJobConf(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
-        hadoopJobConf.set(HdfsPathFilter.KEY_REGEX, hdfsConf.getFilterRegex());
+        hadoopJobConf =
+                Hive3Util.getJobConf(hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS());
+        hadoopJobConf.set(HdfsPathFilter.KEY_REGEX, hdfsConfig.getFilterRegex());
         Hive3Util.setHadoopUserName(hadoopJobConf);
     }
 
@@ -90,12 +92,12 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
         super.openInputFormat();
         initHadoopJobConf();
         this.inputFormat = createMapredInputFormat();
-        openKerberos = Hive3Util.isOpenKerberos(hdfsConf.getHadoopConfig());
+        openKerberos = Hive3Util.isOpenKerberos(hdfsConfig.getHadoopConfig());
         if (openKerberos) {
             ugi =
                     Hive3Util.getUGI(
-                            hdfsConf.getHadoopConfig(),
-                            hdfsConf.getDefaultFS(),
+                            hdfsConfig.getHadoopConfig(),
+                            hdfsConfig.getDefaultFS(),
                             getRuntimeContext().getDistributedCache());
         }
     }
@@ -139,17 +141,17 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
             }
         }
         // 从 map 里面找出对应分区字段，然后给该列设置值。
-        for (FieldConf fieldConf : hdfsConf.getColumn()) {
+        for (FieldConfig fieldConfig : hdfsConfig.getColumn()) {
             // 如果此列是分区字段
-            if (fieldConf.getPart()) {
-                fieldConf.setValue(partitionAndValueMap.get(fieldConf.getName()));
+            if (fieldConfig.getPart()) {
+                fieldConfig.setValue(partitionAndValueMap.get(fieldConfig.getName()));
             }
         }
     }
 
     public abstract org.apache.hadoop.mapred.InputFormat createMapredInputFormat();
 
-    public void sethdfsConf(HdfsConf hdfsConf) {
-        this.hdfsConf = hdfsConf;
+    public void sethdfsConf(HdfsConfig hdfsConfig) {
+        this.hdfsConfig = hdfsConfig;
     }
 }

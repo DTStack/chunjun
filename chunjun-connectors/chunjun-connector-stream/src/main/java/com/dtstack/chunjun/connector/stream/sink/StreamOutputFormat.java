@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.stream.sink;
 
 import com.dtstack.chunjun.cdc.DdlRowData;
-import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.stream.config.StreamConfig;
 import com.dtstack.chunjun.connector.stream.util.TablePrintUtil;
 import com.dtstack.chunjun.element.ColumnRowData;

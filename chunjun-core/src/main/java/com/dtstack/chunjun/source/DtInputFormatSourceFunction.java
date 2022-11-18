@@ -52,11 +52,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-/**
- * A {@link SourceFunction} that reads data using an {@link InputFormat}.
- *
- * @author jiangbo
- */
+/** A {@link SourceFunction} that reads data using an {@link InputFormat}. */
 @Internal
 public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<OUT>
         implements CheckpointedFunction {

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.source.format;
 
-import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.config.CommonConfig;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,7 +60,7 @@ public class BaseRichInputFormatBuilderTest {
     }
 
     @Test
-    public void testSetChunJunCommonConf() {
+    public void testSetCommonConfig() {
         CommonConfig commonConfig = new CommonConfig();
         builder.setConfig(commonConfig);
         BaseRichInputFormat mockInputFormat = builder.finish();

@@ -18,13 +18,6 @@
 
 package com.dtstack.chunjun.enums;
 
-/**
- * Data write type
- *
- * <p>Company: www.dtstack.com
- *
- * @author jiangbo
- */
 public enum EWriteMode {
 
     /** insert into */

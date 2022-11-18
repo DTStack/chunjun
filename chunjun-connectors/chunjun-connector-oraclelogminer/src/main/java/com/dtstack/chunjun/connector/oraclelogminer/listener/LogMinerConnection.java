@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.oraclelogminer.listener;
 
 import com.dtstack.chunjun.cdc.DdlRowDataBuilder;
 import com.dtstack.chunjun.cdc.EventType;
-import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
+import com.dtstack.chunjun.connector.oraclelogminer.config.LogMinerConfig;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.OracleInfo;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.QueueData;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.RecordLog;
@@ -65,10 +65,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-/**
- * @author jiangbo
- * @date 2020/3/27
- */
 public class LogMinerConnection {
     public static final String KEY_PRIVILEGE = "PRIVILEGE";
     public static final String KEY_GRANTED_ROLE = "GRANTED_ROLE";
@@ -112,7 +108,7 @@ public class LogMinerConnection {
                     LogMinerConnection.STATE.FILEADDING,
                     LogMinerConnection.STATE.LOADING);
 
-    private final LogMinerConf logMinerConfig;
+    private final LogMinerConfig logMinerConfig;
     private final AtomicReference<STATE> CURRENT_STATE = new AtomicReference<>(STATE.INITIALIZE);
     private final TransactionManager transactionManager;
     /** oracle数据源信息 * */
@@ -134,7 +130,8 @@ public class LogMinerConnection {
 
     private Exception exception;
 
-    public LogMinerConnection(LogMinerConf logMinerConfig, TransactionManager transactionManager) {
+    public LogMinerConnection(
+            LogMinerConfig logMinerConfig, TransactionManager transactionManager) {
         this.logMinerConfig = logMinerConfig;
         this.transactionManager = transactionManager;
     }
@@ -583,7 +580,7 @@ public class LogMinerConnection {
                                         .collect(Collectors.toList())));
 
         BigInteger endScn = startScn;
-        Boolean loadRedoLog = false;
+        boolean loadRedoLog = false;
 
         long fileSize = 0L;
         Collection<List<LogFile>> values = map.values();
@@ -1190,7 +1187,7 @@ public class LogMinerConnection {
         info.put("oracle.jdbc.ReadTimeout", (logMinerConfig.getQueryTimeout() + 60) * 1000 + "");
 
         if (Objects.nonNull(logMinerConfig.getProperties())) {
-            logMinerConfig.getProperties().forEach(info::put);
+            info.putAll(logMinerConfig.getProperties());
         }
         Properties printProperties = new Properties();
         printProperties.putAll(info);

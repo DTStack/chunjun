@@ -44,7 +44,6 @@ import java.util.Map;
 
 import static com.dtstack.chunjun.connector.starrocks.util.StarRocksUtil.addStrForNum;
 
-/** @author liuliu 2022/7/12 */
 public class StarRocksRowConverter
         extends AbstractRowConverter<Object[], Object[], Map<String, Object>, LogicalType> {
 

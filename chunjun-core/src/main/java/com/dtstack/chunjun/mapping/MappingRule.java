@@ -43,7 +43,7 @@ public class MappingRule implements Serializable {
 
     private final Casing casing;
 
-    public MappingRule(MappingConf conf) {
+    public MappingRule(MappingConfig conf) {
         identifierMappings = new LinkedHashMap<>(32);
         columnTypeMappings = new LinkedHashMap<>(32);
         if (MapUtils.isNotEmpty(conf.getIdentifierMappings())) {

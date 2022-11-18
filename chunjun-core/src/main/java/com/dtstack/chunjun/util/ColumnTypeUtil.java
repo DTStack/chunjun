@@ -20,10 +20,6 @@ package com.dtstack.chunjun.util;
 
 import java.util.Objects;
 
-/**
- * @author jiangbo
- * @date 2019/9/2
- */
 public class ColumnTypeUtil {
 
     public static final String TYPE_NAME = "decimal";

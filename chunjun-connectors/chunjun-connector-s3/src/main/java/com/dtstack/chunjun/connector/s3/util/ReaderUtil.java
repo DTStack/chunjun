@@ -18,9 +18,10 @@
 
 package com.dtstack.chunjun.connector.s3.util;
 
+import com.google.common.collect.Maps;
+
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +29,9 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.util.HashMap;
 
@@ -41,7 +45,7 @@ public class ReaderUtil {
     private String fileName = null;
 
     // this holds all the values for switches that the user is allowed to set
-    private UserSettings userSettings = new UserSettings();
+    private final UserSettings userSettings = new UserSettings();
 
     private Charset charset = null;
 
@@ -50,18 +54,18 @@ public class ReaderUtil {
     // this will be our working buffer to hold data chunks
     // read in from the data file
 
-    private DataBuffer dataBuffer = new DataBuffer();
+    private final DataBuffer dataBuffer = new DataBuffer();
 
-    private ColumnBuffer columnBuffer = new ColumnBuffer();
+    private final ColumnBuffer columnBuffer = new ColumnBuffer();
 
     // 缓存当前记录的值，当一个条记录需要跨两个流缓存读取时，需要将已读取的部分记录的字符缓存至此
-    private RawRecordBuffer rawBuffer = new RawRecordBuffer();
+    private final RawRecordBuffer rawBuffer = new RawRecordBuffer();
 
     private boolean[] isQualified = null;
 
     private String rawRecord = "";
 
-    private HeadersHolder headersHolder = new HeadersHolder();
+    private final HeadersHolder headersHolder = new HeadersHolder();
 
     // these are all more or less global loop variables
     // to keep from needing to pass them all into various
@@ -124,7 +128,7 @@ public class ReaderUtil {
     }
 
     public ReaderUtil(String fileName, char delimiter) throws FileNotFoundException {
-        this(fileName, delimiter, Charset.forName("ISO-8859-1"));
+        this(fileName, delimiter, StandardCharsets.ISO_8859_1);
     }
 
     public ReaderUtil(String fileName) throws FileNotFoundException {
@@ -1077,7 +1081,8 @@ public class ReaderUtil {
             if (fileName != null) {
                 inputStream =
                         new BufferedReader(
-                                new InputStreamReader(new FileInputStream(fileName), charset),
+                                new InputStreamReader(
+                                        Files.newInputStream(Paths.get(fileName)), charset),
                                 StaticSettings.MAX_FILE_BUFFER_SIZE);
             }
 
@@ -1138,10 +1143,9 @@ public class ReaderUtil {
     /**
      * Read the first record of data as column headers.
      *
-     * @return Whether the header record was successfully read or not.
      * @throws IOException Thrown if an error occurs while reading data from the source stream.
      */
-    public boolean readHeaders() throws IOException {
+    public void readHeaders() throws IOException {
         boolean result = readRecord();
 
         // copy the header data from the column array
@@ -1157,7 +1161,7 @@ public class ReaderUtil {
             headersHolder.Headers[i] = columnValue;
 
             // if there are duplicate header names, we will save the last one
-            headersHolder.IndexByName.put(columnValue, new Integer(i));
+            headersHolder.IndexByName.put(columnValue, i);
         }
 
         if (result) {
@@ -1165,8 +1169,6 @@ public class ReaderUtil {
         }
 
         columnsCount = 0;
-
-        return result;
     }
 
     /**
@@ -1361,10 +1363,10 @@ public class ReaderUtil {
     public int getIndex(String headerName) throws IOException {
         checkClosed();
 
-        Object indexValue = headersHolder.IndexByName.get(headerName);
+        Integer indexValue = headersHolder.IndexByName.get(headerName);
 
         if (indexValue != null) {
-            return ((Integer) indexValue).intValue();
+            return indexValue;
         } else {
             return -1;
         }
@@ -1489,7 +1491,7 @@ public class ReaderUtil {
         close(false);
     }
 
-    private class ComplexEscape {
+    private static class ComplexEscape {
         private static final int UNICODE = 1;
 
         private static final int OCTAL = 2;
@@ -1513,7 +1515,7 @@ public class ReaderUtil {
         return result;
     }
 
-    private class DataBuffer {
+    private static class DataBuffer {
         // 缓存的数据，默认大小为1024
         public char[] Buffer;
 
@@ -1541,7 +1543,7 @@ public class ReaderUtil {
         }
     }
 
-    private class ColumnBuffer {
+    private static class ColumnBuffer {
         public char[] Buffer;
 
         public int Position;
@@ -1552,7 +1554,7 @@ public class ReaderUtil {
         }
     }
 
-    private class RawRecordBuffer {
+    private static class RawRecordBuffer {
         public char[] Buffer;
 
         public int Position;
@@ -1566,7 +1568,7 @@ public class ReaderUtil {
         }
     }
 
-    private class Letters {
+    private static class Letters {
         public static final char LF = '\n';
 
         public static final char CR = '\r';
@@ -1639,21 +1641,21 @@ public class ReaderUtil {
         }
     }
 
-    private class HeadersHolder {
+    private static class HeadersHolder {
         public String[] Headers;
 
         public int Length;
 
-        public HashMap IndexByName;
+        public HashMap<String, Integer> IndexByName;
 
         public HeadersHolder() {
             Headers = null;
             Length = 0;
-            IndexByName = new HashMap();
+            IndexByName = Maps.newHashMap();
         }
     }
 
-    private class StaticSettings {
+    private static class StaticSettings {
         // these are static instead of final so they can be changed in unit test
         // isn't visible outside this class and is only accessed once during
         // CsvReader construction

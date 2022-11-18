@@ -26,13 +26,6 @@ package com.dtstack.chunjun.util;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Date: 2019/12/03 Company: www.dtstack.com
- *
- * <p>this class is copied from (https://github.com/debezium/debezium).
- *
- * @author tudou
- */
 public interface Clock {
 
     /** The {@link Clock} instance that uses the {@link System} methods. */

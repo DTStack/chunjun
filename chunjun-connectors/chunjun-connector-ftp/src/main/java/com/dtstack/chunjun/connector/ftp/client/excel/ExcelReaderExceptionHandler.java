@@ -21,7 +21,6 @@ package com.dtstack.chunjun.connector.ftp.client.excel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** @author by dujie @Description @Date 2021/12/20 */
 public class ExcelReaderExceptionHandler implements Thread.UncaughtExceptionHandler {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());

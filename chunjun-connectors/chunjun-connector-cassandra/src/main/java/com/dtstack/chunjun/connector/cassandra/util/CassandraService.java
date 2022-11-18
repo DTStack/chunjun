@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.cassandra.util;
 
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraCommonConf;
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraSourceConf;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraCommonConfig;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraSourceConfig;
 import com.dtstack.chunjun.connector.cassandra.source.CassandraInputSplit;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
@@ -40,13 +40,10 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Locale;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraService {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraService.class);
 
@@ -59,17 +56,17 @@ public class CassandraService {
     /**
      * Build cassandra session.
      *
-     * @param commonConf cassandra common conf {@link CassandraCommonConf}
+     * @param commonConfig cassandra common conf {@link CassandraCommonConfig}
      * @return cassandraSession
      */
-    public static Session session(CassandraCommonConf commonConf) {
+    public static Session session(CassandraCommonConfig commonConfig) {
         try {
-            String keySpace = commonConf.getKeyspaces();
+            String keySpace = commonConfig.getKeyspaces();
 
             Preconditions.checkNotNull(keySpace, "keySpace must not null");
 
             // 获取集群
-            Cluster cluster = cluster(commonConf);
+            Cluster cluster = cluster(commonConfig);
 
             // 创建session
             Session cassandraSession = cluster.connect(keySpace);
@@ -84,31 +81,31 @@ public class CassandraService {
     /**
      * 获取Cluster
      *
-     * @param commonConf cassandra配置
+     * @param commonConfig cassandra配置
      * @return 返回Cluster实例
      */
-    public static Cluster cluster(CassandraCommonConf commonConf) {
+    public static Cluster cluster(CassandraCommonConfig commonConfig) {
         try {
-            Integer port = commonConf.getPort();
-            String hosts = commonConf.getHost();
+            Integer port = commonConfig.getPort();
+            String hosts = commonConfig.getHost();
 
-            String username = commonConf.getUserName();
-            String password = commonConf.getPassword();
+            String username = commonConfig.getUserName();
+            String password = commonConfig.getPassword();
 
-            String clusterName = commonConf.getClusterName();
+            String clusterName = commonConfig.getClusterName();
 
             HostDistance hostDistance =
                     hostDistance(
-                            commonConf.getHostDistance() == null
+                            commonConfig.getHostDistance() == null
                                     ? "LOCAL"
-                                    : commonConf.getHostDistance());
+                                    : commonConfig.getHostDistance());
 
-            boolean useSSL = commonConf.isUseSSL();
-            int connectionsPerHost = commonConf.getCoreConnectionsPerHost();
-            int maxRequestsPerConnection = commonConf.getMaxRequestsPerConnection();
+            boolean useSSL = commonConfig.isUseSSL();
+            int connectionsPerHost = commonConfig.getCoreConnectionsPerHost();
+            int maxRequestsPerConnection = commonConfig.getMaxRequestsPerConnection();
 
-            Integer readTimeoutMillis = commonConf.getReadTimeoutMillis();
-            Integer connectTimeoutMillis = commonConf.getConnectTimeoutMillis();
+            Integer readTimeoutMillis = commonConfig.getReadTimeoutMillis();
+            Integer connectTimeoutMillis = commonConfig.getConnectTimeoutMillis();
 
             Preconditions.checkNotNull(hosts, "url must not null");
 
@@ -209,7 +206,7 @@ public class CassandraService {
      * @return 返回InputSplit[]
      */
     public static InputSplit[] splitJob(
-            CassandraSourceConf sourceConf,
+            CassandraSourceConfig sourceConf,
             int minNumSplits,
             ArrayList<CassandraInputSplit> splits) {
 
@@ -231,10 +228,7 @@ public class CassandraService {
             BigDecimal maxToken = new BigDecimal(new BigInteger("2").pow(127));
             BigDecimal step =
                     maxToken.subtract(minToken)
-                            .divide(
-                                    BigDecimal.valueOf(minNumSplits),
-                                    2,
-                                    BigDecimal.ROUND_HALF_EVEN);
+                            .divide(BigDecimal.valueOf(minNumSplits), 2, RoundingMode.HALF_EVEN);
             for (int i = 0; i < minNumSplits; i++) {
                 BigInteger l = minToken.add(step.multiply(BigDecimal.valueOf(i))).toBigInteger();
                 BigInteger r =
@@ -249,10 +243,7 @@ public class CassandraService {
             BigDecimal maxToken = BigDecimal.valueOf(Long.MAX_VALUE);
             BigDecimal step =
                     maxToken.subtract(minToken)
-                            .divide(
-                                    BigDecimal.valueOf(minNumSplits),
-                                    2,
-                                    BigDecimal.ROUND_HALF_EVEN);
+                            .divide(BigDecimal.valueOf(minNumSplits), 2, RoundingMode.HALF_EVEN);
             for (int i = 0; i < minNumSplits; i++) {
                 long l = minToken.add(step.multiply(BigDecimal.valueOf(i))).longValue();
                 long r = minToken.add(step.multiply(BigDecimal.valueOf(i + 1L))).longValue();

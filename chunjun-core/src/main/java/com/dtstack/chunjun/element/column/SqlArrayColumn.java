@@ -27,12 +27,6 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/4/15
- */
 public class SqlArrayColumn extends AbstractBaseColumn {
 
     private static final long serialVersionUID = 1L;

@@ -18,18 +18,13 @@
 
 package com.dtstack.chunjun.connector.greenplum.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.greenplum.dialect.GreenplumDialect;
 import com.dtstack.chunjun.connector.postgresql.sink.PostgresqlSinkFactory;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class GreenplumSinkFactory extends PostgresqlSinkFactory {
 
-    public GreenplumSinkFactory(SyncConf syncConf) {
-        super(syncConf, new GreenplumDialect());
+    public GreenplumSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig, new GreenplumDialect());
     }
 }

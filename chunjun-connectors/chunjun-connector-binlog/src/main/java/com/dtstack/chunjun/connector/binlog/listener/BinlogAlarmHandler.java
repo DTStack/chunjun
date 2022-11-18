@@ -22,7 +22,6 @@ import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** @author toutian */
 public class BinlogAlarmHandler extends AbstractCanalLifeCycle implements CanalAlarmHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(BinlogAlarmHandler.class);

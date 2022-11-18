@@ -18,23 +18,22 @@
 
 package com.dtstack.chunjun.connector.starrocks.sink;
 
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.streamload.StreamLoadManager;
 
 import org.apache.flink.table.data.RowData;
 
 import java.util.List;
 
-/** @author liuliu 2022/7/28 */
 public abstract class StarRocksWriteProcessor {
 
     protected final StreamLoadManager streamLoadManager;
-    protected final StarRocksConf starRocksConf;
+    protected final StarRocksConfig starRocksConfig;
 
     public StarRocksWriteProcessor(
-            StreamLoadManager streamLoadManager, StarRocksConf starRocksConf) {
+            StreamLoadManager streamLoadManager, StarRocksConfig starRocksConfig) {
         this.streamLoadManager = streamLoadManager;
-        this.starRocksConf = starRocksConf;
+        this.starRocksConfig = starRocksConfig;
     }
 
     public abstract void write(List<RowData> rowDataList) throws Exception;

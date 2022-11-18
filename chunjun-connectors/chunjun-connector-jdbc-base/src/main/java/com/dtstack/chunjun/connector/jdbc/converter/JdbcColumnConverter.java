@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.jdbc.converter;
 
-import com.dtstack.chunjun.conf.CommonConfig;
-import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -61,8 +61,8 @@ public class JdbcColumnConverter
         this(rowType, null);
     }
 
-    public JdbcColumnConverter(RowType rowType, CommonConfig commonConf) {
-        super(rowType, commonConf);
+    public JdbcColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(

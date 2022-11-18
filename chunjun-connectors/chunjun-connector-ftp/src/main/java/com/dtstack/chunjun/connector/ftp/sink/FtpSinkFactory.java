@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.ftp.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.ftp.conf.ConfigConstants;
 import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.converter.FtpColumnConverter;
@@ -38,22 +38,15 @@ import org.apache.flink.table.types.logical.RowType;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/06/19
- */
 public class FtpSinkFactory extends SinkFactory {
 
-    private List<String> columnName;
-    private List<String> columnType;
-    private FtpConfig ftpConfig;
+    private final FtpConfig ftpConfig;
 
-    public FtpSinkFactory(SyncConf syncConf) {
-        super(syncConf);
+    public FtpSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
         ftpConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getWriter().getParameter()), FtpConfig.class);
+                        JsonUtil.toJson(syncConfig.getWriter().getParameter()), FtpConfig.class);
 
         if (ftpConfig.getPort() == null) {
             ftpConfig.setDefaultPort();
@@ -71,12 +64,12 @@ public class FtpSinkFactory extends SinkFactory {
         FtpOutputFormatBuilder builder = new FtpOutputFormatBuilder();
         builder.setConfig(ftpConfig);
         builder.setFtpConfig(ftpConfig);
-        List<FieldConf> fieldConfList =
+        List<FieldConfig> fieldConfList =
                 ftpConfig.getColumn().stream()
                         .peek(
-                                fieldConf -> {
-                                    if (fieldConf.getName() == null) {
-                                        fieldConf.setName(String.valueOf(fieldConf.getIndex()));
+                                fieldConfig -> {
+                                    if (fieldConfig.getName() == null) {
+                                        fieldConfig.setName(String.valueOf(fieldConfig.getIndex()));
                                     }
                                 })
                         .collect(Collectors.toList());

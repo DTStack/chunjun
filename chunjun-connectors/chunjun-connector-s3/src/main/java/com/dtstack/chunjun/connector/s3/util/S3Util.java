@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.s3.util;
 
-import com.dtstack.chunjun.connector.s3.conf.S3Conf;
+import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.util.GsonUtil;
 
 import com.amazonaws.ClientConfiguration;
@@ -53,15 +53,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * a util for connect to AmazonS3
- *
- * @author jier
- */
 public class S3Util {
     private static final Logger LOG = LoggerFactory.getLogger(S3Util.class);
 
-    public static AmazonS3 getS3Client(S3Conf s3Config) {
+    public static AmazonS3 getS3Client(S3Config s3Config) {
         if (s3Config != null) {
             if (StringUtils.isNotBlank(s3Config.getRegion())) {
                 Regions clientRegion = Regions.fromName(s3Config.getRegion());

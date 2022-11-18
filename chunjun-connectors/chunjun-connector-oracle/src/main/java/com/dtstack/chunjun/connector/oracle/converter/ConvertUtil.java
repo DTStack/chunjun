@@ -24,11 +24,6 @@ import java.io.Reader;
 import java.sql.Clob;
 import java.sql.SQLException;
 
-/**
- * @author: shifang
- * @description convert oracle special data type
- * @date: 2021/11/17 上午11:07
- */
 public class ConvertUtil {
 
     public static byte[] toByteArray(BLOB fromBlob) throws SQLException {

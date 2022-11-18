@@ -19,13 +19,8 @@
 package com.dtstack.chunjun.connector.oraclelogminer.entity;
 
 import java.math.BigInteger;
+import java.util.StringJoiner;
 
-/**
- * Date: 2021/08/13 Company: www.dtstack.com
- *
- * @author dujie
- *     <p>v$logmnr_contents 对应的实体 logminer读取出的数据实体
- */
 public class RecordLog {
 
     private BigInteger scn;
@@ -153,34 +148,17 @@ public class RecordLog {
 
     @Override
     public String toString() {
-        return "RecordLog{"
-                + "scn="
-                + scn
-                + ", sqlUndo='"
-                + sqlUndo
-                + '\''
-                + ", sqlRedo='"
-                + sqlRedo
-                + '\''
-                + ", xidusn='"
-                + xidUsn
-                + '\''
-                + ", xidslt='"
-                + xidSlt
-                + '\''
-                + ", xidSqn='"
-                + xidSqn
-                + '\''
-                + ", rowId='"
-                + rowId
-                + '\''
-                + ", tableName='"
-                + tableName
-                + '\''
-                + ", hasMultiSql="
-                + hasMultiSql
-                + ", operationCode="
-                + operationCode
-                + '}';
+        return new StringJoiner(", ", RecordLog.class.getSimpleName() + "[", "]")
+                .add("scn=" + scn)
+                .add("sqlUndo='" + sqlUndo + "'")
+                .add("sqlRedo='" + sqlRedo + "'")
+                .add("xidUsn='" + xidUsn + "'")
+                .add("xidSlt='" + xidSlt + "'")
+                .add("xidSqn='" + xidSqn + "'")
+                .add("rowId='" + rowId + "'")
+                .add("tableName='" + tableName + "'")
+                .add("hasMultiSql=" + hasMultiSql)
+                .add("operationCode=" + operationCode)
+                .toString();
     }
 }

@@ -26,11 +26,6 @@ import org.apache.flink.configuration.ConfigOptions;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * @author chuixue
- * @create 2021-04-10 16:14
- * @description JdbcLookUp common
- */
 public class JdbcLookupOptions extends LookupOptions {
 
     public static final String DRUID_PREFIX = "druid.";
@@ -106,16 +101,15 @@ public class JdbcLookupOptions extends LookupOptions {
                     .defaultValue(3)
                     .withDescription(" lookup ");
 
-    public static LinkedHashMap getLibConfMap(Map<String, String> tableOptions, String prefix) {
-        final LinkedHashMap<String, Object> map = new LinkedHashMap();
+    public static LinkedHashMap<String, Object> getLibConfMap(
+            Map<String, String> tableOptions, String prefix) {
+        final LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         if (hasLibProperties(tableOptions, prefix)) {
             tableOptions.keySet().stream()
                     .filter(key -> key.startsWith(prefix))
                     .forEach(
                             key -> {
                                 final String value = tableOptions.get(key);
-                                //                                final String subKey =
-                                // key.substring((prefix).length());
                                 map.put(key, value);
                             });
         }

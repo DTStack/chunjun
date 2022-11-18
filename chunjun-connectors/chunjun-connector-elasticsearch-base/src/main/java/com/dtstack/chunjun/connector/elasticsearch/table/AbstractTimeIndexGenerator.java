@@ -22,7 +22,6 @@ import org.apache.flink.annotation.Internal;
 
 import java.time.format.DateTimeFormatter;
 
-/** Abstract class for time related {@link IndexGenerator}. */
 @Internal
 public abstract class AbstractTimeIndexGenerator extends IndexGeneratorBase {
 

@@ -20,10 +20,6 @@ package com.dtstack.chunjun.connector.hbase;
 
 import java.io.Serializable;
 
-/**
- * @author jiangbo
- * @date 2019/7/25
- */
 public class ConstantFunction implements IFunction, Serializable {
 
     private Object value;

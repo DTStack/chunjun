@@ -25,10 +25,6 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author jiangbo
- * @date 2020/3/13
- */
 public class MapUtilTest {
 
     @Test

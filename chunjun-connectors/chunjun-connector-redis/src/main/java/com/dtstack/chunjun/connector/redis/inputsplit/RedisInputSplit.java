@@ -22,7 +22,6 @@ import org.apache.flink.core.io.GenericInputSplit;
 
 import java.util.List;
 
-/** @Author OT @Date 2022/7/27 */
 public class RedisInputSplit extends GenericInputSplit {
     private List<String> key;
 

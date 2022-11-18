@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.metrics.rdb;
 
-import com.dtstack.chunjun.conf.MetricParam;
+import com.dtstack.chunjun.config.MetricParam;
 import com.dtstack.chunjun.metrics.CustomReporter;
 import com.dtstack.chunjun.util.JsonUtil;
 

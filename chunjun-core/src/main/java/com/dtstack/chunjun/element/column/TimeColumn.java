@@ -27,7 +27,6 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalTime;
 
-/** @author liuliu 2022/1/12 */
 public class TimeColumn extends AbstractBaseColumn {
 
     public TimeColumn(Time data) {

@@ -19,12 +19,8 @@
 package com.dtstack.chunjun.connector.oraclelogminer.entity;
 
 import java.util.List;
+import java.util.StringJoiner;
 
-/**
- * Date: 2021/05/20 Company: www.dtstack.com
- *
- * @author dujie
- */
 public class TableMetaData {
 
     private final String SchemaName;
@@ -59,17 +55,11 @@ public class TableMetaData {
 
     @Override
     public String toString() {
-        return "TableMetaData{"
-                + "SchemaName='"
-                + SchemaName
-                + '\''
-                + ", tableName='"
-                + tableName
-                + '\''
-                + ", columns="
-                + fieldList
-                + ", types="
-                + typeList
-                + '}';
+        return new StringJoiner(", ", TableMetaData.class.getSimpleName() + "[", "]")
+                .add("SchemaName='" + SchemaName + "'")
+                .add("tableName='" + tableName + "'")
+                .add("fieldList=" + fieldList)
+                .add("typeList=" + typeList)
+                .toString();
     }
 }

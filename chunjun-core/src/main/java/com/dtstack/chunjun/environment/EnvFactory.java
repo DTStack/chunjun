@@ -33,11 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Properties;
 
-/**
- * @program chunjun
- * @author: wuren
- * @create: 2021/08/04
- */
 public class EnvFactory {
 
     /**

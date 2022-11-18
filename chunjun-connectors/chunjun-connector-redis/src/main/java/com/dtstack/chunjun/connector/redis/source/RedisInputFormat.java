@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.redis.source;
 
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.connector.redis.connection.RedisSyncClient;
 import com.dtstack.chunjun.connector.redis.inputsplit.RedisInputSplit;
 import com.dtstack.chunjun.connector.redis.util.RedisUtil;
@@ -28,45 +28,41 @@ import com.dtstack.chunjun.throwable.ReadRecordException;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import redis.clients.jedis.JedisCommands;
 
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** @Author OT @Date 2022/7/26 */
 public class RedisInputFormat extends BaseRichInputFormat {
     private transient RedisSyncClient redisSyncClient;
 
     private transient Iterator<String> keyIterator;
-    /** redis Conf */
-    private RedisConf redisConf;
-    /** jedis */
+    private RedisConfig redisConfig;
     private JedisCommands jedis;
 
     @Override
-    protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
-        redisSyncClient = new RedisSyncClient(redisConf);
+    protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
+        redisSyncClient = new RedisSyncClient(redisConfig);
         jedis = redisSyncClient.getJedis();
-        Set<String> keys = new HashSet();
-        if (StringUtils.isNotBlank(redisConf.getKeyPrefix())) {
+        Set<String> keys = Sets.newHashSet();
+        if (StringUtils.isNotBlank(redisConfig.getKeyPrefix())) {
             keys.addAll(
                     RedisUtil.getRedisKeys(
-                            redisConf.getRedisConnectType(), jedis, redisConf.getKeyPrefix()));
+                            redisConfig.getRedisConnectType(), jedis, redisConfig.getKeyPrefix()));
         }
         Iterator<String> iterator = keys.iterator();
         RedisInputSplit[] inputSplits = new RedisInputSplit[minNumSplits];
         if (keys.size() == 0) {
-            throw new RuntimeException("There is no" + redisConf.getKeyPrefix() + "with key");
+            throw new RuntimeException("There is no" + redisConfig.getKeyPrefix() + "with key");
         }
         int keySplitCount = keys.size() / minNumSplits;
         for (int i = 0; i < inputSplits.length; i++) {
-            List<String> list = new LinkedList();
+            List<String> list = Lists.newLinkedList();
             for (int j = 0; j < keySplitCount && iterator.hasNext(); j++) {
                 list.add(iterator.next());
             }
@@ -80,9 +76,9 @@ public class RedisInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
+    protected void openInternal(InputSplit inputSplit) {
         RedisInputSplit redisInputSplit = (RedisInputSplit) inputSplit;
-        redisSyncClient = new RedisSyncClient(redisConf);
+        redisSyncClient = new RedisSyncClient(redisConfig);
         jedis = redisSyncClient.getJedis();
         keyIterator = redisInputSplit.getKey().iterator();
     }
@@ -94,28 +90,27 @@ public class RedisInputFormat extends BaseRichInputFormat {
         }
         Map<String, String> map = jedis.hgetAll(keyIterator.next());
         try {
-            RowData row = rowConverter.toInternal(map);
-            return row;
+            return rowConverter.toInternal(map);
         } catch (Exception e) {
             throw new ReadRecordException("", e, 0, rowData);
         }
     }
 
     @Override
-    protected void closeInternal() throws IOException {
+    protected void closeInternal() {
         redisSyncClient.close(jedis);
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
+    public boolean reachedEnd() {
         return !keyIterator.hasNext();
     }
 
-    public RedisConf getRedisConf() {
-        return redisConf;
+    public RedisConfig getRedisConf() {
+        return redisConfig;
     }
 
-    public void setRedisConf(RedisConf redisConf) {
-        this.redisConf = redisConf;
+    public void setRedisConf(RedisConfig redisConfig) {
+        this.redisConfig = redisConfig;
     }
 }

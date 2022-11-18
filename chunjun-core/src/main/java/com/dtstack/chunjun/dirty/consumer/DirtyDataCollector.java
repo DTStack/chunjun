@@ -33,10 +33,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.dtstack.chunjun.dirty.utils.LogUtil.warn;
 
-/**
- * @author tiezhu@dtstack
- * @date 22/09/2021 Wednesday
- */
 public abstract class DirtyDataCollector implements Runnable, Serializable {
 
     protected final LongCounter failedConsumedCounter = new LongCounter(0L);

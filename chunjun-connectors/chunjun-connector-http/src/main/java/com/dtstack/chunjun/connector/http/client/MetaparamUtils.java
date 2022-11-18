@@ -37,11 +37,6 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Metaparam 工具类
- *
- * @author shifang@dtstack.com
- */
 public class MetaparamUtils {
     public static Pattern valueExpression =
             Pattern.compile(

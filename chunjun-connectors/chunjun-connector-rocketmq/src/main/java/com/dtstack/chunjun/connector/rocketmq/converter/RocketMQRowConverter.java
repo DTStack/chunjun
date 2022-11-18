@@ -41,7 +41,6 @@ import java.sql.Timestamp;
 import java.util.Map;
 import java.util.Objects;
 
-/** @author shitou @date 2022/5/27 * */
 public class RocketMQRowConverter
         extends AbstractRowConverter<byte[], byte[], Message, LogicalType> {
 
@@ -79,7 +78,7 @@ public class RocketMQRowConverter
     }
 
     @Override
-    public Message toExternal(RowData rowData, Message output) throws Exception {
+    public Message toExternal(RowData rowData, Message output) {
         return null;
     }
 

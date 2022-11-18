@@ -27,10 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-/**
- * @author jiangbo
- * @date 2019/7/18
- */
 public class ResultPrintUtil {
 
     private static Logger LOG = LoggerFactory.getLogger(ResultPrintUtil.class);

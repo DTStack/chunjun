@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.clickhouse.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -37,15 +37,9 @@ public class ClickhouseInputFormatBuilder extends JdbcInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        JdbcConf conf = format.getJdbcConf();
+        JdbcConfig conf = format.getJdbcConfig();
         StringBuilder sb = new StringBuilder(256);
-        // userName and password is nullable
-        //        if (StringUtils.isBlank(conf.getUsername())) {
-        //            sb.append("No username supplied;\n");
-        //        }
-        //        if (StringUtils.isBlank(conf.getPassword())) {
-        //            sb.append("No password supplied;\n");
-        //        }
+
         if (StringUtils.isBlank(conf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }
@@ -63,8 +57,8 @@ public class ClickhouseInputFormatBuilder extends JdbcInputFormatBuilder {
             if (StringUtils.isBlank(conf.getSplitPk())) {
                 sb.append("Must specify the split column when the channel is greater than 1;\n");
             } else {
-                FieldConf field =
-                        FieldConf.getSameNameMetaColumn(conf.getColumn(), conf.getSplitPk());
+                FieldConfig field =
+                        FieldConfig.getSameNameMetaColumn(conf.getColumn(), conf.getSplitPk());
                 if (field == null) {
                     sb.append("split column must in columns;\n");
                 } else if (!ColumnType.isNumberType(field.getType())) {

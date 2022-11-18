@@ -22,13 +22,8 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.StringJoiner;
 
-/**
- * Date: 2021/08/13 Company: www.dtstack.com
- *
- * @author dujie
- *     <p>事件数据
- */
 public class EventRow implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -134,26 +129,15 @@ public class EventRow implements Serializable {
 
     @Override
     public String toString() {
-        return "LogminerEventRow{"
-                + "beforeColumn="
-                + beforeColumnList
-                + ", afterColumn="
-                + afterColumnList
-                + ", scn="
-                + scn
-                + ", type='"
-                + type
-                + '\''
-                + ", schema='"
-                + schema
-                + '\''
-                + ", table='"
-                + table
-                + '\''
-                + ", ts="
-                + ts
-                + ", timestamp="
-                + opTime
-                + '}';
+        return new StringJoiner(", ", EventRow.class.getSimpleName() + "[", "]")
+                .add("beforeColumnList=" + beforeColumnList)
+                .add("afterColumnList=" + afterColumnList)
+                .add("scn=" + scn)
+                .add("type='" + type + "'")
+                .add("schema='" + schema + "'")
+                .add("table='" + table + "'")
+                .add("ts=" + ts)
+                .add("opTime=" + opTime)
+                .toString();
     }
 }

@@ -19,8 +19,8 @@
 
 package com.dtstack.chunjun.connector.influxdb.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -46,35 +46,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/3/8
- */
 public class InfluxdbColumnConverter
         extends AbstractRowConverter<Map<String, Object>, RowData, Point.Builder, LogicalType> {
 
     private static final String TIME_KEY = "time";
 
+    private final List<String> fieldNameList;
+    private final List<FieldConfig> fieldConfList;
+    private final TimeUnit precision;
     private String format = "MSGPACK";
-    private List<String> fieldNameList;
-    private List<FieldConf> fieldConfList;
     private List<String> tags;
     private String timestamp;
-    private TimeUnit precision;
-
-    public InfluxdbColumnConverter(RowType rowType) {
-        super(rowType);
-    }
 
     public InfluxdbColumnConverter(
             RowType rowType,
-            ChunJunCommonConf commonConf,
+            CommonConfig commonConfig,
             List<String> fieldNameList,
             String format,
             TimeUnit precision) {
-        super(rowType, commonConf);
+        super(rowType, commonConfig);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
@@ -84,19 +74,19 @@ public class InfluxdbColumnConverter
                             createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
         this.format = format;
-        this.fieldConfList = commonConf.getColumn();
+        this.fieldConfList = commonConfig.getColumn();
         this.fieldNameList = fieldNameList;
         this.precision = precision;
     }
 
     public InfluxdbColumnConverter(
             RowType rowType,
-            ChunJunCommonConf commonConf,
+            CommonConfig commonConfig,
             List<String> fieldNameList,
             List<String> tags,
             String timestamp,
             TimeUnit precision) {
-        super(rowType, commonConf);
+        super(rowType, commonConfig);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
@@ -105,7 +95,7 @@ public class InfluxdbColumnConverter
                     wrapIntoNullableExternalConverter(
                             createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
-        this.fieldConfList = commonConf.getColumn();
+        this.fieldConfList = commonConfig.getColumn();
         this.fieldNameList = fieldNameList;
         this.tags = tags;
         this.timestamp = timestamp;
@@ -138,10 +128,10 @@ public class InfluxdbColumnConverter
             return result;
         } else {
             ColumnRowData result = new ColumnRowData(fieldConfList.size());
-            for (FieldConf fieldConf : fieldConfList) {
-                String fieldName = fieldConf.getName();
+            for (FieldConfig fieldConfig : fieldConfList) {
+                String fieldName = fieldConfig.getName();
                 AbstractBaseColumn baseColumn = setValue(input, fieldName, converterIndex);
-                result.addField(assembleFieldProps(fieldConf, baseColumn));
+                result.addField(assembleFieldProps(fieldConfig, baseColumn));
                 converterIndex++;
             }
             return result;

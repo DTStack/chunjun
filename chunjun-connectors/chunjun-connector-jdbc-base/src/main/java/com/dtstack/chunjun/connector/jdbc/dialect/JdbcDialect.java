@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.jdbc.dialect;
 
-import com.dtstack.chunjun.conf.CommonConfig;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRowConverter;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
@@ -102,8 +102,8 @@ public interface JdbcDialect extends Serializable {
      * @return a row converter for the database
      */
     default AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, CommonConfig commonConf) {
-        return new JdbcColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new JdbcColumnConverter(rowType, commonConfig);
     }
 
     /**

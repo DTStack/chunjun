@@ -21,10 +21,6 @@ package com.dtstack.chunjun.throwable;
 import org.apache.flink.runtime.throwable.ThrowableAnnotation;
 import org.apache.flink.runtime.throwable.ThrowableType;
 
-/**
- * @author tiezhu
- * @since 2021/4/28 2:24 下午
- */
 @ThrowableAnnotation(ThrowableType.NonRecoverableError)
 public class NoRestartException extends ChunJunRuntimeException {
 

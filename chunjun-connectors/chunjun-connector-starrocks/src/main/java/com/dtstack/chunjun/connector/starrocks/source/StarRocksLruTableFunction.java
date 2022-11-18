@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.starrocks.source;
 
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.source.be.StarRocksQueryPlanVisitor;
 import com.dtstack.chunjun.connector.starrocks.source.be.StarRocksSourceBeReader;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryBeXTablets;
@@ -28,7 +28,7 @@ import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
 import com.dtstack.chunjun.lookup.cache.CacheMissVal;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.NoRestartException;
 
@@ -53,12 +53,11 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.dtstack.chunjun.connector.starrocks.util.StarRocksUtil.splitQueryBeXTablets;
 
-/** @author liuliu 2022/7/19 */
 public class StarRocksLruTableFunction extends AbstractLruTableFunction {
 
     private static final Logger LOG = LoggerFactory.getLogger(StarRocksLruTableFunction.class);
 
-    private final StarRocksConf starRocksConf;
+    private final StarRocksConfig starRocksConfig;
 
     private final int[] keyIndexes;
 
@@ -67,19 +66,19 @@ public class StarRocksLruTableFunction extends AbstractLruTableFunction {
     private String queryStatement;
 
     public StarRocksLruTableFunction(
-            StarRocksConf starRocksConf,
-            LookupConf lookupConf,
+            StarRocksConfig starRocksConfig,
+            LookupConfig lookupConfig,
             int[] keyIndexes,
             AbstractRowConverter rowConverter) {
-        super(lookupConf, rowConverter);
-        this.starRocksConf = starRocksConf;
+        super(lookupConfig, rowConverter);
+        this.starRocksConfig = starRocksConfig;
         this.keyIndexes = keyIndexes;
     }
 
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-        this.queryPlanVisitor = new StarRocksQueryPlanVisitor(starRocksConf);
+        this.queryPlanVisitor = new StarRocksQueryPlanVisitor(starRocksConfig);
         this.queryStatement = buildQueryStatement();
     }
 
@@ -95,7 +94,7 @@ public class StarRocksLruTableFunction extends AbstractLruTableFunction {
                             queryBeXTablets -> {
                                 StarRocksSourceBeReader beReader =
                                         new StarRocksSourceBeReader(
-                                                queryBeXTablets.getBeNode(), starRocksConf);
+                                                queryBeXTablets.getBeNode(), starRocksConfig);
                                 beReader.openScanner(
                                         queryBeXTablets.getTabletIds(),
                                         queryInfo.getQueryPlan().getOpaqued_query_plan());
@@ -123,7 +122,7 @@ public class StarRocksLruTableFunction extends AbstractLruTableFunction {
             }
         } catch (Exception e) {
             parseErrorRecords.inc();
-            if (parseErrorRecords.getCount() > lookupConf.getErrorLimit()) {
+            if (parseErrorRecords.getCount() > lookupConfig.getErrorLimit()) {
                 throw new NoRestartException("lru parse error time exceeded", e);
             }
         } finally {
@@ -149,20 +148,20 @@ public class StarRocksLruTableFunction extends AbstractLruTableFunction {
 
     public String buildQueryStatement() {
         return "select "
-                + String.join(",", starRocksConf.getFieldNames())
+                + String.join(",", starRocksConfig.getFieldNames())
                 + " from "
-                + starRocksConf.getDatabase()
+                + starRocksConfig.getDatabase()
                 + "."
-                + starRocksConf.getTable()
+                + starRocksConfig.getTable()
                 + " where ";
     }
 
     public String buildFilterStatement(Object[] value) {
         StringBuilder builder = new StringBuilder(queryStatement);
         for (int i = 0; i < keyIndexes.length; i++) {
-            String fieldName = starRocksConf.getFieldNames()[keyIndexes[i]];
+            String fieldName = starRocksConfig.getFieldNames()[keyIndexes[i]];
             LogicalTypeRoot typeRoot =
-                    starRocksConf.getDataTypes()[keyIndexes[i]].getLogicalType().getTypeRoot();
+                    starRocksConfig.getDataTypes()[keyIndexes[i]].getLogicalType().getTypeRoot();
             Object curValue = value[i];
             if (curValue == null) {
                 builder.append(fieldName).append("IS NULL");
@@ -187,10 +186,5 @@ public class StarRocksLruTableFunction extends AbstractLruTableFunction {
         }
         LOG.info(String.format("startRocks lru querySql:%s", builder));
         return builder.toString();
-    }
-
-    @Override
-    public void close() throws Exception {
-        super.close();
     }
 }

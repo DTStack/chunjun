@@ -17,11 +17,6 @@
  */
 package com.dtstack.chunjun.client.constants;
 
-/**
- * @program: ChunJun
- * @author: xiuzhu
- * @create: 2021/06/13
- */
 public class ConfigConstant {
 
     public static final String KUBERNETES_HOST_ALIASES_KEY = "kubernetes.host.aliases";

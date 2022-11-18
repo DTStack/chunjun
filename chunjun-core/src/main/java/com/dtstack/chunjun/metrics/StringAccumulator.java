@@ -20,11 +20,6 @@ package com.dtstack.chunjun.metrics;
 
 import org.apache.flink.api.common.accumulators.Accumulator;
 
-/**
- * @author jiangbo
- * @explanation
- * @date 2018/12/21
- */
 public class StringAccumulator implements Accumulator<String, String> {
 
     private String localValue;

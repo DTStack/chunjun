@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.starrocks.source.be;
 
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryBeXTablets;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryInfo;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryPlan;
@@ -48,18 +48,17 @@ import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.starrocks.util.StarRocksUtil.getBasicAuthHeader;
 
-/** @author liuliu 2022/7/20 */
 public class StarRocksQueryPlanVisitor implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(StarRocksQueryPlanVisitor.class);
-    private final StarRocksConf starRocksConf;
+    private final StarRocksConfig starRocksConfig;
 
-    public StarRocksQueryPlanVisitor(StarRocksConf starRocksConf) {
-        this.starRocksConf = starRocksConf;
+    public StarRocksQueryPlanVisitor(StarRocksConfig starRocksConfig) {
+        this.starRocksConfig = starRocksConfig;
     }
 
     public QueryInfo getQueryInfo(String querySql) throws IOException {
-        List<String> httpNodeList = starRocksConf.getFeNodes();
+        List<String> httpNodeList = starRocksConfig.getFeNodes();
         QueryPlan queryPlan =
                 getQueryPlan(querySql, httpNodeList.get(new Random().nextInt(httpNodeList.size())));
         return new QueryInfo(queryPlan, transferQueryPlanToBeXTablet(queryPlan));
@@ -107,14 +106,14 @@ public class StarRocksQueryPlanVisitor implements Serializable {
 
         int requestCode = 0;
         String respString = "";
-        for (int i = 0; i < starRocksConf.getMaxRetries(); i++) {
+        for (int i = 0; i < starRocksConfig.getMaxRetries(); i++) {
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
                 HttpPost post = new HttpPost(url);
                 post.setHeader("Content-Type", "application/json;charset=UTF-8");
                 post.setHeader(
                         "Authorization",
                         getBasicAuthHeader(
-                                starRocksConf.getUsername(), starRocksConf.getPassword()));
+                                starRocksConfig.getUsername(), starRocksConfig.getPassword()));
                 post.setEntity(new ByteArrayEntity(body.getBytes()));
                 try (CloseableHttpResponse response = httpClient.execute(post)) {
                     requestCode = response.getStatusLine().getStatusCode();
@@ -122,7 +121,7 @@ public class StarRocksQueryPlanVisitor implements Serializable {
                     respString = EntityUtils.toString(respEntity, "UTF-8");
                 }
             }
-            if (200 == requestCode || i == starRocksConf.getMaxRetries()) {
+            if (200 == requestCode || i == starRocksConfig.getMaxRetries()) {
                 break;
             }
             LOG.warn("Request of get query plan failed with code:{}", requestCode);
@@ -154,9 +153,9 @@ public class StarRocksQueryPlanVisitor implements Serializable {
         return "http://"
                 + httpNode
                 + "/api/"
-                + starRocksConf.getDatabase()
+                + starRocksConfig.getDatabase()
                 + "/"
-                + starRocksConf.getTable()
+                + starRocksConfig.getTable()
                 + "/_query_plan";
     }
 }

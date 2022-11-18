@@ -18,11 +18,11 @@
 
 package com.dtstack.chunjun.connector.hbase.util;
 
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.security.KerberosUtil;
 import com.dtstack.chunjun.util.FileSystemUtil;
 
-import org.apache.flink.runtime.util.ExecutorThreadFactory;
+import org.apache.flink.util.concurrent.ExecutorThreadFactory;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,13 +52,7 @@ import java.util.concurrent.TimeUnit;
 import static com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF;
 import static com.dtstack.chunjun.security.KerberosUtil.KRB_STR;
 
-/**
- * The utility class of HBase
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+/** The utility class of HBase */
 public class HBaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(HBaseHelper.class);
 
@@ -66,8 +60,8 @@ public class HBaseHelper {
     private static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
     private static final String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
 
-    public static Connection getHbaseConnection(HBaseConf hBaseConf) {
-        Map<String, Object> hbaseConfig = new HashMap<>(hBaseConf.getHbaseConfig());
+    public static Connection getHbaseConnection(HBaseConfig hBaseConfig) {
+        Map<String, Object> hbaseConfig = new HashMap<>(hBaseConfig.getHbaseConfig());
         return getHbaseConnection(hbaseConfig);
     }
 
@@ -234,15 +228,11 @@ public class HBaseHelper {
                         new ExecutorThreadFactory("UserGroupInformation-Relogin"));
 
         executor.scheduleWithFixedDelay(
-                new Runnable() {
-
-                    @Override
-                    public void run() {
-                        try {
-                            ugi.checkTGTAndReloginFromKeytab();
-                        } catch (Exception e) {
-                            LOG.error("Refresh TGT failed", e);
-                        }
+                () -> {
+                    try {
+                        ugi.checkTGTAndReloginFromKeytab();
+                    } catch (Exception e) {
+                        LOG.error("Refresh TGT failed", e);
                     }
                 },
                 0,

@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.stream.converter;
 
-import com.dtstack.chunjun.conf.CommonConfig;
-import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;

@@ -34,14 +34,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.HOSTS_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.HOSTS_OPTION;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/19 12:41
- */
 public class Elasticsearch6ClientFactory {
 
     /** address separator */
@@ -52,29 +46,30 @@ public class Elasticsearch6ClientFactory {
 
     /** es default port */
     public static final Integer ES_DEFAULT_PORT = 9200;
+
     /**
-     * @param elasticsearchConf
+     * @param elasticsearchConfig
      * @return
      */
-    public static RestHighLevelClient createClient(Elasticsearch6Conf elasticsearchConf) {
-        List<HttpHost> httpAddresses = getHosts(elasticsearchConf.getHosts());
+    public static RestHighLevelClient createClient(Elasticsearch6Config elasticsearchConfig) {
+        List<HttpHost> httpAddresses = getHosts(elasticsearchConfig.getHosts());
         RestClientBuilder restClientBuilder =
-                RestClient.builder(httpAddresses.toArray(new HttpHost[httpAddresses.size()]));
-        if (elasticsearchConf.getPassword() != null && elasticsearchConf.getUsername() != null) {
+                RestClient.builder(httpAddresses.toArray(new HttpHost[0]));
+        if (elasticsearchConfig.getPassword() != null
+                && elasticsearchConfig.getUsername() != null) {
             // basic auth
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(
                     AuthScope.ANY,
                     new UsernamePasswordCredentials(
-                            elasticsearchConf.getUsername(), elasticsearchConf.getPassword()));
+                            elasticsearchConfig.getUsername(), elasticsearchConfig.getPassword()));
             restClientBuilder.setHttpClientConfigCallback(
                     httpAsyncClientBuilder ->
                             httpAsyncClientBuilder.setDefaultCredentialsProvider(
                                     credentialsProvider));
         }
 
-        RestHighLevelClient rhlClient = new RestHighLevelClient(restClientBuilder);
-        return rhlClient;
+        return new RestHighLevelClient(restClientBuilder);
     }
 
     /** parse address to HttpHosts */
@@ -99,7 +94,7 @@ public class Elasticsearch6ClientFactory {
 
     public static List<HttpHost> getHosts(List<String> hosts) {
         return hosts.stream()
-                .map(host -> validateAndParseHostsString(host))
+                .map(Elasticsearch6ClientFactory::validateAndParseHostsString)
                 .collect(Collectors.toList());
     }
 

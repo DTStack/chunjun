@@ -18,13 +18,11 @@
 
 package com.dtstack.chunjun.connector.hive3.sink;
 
-import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
+import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hive3.enums.FileType;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
-/** @author liuliu 2022/3/23 */
 public class Hive3OutputFormatBuilder extends BaseRichOutputFormatBuilder<BaseHdfsOutputFormat> {
-    BaseHdfsOutputFormat outputFormat;
 
     public Hive3OutputFormatBuilder(BaseHdfsOutputFormat format) {
         super(format);
@@ -45,10 +43,10 @@ public class Hive3OutputFormatBuilder extends BaseRichOutputFormatBuilder<BaseHd
         return new Hive3OutputFormatBuilder(format);
     }
 
-    public void setHdfsConf(HdfsConf hdfsConf) {
-        super.setConfig(hdfsConf);
-        format.setBaseFileConf(hdfsConf);
-        format.setHdfsConf(hdfsConf);
+    public void setHdfsConf(HdfsConfig hdfsConfig) {
+        super.setConfig(hdfsConfig);
+        format.setBaseFileConf(hdfsConfig);
+        format.setHdfsConf(hdfsConfig);
     }
 
     @Override

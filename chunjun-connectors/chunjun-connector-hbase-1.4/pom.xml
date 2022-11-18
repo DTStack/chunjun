@@ -18,23 +18,6 @@
   ~ under the License.
 -->
 
-<!--
-
-       Copyright 2021 the original author or authors.
-
-       Licensed under the Apache License, Version 2.0 (the "License");
-       you may not use this file except in compliance with the License.
-       You may obtain a copy of the License at
-
-          http://www.apache.org/licenses/LICENSE-2.0
-
-       Unless required by applicable law or agreed to in writing, software
-       distributed under the License is distributed on an "AS IS" BASIS,
-       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-       See the License for the specific language governing permissions and
-       limitations under the License.
-
--->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xmlns="http://maven.apache.org/POM/4.0.0"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -45,14 +28,13 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<inceptionYear>2021</inceptionYear>
-
 	<name>ChunJun : Connectors : HBase1.4</name>
 	<artifactId>chunjun-connector-hbase-1.4</artifactId>
 
 	<properties>
 		<connector.dir>hbase14</connector.dir>
 		<license.version>4.1</license.version>
+		<connector.dir>hbase14</connector.dir>
 	</properties>
 
 	<dependencies>
@@ -174,32 +156,7 @@
 
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<!-- here the phase you need -->
-						<phase>package</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/connector/hbase14/"
-									  file="${basedir}/target/hbase-1.4/original-${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../${dist.dir}/connector/hbase14/original-${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/hbase14/${project.artifactId}.jar"/>
-								<delete>
-									<!--suppress UnresolvedMavenProperty -->
-									<fileset dir="${basedir}/../../${dist.dir}/connector/hbase14/"
-											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}.jar"/>
-								</delete>
-							</tasks>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
-
 		</plugins>
 	</build>
 </project>

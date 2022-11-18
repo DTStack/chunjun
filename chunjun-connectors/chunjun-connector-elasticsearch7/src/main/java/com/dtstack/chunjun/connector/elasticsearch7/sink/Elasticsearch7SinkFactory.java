@@ -18,12 +18,12 @@
 
 package com.dtstack.chunjun.connector.elasticsearch7.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchColumnConverter;
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRawTypeMapper;
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRowConverter;
 import com.dtstack.chunjun.connector.elasticsearch7.Elasticsearch7ClientFactory;
-import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConf;
+import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -35,7 +35,7 @@ import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
@@ -54,25 +54,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @description:
- * @program: ChunJun
- * @author: lany
- * @create: 2021/06/27 17:20
- */
 public class Elasticsearch7SinkFactory extends SinkFactory {
 
-    private final ElasticsearchConf elasticsearchConf;
+    private final ElasticsearchConfig elasticsearchConfig;
 
-    public Elasticsearch7SinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        elasticsearchConf =
+    public Elasticsearch7SinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
+        elasticsearchConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getWriter().getParameter()),
-                        ElasticsearchConf.class);
-        elasticsearchConf.setColumn(syncConf.getWriter().getFieldList());
-        super.initCommonConf(elasticsearchConf);
-        elasticsearchConf.setParallelism(1);
+                        JsonUtil.toJson(syncConfig.getWriter().getParameter()),
+                        ElasticsearchConfig.class);
+        elasticsearchConfig.setColumn(syncConfig.getWriter().getFieldList());
+        super.initCommonConf(elasticsearchConfig);
+        elasticsearchConfig.setParallelism(1);
     }
 
     @Override
@@ -80,11 +74,12 @@ public class Elasticsearch7SinkFactory extends SinkFactory {
         final RowType rowType =
                 getFormatDescription(
                         TableUtil.createRowType(
-                                elasticsearchConf.getColumn(), getRawTypeConverter()));
-        TableSchema schema =
-                TableUtil.createTableSchema(elasticsearchConf.getColumn(), getRawTypeConverter());
+                                elasticsearchConfig.getColumn(), getRawTypeConverter()));
+        ResolvedSchema schema =
+                TableUtil.createTableSchema(elasticsearchConfig.getColumn(), getRawTypeConverter());
+
         ElasticsearchOutputFormatBuilder builder =
-                new ElasticsearchOutputFormatBuilder(elasticsearchConf, schema);
+                new ElasticsearchOutputFormatBuilder(elasticsearchConfig, schema);
         AbstractRowConverter rowConverter;
         if (useAbstractBaseColumn) {
             rowConverter = new ElasticsearchColumnConverter(rowType);
@@ -161,10 +156,10 @@ public class Elasticsearch7SinkFactory extends SinkFactory {
         try {
             client =
                     Elasticsearch7ClientFactory.createClient(
-                            elasticsearchConf,
+                            elasticsearchConfig,
                             PluginUtil.createDistributedCacheFromContextClassLoader());
             lowLevelClient = client.getLowLevelClient();
-            String index = elasticsearchConf.getIndex();
+            String index = elasticsearchConfig.getIndex();
             String endpoint = ConstantValue.SINGLE_SLASH_SYMBOL + index;
             Request request = new Request("GET", endpoint);
             Response response = lowLevelClient.performRequest(request);

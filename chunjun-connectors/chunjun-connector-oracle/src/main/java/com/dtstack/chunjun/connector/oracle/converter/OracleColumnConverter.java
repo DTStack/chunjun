@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oracle.converter;
 
-import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -43,15 +43,10 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class OracleColumnConverter extends JdbcColumnConverter {
 
-    public OracleColumnConverter(RowType rowType, CommonConfig commonConf) {
-        super(rowType, commonConf);
+    public OracleColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
     }
 
     @Override

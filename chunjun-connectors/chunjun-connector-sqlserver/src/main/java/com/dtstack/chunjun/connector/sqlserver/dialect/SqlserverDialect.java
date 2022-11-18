@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.sqlserver.dialect;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -55,12 +55,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Company：www.dtstack.com
- *
- * @author shitou
- * @date 2021/5/17 11:24
- */
 public class SqlserverDialect implements JdbcDialect {
 
     private static final String SET_IDENTITY_INSERT_ON_SQL =
@@ -115,11 +109,11 @@ public class SqlserverDialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
         if (useJtdsDriver) {
-            return new SqlserverJtdsColumnConverter(rowType, commonConf);
+            return new SqlserverJtdsColumnConverter(rowType, commonConfig);
         }
-        return new SqlserverMicroSoftColumnConverter(rowType, commonConf);
+        return new SqlserverMicroSoftColumnConverter(rowType, commonConfig);
     }
 
     @Override

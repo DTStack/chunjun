@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.socket.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.socket.entity.SocketConfig;
 import com.dtstack.chunjun.connector.socket.inputformat.SocketInputFormatBuilder;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -33,7 +33,7 @@ public class SocketSourceFactory extends SourceFactory {
 
     private final SocketConfig socketConfig;
 
-    public SocketSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
+    public SocketSourceFactory(SyncConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         socketConfig =
                 JsonUtil.toObject(

@@ -34,11 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Date: 2021/03/18 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class OptionParser {
 
     @VisibleForTesting protected static final String OPTION_JOB = "job";

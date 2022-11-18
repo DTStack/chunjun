@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.converter;
 
-import com.dtstack.chunjun.conf.CommonConfig;
-import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.enums.ColumnType;

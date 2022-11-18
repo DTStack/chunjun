@@ -18,20 +18,19 @@
 
 package com.dtstack.chunjun.connector.redis.lookup;
 
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.connector.redis.connection.RedisAsyncClient;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
 import com.dtstack.chunjun.lookup.cache.CacheMissVal;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 
-import org.apache.flink.shaded.curator4.com.google.common.collect.Lists;
-
+import com.google.common.collect.Lists;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.async.RedisHashAsyncCommands;
 import io.lettuce.core.api.async.RedisKeyAsyncCommands;
@@ -44,11 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * @author chuixue
- * @create 2021-06-16 15:17
- * @description
- */
 public class RedisLruTableFunction extends AbstractLruTableFunction {
 
     private static final long serialVersionUID = 1L;
@@ -56,19 +50,19 @@ public class RedisLruTableFunction extends AbstractLruTableFunction {
 
     private transient RedisAsyncClient redisAsyncClient;
     private RedisKeyAsyncCommands<String, String> redisKeyAsyncCommands;
-    private RedisConf redisConf;
+    private final RedisConfig redisConfig;
 
     public RedisLruTableFunction(
-            RedisConf redisConf, LookupConf lookupConf, AbstractRowConverter rowConverter) {
-        super(lookupConf, rowConverter);
-        this.redisConf = redisConf;
-        this.lookupConf = lookupConf;
+            RedisConfig redisConfig, LookupConfig lookupConfig, AbstractRowConverter rowConverter) {
+        super(lookupConfig, rowConverter);
+        this.redisConfig = redisConfig;
+        this.lookupConfig = lookupConfig;
     }
 
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-        redisAsyncClient = new RedisAsyncClient(redisConf);
+        redisAsyncClient = new RedisAsyncClient(redisConfig);
         redisKeyAsyncCommands = redisAsyncClient.getRedisKeyAsyncCommands();
     }
 
@@ -108,9 +102,7 @@ public class RedisLruTableFunction extends AbstractLruTableFunction {
 
     @Override
     public String buildCacheKey(Object... keys) {
-        StringBuilder keyBuilder = new StringBuilder(redisConf.getTableName());
-        keyBuilder.append("_").append(super.buildCacheKey(keys));
-        return keyBuilder.toString();
+        return redisConfig.getTableName() + "_" + super.buildCacheKey(keys);
     }
 
     @Override

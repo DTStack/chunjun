@@ -18,11 +18,6 @@
 
 package com.dtstack.chunjun.connector.hbase;
 
-/**
- * @company: www.dtstack.com
- * @author: toutian
- * @create: 2019/7/23
- */
 public interface IFunction {
 
     /**

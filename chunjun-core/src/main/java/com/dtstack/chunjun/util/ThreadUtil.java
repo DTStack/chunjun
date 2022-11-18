@@ -20,7 +20,6 @@ package com.dtstack.chunjun.util;
 
 import java.util.concurrent.TimeUnit;
 
-/** @author tiezhu Date 2020-12-25 Company dtstack */
 public class ThreadUtil {
     public static final Long DEFAULT_SLEEP_TIME = 10L;
 

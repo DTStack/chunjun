@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.redis.converter;
 
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -50,20 +50,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * @author chuixue
- * @create 2021-06-18 16:36
- * @description
- */
 public class RedisRowConverter
         extends AbstractRowConverter<
                 Map<String, String>, Map<String, String>, JedisCommands, LogicalType> {
 
     private static final long serialVersionUID = 1L;
 
-    private RedisConf redisConf;
+    private RedisConfig redisConfig;
 
-    private List<Triplet<String, Integer, LogicalType>> typeIndexList = new ArrayList<>();
+    private final List<Triplet<String, Integer, LogicalType>> typeIndexList = new ArrayList<>();
 
     public RedisRowConverter(RowType rowType) {
         super(rowType);
@@ -76,14 +71,14 @@ public class RedisRowConverter
         }
     }
 
-    public RedisRowConverter(RowType rowType, RedisConf redisConf) {
+    public RedisRowConverter(RowType rowType, RedisConfig redisConfig) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
                             createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
-        this.redisConf = redisConf;
+        this.redisConfig = redisConfig;
     }
 
     @Override
@@ -145,15 +140,15 @@ public class RedisRowConverter
         String key = buildCacheKey(collect);
         collect.forEach((field, value) -> jedis.hset(key, field, String.valueOf(value)));
 
-        if (redisConf.getExpireTime() != 0) {
-            jedis.expire(key, (int) redisConf.getExpireTime());
+        if (redisConfig.getExpireTime() != 0) {
+            jedis.expire(key, (int) redisConfig.getExpireTime());
         }
         return jedis;
     }
 
     private String buildCacheKey(Map<String, Object> refData) {
-        StringBuilder keyBuilder = new StringBuilder(redisConf.getTableName());
-        for (String primaryKey : redisConf.getUpdateKey()) {
+        StringBuilder keyBuilder = new StringBuilder(redisConfig.getTableName());
+        for (String primaryKey : redisConfig.getUpdateKey()) {
             if (!refData.containsKey(primaryKey)) {
                 return null;
             }
@@ -168,7 +163,7 @@ public class RedisRowConverter
             case NULL:
                 return val -> null;
             case BOOLEAN:
-                return val -> new Boolean(String.valueOf(val));
+                return val -> Boolean.valueOf(String.valueOf(val));
             case FLOAT:
                 return val -> new Float(String.valueOf(val));
             case DOUBLE:

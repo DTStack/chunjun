@@ -18,11 +18,8 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.entity;
 
-/**
- * Date: 2021/05/20 Company: www.dtstack.com
- *
- * @author dujie
- */
+import java.util.StringJoiner;
+
 public class EventRowData {
     /** fieldName * */
     private String name;
@@ -63,15 +60,10 @@ public class EventRowData {
 
     @Override
     public String toString() {
-        return "Column{"
-                + "name='"
-                + name
-                + '\''
-                + ", data='"
-                + data
-                + '\''
-                + ", isNull="
-                + isNull
-                + '}';
+        return new StringJoiner(", ", EventRowData.class.getSimpleName() + "[", "]")
+                .add("name='" + name + "'")
+                .add("data='" + data + "'")
+                .add("isNull=" + isNull)
+                .toString();
     }
 }

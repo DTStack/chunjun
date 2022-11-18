@@ -24,11 +24,6 @@ import com.dtstack.chunjun.util.MapUtil;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * HttpRequestParam 一次http请求的所有参数
- *
- * @author by dujie@dtstack.com @Date 2020/9/25
- */
 public class HttpRequestParam {
 
     private Map<String, Object> body = new HashMap<>(32);

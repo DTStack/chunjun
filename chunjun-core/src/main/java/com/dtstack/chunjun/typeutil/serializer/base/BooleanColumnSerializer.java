@@ -32,7 +32,6 @@ import org.apache.flink.core.memory.DataOutputView;
 
 import java.io.IOException;
 
-/** @author liuliu 2022/5/12 */
 public class BooleanColumnSerializer extends TypeSerializerSingleton<AbstractBaseColumn> {
 
     /** Sharable instance of the BooleanColumnSerializer. */

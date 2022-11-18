@@ -21,11 +21,6 @@ package com.dtstack.chunjun.connector.jdbc.options;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * @author chuixue
- * @create 2021-04-10 16:22
- * @description
- */
 public class JdbcCommonOptions {
     public static final ConfigOption<String> URL =
             ConfigOptions.key("url")

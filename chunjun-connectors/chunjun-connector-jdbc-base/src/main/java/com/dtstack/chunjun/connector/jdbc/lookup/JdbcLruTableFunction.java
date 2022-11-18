@@ -18,15 +18,15 @@
 
 package com.dtstack.chunjun.connector.jdbc.lookup;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcLookupConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcLookupConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.factory.ChunJunThreadFactory;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
 import com.dtstack.chunjun.lookup.cache.CacheMissVal;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.throwable.NoRestartException;
 import com.dtstack.chunjun.util.DateUtil;
 import com.dtstack.chunjun.util.ThreadUtil;
@@ -88,7 +88,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     /** jdbc Dialect */
     private final JdbcDialect jdbcDialect;
     /** jdbc conf */
-    private final JdbcConfig jdbcConf;
+    private final JdbcConfig jdbcConfig;
     /** vertx async pool size */
     protected int asyncPoolSize;
     /** query data thread */
@@ -99,19 +99,19 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     private transient SQLClient rdbSqlClient;
 
     public JdbcLruTableFunction(
-            JdbcConfig jdbcConf,
+            JdbcConfig jdbcConfig,
             JdbcDialect jdbcDialect,
-            LookupConf lookupConf,
+            LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
-        super(lookupConf, jdbcDialect.getRowConverter(rowType));
-        this.jdbcConf = jdbcConf;
+        super(lookupConfig, jdbcDialect.getRowConverter(rowType));
+        this.jdbcConfig = jdbcConfig;
         this.jdbcDialect = jdbcDialect;
-        this.asyncPoolSize = ((JdbcLookupConf) lookupConf).getAsyncPoolSize();
+        this.asyncPoolSize = ((JdbcLookupConfig) lookupConfig).getAsyncPoolSize();
         this.query =
                 jdbcDialect.getSelectFromStatement(
-                        jdbcConf.getSchema(), jdbcConf.getTable(), fieldNames, keyNames);
+                        jdbcConfig.getSchema(), jdbcConfig.getTable(), fieldNames, keyNames);
     }
 
     @Override
@@ -125,7 +125,8 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         asyncPoolSize = asyncPoolSize > 0 ? asyncPoolSize : defaultAsyncPoolSize;
 
         VertxOptions vertxOptions = new VertxOptions();
-        JsonObject jdbcConfig = createJdbcConfig(((JdbcLookupConf) lookupConf).getDruidConf());
+        JsonObject jdbcConfig =
+                createJdbcConfig(((JdbcLookupConfig) lookupConfig).getDruidConfig());
         System.setProperty("vertx.disableFileCPResolving", "true");
         vertxOptions
                 .setEventLoopPoolSize(DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE.defaultValue())
@@ -144,7 +145,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                         new LinkedBlockingQueue<>(MAX_TASK_QUEUE_SIZE.defaultValue()),
                         new ChunJunThreadFactory("rdbAsyncExec"),
                         new ThreadPoolExecutor.CallerRunsPolicy());
-        LOG.info("async dim table JdbcOptions info: {} ", jdbcConf.toString());
+        LOG.info("async dim table JdbcOptions info: {} ", jdbcConfig.toString());
     }
 
     @Override
@@ -260,7 +261,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         rdbSqlClient.getConnection(
                 conn -> {
                     try {
-                        Integer retryMaxNum = lookupConf.getMaxRetryTimes();
+                        Integer retryMaxNum = lookupConfig.getMaxRetryTimes();
                         int logPrintTime =
                                 retryMaxNum / ERRORLOG_PRINTNUM.defaultValue() == 0
                                         ? retryMaxNum
@@ -339,7 +340,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                                     LOG.error(
                                             "error:{} \n sql:{} \n data:{}",
                                             e.getMessage(),
-                                            jdbcConf.getQuerySql(),
+                                            jdbcConfig.getQuerySql(),
                                             line);
                                 }
                             }
@@ -394,9 +395,9 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     public JsonObject createJdbcConfig(Map<String, Object> druidConfMap) {
         JsonObject clientConfig = new JsonObject(druidConfMap);
         clientConfig
-                .put(DRUID_PREFIX + "url", jdbcConf.getJdbcUrl())
-                .put(DRUID_PREFIX + "username", jdbcConf.getUsername())
-                .put(DRUID_PREFIX + "password", jdbcConf.getPassword())
+                .put(DRUID_PREFIX + "url", jdbcConfig.getJdbcUrl())
+                .put(DRUID_PREFIX + "username", jdbcConfig.getUsername())
+                .put(DRUID_PREFIX + "password", jdbcConfig.getPassword())
                 .put(DRUID_PREFIX + "driverClassName", jdbcDialect.defaultDriverName().get())
                 .put("provider_class", DT_PROVIDER_CLASS.defaultValue())
                 .put(DRUID_PREFIX + "maxActive", asyncPoolSize);

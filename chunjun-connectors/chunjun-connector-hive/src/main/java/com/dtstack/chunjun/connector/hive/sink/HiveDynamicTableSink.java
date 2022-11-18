@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hive.sink;
 
-import com.dtstack.chunjun.connector.hive.conf.HiveConf;
+import com.dtstack.chunjun.connector.hive.config.HiveConfig;
 import com.dtstack.chunjun.connector.hive.util.HiveUtil;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
@@ -26,17 +26,12 @@ import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HiveDynamicTableSink implements DynamicTableSink {
 
-    private final HiveConf hiveConf;
+    private final HiveConfig hiveConf;
     private final TableSchema tableSchema;
 
-    public HiveDynamicTableSink(HiveConf hiveConf, TableSchema tableSchema) {
+    public HiveDynamicTableSink(HiveConfig hiveConf, TableSchema tableSchema) {
         this.hiveConf = hiveConf;
         this.tableSchema = tableSchema;
     }

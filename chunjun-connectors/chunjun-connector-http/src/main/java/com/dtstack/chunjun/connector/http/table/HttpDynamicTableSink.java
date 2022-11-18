@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.http.table;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.http.common.HttpWriterConfig;
 import com.dtstack.chunjun.connector.http.converter.HttpRowConverter;
 import com.dtstack.chunjun.connector.http.outputformat.HttpOutputFormatBuilder;
@@ -63,13 +63,13 @@ public class HttpDynamicTableSink implements DynamicTableSink {
     @Override
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
         final RowType rowType = (RowType) schema.toRowDataType().getLogicalType();
-        List<FieldConf> fieldList =
+        List<FieldConfig> fieldList =
                 Arrays.stream(schema.getFieldNames())
                         .map(
                                 e -> {
-                                    FieldConf fieldConf = new FieldConf();
-                                    fieldConf.setName(e);
-                                    return fieldConf;
+                                    FieldConfig fieldConfig = new FieldConfig();
+                                    fieldConfig.setName(e);
+                                    return fieldConfig;
                                 })
                         .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(restapiWriterConf.getColumn())) {

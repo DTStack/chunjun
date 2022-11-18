@@ -42,13 +42,6 @@ import java.util.regex.Pattern;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
-/**
- * Date Utilities
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public class DateUtil {
 
     private static final String TIME_ZONE = "GMT+8";

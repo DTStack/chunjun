@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.redis.sink;
 
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -27,44 +27,39 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @author chuixue
- * @create 2021-06-16 15:14
- * @description
- */
 public class RedisOutputFormatBuilder extends BaseRichOutputFormatBuilder<RedisOutputFormat> {
 
     public RedisOutputFormatBuilder() {
         super(new RedisOutputFormat());
     }
 
-    public void setRedisConf(RedisConf redisConf) {
-        super.setConfig(redisConf);
-        format.setRedisConf(redisConf);
+    public void setRedisConf(RedisConfig redisConfig) {
+        super.setConfig(redisConfig);
+        format.setRedisConf(redisConfig);
     }
 
     @Override
     protected void checkFormat() {
-        RedisConf redisConf = format.getRedisConf();
+        RedisConfig redisConfig = format.getRedisConf();
         StringBuilder sb = new StringBuilder(1024);
-        if (redisConf.getHostPort() == null) {
+        if (redisConfig.getHostPort() == null) {
             sb.append("No host and port supplied").append("\n");
         }
-        if (redisConf.getType() == null) {
+        if (redisConfig.getType() == null) {
             sb.append("No type supplied").append("\n");
         }
 
-        if (redisConf.getMode() == null) {
+        if (redisConfig.getMode() == null) {
             sb.append("No mode supplied").append("\n");
         }
 
-        if (redisConf.getKeyIndexes() == null || redisConf.getKeyIndexes().size() == 0) {
+        if (redisConfig.getKeyIndexes() == null || redisConfig.getKeyIndexes().size() == 0) {
             sb.append("Field keyIndexes cannot be empty").append("\n");
         } else {
-            if (CollectionUtils.isNotEmpty(redisConf.getColumn())) {
+            if (CollectionUtils.isNotEmpty(redisConfig.getColumn())) {
                 List<Integer> collect =
-                        redisConf.getKeyIndexes().stream()
-                                .filter(i -> i < 0 || i >= redisConf.getColumn().size())
+                        redisConfig.getKeyIndexes().stream()
+                                .filter(i -> i < 0 || i >= redisConfig.getColumn().size())
                                 .collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(collect)) {
                     sb.append(
@@ -76,7 +71,7 @@ public class RedisOutputFormatBuilder extends BaseRichOutputFormatBuilder<RedisO
             }
 
             if (sb.length() > 0) {
-                throw new IllegalArgumentException("\n" + sb.toString());
+                throw new IllegalArgumentException("\n" + sb);
             }
         }
     }

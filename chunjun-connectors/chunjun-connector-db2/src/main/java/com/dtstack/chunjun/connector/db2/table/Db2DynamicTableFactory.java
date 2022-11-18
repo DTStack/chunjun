@@ -25,12 +25,6 @@ import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.table.JdbcDynamicTableFactory;
 
-/**
- * Company: www.dtstack.com
- *
- * @author xuchao
- * @date 2021-06-15
- */
 public class Db2DynamicTableFactory extends JdbcDynamicTableFactory {
 
     private static final String IDENTIFIER = "db2-x";

@@ -18,12 +18,12 @@
 
 package com.dtstack.chunjun.connector.elasticsearch7.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchColumnConverter;
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRawTypeMapper;
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRowConverter;
-import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConf;
+import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.source.SourceFactory;
@@ -37,39 +37,33 @@ import org.apache.flink.table.types.logical.RowType;
 
 import java.util.List;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/27 17:28
- */
 public class Elasticsearch7SourceFactory extends SourceFactory {
 
-    private final ElasticsearchConf elasticsearchConf;
+    private final ElasticsearchConfig elasticsearchConfig;
 
-    public Elasticsearch7SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
-        elasticsearchConf =
+    public Elasticsearch7SourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
+        elasticsearchConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getReader().getParameter()),
-                        ElasticsearchConf.class);
-        List<FieldConf> fieldList = syncConf.getReader().getFieldList();
+                        JsonUtil.toJson(syncConfig.getReader().getParameter()),
+                        ElasticsearchConfig.class);
+        List<FieldConfig> fieldList = syncConfig.getReader().getFieldList();
         String[] fieldNames = new String[fieldList.size()];
         for (int i = 0; i < fieldList.size(); i++) {
             fieldNames[i] = fieldList.get(i).getName();
         }
 
-        super.initCommonConf(elasticsearchConf);
-        elasticsearchConf.setColumn(fieldList);
-        elasticsearchConf.setFieldNames(fieldNames);
+        super.initCommonConf(elasticsearchConfig);
+        elasticsearchConfig.setColumn(fieldList);
+        elasticsearchConfig.setFieldNames(fieldNames);
     }
 
     @Override
     public DataStream<RowData> createSource() {
         ElasticsearchInputFormatBuilder builder = new ElasticsearchInputFormatBuilder();
-        builder.setEsConf(elasticsearchConf);
+        builder.setEsConf(elasticsearchConfig);
         final RowType rowType =
-                TableUtil.createRowType(elasticsearchConf.getColumn(), getRawTypeConverter());
+                TableUtil.createRowType(elasticsearchConfig.getColumn(), getRawTypeConverter());
         AbstractRowConverter rowConverter;
         if (useAbstractBaseColumn) {
             rowConverter = new ElasticsearchColumnConverter(rowType);

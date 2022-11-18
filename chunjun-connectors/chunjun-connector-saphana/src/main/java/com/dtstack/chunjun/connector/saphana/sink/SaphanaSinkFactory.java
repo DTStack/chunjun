@@ -17,20 +17,15 @@
  */
 package com.dtstack.chunjun.connector.saphana.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.chunjun.connector.saphana.dialect.SaphanaDialect;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class SaphanaSinkFactory extends JdbcSinkFactory {
 
-    public SaphanaSinkFactory(SyncConf syncConf) {
-        super(syncConf, new SaphanaDialect());
+    public SaphanaSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig, new SaphanaDialect());
     }
 
     @Override

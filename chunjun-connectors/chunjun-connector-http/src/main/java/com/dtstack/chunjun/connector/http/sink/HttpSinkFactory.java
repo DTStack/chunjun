@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.http.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.http.common.HttpWriterConfig;
 import com.dtstack.chunjun.connector.http.outputformat.HttpOutputFormatBuilder;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -32,11 +32,6 @@ import org.apache.flink.table.data.RowData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Date: 2021/04/13 Company: www.dtstack.com
- *
- * @author shifang
- */
 public class HttpSinkFactory extends SinkFactory {
 
     protected static final Logger LOG = LoggerFactory.getLogger(HttpSinkFactory.class);
@@ -48,11 +43,11 @@ public class HttpSinkFactory extends SinkFactory {
         return null;
     }
 
-    public HttpSinkFactory(SyncConf syncConf) {
-        super(syncConf);
+    public HttpSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
         httpWriterConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getWriter().getParameter()),
+                        JsonUtil.toJson(syncConfig.getWriter().getParameter()),
                         HttpWriterConfig.class);
         super.initCommonConf(httpWriterConfig);
     }

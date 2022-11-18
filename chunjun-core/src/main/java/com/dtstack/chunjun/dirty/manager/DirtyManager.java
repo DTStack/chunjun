@@ -43,10 +43,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * @author tiezhu@dtstack
- * @date 22/09/2021 Wednesday
- */
 public class DirtyManager implements Serializable {
 
     private static final long serialVersionUID = 1L;

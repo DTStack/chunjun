@@ -18,14 +18,14 @@
 
 package com.dtstack.chunjun.connector.doris.sink;
 
-import com.dtstack.chunjun.conf.OperatorConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.OperatorConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.doris.converter.DorisRowTypeConverter;
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
-import com.dtstack.chunjun.connector.doris.options.LoadConf;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.doris.options.LoadConfBuilder;
+import com.dtstack.chunjun.connector.doris.options.LoadConfig;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
-import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
+import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -70,27 +70,30 @@ import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_RETR
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_TABLET_SIZE_KEY;
 
 public class DorisSinkFactory extends SinkFactory {
-    private final DorisConf options;
+    private final DorisConfig options;
 
-    public DorisSinkFactory(SyncConf syncConf) {
-        super(syncConf);
+    public DorisSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
 
-        final OperatorConf parameter = syncConf.getWriter();
+        final OperatorConfig parameter = syncConfig.getWriter();
 
         Gson gson =
                 new GsonBuilder()
                         .registerTypeAdapter(
-                                ConnectionConf.class, new ConnectionAdapter("SinkConnectionConf"))
+                                ConnectionConfig.class,
+                                new ConnectionAdapter("SinkConnectionConfig"))
                         .addDeserializationExclusionStrategy(
                                 new FieldNameExclusionStrategy("column"))
                         .create();
         GsonUtil.setTypeAdapter(gson);
-        options = gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), DorisConf.class);
+        options =
+                gson.fromJson(
+                        gson.toJson(syncConfig.getWriter().getParameter()), DorisConfig.class);
 
         LoadConfBuilder loadConfBuilder = new LoadConfBuilder();
 
         Properties properties = parameter.getProperties(LOAD_OPTIONS_KEY, new Properties());
-        LoadConf loadConf =
+        LoadConfig loadConfig =
                 loadConfBuilder
                         .setRequestTabletSize(
                                 (int)
@@ -135,9 +138,9 @@ public class DorisSinkFactory extends SinkFactory {
                                                 DORIS_DESERIALIZE_ARROW_ASYNC_DEFAULT))
                         .build();
 
-        options.setColumn(syncConf.getWriter().getFieldList());
+        options.setColumn(syncConfig.getWriter().getFieldList());
         options.setLoadProperties(properties);
-        options.setLoadConf(loadConf);
+        options.setLoadConf(loadConfig);
         super.initCommonConf(options);
     }
 
@@ -155,7 +158,7 @@ public class DorisSinkFactory extends SinkFactory {
         MysqlDialect dialect = new MysqlDialect();
         initColumnInfo(options, dialect, builder);
         builder.setJdbcConf(options);
-        builder.setDdlConf(ddlConf);
+        builder.setDdlConf(ddlConfig);
 
         builder.setJdbcDialect(dialect);
 
@@ -172,7 +175,7 @@ public class DorisSinkFactory extends SinkFactory {
     }
 
     protected void initColumnInfo(
-            DorisConf conf, JdbcDialect dialect, DorisJdbcOutputFormatBuilder builder) {
+            DorisConfig conf, JdbcDialect dialect, DorisJdbcOutputFormatBuilder builder) {
         Connection conn = JdbcUtil.getConnection(conf, dialect);
 
         // get table metadata

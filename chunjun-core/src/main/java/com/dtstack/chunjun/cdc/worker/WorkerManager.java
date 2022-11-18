@@ -19,7 +19,7 @@
 
 package com.dtstack.chunjun.cdc.worker;
 
-import com.dtstack.chunjun.cdc.CdcConf;
+import com.dtstack.chunjun.cdc.CdcConfig;
 import com.dtstack.chunjun.cdc.QueuesChamberlain;
 import com.dtstack.chunjun.cdc.exception.LogExceptionHandler;
 import com.dtstack.chunjun.cdc.utils.ExecutorUtils;
@@ -34,9 +34,6 @@ import java.util.concurrent.ThreadPoolExecutor;
  * 线程池的创建,管理overseerExecutor和workerExecutor两个线程池,
  *
  * <p>worker线程一次只处理一张表的队列
- *
- * @author shitou
- * @date 2021/12/2
  */
 public class WorkerManager implements Serializable {
 
@@ -61,7 +58,7 @@ public class WorkerManager implements Serializable {
     /** worker线程池的最大容量 */
     private final int workerMax;
 
-    public WorkerManager(QueuesChamberlain chamberlain, CdcConf conf) {
+    public WorkerManager(QueuesChamberlain chamberlain, CdcConfig conf) {
         this.chamberlain = chamberlain;
         this.workerNum = conf.getWorkerNum();
         this.workerSize = conf.getWorkerSize();

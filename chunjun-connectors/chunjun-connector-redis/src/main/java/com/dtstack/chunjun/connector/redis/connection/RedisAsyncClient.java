@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.redis.connection;
 
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
 import io.lettuce.core.RedisClient;
@@ -40,11 +40,6 @@ import java.util.regex.Matcher;
 
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.REDIS_HOST_PATTERN;
 
-/**
- * @author chuixue
- * @create 2021-06-22 15:08
- * @description
- */
 public class RedisAsyncClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(RedisAsyncClient.class);
@@ -57,10 +52,10 @@ public class RedisAsyncClient {
 
     private StatefulRedisClusterConnection<String, String> clusterConnection;
 
-    private final RedisConf redisConf;
+    private final RedisConfig redisConfig;
 
-    public RedisAsyncClient(RedisConf redisConf) {
-        this.redisConf = redisConf;
+    public RedisAsyncClient(RedisConfig redisConfig) {
+        this.redisConfig = redisConfig;
     }
 
     public RedisKeyAsyncCommands<String, String> getRedisKeyAsyncCommands() {
@@ -93,11 +88,11 @@ public class RedisAsyncClient {
     }
 
     private RedisKeyAsyncCommands<String, String> getRedisKeyAsyncCommandsInner() {
-        String url = redisConf.getHostPort();
-        String password = redisConf.getPassword();
-        int database = redisConf.getDatabase();
+        String url = redisConfig.getHostPort();
+        String password = redisConfig.getPassword();
+        int database = redisConfig.getDatabase();
 
-        switch (redisConf.getRedisConnectType()) {
+        switch (redisConfig.getRedisConnectType()) {
             case STANDALONE:
                 RedisURI redisURI = RedisURI.create("redis://" + url);
                 if (!Objects.isNull(password)) {
@@ -123,9 +118,9 @@ public class RedisAsyncClient {
                 }
 
                 if (Objects.nonNull(builder)) {
-                    builder.withPassword(redisConf.getPassword())
-                            .withDatabase(redisConf.getDatabase())
-                            .withSentinelMasterId(redisConf.getMasterName());
+                    builder.withPassword(redisConfig.getPassword())
+                            .withDatabase(redisConfig.getDatabase())
+                            .withSentinelMasterId(redisConfig.getMasterName());
                 } else {
                     throw new NullPointerException("build redis uri error!");
                 }
@@ -141,7 +136,7 @@ public class RedisAsyncClient {
                 return clusterConnection.async();
             default:
                 throw new IllegalArgumentException(
-                        "unsupported redis type[ " + redisConf.getType().getType() + "]");
+                        "unsupported redis type[ " + redisConfig.getType().getType() + "]");
         }
     }
 
@@ -161,8 +156,8 @@ public class RedisAsyncClient {
     }
 
     private List<RedisURI> buildClusterURIs(String url) {
-        String password = redisConf.getPassword();
-        int database = redisConf.getDatabase();
+        String password = redisConfig.getPassword();
+        int database = redisConfig.getDatabase();
         String[] addresses = StringUtils.split(url, ",");
         List<RedisURI> redisURIs = new ArrayList<>(addresses.length);
         for (String addr : addresses) {

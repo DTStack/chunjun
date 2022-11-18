@@ -18,22 +18,17 @@
 
 package com.dtstack.chunjun.connector.saphana.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.chunjun.connector.saphana.dialect.SaphanaDialect;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class SaphanaSourceFactory extends JdbcSourceFactory {
 
-    public SaphanaSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, new SaphanaDialect());
+    public SaphanaSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env, new SaphanaDialect());
     }
 
     @Override

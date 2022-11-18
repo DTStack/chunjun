@@ -18,17 +18,18 @@
 
 package com.dtstack.chunjun.connector.jdbc.sink;
 
-import com.dtstack.chunjun.conf.FieldConfig;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.enums.EWriteMode;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.Column;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
-import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.CollectionUtil;
 
@@ -38,25 +39,20 @@ import java.util.Objects;
 
 import static org.apache.flink.util.Preconditions.checkState;
 
-/**
- * @author chuixue
- * @create 2021-04-12 14:44
- * @description
- */
 public class JdbcDynamicTableSink implements DynamicTableSink {
 
-    protected final JdbcConfig jdbcConf;
+    protected final JdbcConfig jdbcConfig;
     protected final JdbcDialect jdbcDialect;
-    protected final TableSchema tableSchema;
+    protected final ResolvedSchema tableSchema;
     protected final String dialectName;
     protected final JdbcOutputFormatBuilder builder;
 
     public JdbcDynamicTableSink(
-            JdbcConfig jdbcConf,
+            JdbcConfig jdbcConfig,
             JdbcDialect jdbcDialect,
-            TableSchema tableSchema,
+            ResolvedSchema tableSchema,
             JdbcOutputFormatBuilder builder) {
-        this.jdbcConf = jdbcConf;
+        this.jdbcConfig = jdbcConfig;
         this.jdbcDialect = jdbcDialect;
         this.tableSchema = tableSchema;
         this.dialectName = jdbcDialect.dialectName();
@@ -77,35 +73,40 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
     private void validatePrimaryKey(ChangelogMode requestedMode) {
         checkState(
                 ChangelogMode.insertOnly().equals(requestedMode)
-                        || !CollectionUtil.isNullOrEmpty(jdbcConf.getUniqueKey()),
+                        || !CollectionUtil.isNullOrEmpty(jdbcConfig.getUniqueKey()),
                 "please declare primary key for sink table when query contains update/delete record.");
     }
 
     @Override
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
-        final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
+        final InternalTypeInfo<?> typeInformation =
+                InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType());
 
         JdbcOutputFormatBuilder builder = this.builder;
 
-        String[] fieldNames = tableSchema.getFieldNames();
-        List<String> columnNameList = new ArrayList<>(fieldNames.length);
-        List<String> columnTypeList = new ArrayList<>(fieldNames.length);
-        List<FieldConfig> columnList = new ArrayList<>(fieldNames.length);
-        for (int i = 0; i < fieldNames.length; i++) {
-            String name = fieldNames[i];
-            String type = rowType.getTypeAt(i).asSummaryString();
-            FieldConfig field = new FieldConfig();
-            columnNameList.add(name);
-            columnTypeList.add(type);
-            field.setName(name);
-            field.setType(type);
-            field.setIndex(i);
-            columnList.add(field);
-        }
-        jdbcConf.setColumn(columnList);
-        jdbcConf.setMode(
-                (CollectionUtil.isNullOrEmpty(jdbcConf.getUniqueKey()))
+        List<Column> columns = tableSchema.getColumns();
+
+        List<String> columnNameList = new ArrayList<>(columns.size());
+        List<String> columnTypeList = new ArrayList<>(columns.size());
+        List<FieldConfig> columnList = new ArrayList<>(columns.size());
+
+        columns.forEach(
+                column -> {
+                    String name = column.getName();
+                    String type = column.getDataType().getLogicalType().asSummaryString();
+                    FieldConfig field = new FieldConfig();
+                    columnNameList.add(name);
+                    columnTypeList.add(type);
+                    field.setName(name);
+                    field.setType(type);
+                    field.setIndex(columns.indexOf(column));
+                    columnList.add(field);
+                });
+
+        jdbcConfig.setColumn(columnList);
+        jdbcConfig.setMode(
+                (CollectionUtil.isNullOrEmpty(jdbcConfig.getUniqueKey()))
                         ? EWriteMode.INSERT.name()
                         : EWriteMode.UPDATE.name());
 
@@ -113,16 +114,16 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         builder.setColumnTypeList(columnTypeList);
 
         builder.setJdbcDialect(jdbcDialect);
-        builder.setJdbcConf(jdbcConf);
-        builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
+        builder.setJdbcConf(jdbcConfig);
+        builder.setRowConverter(jdbcDialect.getRowConverter(typeInformation.toRowType()));
 
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction(builder.finish()), jdbcConf.getParallelism());
+                new DtOutputFormatSinkFunction<>(builder.finish()), jdbcConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new JdbcDynamicTableSink(jdbcConf, jdbcDialect, tableSchema, builder);
+        return new JdbcDynamicTableSink(jdbcConfig, jdbcDialect, tableSchema, builder);
     }
 
     @Override
@@ -139,13 +140,13 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
             return false;
         }
         JdbcDynamicTableSink that = (JdbcDynamicTableSink) o;
-        return Objects.equals(jdbcConf, that.jdbcConf)
+        return Objects.equals(jdbcConfig, that.jdbcConfig)
                 && Objects.equals(tableSchema, that.tableSchema)
                 && Objects.equals(dialectName, that.dialectName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(jdbcConf, tableSchema, dialectName);
+        return Objects.hash(jdbcConfig, tableSchema, dialectName);
     }
 }

@@ -25,11 +25,6 @@ import org.apache.flink.table.data.RowData;
 
 import java.util.Optional;
 
-/**
- * @program chunjun
- * @author: wuren
- * @create: 2021/04/05
- */
 public interface ParallelSourceFunctionProvider
         extends SourceFunctionProvider, ParallelismProvider {
 

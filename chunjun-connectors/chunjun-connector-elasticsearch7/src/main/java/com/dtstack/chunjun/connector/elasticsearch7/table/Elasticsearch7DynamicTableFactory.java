@@ -19,19 +19,20 @@
 package com.dtstack.chunjun.connector.elasticsearch7.table;
 
 import com.dtstack.chunjun.connector.elasticsearch.table.ElasticsearchDynamicTableFactoryBase;
-import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConf;
-import com.dtstack.chunjun.connector.elasticsearch7.SslConf;
+import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
+import com.dtstack.chunjun.connector.elasticsearch7.SslConfig;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
+import org.apache.flink.table.catalog.UniqueConstraint;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -55,30 +56,23 @@ import static com.dtstack.chunjun.security.SslOptions.KEYSTOREFILENAME;
 import static com.dtstack.chunjun.security.SslOptions.KEYSTOREPASS;
 import static com.dtstack.chunjun.security.SslOptions.TYPE;
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_PARALLELISM;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLASH_MAX_SIZE_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_BACKOFF_DELAY_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_BACKOFF_TYPE_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_INTERVAL_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_MAX_ACTIONS_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.CONNECTION_MAX_RETRY_TIMEOUT_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.CONNECTION_PATH_PREFIX;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.DOCUMENT_TYPE_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.FAILURE_HANDLER_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.FLUSH_ON_CHECKPOINT_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.FORMAT_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.HOSTS_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.INDEX_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.KEY_DELIMITER_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.PASSWORD_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.USERNAME_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.BULK_FLUSH_BACKOFF_DELAY_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.BULK_FLUSH_BACKOFF_TYPE_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.BULK_FLUSH_INTERVAL_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.BULK_FLUSH_MAX_ACTIONS_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.FORMAT_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.HOSTS_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.INDEX_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.KEY_DELIMITER_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.PASSWORD_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.USERNAME_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchConnectorOptions.BULK_FLASH_MAX_SIZE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchConnectorOptions.CONNECTION_PATH_PREFIX;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchConnectorOptions.DOCUMENT_TYPE_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchConnectorOptions.FAILURE_HANDLER_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchConnectorOptions.FLUSH_ON_CHECKPOINT_OPTION;
 
-/**
- * @description:
- * @program: ChunJun
- * @author: lany
- * @create: 2021/06/27 17:29
- */
 public class Elasticsearch7DynamicTableFactory extends ElasticsearchDynamicTableFactoryBase {
 
     private static final String FACTORY_IDENTIFIER = "elasticsearch7-x";
@@ -98,11 +92,10 @@ public class Elasticsearch7DynamicTableFactory extends ElasticsearchDynamicTable
         helper.validate();
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
-        ElasticsearchConf elasticsearchConf = getElasticsearchConf(config, physicalSchema);
-        return new ElasticsearchDynamicTableSink(physicalSchema, elasticsearchConf);
+        ElasticsearchConfig elasticsearchConfig = getElasticsearchConfig(config, resolvedSchema);
+        return new ElasticsearchDynamicTableSink(resolvedSchema, elasticsearchConfig);
     }
 
     @Override
@@ -116,59 +109,62 @@ public class Elasticsearch7DynamicTableFactory extends ElasticsearchDynamicTable
         helper.validate();
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
-        ElasticsearchConf elasticsearchConf = getElasticsearchConf(config, physicalSchema);
+        ElasticsearchConfig elasticsearchConfig = getElasticsearchConfig(config, resolvedSchema);
         return new ElasticsearchDynamicTableSource(
-                physicalSchema,
-                elasticsearchConf,
-                getElasticsearchLookupConf(config, context.getObjectIdentifier().getObjectName()));
+                resolvedSchema,
+                elasticsearchConfig,
+                getElasticsearchLookupConfig(
+                        config, context.getObjectIdentifier().getObjectName()));
     }
 
-    private ElasticsearchConf getElasticsearchConf(
-            ReadableConfig readableConfig, TableSchema schema) {
-        ElasticsearchConf elasticsearchConf = new ElasticsearchConf();
+    private ElasticsearchConfig getElasticsearchConfig(
+            ReadableConfig readableConfig, ResolvedSchema schema) {
+        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig();
 
-        elasticsearchConf.setHosts(readableConfig.get(HOSTS_OPTION));
-        elasticsearchConf.setIndex(readableConfig.get(INDEX_OPTION));
-        elasticsearchConf.setType(readableConfig.get(DOCUMENT_TYPE_OPTION));
-        elasticsearchConf.setKeyDelimiter(readableConfig.get(KEY_DELIMITER_OPTION));
-        elasticsearchConf.setBatchSize(readableConfig.get(BULK_FLUSH_MAX_ACTIONS_OPTION));
-        elasticsearchConf.setParallelism(readableConfig.get(SINK_PARALLELISM));
+        elasticsearchConfig.setHosts(readableConfig.get(HOSTS_OPTION));
+        elasticsearchConfig.setIndex(readableConfig.get(INDEX_OPTION));
+        elasticsearchConfig.setType(readableConfig.get(DOCUMENT_TYPE_OPTION));
+        elasticsearchConfig.setKeyDelimiter(readableConfig.get(KEY_DELIMITER_OPTION));
+        elasticsearchConfig.setBatchSize(readableConfig.get(BULK_FLUSH_MAX_ACTIONS_OPTION));
+        elasticsearchConfig.setParallelism(readableConfig.get(SINK_PARALLELISM));
 
-        elasticsearchConf.setUsername(readableConfig.get(USERNAME_OPTION));
-        elasticsearchConf.setPassword(readableConfig.get(PASSWORD_OPTION));
+        elasticsearchConfig.setUsername(readableConfig.get(USERNAME_OPTION));
+        elasticsearchConfig.setPassword(readableConfig.get(PASSWORD_OPTION));
 
-        elasticsearchConf.setConnectTimeout(readableConfig.get(CLIENT_CONNECT_TIMEOUT_OPTION));
-        elasticsearchConf.setSocketTimeout(readableConfig.get(CLIENT_SOCKET_TIMEOUT_OPTION));
-        elasticsearchConf.setKeepAliveTime(readableConfig.get(CLIENT_KEEPALIVE_TIME_OPTION));
-        elasticsearchConf.setMaxConnPerRoute(
+        elasticsearchConfig.setConnectTimeout(readableConfig.get(CLIENT_CONNECT_TIMEOUT_OPTION));
+        elasticsearchConfig.setSocketTimeout(readableConfig.get(CLIENT_SOCKET_TIMEOUT_OPTION));
+        elasticsearchConfig.setKeepAliveTime(readableConfig.get(CLIENT_KEEPALIVE_TIME_OPTION));
+        elasticsearchConfig.setMaxConnPerRoute(
                 readableConfig.get(CLIENT_MAX_CONNECTION_PER_ROUTE_OPTION));
-        elasticsearchConf.setRequestTimeout(readableConfig.get(CLIENT_REQUEST_TIMEOUT_OPTION));
+        elasticsearchConfig.setRequestTimeout(readableConfig.get(CLIENT_REQUEST_TIMEOUT_OPTION));
 
-        List<String> keyFields = schema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
-        elasticsearchConf.setIds(keyFields);
+        List<String> keyFields =
+                schema.getPrimaryKey()
+                        .map(UniqueConstraint::getColumns)
+                        .orElse(Collections.emptyList());
+        elasticsearchConfig.setIds(keyFields);
 
         String filename = readableConfig.get(KEYSTOREFILENAME);
         if (StringUtils.isNotBlank(filename)) {
-            SslConf sslConf = new SslConf();
-            sslConf.setUseLocalFile(true);
-            sslConf.setFileName(filename);
+            SslConfig sslConfig = new SslConfig();
+            sslConfig.setUseLocalFile(true);
+            sslConfig.setFileName(filename);
 
             String pass = readableConfig.get(KEYSTOREPASS);
             if (StringUtils.isNotBlank(pass)) {
-                sslConf.setKeyStorePass(pass);
+                sslConfig.setKeyStorePass(pass);
             }
             String type = readableConfig.get(TYPE);
             if (StringUtils.isNotBlank(type)) {
-                sslConf.setType(type);
+                sslConfig.setType(type);
             }
 
-            elasticsearchConf.setSslConfig(sslConf);
+            elasticsearchConfig.setSslConfig(sslConfig);
         }
 
-        return elasticsearchConf;
+        return elasticsearchConfig;
     }
 
     @Override
@@ -183,7 +179,6 @@ public class Elasticsearch7DynamicTableFactory extends ElasticsearchDynamicTable
                         BULK_FLUSH_BACKOFF_TYPE_OPTION,
                         BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION,
                         BULK_FLUSH_BACKOFF_DELAY_OPTION,
-                        CONNECTION_MAX_RETRY_TIMEOUT_OPTION,
                         CONNECTION_PATH_PREFIX,
                         FORMAT_OPTION,
                         PASSWORD_OPTION,

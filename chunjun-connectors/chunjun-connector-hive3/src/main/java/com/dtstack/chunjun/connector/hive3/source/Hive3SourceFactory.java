@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.hive3.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hive3.converter.HdfsRawTypeConverter;
 import com.dtstack.chunjun.connector.hive3.util.Hive3Util;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -31,17 +31,17 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 
-/** @author liuliu 2022/3/23 */
 public class Hive3SourceFactory extends SourceFactory {
-    HdfsConf hdfsConf;
+    HdfsConfig hdfsConfig;
 
-    public Hive3SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
-        hdfsConf =
+    public Hive3SourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
+        hdfsConfig =
                 GsonUtil.GSON.fromJson(
-                        GsonUtil.GSON.toJson(syncConf.getReader().getParameter()), HdfsConf.class);
-        hdfsConf.setColumn(syncConf.getReader().getFieldList());
-        super.initCommonConf(hdfsConf);
+                        GsonUtil.GSON.toJson(syncConfig.getReader().getParameter()),
+                        HdfsConfig.class);
+        hdfsConfig.setColumn(syncConfig.getReader().getFieldList());
+        super.initCommonConf(hdfsConfig);
     }
 
     @Override
@@ -52,15 +52,15 @@ public class Hive3SourceFactory extends SourceFactory {
     @Override
     public DataStream<RowData> createSource() {
         Hive3InputFormatBuilder builder =
-                new Hive3InputFormatBuilder(hdfsConf.getFileType(), hdfsConf.isTransaction());
-        builder.setHdfsConf(hdfsConf);
+                new Hive3InputFormatBuilder(hdfsConfig.getFileType(), hdfsConfig.isTransaction());
+        builder.setHdfsConf(hdfsConfig);
         AbstractRowConverter rowConverter =
                 Hive3Util.createRowConverter(
                         useAbstractBaseColumn,
-                        hdfsConf.getFileType(),
-                        hdfsConf.getColumn(),
+                        hdfsConfig.getFileType(),
+                        hdfsConfig.getColumn(),
                         getRawTypeConverter(),
-                        hdfsConf);
+                        hdfsConfig);
 
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());

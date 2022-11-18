@@ -30,7 +30,6 @@ import org.apache.flink.core.memory.DataOutputView;
 
 import java.io.IOException;
 
-/** @author liuliu 2022/5/12 */
 public class BytesColumnSerializer extends TypeSerializerSingleton<AbstractBaseColumn> {
 
     private static final long serialVersionUID = 1L;

@@ -18,9 +18,7 @@
 
 package com.dtstack.chunjun.throwable;
 
-import org.apache.flink.util.FlinkRuntimeException;
-
-public class ChunJunRuntimeException extends FlinkRuntimeException {
+public class ChunJunRuntimeException extends RuntimeException {
 
     protected static final long serialVersionUID = 1;
 

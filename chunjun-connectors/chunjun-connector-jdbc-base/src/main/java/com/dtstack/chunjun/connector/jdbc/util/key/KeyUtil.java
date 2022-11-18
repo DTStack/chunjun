@@ -24,12 +24,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * @author liuliu 2022/6/22
- *     <p>Provides some methods that can be used to convert data in state, locationValue and
- *     statementValue
- *     <p>state: formatState
- *     <p>locatinValue: startLocation/endLocation
- *     <p>statementValue: Representation of data in SQL statements,example str -> 'str'
+ * Provides some methods that can be used to convert data in state, locationValue and statementValue
+ *
+ * <p>state: formatState
+ *
+ * <p>locatinValue: startLocation/endLocation
+ *
+ * <p>statementValue: Representation of data in SQL statements,example str -> 'str'
  */
 public abstract class KeyUtil<T, F> implements Serializable {
 

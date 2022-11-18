@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.solr;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.security.KerberosConfig;
 
 import java.io.Serializable;
@@ -29,7 +29,7 @@ import java.util.List;
  * @program chunjun
  * @create 2021/06/15
  */
-public class SolrConf extends ChunJunCommonConf implements Serializable {
+public class SolrConf extends CommonConfig implements Serializable {
 
     private List<String> zkHosts;
     private String zkChroot;

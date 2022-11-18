@@ -22,7 +22,6 @@ import org.apache.flink.core.io.InputSplit;
 
 import java.util.List;
 
-/** @author liuliu 2022/3/23 */
 public class HdfsParquetInputSplit implements InputSplit {
     private final int splitNumber;
 

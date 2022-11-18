@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.mongodb;
 
-import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
-import com.dtstack.chunjun.connector.mongodb.conf.MongodbClientOptions;
+import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
+import com.dtstack.chunjun.connector.mongodb.config.MongodbClientOptions;
 
 import com.mongodb.AuthenticationMechanism;
 import com.mongodb.MongoClient;
@@ -39,11 +39,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/22
- */
 public class MongoClientFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(MongoClientFactory.class);
@@ -57,23 +52,23 @@ public class MongoClientFactory {
         return new MongoClient(clientUri);
     }
 
-    public static MongoClient createClient(MongoClientConf mongoClientConf) {
-        String uri = mongoClientConf.getUri();
+    public static MongoClient createClient(MongoClientConfig mongoClientConfig) {
+        String uri = mongoClientConfig.getUri();
         if (null != uri) {
-            return createClientWithUri(mongoClientConf.getUri());
+            return createClientWithUri(mongoClientConfig.getUri());
         } else {
-            String username = mongoClientConf.getUsername();
-            List<ServerAddress> serverAddresses = mongoClientConf.getServerAddresses();
+            String username = mongoClientConfig.getUsername();
+            List<ServerAddress> serverAddresses = mongoClientConfig.getServerAddresses();
             MongoClientOptions options =
                     MongodbClientOptions.getClientOptionsWhenDataSync(
-                            mongoClientConf.getConnectionConfig());
+                            mongoClientConfig.getConnectionConfig());
             if (StringUtils.isNotEmpty(username)) {
                 MongoCredential credential =
                         createMongoCredential(
-                                mongoClientConf.getDatabase(),
+                                mongoClientConfig.getDatabase(),
                                 username,
-                                mongoClientConf.getPassword(),
-                                mongoClientConf.getAuthenticationMechanism());
+                                mongoClientConfig.getPassword(),
+                                mongoClientConfig.getAuthenticationMechanism());
                 return new MongoClient(serverAddresses, credential, options);
             } else {
                 return new MongoClient(serverAddresses, options);
@@ -83,18 +78,14 @@ public class MongoClientFactory {
 
     private static MongoCredential createMongoCredential(
             String database, String username, String password, String authenticationMechanism) {
-        MongoCredential credential =
-                MongoCredential.createCredential(username, database, password.toCharArray())
-                        .withMechanism(
-                                AuthenticationMechanism.fromMechanismName(authenticationMechanism));
-        return credential;
+        return MongoCredential.createCredential(username, database, password.toCharArray())
+                .withMechanism(AuthenticationMechanism.fromMechanismName(authenticationMechanism));
     }
 
     public static MongoCollection<Document> createCollection(
             MongoClient client, String databaseName, String collectionName) {
         MongoDatabase database = client.getDatabase(databaseName);
-        MongoCollection<Document> collection = database.getCollection(collectionName);
-        return collection;
+        return database.getCollection(collectionName);
     }
 
     /** parse server address from hostPorts string */

@@ -34,11 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.StringJoiner;
 
-/**
- * Date: 2021/03/18 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class Options {
 
     private static final Logger LOG = LoggerFactory.getLogger(Options.class);

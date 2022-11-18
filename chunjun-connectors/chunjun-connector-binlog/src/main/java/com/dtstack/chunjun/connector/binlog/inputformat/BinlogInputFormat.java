@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.binlog.inputformat;
 
-import com.dtstack.chunjun.connector.binlog.conf.BinlogConf;
+import com.dtstack.chunjun.connector.binlog.config.BinlogConfig;
 import com.dtstack.chunjun.connector.binlog.listener.BinlogAlarmHandler;
 import com.dtstack.chunjun.connector.binlog.listener.BinlogEventSink;
 import com.dtstack.chunjun.connector.binlog.listener.BinlogJournalValidator;
@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
 
 public class BinlogInputFormat extends BaseRichInputFormat {
 
-    protected BinlogConf binlogConf;
+    protected BinlogConfig binlogConfig;
     protected volatile EntryPosition entryPosition;
     protected List<String> categories = new ArrayList<>();
     protected AbstractCDCRowConverter rowConverter;
@@ -79,22 +79,22 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         super.openInputFormat();
         LOG.info(
                 "binlog FilterBefore:{}, tableBefore: {}",
-                binlogConf.getFilter(),
-                binlogConf.getTable());
+                binlogConfig.getFilter(),
+                binlogConfig.getTable());
         ClassUtil.forName(BinlogUtil.DRIVER_NAME, getClass().getClassLoader());
 
-        if (StringUtils.isNotEmpty(binlogConf.getCat()) || !binlogConf.isDdlSkip()) {
-            if (StringUtils.isNotEmpty(binlogConf.getCat())) {
+        if (StringUtils.isNotEmpty(binlogConfig.getCat()) || !binlogConfig.isDdlSkip()) {
+            if (StringUtils.isNotEmpty(binlogConfig.getCat())) {
                 categories =
                         Arrays.stream(
-                                        binlogConf
+                                        binlogConfig
                                                 .getCat()
                                                 .toUpperCase()
                                                 .split(ConstantValue.COMMA_SYMBOL))
                                 .collect(Collectors.toList());
             }
 
-            if (!binlogConf.isDdlSkip()) {
+            if (!binlogConfig.isDdlSkip()) {
                 categories.add(CanalEntry.EventType.CREATE.name());
                 categories.add(CanalEntry.EventType.ALTER.name());
                 categories.add(CanalEntry.EventType.ERASE.name());
@@ -120,10 +120,10 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
         5.  多个规则组合使用：canal\\..*,mysql.test1,mysql.test2 (逗号分隔)
         */
-        String jdbcUrl = binlogConf.getJdbcUrl();
+        String jdbcUrl = binlogConfig.getJdbcUrl();
         if (StringUtils.isNotBlank(jdbcUrl)) {
             String database = BinlogUtil.getDataBaseByUrl(jdbcUrl);
-            List<String> tables = binlogConf.getTable();
+            List<String> tables = binlogConfig.getTable();
             if (CollectionUtils.isNotEmpty(tables)) {
                 tableFilters =
                         tables.stream()
@@ -132,19 +132,19 @@ public class BinlogInputFormat extends BaseRichInputFormat {
                                 .collect(Collectors.toList());
                 String filter = String.join(ConstantValue.COMMA_SYMBOL, tableFilters);
 
-                binlogConf.setFilter(filter);
-            } else if (StringUtils.isBlank(binlogConf.getFilter())) {
+                binlogConfig.setFilter(filter);
+            } else if (StringUtils.isBlank(binlogConfig.getFilter())) {
                 // 如果table未指定  filter未指定 只消费此schema下的数据
-                binlogConf.setFilter(database + "\\..*");
+                binlogConfig.setFilter(database + "\\..*");
                 tableFilters = new ArrayList<>();
                 tableFilters.add(database + "\\..*");
-            } else if (StringUtils.isNotBlank(binlogConf.getFilter())) {
-                tableFilters = Arrays.asList(binlogConf.getFilter().split(","));
+            } else if (StringUtils.isNotBlank(binlogConfig.getFilter())) {
+                tableFilters = Arrays.asList(binlogConfig.getFilter().split(","));
             }
             LOG.info(
                     "binlog FilterAfter:{},tableAfter: {}",
-                    binlogConf.getFilter(),
-                    binlogConf.getTable());
+                    binlogConfig.getFilter(),
+                    binlogConfig.getTable());
         }
     }
 
@@ -156,13 +156,14 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         }
 
         LOG.info("binlog openInternal split number:{} start...", inputSplit.getSplitNumber());
-        LOG.info("binlog config:{}", JsonUtil.toPrintJson(binlogConf));
+        LOG.info("binlog config:{}", JsonUtil.toPrintJson(binlogConfig));
 
         binlogEventSink = new BinlogEventSink(this);
-        controller = getController(binlogConf.username, binlogConf.getFilter(), binlogEventSink);
+        controller =
+                getController(binlogConfig.username, binlogConfig.getFilter(), binlogEventSink);
 
         // 任务启动前 先初始化表结构
-        if (binlogConf.isInitialTableStructure()) {
+        if (binlogConfig.isInitialTableStructure()) {
             binlogEventSink.initialTableStructData(tableFilters);
         }
         controller.start();
@@ -171,25 +172,25 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     protected MysqlEventParser getController(
             String username, String filter, BinlogEventSink binlogEventSink) {
         MysqlEventParser controller = new MysqlEventParser();
-        controller.setConnectionCharset(Charset.forName(binlogConf.getConnectionCharset()));
-        controller.setSlaveId(binlogConf.getSlaveId());
-        controller.setDetectingEnable(binlogConf.isDetectingEnable());
-        controller.setDetectingSQL(binlogConf.getDetectingSQL());
+        controller.setConnectionCharset(Charset.forName(binlogConfig.getConnectionCharset()));
+        controller.setSlaveId(binlogConfig.getSlaveId());
+        controller.setDetectingEnable(binlogConfig.isDetectingEnable());
+        controller.setDetectingSQL(binlogConfig.getDetectingSQL());
         controller.setMasterInfo(
                 new AuthenticationInfo(
-                        new InetSocketAddress(binlogConf.getHost(), binlogConf.getPort()),
+                        new InetSocketAddress(binlogConfig.getHost(), binlogConfig.getPort()),
                         username,
-                        binlogConf.getPassword(),
-                        BinlogUtil.getDataBaseByUrl(binlogConf.getJdbcUrl())));
-        controller.setEnableTsdb(binlogConf.isEnableTsdb());
+                        binlogConfig.getPassword(),
+                        BinlogUtil.getDataBaseByUrl(binlogConfig.getJdbcUrl())));
+        controller.setEnableTsdb(binlogConfig.isEnableTsdb());
         controller.setDestination("example");
-        controller.setParallel(binlogConf.isParallel());
-        controller.setParallelBufferSize(binlogConf.getBufferSize());
-        controller.setParallelThreadSize(binlogConf.getParallelThreadSize());
-        controller.setIsGTIDMode(binlogConf.isGTIDMode());
+        controller.setParallel(binlogConfig.isParallel());
+        controller.setParallelBufferSize(binlogConfig.getBufferSize());
+        controller.setParallelThreadSize(binlogConfig.getParallelThreadSize());
+        controller.setIsGTIDMode(binlogConfig.isGTIDMode());
 
         controller.setAlarmHandler(new BinlogAlarmHandler());
-        controller.setTransactionSize(binlogConf.getTransactionSize());
+        controller.setTransactionSize(binlogConfig.getTransactionSize());
 
         controller.setEventSink(binlogEventSink);
 
@@ -253,17 +254,17 @@ public class BinlogInputFormat extends BaseRichInputFormat {
                 && formatState.getState() instanceof EntryPosition) {
             startPosition = (EntryPosition) formatState.getState();
             checkBinlogFile(startPosition.getJournalName());
-        } else if (MapUtils.isNotEmpty(binlogConf.getStart())) {
+        } else if (MapUtils.isNotEmpty(binlogConfig.getStart())) {
             startPosition = new EntryPosition();
-            String journalName = (String) binlogConf.getStart().get("journal-name");
+            String journalName = (String) binlogConfig.getStart().get("journal-name");
             checkBinlogFile(journalName);
 
             if (StringUtils.isNotEmpty(journalName)) {
                 startPosition.setJournalName(journalName);
             }
 
-            startPosition.setTimestamp(MapUtils.getLong(binlogConf.getStart(), "timestamp"));
-            startPosition.setPosition(MapUtils.getLong(binlogConf.getStart(), "position"));
+            startPosition.setTimestamp(MapUtils.getLong(binlogConfig.getStart(), "timestamp"));
+            startPosition.setPosition(MapUtils.getLong(binlogConfig.getStart(), "position"));
         }
 
         return startPosition;
@@ -277,10 +278,10 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     private void checkBinlogFile(String journalName) {
         if (StringUtils.isNotEmpty(journalName)) {
             if (!new BinlogJournalValidator(
-                            binlogConf.getHost(),
-                            binlogConf.getPort(),
-                            binlogConf.getUsername(),
-                            binlogConf.getPassword())
+                            binlogConfig.getHost(),
+                            binlogConfig.getPort(),
+                            binlogConfig.getUsername(),
+                            binlogConfig.getPassword())
                     .check(journalName)) {
                 throw new IllegalArgumentException("Can't find journal-name: " + journalName);
             }
@@ -292,12 +293,12 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         return false;
     }
 
-    public BinlogConf getBinlogConf() {
-        return binlogConf;
+    public BinlogConfig getBinlogConf() {
+        return binlogConfig;
     }
 
-    public void setBinlogConf(BinlogConf binlogConf) {
-        this.binlogConf = binlogConf;
+    public void setBinlogConf(BinlogConfig binlogConfig) {
+        this.binlogConfig = binlogConfig;
     }
 
     public List<String> getCategories() {

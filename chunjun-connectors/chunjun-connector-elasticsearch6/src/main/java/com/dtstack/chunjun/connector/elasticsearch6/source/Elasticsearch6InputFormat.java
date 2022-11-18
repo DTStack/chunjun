@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.elasticsearch6.source;
 
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6ClientFactory;
-import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6RequestFactory;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
@@ -48,16 +48,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/18 12:00
- */
 public class Elasticsearch6InputFormat extends BaseRichInputFormat {
 
     /** Elasticsearch Configuration */
-    private Elasticsearch6Conf elasticsearchConf;
+    private Elasticsearch6Config elasticsearchConfig;
 
     /** Elasticsearch High Level Client */
     private transient RestHighLevelClient rhlClient;
@@ -89,12 +83,12 @@ public class Elasticsearch6InputFormat extends BaseRichInputFormat {
         super.openInputFormat();
         GenericInputSplit genericInputSplit = (GenericInputSplit) inputSplit;
 
-        rhlClient = Elasticsearch6ClientFactory.createClient(elasticsearchConf);
+        rhlClient = Elasticsearch6ClientFactory.createClient(elasticsearchConfig);
         scroll = new Scroll(TimeValue.timeValueMinutes(keepAlive));
-        String[] fieldsNames = elasticsearchConf.getFieldNames();
+        String[] fieldsNames = elasticsearchConfig.getFieldNames();
         SearchSourceBuilder searchSourceBuilder =
                 Elasticsearch6RequestFactory.createSourceBuilder(fieldsNames, null, null);
-        searchSourceBuilder.size(elasticsearchConf.getBatchSize());
+        searchSourceBuilder.size(elasticsearchConfig.getBatchSize());
 
         if (StringUtils.isNotEmpty(query)) {
             searchSourceBuilder.query(QueryBuilders.wrapperQuery(query));
@@ -109,8 +103,8 @@ public class Elasticsearch6InputFormat extends BaseRichInputFormat {
 
         searchRequest =
                 Elasticsearch6RequestFactory.createSearchRequest(
-                        elasticsearchConf.getIndex(),
-                        elasticsearchConf.getType(),
+                        elasticsearchConfig.getIndex(),
+                        elasticsearchConfig.getType(),
                         scroll,
                         searchSourceBuilder);
     }
@@ -180,11 +174,11 @@ public class Elasticsearch6InputFormat extends BaseRichInputFormat {
         return !iterator.hasNext();
     }
 
-    public Elasticsearch6Conf getElasticsearchConf() {
-        return elasticsearchConf;
+    public Elasticsearch6Config getElasticsearchConf() {
+        return elasticsearchConfig;
     }
 
-    public void setElasticsearchConf(Elasticsearch6Conf elasticsearchConf) {
-        this.elasticsearchConf = elasticsearchConf;
+    public void setElasticsearchConf(Elasticsearch6Config elasticsearchConfig) {
+        this.elasticsearchConfig = elasticsearchConfig;
     }
 }

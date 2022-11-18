@@ -31,7 +31,6 @@ import org.apache.commons.collections.CollectionUtils;
 import java.sql.SQLException;
 import java.util.List;
 
-/** @author menghan on 2022/7/12. */
 public class Vertica11OutputFormat extends JdbcOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
@@ -42,13 +41,13 @@ public class Vertica11OutputFormat extends JdbcOutputFormat {
             if (Semantic.EXACTLY_ONCE == semantic) {
                 dbConn.setAutoCommit(false);
             }
-            if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
-                List<String> updateKey = jdbcConf.getUniqueKey();
+            if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConfig.getMode())) {
+                List<String> updateKey = jdbcConfig.getUniqueKey();
                 if (CollectionUtils.isEmpty(updateKey)) {
                     List<String> tableIndex =
                             JdbcUtil.getTablePrimaryKey(
-                                    jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
-                    jdbcConf.setUniqueKey(tableIndex);
+                                    jdbcConfig.getSchema(), jdbcConfig.getTable(), dbConn);
+                    jdbcConfig.setUniqueKey(tableIndex);
                     LOG.info("updateKey = {}", JsonUtil.toJson(tableIndex));
                 }
             }
@@ -65,25 +64,25 @@ public class Vertica11OutputFormat extends JdbcOutputFormat {
     @Override
     protected String prepareTemplates() {
         String singleSql;
-        if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
+        if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConfig.getMode())) {
             singleSql =
                     jdbcDialect.getInsertIntoStatement(
-                            jdbcConf.getSchema(),
-                            jdbcConf.getTable(),
+                            jdbcConfig.getSchema(),
+                            jdbcConfig.getTable(),
                             columnNameList.toArray(new String[0]));
-        } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())) {
+        } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConfig.getMode())) {
             singleSql =
                     ((Vertica11Dialect) jdbcDialect)
                             .getUpsertStatement(
-                                    jdbcConf.getSchema(),
-                                    jdbcConf.getTable(),
+                                    jdbcConfig.getSchema(),
+                                    jdbcConfig.getTable(),
                                     columnNameList.toArray(new String[0]),
                                     columnTypeList.toArray(new String[0]),
-                                    jdbcConf.getUniqueKey().toArray(new String[0]),
-                                    jdbcConf.isAllReplace())
+                                    jdbcConfig.getUniqueKey().toArray(new String[0]),
+                                    jdbcConfig.isAllReplace())
                             .get();
         } else {
-            throw new IllegalArgumentException("Unknown write mode:" + jdbcConf.getMode());
+            throw new IllegalArgumentException("Unknown write mode:" + jdbcConfig.getMode());
         }
         LOG.info("write sql:{}", singleSql);
         return singleSql;

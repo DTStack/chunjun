@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.kudu.table.lookup;
 
-import com.dtstack.chunjun.connector.kudu.conf.KuduCommonConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduLookupConf;
+import com.dtstack.chunjun.connector.kudu.config.KuduCommonConfig;
+import com.dtstack.chunjun.connector.kudu.config.KuduLookupConf;
 import com.dtstack.chunjun.connector.kudu.util.KuduUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.enums.ECacheContentType;
@@ -55,10 +55,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * @author tiezhu
- * @since 2021/6/16 星期三
- */
 public class KuduLruTableFunction extends AbstractLruTableFunction {
 
     private static final long serialVersionUID = 1L;
@@ -81,12 +77,12 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
     private static final Long FETCH_SIZE = 1000L;
 
     public KuduLruTableFunction(
-            KuduLookupConf lookupConf,
+            KuduLookupConf lookupConfig,
             AbstractRowConverter<?, ?, ?, ?> rowConverter,
             String[] fieldNames,
             String[] keyNames) {
-        super(lookupConf, rowConverter);
-        this.kuduLookupConf = lookupConf;
+        super(lookupConfig, rowConverter);
+        this.kuduLookupConf = lookupConfig;
         this.fieldNames = fieldNames;
         this.keyNames = keyNames;
     }
@@ -197,9 +193,9 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
     private void checkKuduTable() throws IOException {
         try {
             if (Objects.isNull(kuduTable)) {
-                KuduCommonConf commonConf = kuduLookupConf.getCommonConf();
+                KuduCommonConfig commonConfig = kuduLookupConf.getCommonConf();
                 String tableName = kuduLookupConf.getTableName();
-                client = KuduUtil.getAsyncKuduClient(commonConf);
+                client = KuduUtil.getAsyncKuduClient(commonConfig);
                 if (!client.syncClient().tableExists(tableName)) {
                     throw new IllegalArgumentException(
                             "Table Open Failed , please check table exists");

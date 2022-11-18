@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.influxdb.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.influxdb.conf.InfluxdbSinkConfig;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.influxdb.config.InfluxdbSinkConfig;
 import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbColumnConverter;
 import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbRawTypeConverter;
 import com.dtstack.chunjun.connector.influxdb.enums.TimePrecisionEnums;
@@ -41,14 +41,11 @@ import org.influxdb.impl.InfluxDBImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-/** @Author xirang @Company Dtstack @Date: 2022/3/14 2:57 PM */
 public class InfluxdbOutputFormat extends BaseRichOutputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(InfluxdbOutputFormat.class);
@@ -56,10 +53,6 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
     private InfluxdbSinkConfig sinkConfig;
 
     private InfluxDB influxDB;
-
-    private List<String> tags;
-
-    private String timestamp;
 
     private String database;
 
@@ -94,15 +87,15 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        this.timestamp = sinkConfig.getTimestamp();
+    protected void openInternal(int taskNumber, int numTasks) {
+        String timestamp = sinkConfig.getTimestamp();
         this.precision = TimePrecisionEnums.of(sinkConfig.getPrecision()).getPrecision();
-        this.tags = sinkConfig.getTags();
-        establishConnnection();
+        List<String> tags = sinkConfig.getTags();
+        establishConnection();
         influxDB.setDatabase(database);
-        List<FieldConf> column = sinkConfig.getColumn();
-        columnNameList = column.stream().map(FieldConf::getName).collect(Collectors.toList());
-        columnTypeList = column.stream().map(FieldConf::getType).collect(Collectors.toList());
+        List<FieldConfig> column = sinkConfig.getColumn();
+        columnNameList = column.stream().map(FieldConfig::getName).collect(Collectors.toList());
+        columnTypeList = column.stream().map(FieldConfig::getType).collect(Collectors.toList());
         RowType rowType =
                 TableUtil.createRowType(
                         columnNameList, columnTypeList, InfluxdbRawTypeConverter::apply);
@@ -112,12 +105,12 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void closeInternal() throws IOException {
+    protected void closeInternal() {
         if (enableBatch) influxDB.disableBatch();
         if (influxDB != null) Runtime.getRuntime().addShutdownHook(new Thread(influxDB::close));
     }
 
-    private void establishConnnection() {
+    private void establishConnection() {
         if (influxDB != null) return;
         LOG.info("Get the connection for influxdb");
         OkHttpClient.Builder clientBuilder =
@@ -141,9 +134,8 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
             options =
                     options.exceptionHandler(
                                     (iterable, e) -> {
-                                        Iterator<Point> iterator = iterable.iterator();
-                                        while (iterator.hasNext()) {
-                                            dirtyManager.collect(iterator.next(), e, null);
+                                        for (Point point : iterable) {
+                                            dirtyManager.collect(point, e, null);
                                         }
                                         if (LOG.isTraceEnabled()) {
                                             LOG.trace(

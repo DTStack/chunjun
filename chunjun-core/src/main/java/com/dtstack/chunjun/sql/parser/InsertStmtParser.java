@@ -26,11 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.net.URL;
 import java.util.List;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/08
- */
 public class InsertStmtParser extends AbstractStmtParser {
 
     @Override

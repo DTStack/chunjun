@@ -20,12 +20,8 @@ package com.dtstack.chunjun.connector.hive.entity;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class TableInfo implements Serializable {
     private static final long serialVersionUID = 1L;
     private List<String> columnNameList;
@@ -127,31 +123,16 @@ public class TableInfo implements Serializable {
 
     @Override
     public String toString() {
-        return "TableInfo{"
-                + "columnNameList="
-                + columnNameList
-                + ", columnTypeList="
-                + columnTypeList
-                + ", createTableSql='"
-                + createTableSql
-                + '\''
-                + ", tableName='"
-                + tableName
-                + '\''
-                + ", tablePath='"
-                + tablePath
-                + '\''
-                + ", path='"
-                + path
-                + '\''
-                + ", store='"
-                + store
-                + '\''
-                + ", delimiter='"
-                + delimiter
-                + '\''
-                + ", partitionList="
-                + partitionList
-                + '}';
+        return new StringJoiner(", ", TableInfo.class.getSimpleName() + "[", "]")
+                .add("columnNameList=" + columnNameList)
+                .add("columnTypeList=" + columnTypeList)
+                .add("createTableSql='" + createTableSql + "'")
+                .add("tableName='" + tableName + "'")
+                .add("tablePath='" + tablePath + "'")
+                .add("path='" + path + "'")
+                .add("store='" + store + "'")
+                .add("delimiter='" + delimiter + "'")
+                .add("partitionList=" + partitionList)
+                .toString();
     }
 }

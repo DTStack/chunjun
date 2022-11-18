@@ -18,10 +18,6 @@
 
 package com.dtstack.chunjun.throwable;
 
-/**
- * @author tiezhu
- * @since 2021/4/28 3:45 下午
- */
 public class UnsupportedTypeException extends ChunJunRuntimeException {
 
     private static final long serialVersionUID = -1209345700603127945L;

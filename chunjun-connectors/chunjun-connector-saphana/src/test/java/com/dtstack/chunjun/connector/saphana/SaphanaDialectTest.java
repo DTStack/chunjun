@@ -18,11 +18,6 @@
 
 package com.dtstack.chunjun.connector.saphana;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class SaphanaDialectTest {
 
     public static void main(String[] args) {

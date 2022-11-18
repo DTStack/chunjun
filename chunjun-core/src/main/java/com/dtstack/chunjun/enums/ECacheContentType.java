@@ -18,11 +18,6 @@
 
 package com.dtstack.chunjun.enums;
 
-/**
- * Reason: Date: 2018/9/10 Company: www.dtstack.com
- *
- * @author xuchao
- */
 public enum ECacheContentType {
 
     /** 无 */
@@ -32,7 +27,7 @@ public enum ECacheContentType {
     /** 多行 */
     MultiLine(2);
 
-    int type;
+    final int type;
 
     ECacheContentType(int type) {
         this.type = type;

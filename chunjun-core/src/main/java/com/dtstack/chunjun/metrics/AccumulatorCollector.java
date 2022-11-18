@@ -44,12 +44,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 累加器收集器，周期性地更新累加器信息
- *
- * @author jiangbo
- * @date 2019/7/17
- */
 public class AccumulatorCollector {
 
     private static final Logger LOG = LoggerFactory.getLogger(AccumulatorCollector.class);

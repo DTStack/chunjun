@@ -2,7 +2,7 @@
 
 ## 配置文件结构详解
 
-一个完整的 ChunJun 任务脚本配置包含 content， setting 两个部分。content 用于配置任务的输入源与输出源，其中包含 reader，writer。而 setting 则配置任务整体的环境设定，其中包含 speed，errorLimit，metricPluginConf，restore，log，dirty。总体结构如下所示：
+一个完整的 ChunJun 任务脚本配置包含 content， setting 两个部分。content 用于配置任务的输入源与输出源，其中包含 reader，writer。而 setting 则配置任务整体的环境设定，其中包含 speed，errorLimit，metricPluginConfig，restore，log，dirty。总体结构如下所示：
 
 ```JSON
 {
@@ -16,7 +16,7 @@
     "setting": {
       "speed": {},
       "errorLimit": {},
-      "metricPluginConf": {},
+      "metricPluginConfig": {},
       "restore": {},
       "log": {},
       "dirty": {}
@@ -54,7 +54,7 @@
 		<td>否</td>
 	</tr>
   <tr>
-    <td>metricPluginConf</td>
+    <td>metricPluginConfig</td>
 		<td>指标插件配置</td>
 		<td>否</td>
 	</tr>
@@ -153,7 +153,7 @@ errorLimit 用于配置任务运行时数据读取写入的出错控制。具体
 
 ### MetricPluginConf
 
-metricPluginConf 用于配置 chunjun 指标相关信息。
+metricPluginConfig 用于配置 chunjun 指标相关信息。
 
 目前只应用于 Jdbc 插件中，在作业结束时将 StartLocation 和 EndLocation 指标发送到指定数据源中。
 
@@ -164,7 +164,7 @@ metricPluginConf 用于配置 chunjun 指标相关信息。
 promethusReporter 依赖 pushGateway 和普罗米修斯交互
 
 ```json
-"metricPluginConf" : {
+"metricPluginConfig" : {
   "pluginName": "promethus"
 }
 ```
@@ -192,7 +192,7 @@ metrics.reporter.promgateway.deleteOnShutdown: false
 要求目标表存在至少两个 String 字段，metric_name 和 metric_value，分别记录指标名和指标值
 
 ```json
-"metricPluginConf" : {
+"metricPluginConfig" : {
   "pluginName": "mysql"
   "pluginProp": {
     "jdbcUrl":"",

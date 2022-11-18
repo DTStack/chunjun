@@ -22,15 +22,12 @@ import com.amazonaws.services.s3.model.PartETag;
 
 import java.io.Serializable;
 
-/** @author jier */
 public class MyPartETag implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private int partNumber;
 
     private String eTag;
-
-    public MyPartETag() {}
 
     public MyPartETag(PartETag partETag) {
         this.partNumber = partETag.getPartNumber();

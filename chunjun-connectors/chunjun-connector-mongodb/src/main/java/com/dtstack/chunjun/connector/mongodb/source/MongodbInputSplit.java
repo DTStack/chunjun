@@ -20,11 +20,8 @@ package com.dtstack.chunjun.connector.mongodb.source;
 
 import org.apache.flink.core.io.InputSplit;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/24
- */
+import java.util.StringJoiner;
+
 public class MongodbInputSplit implements InputSplit {
 
     private int skip;
@@ -59,6 +56,9 @@ public class MongodbInputSplit implements InputSplit {
 
     @Override
     public String toString() {
-        return "MongodbInputSplit{" + "skip=" + skip + ", limit=" + limit + '}';
+        return new StringJoiner(", ", MongodbInputSplit.class.getSimpleName() + "[", "]")
+                .add("skip=" + skip)
+                .add("limit=" + limit)
+                .toString();
     }
 }

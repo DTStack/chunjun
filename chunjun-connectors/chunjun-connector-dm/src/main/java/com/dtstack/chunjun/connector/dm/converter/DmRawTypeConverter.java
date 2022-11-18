@@ -25,7 +25,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/** @author kunni */
 public class DmRawTypeConverter {
 
     /**
