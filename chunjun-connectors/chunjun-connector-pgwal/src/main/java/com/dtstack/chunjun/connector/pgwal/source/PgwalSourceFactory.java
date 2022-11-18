@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.pgwal.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.pgwal.conf.PGWalConf;
 import com.dtstack.chunjun.connector.pgwal.converter.PGWalColumnConverter;
 import com.dtstack.chunjun.connector.pgwal.converter.PGWalRowConverter;

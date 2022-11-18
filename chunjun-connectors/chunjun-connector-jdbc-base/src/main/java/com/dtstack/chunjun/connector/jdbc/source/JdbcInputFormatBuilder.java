@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.conf.FieldConfig;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -61,7 +61,7 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
 
     @Override
     protected void checkFormat() {
-        JdbcConfig conf = format.getJdbcConf();
+        JdbcConfig conf = format.getJdbcConfig();
         StringBuilder sb = new StringBuilder(256);
         if (StringUtils.isBlank(conf.getUsername())) {
             sb.append("No username supplied;\n");

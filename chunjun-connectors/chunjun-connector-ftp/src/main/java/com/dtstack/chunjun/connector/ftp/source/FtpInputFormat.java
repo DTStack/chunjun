@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.ftp.client.Data;
 import com.dtstack.chunjun.connector.ftp.client.FileUtil;
 import com.dtstack.chunjun.connector.ftp.conf.ConfigConstants;

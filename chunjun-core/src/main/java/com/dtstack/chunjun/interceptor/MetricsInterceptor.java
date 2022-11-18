@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.interceptor;
 
-import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.metrics.AccumulatorCollector;
 import com.dtstack.chunjun.metrics.BaseMetric;

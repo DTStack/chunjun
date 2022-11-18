@@ -18,7 +18,7 @@
 package com.dtstack.chunjun.connector.hive.table;
 
 import com.dtstack.chunjun.connector.hdfs.options.HdfsOptions;
-import com.dtstack.chunjun.connector.hive.conf.HiveConf;
+import com.dtstack.chunjun.connector.hive.conf.HiveConfig;
 import com.dtstack.chunjun.connector.hive.options.HiveOptions;
 import com.dtstack.chunjun.connector.hive.sink.HiveDynamicTableSink;
 import com.dtstack.chunjun.table.options.BaseFileOptions;
@@ -107,15 +107,15 @@ public class HiveDynamicTableFactory implements DynamicTableSinkFactory {
         // 3.封装参数
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        HiveConf hiveConf = getHiveConf(config);
+        HiveConfig hiveConf = getHiveConf(config);
         hiveConf.setHadoopConfig(
                 HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
         buildTablesColumn(hiveConf, config.get(HiveOptions.TABLE_NAME), physicalSchema);
         return new HiveDynamicTableSink(hiveConf, physicalSchema);
     }
 
-    private HiveConf getHiveConf(ReadableConfig config) {
-        HiveConf hiveConf = new HiveConf();
+    private HiveConfig getHiveConf(ReadableConfig config) {
+        HiveConfig hiveConf = new HiveConfig();
         hiveConf.setParallelism(config.get(SinkOptions.SINK_PARALLELISM));
 
         hiveConf.setPath(config.get(BaseFileOptions.PATH));
@@ -141,7 +141,7 @@ public class HiveDynamicTableFactory implements DynamicTableSinkFactory {
         return hiveConf;
     }
 
-    private void buildTablesColumn(HiveConf hiveConf, String tableName, TableSchema tableSchema) {
+    private void buildTablesColumn(HiveConfig hiveConf, String tableName, TableSchema tableSchema) {
         RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
         String[] fieldNames = tableSchema.getFieldNames();
         List<Map<String, String>> list = new ArrayList<>(fieldNames.length);

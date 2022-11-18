@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.conf;
 
-import com.dtstack.chunjun.conf.BaseFileConf;
+import com.dtstack.chunjun.config.BaseFileConf;
 import com.dtstack.chunjun.constants.ConstantValue;
 
 import java.util.Map;

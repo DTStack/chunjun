@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.hbase.table;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.lookup.conf.LookupConf;
 
 import org.apache.flink.configuration.ConfigOption;
@@ -115,7 +115,7 @@ public abstract class HBaseDynamicTableFactoryBase
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         validatePrimaryKey(physicalSchema);
         Map<String, String> options = context.getCatalogTable().getOptions();
-        HBaseConf conf = getHbaseConf(config, options);
+        HBaseConfig conf = getHbaseConf(config, options);
         LookupConf lookupConf =
                 getLookupConf(config, context.getObjectIdentifier().getObjectName());
         HBaseTableSchema hbaseSchema = HBaseTableSchema.fromTableSchema(physicalSchema);
@@ -161,8 +161,8 @@ public abstract class HBaseDynamicTableFactoryBase
                 .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
     }
 
-    private HBaseConf getHbaseConf(ReadableConfig config, Map<String, String> options) {
-        HBaseConf conf = new HBaseConf();
+    private HBaseConfig getHbaseConf(ReadableConfig config, Map<String, String> options) {
+        HBaseConfig conf = new HBaseConfig();
         conf.setHbaseConfig(getHBaseClientProperties(options));
         String hTableName = config.get(TABLE_NAME);
         conf.setTable(hTableName);
@@ -212,7 +212,7 @@ public abstract class HBaseDynamicTableFactoryBase
         HBaseTableSchema hbaseSchema = HBaseTableSchema.fromTableSchema(physicalSchema);
         Map<String, String> options = context.getCatalogTable().getOptions();
 
-        HBaseConf conf = getHbaseConf(config, options);
+        HBaseConfig conf = getHbaseConf(config, options);
         config.getOptional(SINK_PARALLELISM).ifPresent(conf::setParallelism);
         config.getOptional(SINK_BUFFER_FLUSH_MAX_ROWS).ifPresent(conf::setBatchSize);
         long millis = config.get(SINK_BUFFER_FLUSH_INTERVAL).toMillis();

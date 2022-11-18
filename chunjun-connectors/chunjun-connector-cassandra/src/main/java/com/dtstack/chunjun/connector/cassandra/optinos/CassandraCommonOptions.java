@@ -21,10 +21,6 @@ package com.dtstack.chunjun.connector.cassandra.optinos;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraCommonOptions {
 
     public static final ConfigOption<String> HOST =

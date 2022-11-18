@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.solr.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.solr.SolrConf;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 

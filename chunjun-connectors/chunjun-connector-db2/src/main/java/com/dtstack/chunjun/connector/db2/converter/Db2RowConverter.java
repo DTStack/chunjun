@@ -34,11 +34,6 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/**
- * @program chunjun
- * @author: xuchao
- * @create: 2021/05/20 17:08
- */
 public class Db2RowConverter extends JdbcRowConverter {
 
     private static final long serialVersionUID = 2L;

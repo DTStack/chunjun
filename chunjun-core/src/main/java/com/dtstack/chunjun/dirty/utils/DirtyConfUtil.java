@@ -32,10 +32,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * @author tiezhu@dtstack
- * @date 23/09/2021 Thursday
- */
 public class DirtyConfUtil {
 
     private static final String DEFAULT_TYPE = "default";

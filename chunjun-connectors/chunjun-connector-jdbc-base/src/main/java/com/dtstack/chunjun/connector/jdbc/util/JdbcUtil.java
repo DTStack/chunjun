@@ -17,9 +17,8 @@
  */
 package com.dtstack.chunjun.connector.jdbc.util;
 
-import com.dtstack.chunjun.conf.FieldConfig;
-import com.dtstack.chunjun.connector.jdbc.JdbcDialectWrapper;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -57,11 +56,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Utilities for relational database connection and sql execution company: www.dtstack.com
- *
- * @author huyifan_zju@
- */
+/** Utilities for relational database connection and sql execution */
 public class JdbcUtil {
     /** 增量任务过滤条件占位符 */
     public static final String INCREMENT_FILTER_PLACEHOLDER = "${incrementFilter}";
@@ -89,38 +84,33 @@ public class JdbcUtil {
     /**
      * 获取JDBC连接
      *
-     * @param jdbcConf
+     * @param jdbcConfig
      * @param jdbcDialect
      * @return
      */
-    public static Connection getConnection(JdbcConfig jdbcConf, JdbcDialect jdbcDialect) {
-        TelnetUtil.telnet(jdbcConf.getJdbcUrl());
+    public static Connection getConnection(JdbcConfig jdbcConfig, JdbcDialect jdbcDialect) {
+        TelnetUtil.telnet(jdbcConfig.getJdbcUrl());
         ClassUtil.forName(
-                jdbcDialect.defaultDriverName().get(),
+                jdbcDialect.defaultDriverName().orElseThrow(() -> new ChunJunRuntimeException("")),
                 Thread.currentThread().getContextClassLoader());
-        Properties prop = jdbcConf.getProperties();
+        Properties prop = jdbcConfig.getProperties();
         if (prop == null) {
             prop = new Properties();
         }
-        if (StringUtils.isNotBlank(jdbcConf.getUsername())) {
-            prop.put("user", jdbcConf.getUsername());
+        if (StringUtils.isNotBlank(jdbcConfig.getUsername())) {
+            prop.put("user", jdbcConfig.getUsername());
         }
-        if (StringUtils.isNotBlank(jdbcConf.getPassword())) {
-            prop.put("password", jdbcConf.getPassword());
+        if (StringUtils.isNotBlank(jdbcConfig.getPassword())) {
+            prop.put("password", jdbcConfig.getPassword());
         }
         Properties finalProp = prop;
         synchronized (ClassUtil.LOCK_STR) {
             return RetryUtil.executeWithRetry(
-                    () -> DriverManager.getConnection(jdbcConf.getJdbcUrl(), finalProp),
+                    () -> DriverManager.getConnection(jdbcConfig.getJdbcUrl(), finalProp),
                     3,
                     2000,
                     false);
         }
-    }
-
-    public static Connection getConnection(
-            JdbcConfig conf, org.apache.flink.connector.jdbc.dialect.JdbcDialect dialect) {
-        return getConnection(conf, new JdbcDialectWrapper(dialect));
     }
 
     /**
@@ -245,6 +235,7 @@ public class JdbcUtil {
         }
         return indexList;
     }
+
     /**
      * 关闭连接资源
      *

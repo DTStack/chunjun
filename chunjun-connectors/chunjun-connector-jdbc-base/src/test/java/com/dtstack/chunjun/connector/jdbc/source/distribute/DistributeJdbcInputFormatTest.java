@@ -18,11 +18,11 @@
 
 package com.dtstack.chunjun.connector.jdbc.source.distribute;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
-import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
-import com.dtstack.chunjun.connector.jdbc.conf.DataSourceConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
+import com.dtstack.chunjun.connector.jdbc.config.DataSourceConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRawTypeConverterTest;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
@@ -83,8 +83,8 @@ public class DistributeJdbcInputFormatTest {
 
     private static DistributedJdbcInputFormat inputFormat;
     private static DistributedJdbcInputSplit inputSplit;
-    private static List<DataSourceConf> dataSourceConfList;
-    private static SyncConf syncConf;
+    private static List<DataSourceConfig> dataSourceConfigList;
+    private static SyncConfig syncConf;
     private static JdbcConfig jdbcConf;
     private static JdbcDialect jdbcDialect;
     private static Logger LOG;
@@ -110,36 +110,37 @@ public class DistributeJdbcInputFormatTest {
         Gson gson =
                 new GsonBuilder()
                         .registerTypeAdapter(
-                                ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf"))
+                                ConnectionConfig.class,
+                                new ConnectionAdapter("SourceConnectionConf"))
                         .addDeserializationExclusionStrategy(
                                 new FieldNameExclusionStrategy("column"))
                         .create();
         GsonUtil.setTypeAdapter(gson);
-        syncConf = SyncConf.parseJob(json);
+        syncConf = SyncConfig.parseJob(json);
         JdbcConfig jdbcConf =
                 gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), JdbcConfig.class);
-        List<ConnectionConf> connectionConfList = jdbcConf.getConnection();
-        dataSourceConfList = new ArrayList<>(connectionConfList.size());
-        for (ConnectionConf connectionConf : connectionConfList) {
+        List<ConnectionConfig> connectionConfigList = jdbcConf.getConnection();
+        dataSourceConfigList = new ArrayList<>(connectionConfigList.size());
+        for (ConnectionConfig connectionConfig : connectionConfigList) {
             String currentUsername =
-                    (StringUtils.isNotBlank(connectionConf.getUsername()))
-                            ? connectionConf.getUsername()
+                    (StringUtils.isNotBlank(connectionConfig.getUsername()))
+                            ? connectionConfig.getUsername()
                             : jdbcConf.getUsername();
             String currentPassword =
-                    (StringUtils.isNotBlank(connectionConf.getPassword()))
-                            ? connectionConf.getPassword()
+                    (StringUtils.isNotBlank(connectionConfig.getPassword()))
+                            ? connectionConfig.getPassword()
                             : jdbcConf.getPassword();
 
-            String schema = connectionConf.getSchema();
-            for (String table : connectionConf.getTable()) {
-                DataSourceConf dataSourceConf = new DataSourceConf();
-                dataSourceConf.setUserName(currentUsername);
-                dataSourceConf.setPassword(currentPassword);
-                dataSourceConf.setJdbcUrl(connectionConf.obtainJdbcUrl());
-                dataSourceConf.setTable(table);
-                dataSourceConf.setSchema(schema);
+            String schema = connectionConfig.getSchema();
+            for (String table : connectionConfig.getTable()) {
+                DataSourceConfig dataSourceConfig = new DataSourceConfig();
+                dataSourceConfig.setUserName(currentUsername);
+                dataSourceConfig.setPassword(currentPassword);
+                dataSourceConfig.setJdbcUrl(connectionConfig.obtainJdbcUrl());
+                dataSourceConfig.setTable(table);
+                dataSourceConfig.setSchema(schema);
 
-                dataSourceConfList.add(dataSourceConf);
+                dataSourceConfigList.add(dataSourceConfig);
             }
         }
     }
@@ -153,8 +154,8 @@ public class DistributeJdbcInputFormatTest {
                 ChunJunRuntimeException.class, () -> inputFormat.createInputSplitsInternal(2));
 
         when(jdbcConf.getParallelism()).thenReturn(2);
-        setInternalState(inputFormat, "sourceList", dataSourceConfList);
-        when(RangeSplitUtil.subListBySegment(dataSourceConfList, 2)).thenCallRealMethod();
+        setInternalState(inputFormat, "sourceList", dataSourceConfigList);
+        when(RangeSplitUtil.subListBySegment(dataSourceConfigList, 2)).thenCallRealMethod();
         InputSplit[] inputSplitsInternal = inputFormat.createInputSplitsInternal(2);
         Assert.assertEquals(2, inputSplitsInternal.length);
     }
@@ -162,7 +163,7 @@ public class DistributeJdbcInputFormatTest {
     @Test
     public void openInternalTest() {
         doCallRealMethod().when(inputFormat).openInternal(inputSplit);
-        when(inputSplit.getSourceList()).thenReturn(dataSourceConfList);
+        when(inputSplit.getSourceList()).thenReturn(dataSourceConfigList);
 
         when(jdbcConf.getColumn()).thenReturn(syncConf.getReader().getFieldList());
         setInternalState(inputFormat, "columnTypeList", new ArrayList<>());
@@ -190,7 +191,7 @@ public class DistributeJdbcInputFormatTest {
         Assert.assertTrue(inputFormat.reachedEnd());
 
         setInternalState(inputFormat, "noDataSource", false);
-        setInternalState(inputFormat, "sourceList", dataSourceConfList);
+        setInternalState(inputFormat, "sourceList", dataSourceConfigList);
         setInternalState(inputFormat, "inputSplit", inputSplit);
         when(JdbcUtil.getConnection(any(JdbcConfig.class), any(JdbcDialect.class)))
                 .thenAnswer(invocation -> connection);

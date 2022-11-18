@@ -47,7 +47,7 @@ public class StandaloneClusterClientHelper implements ClusterClientHelper<Standa
         Configuration flinkConf = launcherOptions.loadFlinkConfiguration();
 
         try (StandaloneClusterDescriptor standaloneClusterDescriptor =
-                     new StandaloneClusterDescriptor(flinkConf)) {
+                new StandaloneClusterDescriptor(flinkConf)) {
             ClusterClient<StandaloneClusterId> clusterClient =
                     standaloneClusterDescriptor
                             .retrieve(StandaloneClusterId.getInstance())

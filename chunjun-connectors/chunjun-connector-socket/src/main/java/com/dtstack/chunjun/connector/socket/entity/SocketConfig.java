@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.socket.entity;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 
-public class SocketConfig extends ChunJunCommonConf {
+public class SocketConfig extends CommonConfig {
 
     private String address;
 

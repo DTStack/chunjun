@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.conf.FieldConfig;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;

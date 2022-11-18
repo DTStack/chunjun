@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.source.distribute;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRawTypeConverterTest;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -50,7 +50,7 @@ public class SourceFactoryTest {
     public void initTest() {
         sourceFactory =
                 new TestSourceFactory(
-                        SyncConf.parseJob(json),
+                        SyncConfig.parseJob(json),
                         env,
                         new JdbcDialect() {
                             @Override
@@ -73,7 +73,7 @@ public class SourceFactoryTest {
 
     public static class TestSourceFactory extends DistributedJdbcSourceFactory {
         public TestSourceFactory(
-                SyncConf syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
+                SyncConfig syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
             super(syncConf, env, jdbcDialect);
         }
     }

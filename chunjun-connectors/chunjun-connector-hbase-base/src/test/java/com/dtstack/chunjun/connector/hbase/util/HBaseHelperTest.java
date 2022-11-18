@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hbase.util;
 
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.security.KerberosUtil;
 import com.dtstack.chunjun.util.FileSystemUtil;
 
@@ -83,9 +83,9 @@ public class HBaseHelperTest {
     @Test(expected = IllegalArgumentException.class)
     public void testGetConnectionWithEmptyMap() {
         Map<String, Object> emptyMap = Maps.newHashMap();
-        HBaseConf hBaseConf = new HBaseConf();
-        hBaseConf.setHbaseConfig(emptyMap);
-        HBaseHelper.getHbaseConnection(hBaseConf);
+        HBaseConfig hBaseConfig = new HBaseConfig();
+        hBaseConfig.setHbaseConfig(emptyMap);
+        HBaseHelper.getHbaseConnection(hBaseConfig);
     }
 
     @Test
@@ -99,7 +99,7 @@ public class HBaseHelperTest {
         final String k4 = "which way?";
         final String v4 = "south, always south...";
 
-        HBaseConf hBaseConf = new HBaseConf();
+        HBaseConfig hBaseConfig = new HBaseConfig();
 
         Map<String, Object> confMap = Maps.newHashMap();
         confMap.put(k1, v1);
@@ -107,20 +107,20 @@ public class HBaseHelperTest {
         confMap.put(k3, v3);
         confMap.put(k4, v4);
 
-        hBaseConf.setHbaseConfig(confMap);
+        hBaseConfig.setHbaseConfig(confMap);
 
-        Assert.assertEquals(mockConnection, HBaseHelper.getHbaseConnection(hBaseConf));
+        Assert.assertEquals(mockConnection, HBaseHelper.getHbaseConnection(hBaseConfig));
     }
 
     @Test(expected = RuntimeException.class)
     public void testGetConnectionWithKerberosThenMissPrincipal() {
         Map<String, Object> confMap = Maps.newHashMap();
-        HBaseConf hBaseConf = new HBaseConf();
+        HBaseConfig hBaseConfig = new HBaseConfig();
 
         confMap.put(KEY_HBASE_SECURITY_AUTHORIZATION, KRB_STR);
 
-        hBaseConf.setHbaseConfig(confMap);
-        HBaseHelper.getHbaseConnection(hBaseConf);
+        hBaseConfig.setHbaseConfig(confMap);
+        HBaseHelper.getHbaseConnection(hBaseConfig);
     }
 
     @Test

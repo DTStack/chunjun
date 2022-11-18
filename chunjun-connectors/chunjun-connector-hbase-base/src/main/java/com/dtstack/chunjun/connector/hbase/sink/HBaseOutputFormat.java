@@ -43,10 +43,6 @@ import java.util.Objects;
 
 /**
  * The Hbase Implementation of OutputFormat
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
  */
 public class HBaseOutputFormat extends BaseRichOutputFormat {
 

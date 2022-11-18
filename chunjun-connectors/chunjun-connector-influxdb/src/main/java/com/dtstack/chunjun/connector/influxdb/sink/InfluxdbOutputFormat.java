@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.influxdb.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.influxdb.conf.InfluxdbSinkConfig;
 import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbColumnConverter;
 import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbRawTypeConverter;

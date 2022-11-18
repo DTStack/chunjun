@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.file.table;
 
-import com.dtstack.chunjun.conf.BaseFileConf;
+import com.dtstack.chunjun.config.BaseFileConf;
 import com.dtstack.chunjun.connector.file.converter.FileRowConverter;
 import com.dtstack.chunjun.connector.file.source.FileInputFormatBuilder;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;

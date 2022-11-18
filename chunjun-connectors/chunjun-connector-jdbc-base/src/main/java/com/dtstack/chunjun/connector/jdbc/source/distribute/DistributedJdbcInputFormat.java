@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.jdbc.source.distribute;
 
-import com.dtstack.chunjun.connector.jdbc.conf.DataSourceConf;
+import com.dtstack.chunjun.connector.jdbc.config.DataSourceConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -32,14 +32,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Date: 2022/01/12 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class DistributedJdbcInputFormat extends JdbcInputFormat {
 
-    protected List<DataSourceConf> sourceList;
+    protected List<DataSourceConfig> sourceList;
     protected DistributedJdbcInputSplit inputSplit;
     protected int sourceIndex = 0;
     protected boolean noDataSource = false;
@@ -64,7 +59,7 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
                             minNumSplits, jdbcConf.getParallelism()));
         }
         DistributedJdbcInputSplit[] inputSplits = new DistributedJdbcInputSplit[minNumSplits];
-        List<List<DataSourceConf>> subList =
+        List<List<DataSourceConfig>> subList =
                 RangeSplitUtil.subListBySegment(sourceList, minNumSplits);
 
         for (int i = 0; i < subList.size(); i++) {
@@ -111,7 +106,7 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
     }
 
     protected void openNextSource() throws SQLException {
-        DataSourceConf currentSource = sourceList.get(sourceIndex);
+        DataSourceConfig currentSource = sourceList.get(sourceIndex);
         dbConn = getConnection();
         dbConn.setAutoCommit(false);
         statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
@@ -138,7 +133,7 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
 
     @Override
     protected Connection getConnection() throws SQLException {
-        DataSourceConf currentSource = sourceList.get(sourceIndex);
+        DataSourceConfig currentSource = sourceList.get(sourceIndex);
         jdbcConf.setJdbcUrl(currentSource.getJdbcUrl());
         jdbcConf.setUsername(currentSource.getUserName());
         jdbcConf.setPassword(currentSource.getPassword());
@@ -147,7 +142,7 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
         return JdbcUtil.getConnection(jdbcConf, this.jdbcDialect);
     }
 
-    public void setSourceList(List<DataSourceConf> sourceList) {
+    public void setSourceList(List<DataSourceConfig> sourceList) {
         this.sourceList = sourceList;
     }
 }

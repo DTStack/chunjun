@@ -18,14 +18,13 @@
 
 package com.dtstack.chunjun.connector.doris.sink;
 
-import com.dtstack.chunjun.conf.OperatorConf;
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.doris.converter.DorisRowTypeConverter;
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
-import com.dtstack.chunjun.connector.doris.options.LoadConf;
+import com.dtstack.chunjun.config.OperatorConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.doris.options.LoadConfBuilder;
+import com.dtstack.chunjun.connector.doris.options.LoadConfig;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
-import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
+import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -50,47 +49,28 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Properties;
 
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DESERIALIZE_ARROW_ASYNC_KEY;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DESERIALIZE_QUEUE_SIZE_KEY;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_BATCH_SIZE_DEFAULT;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_DESERIALIZE_ARROW_ASYNC_DEFAULT;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_DESERIALIZE_QUEUE_SIZE_DEFAULT;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_EXEC_MEM_LIMIT_DEFAULT;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUEST_CONNECT_TIMEOUT_MS_DEFAULT;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUEST_QUERY_TIMEOUT_S_DEFAULT;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUEST_READ_TIMEOUT_MS_DEFAULT;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUEST_RETRIES_DEFAULT;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.EXEC_MEM_LIMIT_KEY;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.LOAD_OPTIONS_KEY;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_BATCH_SIZE_KEY;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_CONNECT_TIMEOUT_MS_KEY;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_QUERY_TIMEOUT_S_KEY;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_READ_TIMEOUT_MS_KEY;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_RETRIES_KEY;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_TABLET_SIZE_KEY;
-
 public class DorisSinkFactory extends SinkFactory {
-    private final DorisConf options;
+    private final DorisConfig options;
 
-    public DorisSinkFactory(SyncConf syncConf) {
+    public DorisSinkFactory(SyncConfig syncConf) {
         super(syncConf);
 
-        final OperatorConf parameter = syncConf.getWriter();
+        final OperatorConfig parameter = syncConf.getWriter();
 
         Gson gson =
                 new GsonBuilder()
                         .registerTypeAdapter(
-                                ConnectionConf.class, new ConnectionAdapter("SinkConnectionConf"))
+                                ConnectionConfig.class, new ConnectionAdapter("SinkConnectionConfig"))
                         .addDeserializationExclusionStrategy(
                                 new FieldNameExclusionStrategy("column"))
                         .create();
         GsonUtil.setTypeAdapter(gson);
-        options = gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), DorisConf.class);
+        options = gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), DorisConfig.class);
 
         LoadConfBuilder loadConfBuilder = new LoadConfBuilder();
 
         Properties properties = parameter.getProperties(LOAD_OPTIONS_KEY, new Properties());
-        LoadConf loadConf =
+        LoadConfig loadConfig =
                 loadConfBuilder
                         .setRequestTabletSize(
                                 (int)
@@ -137,7 +117,7 @@ public class DorisSinkFactory extends SinkFactory {
 
         options.setColumn(syncConf.getWriter().getFieldList());
         options.setLoadProperties(properties);
-        options.setLoadConf(loadConf);
+        options.setLoadConf(loadConfig);
         super.initCommonConf(options);
     }
 
@@ -172,7 +152,7 @@ public class DorisSinkFactory extends SinkFactory {
     }
 
     protected void initColumnInfo(
-            DorisConf conf, JdbcDialect dialect, DorisJdbcOutputFormatBuilder builder) {
+            DorisConfig conf, JdbcDialect dialect, DorisJdbcOutputFormatBuilder builder) {
         Connection conn = JdbcUtil.getConnection(conf, dialect);
 
         // get table metadata

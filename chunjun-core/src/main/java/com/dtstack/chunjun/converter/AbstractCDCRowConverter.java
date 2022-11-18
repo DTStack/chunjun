@@ -37,11 +37,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Date: 2021/04/29 Company: www.dtstack.com
- *
- * @author tudou
- */
 public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializable {
     protected static final long serialVersionUID = 1L;
 
@@ -88,7 +83,9 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      * 将外部数据库类型转换为flink内部类型
      *
      * @param input
+     *
      * @return
+     *
      * @throws Exception
      */
     public abstract LinkedList<RowData> toInternal(SourceT input) throws Exception;
@@ -97,17 +94,18 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      * 将外部数据库类型转换为flink内部类型
      *
      * @param type
+     *
      * @return
      */
     protected abstract IDeserializationConverter createInternalConverter(T type);
 
     protected IDeserializationConverter wrapIntoNullableInternalConverter(
-            IDeserializationConverter IDeserializationConverter) {
+            IDeserializationConverter converter) {
         return val -> {
             if (val == null) {
                 return null;
             } else {
-                return IDeserializationConverter.deserialize(val);
+                return converter.deserialize(val);
             }
         };
     }
@@ -116,6 +114,7 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      * 根据eventType获取RowKind
      *
      * @param type
+     *
      * @return
      */
     protected RowKind getRowKindByType(String type) {
@@ -136,6 +135,7 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      * @param fieldNameList
      * @param converters
      * @param valueMap
+     *
      * @return
      */
     @SuppressWarnings("unchecked")

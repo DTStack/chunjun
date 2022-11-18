@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.mongodb.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -56,7 +56,7 @@ public class MongodbColumnConverter
     private final List<MongoSerializationConverter> toExternalConverters;
     private final String[] fieldNames;
 
-    public MongodbColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+    public MongodbColumnConverter(RowType rowType, CommonConfig commonConf) {
         super(rowType, commonConf);
         this.fieldNames = rowType.getFieldNames().toArray(new String[0]);
         toInternalConverters = new ArrayList<>();

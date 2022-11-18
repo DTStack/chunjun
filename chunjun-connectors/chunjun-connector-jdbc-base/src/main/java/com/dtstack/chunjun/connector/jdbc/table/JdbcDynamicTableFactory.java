@@ -18,10 +18,10 @@
 
 package com.dtstack.chunjun.connector.jdbc.table;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcLookupConf;
-import com.dtstack.chunjun.connector.jdbc.conf.SinkConnectionConf;
-import com.dtstack.chunjun.connector.jdbc.conf.SourceConnectionConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcLookupConfig;
+import com.dtstack.chunjun.connector.jdbc.config.SinkConnectionConfig;
+import com.dtstack.chunjun.connector.jdbc.config.SourceConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcDynamicTableSink;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
@@ -31,22 +31,21 @@ import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.enums.Semantic;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.conf.LookupConfig;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
-import org.apache.flink.table.api.constraints.UniqueConstraint;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -94,11 +93,6 @@ import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_MA
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_MAX_RETRIES;
 import static org.apache.flink.util.Preconditions.checkState;
 
-/**
- * @author chuixue
- * @create 2021-04-10 12:54
- * @description
- */
 public abstract class JdbcDynamicTableFactory
         implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
@@ -110,10 +104,10 @@ public abstract class JdbcDynamicTableFactory
         final ReadableConfig config = helper.getOptions();
 
         // 2.参数校验
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+
         helper.validateExcept(VERTX_PREFIX, DRUID_PREFIX);
-        validateConfigOptions(config, physicalSchema);
+        validateConfigOptions(config, resolvedSchema);
         // 3.封装参数
         JdbcDialect jdbcDialect = getDialect();
 
@@ -126,9 +120,10 @@ public abstract class JdbcDynamicTableFactory
                         helper.getOptions(),
                         context.getObjectIdentifier().getObjectName(),
                         druidConf),
-                physicalSchema,
+                resolvedSchema,
                 jdbcDialect,
-                getInputFormatBuilder());
+                getInputFormatBuilder(),
+                context.getPhysicalRowDataType());
     }
 
     @Override
@@ -140,26 +135,28 @@ public abstract class JdbcDynamicTableFactory
 
         // 2.参数校验
         helper.validate();
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        validateConfigOptions(config, physicalSchema);
+
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+        validateConfigOptions(config, resolvedSchema);
         JdbcDialect jdbcDialect = getDialect();
 
         // 3.封装参数
         return new JdbcDynamicTableSink(
-                getSinkConnectionConf(helper.getOptions(), physicalSchema),
+                getSinkConnectionConf(helper.getOptions(), resolvedSchema),
                 jdbcDialect,
-                physicalSchema,
-                getOutputFormatBuilder());
+                resolvedSchema,
+                getOutputFormatBuilder(),
+                context.getPhysicalRowDataType());
     }
 
-    protected JdbcConfig getSinkConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
+    protected JdbcConfig getSinkConnectionConf(
+            ReadableConfig readableConfig, ResolvedSchema schema) {
         JdbcConfig jdbcConf = new JdbcConfig();
-        SinkConnectionConf conf = new SinkConnectionConf();
+        SinkConnectionConfig conf = new SinkConnectionConfig();
         jdbcConf.setConnection(Collections.singletonList(conf));
 
         conf.setJdbcUrl(readableConfig.get(URL));
-        conf.setTable(Arrays.asList(readableConfig.get(TABLE_NAME)));
+        conf.setTable(Collections.singletonList(readableConfig.get(TABLE_NAME)));
         conf.setSchema(readableConfig.get(SCHEMA));
         conf.setAllReplace(readableConfig.get(SINK_ALL_REPLACE));
 
@@ -172,17 +169,18 @@ public abstract class JdbcDynamicTableFactory
         jdbcConf.setParallelism(readableConfig.get(SINK_PARALLELISM));
         jdbcConf.setSemantic(readableConfig.get(SINK_SEMANTIC));
 
-        List<String> keyFields =
-                schema.getPrimaryKey().map(UniqueConstraint::getColumns).orElse(null);
+        List<String> keyFields = new ArrayList<>();
+        schema.getPrimaryKey().ifPresent(item -> keyFields.add(item.getName()));
+
         jdbcConf.setUniqueKey(keyFields);
         resetTableInfo(jdbcConf);
         return jdbcConf;
     }
 
-    protected LookupConf getJdbcLookupConf(
+    protected LookupConfig getJdbcLookupConf(
             ReadableConfig readableConfig, String tableName, Map<String, Object> druidConf) {
-        return JdbcLookupConf.build()
-                .setDruidConf(druidConf)
+        return JdbcLookupConfig.build()
+                .setDruidConfig(druidConf)
                 .setAsyncPoolSize(readableConfig.get(VERTX_WORKER_POOL_SIZE))
                 .setTableName(tableName)
                 .setPeriod(readableConfig.get(LOOKUP_CACHE_PERIOD))
@@ -198,11 +196,11 @@ public abstract class JdbcDynamicTableFactory
 
     protected JdbcConfig getSourceConnectionConf(ReadableConfig readableConfig) {
         JdbcConfig jdbcConf = new JdbcConfig();
-        SourceConnectionConf conf = new SourceConnectionConf();
+        SourceConnectionConfig conf = new SourceConnectionConfig();
         jdbcConf.setConnection(Collections.singletonList(conf));
 
-        conf.setJdbcUrl(Arrays.asList(readableConfig.get(URL)));
-        conf.setTable(Arrays.asList(readableConfig.get(TABLE_NAME)));
+        conf.setJdbcUrl(Collections.singletonList(readableConfig.get(URL)));
+        conf.setTable(Collections.singletonList(readableConfig.get(TABLE_NAME)));
         conf.setSchema(readableConfig.get(SCHEMA));
 
         jdbcConf.setJdbcUrl(readableConfig.get(URL));
@@ -294,7 +292,7 @@ public abstract class JdbcDynamicTableFactory
         return optionalOptions;
     }
 
-    protected void validateConfigOptions(ReadableConfig config, TableSchema tableSchema) {
+    protected void validateConfigOptions(ReadableConfig config, ResolvedSchema tableSchema) {
         String jdbcUrl = config.get(URL);
         final Optional<JdbcDialect> dialect = Optional.of(getDialect());
         checkState(dialect.get().canHandle(jdbcUrl), "Cannot handle such jdbc url: " + jdbcUrl);
@@ -337,7 +335,7 @@ public abstract class JdbcDynamicTableFactory
         String orderByColumn = config.get(SCAN_ORDER_BY_COLUMN);
         if (orderByColumn != null) {
             boolean isExist =
-                    tableSchema.getTableColumns().stream()
+                    tableSchema.getColumns().stream()
                             .anyMatch(tableColumn -> tableColumn.getName().equals(orderByColumn));
             if (!isExist) {
                 throw new IllegalArgumentException(

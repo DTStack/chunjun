@@ -20,10 +20,6 @@ package com.dtstack.chunjun.connector.cassandra.source;
 
 import org.apache.flink.core.io.InputSplit;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraInputSplit implements InputSplit {
 
     private String minToken;

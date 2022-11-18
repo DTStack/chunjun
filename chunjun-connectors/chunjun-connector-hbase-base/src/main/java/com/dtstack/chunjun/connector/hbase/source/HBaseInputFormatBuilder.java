@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.hbase.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConfigConstants;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfigConstants;
 import com.dtstack.chunjun.connector.hbase.util.ScanBuilder;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
@@ -32,10 +32,6 @@ import java.util.stream.Collectors;
 
 /**
  * The builder of HbaseInputFormat
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
  */
 public class HBaseInputFormatBuilder extends BaseRichInputFormatBuilder<HBaseInputFormat> {
 

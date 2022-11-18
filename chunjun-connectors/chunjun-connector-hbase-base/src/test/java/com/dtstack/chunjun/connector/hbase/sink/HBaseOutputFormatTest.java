@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.hbase.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseColumnConverter;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseRawTypeConverter;
 import com.dtstack.chunjun.connector.hbase.util.HBaseHelperTest;
@@ -117,7 +117,7 @@ public class HBaseOutputFormatTest {
 
         Map<String, Object> confMap = Maps.newHashMap();
         List<FieldConf> columnList = Lists.newArrayList();
-        HBaseConf conf = new HBaseConf();
+        HBaseConfig conf = new HBaseConfig();
         rowData = new ColumnRowData(RowKind.INSERT, 14);
 
         FieldConf id = new FieldConf();
@@ -238,8 +238,8 @@ public class HBaseOutputFormatTest {
         Map<String, Object> hbaseConfig = Maps.newHashMap();
         formatBuilder.setHbaseConfig(hbaseConfig);
 
-        HBaseConf hBaseConf = new HBaseConf();
-        formatBuilder.setConfig(hBaseConf);
+        HBaseConfig hBaseConfig = new HBaseConfig();
+        formatBuilder.setConfig(hBaseConfig);
 
         formatBuilder.setWriteBufferSize(null);
         formatBuilder.setWriteBufferSize(1000L);

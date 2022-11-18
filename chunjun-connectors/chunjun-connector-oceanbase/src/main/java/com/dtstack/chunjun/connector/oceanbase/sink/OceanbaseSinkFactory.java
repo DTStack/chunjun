@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.oceanbase.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.chunjun.connector.oceanbase.dialect.OceanbaseDialect;
 

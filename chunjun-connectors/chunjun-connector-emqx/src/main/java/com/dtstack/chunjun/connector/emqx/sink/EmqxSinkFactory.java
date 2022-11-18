@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.emqx.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.emqx.conf.EmqxConf;
 import com.dtstack.chunjun.connector.emqx.converter.EmqxColumnConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;

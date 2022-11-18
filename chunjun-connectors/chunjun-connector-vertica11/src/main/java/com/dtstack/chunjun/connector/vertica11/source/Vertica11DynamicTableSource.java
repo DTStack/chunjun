@@ -19,7 +19,7 @@
 
 package com.dtstack.chunjun.connector.vertica11.source;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;

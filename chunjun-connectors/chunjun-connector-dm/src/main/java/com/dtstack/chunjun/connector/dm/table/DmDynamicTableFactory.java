@@ -22,7 +22,6 @@ import com.dtstack.chunjun.connector.dm.dialect.DmDialect;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.table.JdbcDynamicTableFactory;
 
-/** @author kunni */
 public class DmDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** dm database identifier */

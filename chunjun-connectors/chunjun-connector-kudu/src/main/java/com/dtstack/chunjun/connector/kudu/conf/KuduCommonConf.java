@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.kudu.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.security.KerberosConfig;
 
 import org.apache.flink.configuration.ReadableConfig;
@@ -44,7 +44,7 @@ import static com.dtstack.chunjun.source.options.SourceOptions.SCAN_PARALLELISM;
  * @author tiezhu
  * @since 2021/6/9 星期三
  */
-public class KuduCommonConf extends ChunJunCommonConf {
+public class KuduCommonConf extends CommonConfig {
 
     /** master节点地址:端口，多个以,隔开 */
     protected String masters;

@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.starrocks.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 
 import org.apache.flink.table.types.DataType;
 
@@ -29,7 +29,7 @@ import java.util.Map;
  * @author lihongwei
  * @date 2022/04/11
  */
-public class StarRocksConf extends ChunJunCommonConf {
+public class StarRocksConf extends CommonConfig {
 
     // common
     private String url;

@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.hbase.table;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
 import com.dtstack.chunjun.enums.CacheType;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
@@ -51,18 +51,18 @@ public abstract class BaseHBaseDynamicTableSource
     protected TableSchema tableSchema;
     protected HBaseTableSchema hbaseSchema;
 
-    protected final HBaseConf hBaseConf;
+    protected final HBaseConfig hBaseConfig;
     protected final LookupConf lookupConf;
 
     public BaseHBaseDynamicTableSource(
             TableSchema tableSchema,
             HBaseTableSchema hbaseSchema,
-            HBaseConf hBaseConf,
+            HBaseConfig hBaseConfig,
             LookupConf lookupConf) {
         this.tableSchema = tableSchema;
         this.hbaseSchema = hbaseSchema;
-        this.hBaseConf = hBaseConf;
-        this.hbaseSchema.setTableName(hBaseConf.getTable());
+        this.hBaseConfig = hBaseConfig;
+        this.hbaseSchema.setTableName(hBaseConfig.getTable());
         this.lookupConf = lookupConf;
     }
 
@@ -80,22 +80,22 @@ public abstract class BaseHBaseDynamicTableSource
             field.setIndex(i);
             columnList.add(field);
         }
-        hBaseConf.setColumn(columnList);
+        hBaseConfig.setColumn(columnList);
 
         BaseRichInputFormatBuilder<?> builder = getBaseRichInputFormatBuilder();
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
                 true,
-                hBaseConf.getParallelism());
+                hBaseConfig.getParallelism());
     }
 
     @Override
     public LookupRuntimeProvider getLookupRuntimeProvider(LookupContext context) {
-        if (HBaseConfigUtils.isEnableKerberos(hBaseConf.getHbaseConfig())) {
-            HBaseConfigUtils.fillKerberosConfig(hBaseConf.getHbaseConfig());
+        if (HBaseConfigUtils.isEnableKerberos(hBaseConfig.getHbaseConfig())) {
+            HBaseConfigUtils.fillKerberosConfig(hBaseConfig.getHbaseConfig());
         }
-        hbaseSchema.setTableName(hBaseConf.getTable());
+        hbaseSchema.setTableName(hBaseConfig.getTable());
         if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
             return ParallelAsyncTableFunctionProvider.of(
                     getAbstractLruTableFunction(), lookupConf.getParallelism());

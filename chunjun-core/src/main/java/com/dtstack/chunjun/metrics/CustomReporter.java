@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.metrics;
 
-import com.dtstack.chunjun.conf.MetricParam;
+import com.dtstack.chunjun.config.MetricParam;
 
 import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.api.common.functions.RuntimeContext;

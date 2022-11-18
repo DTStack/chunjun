@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.sink;
 
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
@@ -51,23 +51,23 @@ public class HdfsOutputFormatBuilder extends BaseRichOutputFormatBuilder<BaseHdf
         return new HdfsOutputFormatBuilder(format);
     }
 
-    public void setHdfsConf(HdfsConf hdfsConf) {
-        super.setConfig(hdfsConf);
-        format.setBaseFileConf(hdfsConf);
-        format.setHdfsConf(hdfsConf);
+    public void setHdfsConf(HdfsConfig hdfsConfig) {
+        super.setConfig(hdfsConfig);
+        format.setBaseFileConf(hdfsConfig);
+        format.setHdfsConf(hdfsConfig);
     }
 
     @Override
     protected void checkFormat() {
         StringBuilder errorMessage = new StringBuilder(256);
-        HdfsConf hdfsConf = format.getHdfsConf();
-        if (StringUtils.isBlank(hdfsConf.getPath())) {
+        HdfsConfig hdfsConfig = format.getHdfsConf();
+        if (StringUtils.isBlank(hdfsConfig.getPath())) {
             errorMessage.append("No path supplied. \n");
         }
 
-        if (StringUtils.isBlank(hdfsConf.getDefaultFS())) {
+        if (StringUtils.isBlank(hdfsConfig.getDefaultFS())) {
             errorMessage.append("No defaultFS supplied. \n");
-        } else if (!hdfsConf.getDefaultFS().startsWith(ConstantValue.PROTOCOL_HDFS)) {
+        } else if (!hdfsConfig.getDefaultFS().startsWith(ConstantValue.PROTOCOL_HDFS)) {
             errorMessage.append("defaultFS should start with hdfs:// \n");
         }
         if (StringUtils.isNotBlank(errorMessage)) {

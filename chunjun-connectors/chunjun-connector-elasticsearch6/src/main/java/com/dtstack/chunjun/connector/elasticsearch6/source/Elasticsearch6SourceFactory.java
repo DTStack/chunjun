@@ -18,11 +18,11 @@
 
 package com.dtstack.chunjun.connector.elasticsearch6.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchColumnConverter;
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRawTypeMapper;
-import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
@@ -43,14 +43,14 @@ import java.util.List;
  */
 public class Elasticsearch6SourceFactory extends SourceFactory {
 
-    private final Elasticsearch6Conf elasticsearchConf;
+    private final Elasticsearch6Config elasticsearchConf;
 
     public Elasticsearch6SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         elasticsearchConf =
                 JsonUtil.toObject(
                         JsonUtil.toJson(syncConf.getReader().getParameter()),
-                        Elasticsearch6Conf.class);
+                        Elasticsearch6Config.class);
         List<FieldConf> fieldList = syncConf.getReader().getFieldList();
         String[] fieldNames = new String[fieldList.size()];
         for (int i = 0; i < fieldList.size(); i++) {

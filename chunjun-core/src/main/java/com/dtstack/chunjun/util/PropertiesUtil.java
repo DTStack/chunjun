@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.conf.CommonConfig;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import com.google.gson.reflect.TypeToken;
@@ -82,23 +82,23 @@ public class PropertiesUtil {
     }
 
     /**
-     * 初始化ChunJunCommonConf
+     * 初始化CommonConfig
      *
      * @param commonConf
-     * @param syncConf
+     * @param syncConfig
      */
-    public static void initCommonConf(CommonConfig commonConf, SyncConf syncConf) {
-        commonConf.setSpeedBytes(syncConf.getSpeed().getBytes());
-        commonConf.setSavePointPath(syncConf.getSavePointPath());
-        if (syncConf.getMetricPluginConf() != null) {
+    public static void initCommonConf(CommonConfig commonConf, SyncConfig syncConfig) {
+        commonConf.setSpeedBytes(syncConfig.getSpeed().getBytes());
+        commonConf.setSavePointPath(syncConfig.getSavePointPath());
+        if (syncConfig.getMetricPluginConf() != null) {
             commonConf.setMetricPluginRoot(
-                    syncConf.getRemotePluginPath() == null
-                            ? syncConf.getPluginRoot() + File.separator + "metrics"
-                            : syncConf.getRemotePluginPath());
-            commonConf.setMetricPluginName(syncConf.getMetricPluginConf().getPluginName());
-            commonConf.setMetricProps(syncConf.getMetricPluginConf().getPluginProp());
+                    syncConfig.getRemotePluginPath() == null
+                            ? syncConfig.getPluginRoot() + File.separator + "metrics"
+                            : syncConfig.getRemotePluginPath());
+            commonConf.setMetricPluginName(syncConfig.getMetricPluginConf().getPluginName());
+            commonConf.setMetricProps(syncConfig.getMetricPluginConf().getPluginProp());
             commonConf.setRowSizeCalculatorType(
-                    syncConf.getMetricPluginConf().getRowSizeCalculatorType());
+                    syncConfig.getMetricPluginConf().getRowSizeCalculatorType());
         }
     }
 }

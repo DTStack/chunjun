@@ -19,8 +19,8 @@
 
 package com.dtstack.chunjun.connector.influxdb.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -70,7 +70,7 @@ public class InfluxdbColumnConverter
 
     public InfluxdbColumnConverter(
             RowType rowType,
-            ChunJunCommonConf commonConf,
+            CommonConfig commonConf,
             List<String> fieldNameList,
             String format,
             TimeUnit precision) {
@@ -91,7 +91,7 @@ public class InfluxdbColumnConverter
 
     public InfluxdbColumnConverter(
             RowType rowType,
-            ChunJunCommonConf commonConf,
+            CommonConfig commonConf,
             List<String> fieldNameList,
             List<String> tags,
             String timestamp,

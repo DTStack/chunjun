@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.kudu.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.kudu.conf.KuduSourceConf;
 import com.dtstack.chunjun.connector.kudu.converter.KuduColumnConverter;
 import com.dtstack.chunjun.connector.kudu.converter.KuduRawTypeConverter;

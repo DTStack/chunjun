@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.hbase.table.lookup;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseSerde;
 import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
 import com.dtstack.chunjun.connector.hbase.util.HBaseHelper;
@@ -59,14 +59,14 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
     private final HBaseTableSchema hbaseTableSchema;
     private transient HBaseSerde serde;
     private final String nullStringLiteral;
-    private final HBaseConf hBaseConf;
+    private final HBaseConfig hBaseConfig;
 
     public HBaseAllTableFunction(
-            LookupConf lookupConf, HBaseTableSchema hbaseTableSchema, HBaseConf hBaseConf) {
+            LookupConf lookupConf, HBaseTableSchema hbaseTableSchema, HBaseConfig hBaseConfig) {
         super(null, null, lookupConf, null);
         this.hbaseTableSchema = hbaseTableSchema;
-        this.hBaseConf = hBaseConf;
-        this.nullStringLiteral = hBaseConf.getNullStringLiteral();
+        this.hBaseConfig = hBaseConfig;
+        this.nullStringLiteral = hBaseConfig.getNullStringLiteral();
     }
 
     @Override
@@ -78,7 +78,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
     @Override
     protected void loadData(Object cacheRef) {
         Configuration hbaseDomainConf = new Configuration();
-        for (Map.Entry<String, Object> entry : hBaseConf.getHbaseConfig().entrySet()) {
+        for (Map.Entry<String, Object> entry : hBaseConfig.getHbaseConfig().entrySet()) {
             hbaseDomainConf.set(entry.getKey(), entry.getValue().toString());
         }
         int loadDataCount = 0;

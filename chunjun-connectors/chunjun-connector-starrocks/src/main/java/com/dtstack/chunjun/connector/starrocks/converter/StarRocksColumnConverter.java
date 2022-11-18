@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.starrocks.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.starrocks.streamload.StarRocksSinkOP;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -58,7 +58,7 @@ public class StarRocksColumnConverter
     private final List<String> columnList;
     public static final String DATETIME_FORMAT_SHORT = "yyyy-MM-dd HH:mm:ss";
 
-    public StarRocksColumnConverter(RowType rowType, ChunJunCommonConf conf) {
+    public StarRocksColumnConverter(RowType rowType, CommonConfig conf) {
         super(rowType, conf);
         this.columnList =
                 conf.getColumn().stream().map(FieldConf::getName).collect(Collectors.toList());

@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.elasticsearch6.sink;
 
 import com.dtstack.chunjun.connector.elasticsearch.KeyExtractor;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6ClientFactory;
-import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6RequestFactory;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
@@ -40,16 +40,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/18 11:59
- */
 public class Elasticsearch6OutputFormat extends BaseRichOutputFormat {
 
     /** Elasticsearch Configuration */
-    private Elasticsearch6Conf elasticsearchConf;
+    private Elasticsearch6Config elasticsearchConf;
 
     /** Elasticsearch High Level Client */
     private transient RestHighLevelClient rhlClient;
@@ -142,11 +136,11 @@ public class Elasticsearch6OutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    public Elasticsearch6Conf getElasticsearchConf() {
+    public Elasticsearch6Config getElasticsearchConf() {
         return elasticsearchConf;
     }
 
-    public void setElasticsearchConf(Elasticsearch6Conf elasticsearchConf) {
+    public void setElasticsearchConf(Elasticsearch6Config elasticsearchConf) {
         this.elasticsearchConf = elasticsearchConf;
     }
 

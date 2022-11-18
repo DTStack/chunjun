@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.iceberg.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.iceberg.conf.IcebergReaderConf;
 import com.dtstack.chunjun.connector.iceberg.converter.IcebergColumnConverter;
 import com.dtstack.chunjun.connector.iceberg.converter.IcebergRawTypeConverter;

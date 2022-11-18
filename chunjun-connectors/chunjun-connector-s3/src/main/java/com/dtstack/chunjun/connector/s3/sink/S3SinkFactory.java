@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.s3.sink;
 
-import com.dtstack.chunjun.conf.SpeedConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SpeedConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.s3.conf.S3Conf;
 import com.dtstack.chunjun.connector.s3.converter.S3ColumnConverter;
 import com.dtstack.chunjun.connector.s3.converter.S3RawConverter;

@@ -18,13 +18,13 @@
 
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.conf.ContentConf;
-import com.dtstack.chunjun.conf.JobConfBuilder;
-import com.dtstack.chunjun.conf.OperatorConf;
-import com.dtstack.chunjun.conf.SettingConfBuilder;
-import com.dtstack.chunjun.conf.SpeedConf;
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.conf.SyncConfBuilder;
+import com.dtstack.chunjun.config.ContentConfig;
+import com.dtstack.chunjun.config.JobConfBuilder;
+import com.dtstack.chunjun.config.OperatorConfig;
+import com.dtstack.chunjun.config.SettingConfBuilder;
+import com.dtstack.chunjun.config.SpeedConfig;
+import com.dtstack.chunjun.config.SyncConfBuilder;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.constants.ConfigConstant;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.enums.ClusterMode;
@@ -138,43 +138,43 @@ public class PluginUtilTest {
     @Test
     public void testRegisterPluginUrlToCachedFile() throws IOException {
         Options options = new Options();
-        SpeedConf speedConf = new SpeedConf();
-        speedConf.setChannel(5);
-        speedConf.setWriterChannel(3);
+        SpeedConfig speedConfig = new SpeedConfig();
+        speedConfig.setChannel(5);
+        speedConfig.setWriterChannel(3);
 
-        ContentConf contentConf = new ContentConf();
-        OperatorConf reader = new OperatorConf();
+        ContentConfig contentConfig = new ContentConfig();
+        OperatorConfig reader = new OperatorConfig();
         reader.setName("hbasereader");
         reader.setParameter(
                 ImmutableMap.<String, Object>builder()
                         .put(ConfigConstant.KEY_COLUMN, ImmutableList.of(ConstantValue.STAR_SYMBOL))
                         .build());
-        contentConf.setReader(reader);
-        OperatorConf writer = new OperatorConf();
+        contentConfig.setReader(reader);
+        OperatorConfig writer = new OperatorConfig();
         writer.setName("hbasewriter");
         writer.setParameter(
                 ImmutableMap.<String, Object>builder()
                         .put(ConfigConstant.KEY_COLUMN, ImmutableList.of(ConstantValue.STAR_SYMBOL))
                         .build());
-        contentConf.setWriter(writer);
-        SyncConf syncConf =
+        contentConfig.setWriter(writer);
+        SyncConfig syncConfig =
                 SyncConfBuilder.newBuilder()
                         .job(
                                 JobConfBuilder.newBuilder()
                                         .setting(
                                                 SettingConfBuilder.newBuilder()
-                                                        .speed(speedConf)
+                                                        .speed(speedConfig)
                                                         .build())
-                                        .content(new LinkedList<>(ImmutableList.of(contentConf)))
+                                        .content(new LinkedList<>(ImmutableList.of(contentConfig)))
                                         .build())
                         .pluginRoot(localPluginRoot.getPath())
                         .build();
         StreamExecutionEnvironment environment =
                 new SourceFactoryTest.DummyStreamExecutionEnvironment();
 
-        PluginUtil.registerPluginUrlToCachedFile(options, syncConf, environment);
+        PluginUtil.registerPluginUrlToCachedFile(options, syncConfig, environment);
 
-        List<String> jarList = syncConf.getSyncJarList();
+        List<String> jarList = syncConfig.getSyncJarList();
 
         assertTrue(jarList.contains(testJar.getPath()));
     }

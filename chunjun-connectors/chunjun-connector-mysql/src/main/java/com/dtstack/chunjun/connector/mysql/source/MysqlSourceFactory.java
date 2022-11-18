@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.mysql.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
@@ -39,15 +39,15 @@ public class MysqlSourceFactory extends JdbcSourceFactory {
     // 默认是Mysql流式拉取
     private static final int DEFAULT_FETCH_SIZE = Integer.MIN_VALUE;
 
-    public MysqlSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, new MysqlDialect());
+    public MysqlSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env, new MysqlDialect());
         // 避免result.next阻塞
-        if (jdbcConf.isPolling()
-                && StringUtils.isEmpty(jdbcConf.getStartLocation())
-                && jdbcConf.getFetchSize() == 0) {
-            jdbcConf.setFetchSize(1000);
+        if (jdbcConfig.isPolling()
+                && StringUtils.isEmpty(jdbcConfig.getStartLocation())
+                && jdbcConfig.getFetchSize() == 0) {
+            jdbcConfig.setFetchSize(1000);
         }
-        JdbcUtil.putExtParam(jdbcConf);
+        JdbcUtil.putExtParam(jdbcConfig);
     }
 
     @Override

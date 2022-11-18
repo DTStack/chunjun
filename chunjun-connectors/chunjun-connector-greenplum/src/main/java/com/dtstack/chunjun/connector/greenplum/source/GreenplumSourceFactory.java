@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.greenplum.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.greenplum.dialect.GreenplumDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 

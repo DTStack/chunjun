@@ -19,7 +19,7 @@
 
 package com.dtstack.chunjun.connector.influxdb.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.influxdb.conf.InfluxdbSourceConfig;
 import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;

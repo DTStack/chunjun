@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
 import com.dtstack.chunjun.connector.oraclelogminer.converter.LogMinerColumnConverter;
 import com.dtstack.chunjun.connector.oraclelogminer.converter.LogMinerRowConverter;

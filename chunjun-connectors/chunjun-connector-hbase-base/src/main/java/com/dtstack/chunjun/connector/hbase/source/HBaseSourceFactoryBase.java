@@ -18,11 +18,11 @@
 
 package com.dtstack.chunjun.connector.hbase.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.OperatorConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.OperatorConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseColumnConverter;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseRawTypeConverter;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseRowConverter;
@@ -56,29 +56,29 @@ import java.util.stream.Collectors;
 
 public class HBaseSourceFactoryBase extends SourceFactory {
 
-    protected final HBaseConf hBaseConf;
+    protected final HBaseConfig hBaseConfig;
 
     public HBaseSourceFactoryBase(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         OperatorConf reader = syncConf.getReader();
-        hBaseConf =
+        hBaseConfig =
                 GsonUtil.GSON.fromJson(
-                        GsonUtil.GSON.toJson(reader.getParameter()), HBaseConf.class);
-        super.initCommonConf(hBaseConf);
-        hBaseConf.setColumnMetaInfos(reader.getFieldList());
+                        GsonUtil.GSON.toJson(reader.getParameter()), HBaseConfig.class);
+        super.initCommonConf(hBaseConfig);
+        hBaseConfig.setColumnMetaInfos(reader.getFieldList());
         Map<String, Object> range =
                 (Map<String, Object>) syncConf.getReader().getParameter().get("range");
         if (range != null) {
             if (range.get("startRowkey") != null
                     && StringUtils.isNotBlank(range.get("startRowkey").toString())) {
-                hBaseConf.setStartRowkey(range.get("startRowkey").toString());
+                hBaseConfig.setStartRowkey(range.get("startRowkey").toString());
             }
             if (range.get("endRowkey") != null
                     && StringUtils.isNotBlank(range.get("endRowkey").toString())) {
-                hBaseConf.setEndRowkey(range.get("endRowkey").toString());
+                hBaseConfig.setEndRowkey(range.get("endRowkey").toString());
             }
             if (range.get("isBinaryRowkey") != null) {
-                hBaseConf.setBinaryRowkey((Boolean) range.get("isBinaryRowkey"));
+                hBaseConfig.setBinaryRowkey((Boolean) range.get("isBinaryRowkey"));
             }
         }
         typeInformation =
@@ -91,9 +91,9 @@ public class HBaseSourceFactoryBase extends SourceFactory {
                                 .collect(Collectors.toList()),
                         getRawTypeConverter(),
                         useAbstractBaseColumn);
-        if (hBaseConf.getNullStringLiteral() == null
-                || "".equals(hBaseConf.getNullStringLiteral().trim())) {
-            hBaseConf.setNullStringLiteral("null");
+        if (hBaseConfig.getNullStringLiteral() == null
+                || "".equals(hBaseConfig.getNullStringLiteral().trim())) {
+            hBaseConfig.setNullStringLiteral("null");
         }
     }
 
@@ -105,17 +105,17 @@ public class HBaseSourceFactoryBase extends SourceFactory {
     @Override
     @SuppressWarnings("all")
     public DataStream<RowData> createSource() {
-        List<FieldConf> fieldConfList = hBaseConf.getColumnMetaInfos();
+        List<FieldConf> fieldConfList = hBaseConfig.getColumnMetaInfos();
 
         AbstractRowConverter rowConverter;
         ScanBuilder scanBuilder;
         if (useAbstractBaseColumn) {
             final RowType rowType =
-                    TableUtil.createRowType(hBaseConf.getColumn(), getRawTypeConverter());
-            rowConverter = new HBaseColumnConverter(hBaseConf, rowType);
+                    TableUtil.createRowType(hBaseConfig.getColumn(), getRawTypeConverter());
+            rowConverter = new HBaseColumnConverter(hBaseConfig, rowType);
             scanBuilder = ScanBuilder.forSync(fieldConfList);
         } else {
-            String nullStringLiteral = hBaseConf.getNullStringLiteral();
+            String nullStringLiteral = hBaseConfig.getNullStringLiteral();
             Set<String> columnSet = new LinkedHashSet<>();
             for (FieldConf fieldConf : fieldConfList) {
                 String fieldName = fieldConf.getName();
@@ -128,24 +128,24 @@ public class HBaseSourceFactoryBase extends SourceFactory {
             }
             this.typeInformation = buildType(columnSet);
             HBaseTableSchema hBaseTableSchema =
-                    buildHBaseTableSchema(hBaseConf.getTable(), fieldConfList);
+                    buildHBaseTableSchema(hBaseConfig.getTable(), fieldConfList);
             syncConf.getReader().setFieldNameList(new ArrayList<>(columnSet));
             final RowType rowType =
-                    TableUtil.createRowType(hBaseConf.getColumn(), getRawTypeConverter());
+                    TableUtil.createRowType(hBaseConfig.getColumn(), getRawTypeConverter());
             rowConverter = new HBaseRowConverter(hBaseTableSchema, nullStringLiteral);
             scanBuilder = ScanBuilder.forSql(hBaseTableSchema);
         }
 
         HBaseInputFormatBuilder builder =
-                HBaseInputFormatBuilder.newBuild(hBaseConf.getTable(), scanBuilder);
+                HBaseInputFormatBuilder.newBuild(hBaseConfig.getTable(), scanBuilder);
 
-        builder.setConfig(hBaseConf);
-        builder.setColumnMetaInfos(hBaseConf.getColumnMetaInfos());
-        builder.setHbaseConfig(hBaseConf.getHbaseConfig());
-        builder.setEndRowKey(hBaseConf.getEndRowkey());
-        builder.setIsBinaryRowkey(hBaseConf.isBinaryRowkey());
-        builder.setScanCacheSize(hBaseConf.getScanCacheSize());
-        builder.setStartRowKey(hBaseConf.getStartRowkey());
+        builder.setConfig(hBaseConfig);
+        builder.setColumnMetaInfos(hBaseConfig.getColumnMetaInfos());
+        builder.setHbaseConfig(hBaseConfig.getHbaseConfig());
+        builder.setEndRowKey(hBaseConfig.getEndRowkey());
+        builder.setIsBinaryRowkey(hBaseConfig.isBinaryRowkey());
+        builder.setScanCacheSize(hBaseConfig.getScanCacheSize());
+        builder.setStartRowKey(hBaseConfig.getStartRowkey());
 
         builder.setRowConverter(rowConverter);
         return createInput(builder.finish());

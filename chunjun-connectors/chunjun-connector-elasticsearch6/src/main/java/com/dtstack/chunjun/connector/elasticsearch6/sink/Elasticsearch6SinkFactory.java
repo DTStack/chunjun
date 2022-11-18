@@ -18,10 +18,10 @@
 
 package com.dtstack.chunjun.connector.elasticsearch6.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchColumnConverter;
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRawTypeMapper;
-import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.JsonUtil;
@@ -40,14 +40,14 @@ import org.apache.flink.table.types.logical.RowType;
  */
 public class Elasticsearch6SinkFactory extends SinkFactory {
 
-    private final Elasticsearch6Conf elasticsearchConf;
+    private final Elasticsearch6Config elasticsearchConf;
 
     public Elasticsearch6SinkFactory(SyncConf syncConf) {
         super(syncConf);
         elasticsearchConf =
                 JsonUtil.toObject(
                         JsonUtil.toJson(syncConf.getWriter().getParameter()),
-                        Elasticsearch6Conf.class);
+                        Elasticsearch6Config.class);
         elasticsearchConf.setColumn(syncConf.getWriter().getFieldList());
         super.initCommonConf(elasticsearchConf);
     }

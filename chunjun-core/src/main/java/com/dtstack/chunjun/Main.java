@@ -17,14 +17,14 @@
  */
 package com.dtstack.chunjun;
 
-import com.dtstack.chunjun.cdc.CdcConf;
+import com.dtstack.chunjun.cdc.CdcConfig;
 import com.dtstack.chunjun.cdc.RestorationFlatMap;
 import com.dtstack.chunjun.cdc.ddl.DdlConvent;
 import com.dtstack.chunjun.cdc.handler.CacheHandler;
 import com.dtstack.chunjun.cdc.handler.DDLHandler;
-import com.dtstack.chunjun.conf.OperatorConf;
-import com.dtstack.chunjun.conf.SpeedConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.OperatorConfig;
+import com.dtstack.chunjun.config.SpeedConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.dirty.DirtyConf;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
@@ -175,12 +175,12 @@ public class Main {
             String job,
             Options options)
             throws Exception {
-        SyncConf config = parseConf(job, options);
+        SyncConfig config = parseConf(job, options);
         configStreamExecutionEnvironment(env, options, config);
 
         SourceFactory sourceFactory = DataSyncFactoryUtil.discoverSource(config, env);
         DataStream<RowData> dataStreamSource = sourceFactory.createSource();
-        SpeedConf speed = config.getSpeed();
+        SpeedConfig speed = config.getSpeed();
         if (speed.getReaderChannel() > 0) {
             dataStreamSource =
                     ((DataStreamSource<RowData>) dataStreamSource)
@@ -192,13 +192,13 @@ public class Main {
         if (null != config.getCdcConf()
                 && (null != config.getCdcConf().getDdl()
                         && null != config.getCdcConf().getCache())) {
-            CdcConf cdcConf = config.getCdcConf();
-            DDLHandler ddlHandler = DataSyncFactoryUtil.discoverDdlHandler(cdcConf, config);
+            CdcConfig cdcConfig = config.getCdcConf();
+            DDLHandler ddlHandler = DataSyncFactoryUtil.discoverDdlHandler(cdcConfig, config);
 
-            CacheHandler cacheHandler = DataSyncFactoryUtil.discoverCacheHandler(cdcConf, config);
+            CacheHandler cacheHandler = DataSyncFactoryUtil.discoverCacheHandler(cdcConfig, config);
             dataStreamSource =
                     dataStreamSource.flatMap(
-                            new RestorationFlatMap(ddlHandler, cacheHandler, cdcConf));
+                            new RestorationFlatMap(ddlHandler, cacheHandler, cdcConfig));
         }
 
         DataStream<RowData> dataStream;
@@ -238,7 +238,7 @@ public class Main {
      */
     private static DataStream<RowData> syncStreamToTable(
             StreamTableEnvironment tableEnv,
-            SyncConf config,
+            SyncConfig config,
             DataStream<RowData> sourceDataStream) {
         List<Expression> expressionList =
                 config.getReader().getFieldNameList().stream()
@@ -274,10 +274,10 @@ public class Main {
      * @param options
      * @return
      */
-    public static SyncConf parseConf(String job, Options options) {
-        SyncConf config;
+    public static SyncConfig parseConf(String job, Options options) {
+        SyncConfig config;
         try {
-            config = SyncConf.parseJob(job);
+            config = SyncConfig.parseJob(job);
 
             // 设置chunjun-dist的路径
             if (StringUtils.isNotBlank(options.getChunjunDistDir())) {
@@ -306,7 +306,7 @@ public class Main {
      * @param config ChunJunConf
      */
     private static void configStreamExecutionEnvironment(
-            StreamExecutionEnvironment env, Options options, SyncConf config) {
+            StreamExecutionEnvironment env, Options options, SyncConfig config) {
 
         if (config != null) {
             PluginUtil.registerPluginUrlToCachedFile(options, config, env);
@@ -346,19 +346,19 @@ public class Main {
     /**
      * Check required config item.
      *
-     * @param operatorConf
+     * @param operatorConfig
      */
-    private static void checkTableConf(OperatorConf operatorConf) {
-        if (operatorConf.getTable() == null) {
-            throw new JobConfigException(operatorConf.getName(), "table", "is missing");
+    private static void checkTableConf(OperatorConfig operatorConfig) {
+        if (operatorConfig.getTable() == null) {
+            throw new JobConfigException(operatorConfig.getName(), "table", "is missing");
         }
-        if (StringUtils.isEmpty(operatorConf.getTable().getTableName())) {
-            throw new JobConfigException(operatorConf.getName(), "table.tableName", "is missing");
+        if (StringUtils.isEmpty(operatorConfig.getTable().getTableName())) {
+            throw new JobConfigException(operatorConfig.getName(), "table.tableName", "is missing");
         }
     }
 
     private static DataStream<RowData> addMappingOperator(
-            SyncConf config, DataStream<RowData> dataStreamSource) {
+            SyncConfig config, DataStream<RowData> dataStreamSource) {
 
         String sourceName =
                 RealTimeDataSourceNameUtil.getDataSourceName(

@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.hive3.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
 import com.dtstack.chunjun.connector.hive3.converter.HdfsRawTypeConverter;
 import com.dtstack.chunjun.connector.hive3.util.Hive3Util;

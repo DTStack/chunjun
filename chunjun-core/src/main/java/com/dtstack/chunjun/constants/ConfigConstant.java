@@ -22,7 +22,6 @@ import org.apache.flink.configuration.ConfigOptions;
 
 import static com.dtstack.chunjun.constants.ConstantValue.SHIP_FILE_PLUGIN_LOAD_MODE;
 
-/** @author sishu.yss */
 public class ConfigConstant {
 
     public static final String KEY_PASSWORD = "password";

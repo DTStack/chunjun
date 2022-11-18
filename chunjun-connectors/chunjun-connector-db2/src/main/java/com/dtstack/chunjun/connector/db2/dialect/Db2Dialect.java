@@ -17,11 +17,11 @@
  */
 package com.dtstack.chunjun.connector.db2.dialect;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.db2.converter.Db2ColumnConverter;
 import com.dtstack.chunjun.connector.db2.converter.Db2RawTypeConverter;
 import com.dtstack.chunjun.connector.db2.converter.Db2RowConverter;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -42,12 +42,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Company: www.dtstack.com
- *
- * @author xuchao
- * @date 2021-06-15
- */
 public class Db2Dialect implements JdbcDialect {
 
     private static final String DIALECT_NAME = "db2";
@@ -81,13 +75,13 @@ public class Db2Dialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getRowConverter(RowType rowType) {
+    getRowConverter(RowType rowType) {
         return new Db2RowConverter(rowType);
     }
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+    getColumnConverter(RowType rowType, CommonConfig commonConf) {
         return new Db2ColumnConverter(rowType, commonConf);
     }
 
@@ -155,12 +149,12 @@ public class Db2Dialect implements JdbcDialect {
         return allReplace
                 ? "T1." + quoteIdentifier(col) + " = T2." + quoteIdentifier(col)
                 : "T1."
-                        + quoteIdentifier(col)
-                        + " =NVL(T2."
-                        + quoteIdentifier(col)
-                        + ",T1."
-                        + quoteIdentifier(col)
-                        + ")";
+                + quoteIdentifier(col)
+                + " =NVL(T2."
+                + quoteIdentifier(col)
+                + ",T1."
+                + quoteIdentifier(col)
+                + ")";
     }
 
     public String buildDualQueryStatement(String[] column) {
@@ -181,7 +175,7 @@ public class Db2Dialect implements JdbcDialect {
     }
 
     @Override
-    public Function<JdbcConf, Tuple3<String, String, String>> getTableIdentify() {
+    public Function<JdbcConfig, Tuple3<String, String, String>> getTableIdentify() {
         return conf ->
                 Tuple3.of(
                         null,

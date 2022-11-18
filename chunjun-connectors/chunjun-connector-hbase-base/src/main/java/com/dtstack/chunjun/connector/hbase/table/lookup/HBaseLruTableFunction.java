@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.hbase.table.lookup;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseSerde;
 import com.dtstack.chunjun.connector.hbase.util.HBaseHelper;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -66,22 +66,22 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
 
     private transient HBaseSerde serde;
 
-    private final HBaseConf hBaseConf;
+    private final HBaseConfig hBaseConfig;
 
     public HBaseLruTableFunction(
             LookupConf lookupConf,
             HBaseTableSchema hbaseTableSchema,
-            HBaseConf hBaseConf,
+            HBaseConfig hBaseConfig,
             AbstractRowConverter rowConverter) {
         super(lookupConf, rowConverter);
-        this.hBaseConf = hBaseConf;
+        this.hBaseConfig = hBaseConfig;
         this.hbaseTableSchema = hbaseTableSchema;
     }
 
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-        this.serde = new HBaseSerde(hbaseTableSchema, hBaseConf.getNullStringLiteral());
+        this.serde = new HBaseSerde(hbaseTableSchema, hBaseConfig.getNullStringLiteral());
         this.executorService =
                 new ThreadPoolExecutor(
                         DEFAULT_POOL_SIZE,
@@ -91,7 +91,7 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
                         new LinkedBlockingQueue<>(),
                         new ChunJunThreadFactory("hbase-async"));
 
-        this.connection = HBaseHelper.getHbaseConnection(hBaseConf);
+        this.connection = HBaseHelper.getHbaseConnection(hBaseConfig);
         this.table = connection.getTable(TableName.valueOf(hbaseTableSchema.getTableName()));
     }
 

@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.sqlservercdc.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConf;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ import java.util.List;
  *
  * @author shifang
  */
-public class SqlServerCdcConf extends ChunJunCommonConf {
+public class SqlServerCdcConf extends CommonConfig {
 
     private String username;
     private String password;

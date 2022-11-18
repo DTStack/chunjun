@@ -19,7 +19,7 @@
 
 package com.dtstack.chunjun.connector.influxdb.conf;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 
 import java.io.Serializable;
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.List;
  * @author shitou
  * @date 2022/3/9
  */
-public class InfluxdbConfig extends ChunJunCommonConf {
+public class InfluxdbConfig extends CommonConfig {
 
     private static final long serialVersionUID = 1L;
 

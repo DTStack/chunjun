@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.cassandra.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraSourceConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraSourceConfig;
 import com.dtstack.chunjun.connector.cassandra.converter.CassandraRawTypeConverter;
 import com.dtstack.chunjun.connector.cassandra.converter.CassandraRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -36,21 +36,17 @@ import org.apache.flink.table.types.logical.RowType;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraSourceFactory extends SourceFactory {
 
-    private final CassandraSourceConf sourceConf;
+    private final CassandraSourceConfig sourceConf;
 
-    public CassandraSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public CassandraSourceFactory(SyncConfig syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
 
         sourceConf =
                 JsonUtil.toObject(
                         JsonUtil.toJson(syncConf.getReader().getParameter()),
-                        CassandraSourceConf.class);
+                        CassandraSourceConfig.class);
         sourceConf.setColumn(syncConf.getReader().getFieldList());
         super.initCommonConf(sourceConf);
     }
@@ -66,7 +62,7 @@ public class CassandraSourceFactory extends SourceFactory {
 
         builder.setSourceConf(sourceConf);
 
-        List<FieldConf> fieldConfList = sourceConf.getColumn();
+        List<FieldConfig> fieldConfList = sourceConf.getColumn();
         List<String> columnNameList = new ArrayList<>();
         fieldConfList.forEach(fieldConf -> columnNameList.add(fieldConf.getName()));
 

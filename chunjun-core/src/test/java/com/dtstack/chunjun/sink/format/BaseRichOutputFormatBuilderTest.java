@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.sink.format;
 
-import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.source.format.MockRowConverter;
 
 import org.junit.jupiter.api.DisplayName;

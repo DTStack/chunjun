@@ -19,11 +19,12 @@
 package com.dtstack.chunjun.connector.elasticsearch6.table;
 
 import com.dtstack.chunjun.connector.elasticsearch.table.ElasticsearchDynamicTableFactoryBase;
-import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.api.constraints.UniqueConstraint;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.FactoryUtil;
@@ -34,20 +35,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_MAX_ACTIONS_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.DOCUMENT_TYPE_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.HOSTS_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.INDEX_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.KEY_DELIMITER_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.PASSWORD_OPTION;
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.USERNAME_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.BULK_FLUSH_MAX_ACTIONS_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.HOSTS_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.INDEX_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.KEY_DELIMITER_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.PASSWORD_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.USERNAME_OPTION;
+import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchConnectorOptions.DOCUMENT_TYPE_OPTION;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/21 10:06
- */
 public class Elasticsearch6DynamicTableFactory extends ElasticsearchDynamicTableFactoryBase {
 
     private static final String FACTORY_IDENTIFIER = "elasticsearch6-x";
@@ -104,9 +99,9 @@ public class Elasticsearch6DynamicTableFactory extends ElasticsearchDynamicTable
         return requiredOptions;
     }
 
-    private Elasticsearch6Conf getElasticsearchConf(
+    private Elasticsearch6Config getElasticsearchConf(
             ReadableConfig readableConfig, TableSchema schema) {
-        Elasticsearch6Conf elasticsearchConf = new Elasticsearch6Conf();
+        Elasticsearch6Config elasticsearchConf = new Elasticsearch6Config();
 
         elasticsearchConf.setHosts(readableConfig.get(HOSTS_OPTION));
         elasticsearchConf.setIndex(readableConfig.get(INDEX_OPTION));
@@ -116,7 +111,7 @@ public class Elasticsearch6DynamicTableFactory extends ElasticsearchDynamicTable
         elasticsearchConf.setUsername(readableConfig.get(USERNAME_OPTION));
         elasticsearchConf.setPassword(readableConfig.get(PASSWORD_OPTION));
 
-        List<String> keyFields = schema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
+        List<String> keyFields = schema.getPrimaryKey().map(UniqueConstraint::getColumns).orElse(null);
         elasticsearchConf.setIds(keyFields);
         return elasticsearchConf;
     }

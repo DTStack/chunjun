@@ -24,11 +24,6 @@ import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/10
- */
 public class ClickhouseOutputFormat extends JdbcOutputFormat {
 
     @Override

@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.cdc.conf.CacheConf;
-import com.dtstack.chunjun.cdc.conf.DDLConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.cdc.config.CacheConfig;
+import com.dtstack.chunjun.cdc.config.DDLConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.dirty.DirtyConf;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
@@ -310,7 +310,7 @@ public class PluginUtil {
      * @param env
      */
     public static void registerPluginUrlToCachedFile(
-            Options options, SyncConf config, StreamExecutionEnvironment env) {
+            Options options, SyncConfig config, StreamExecutionEnvironment env) {
         DirtyConf dirtyConf = DirtyConfUtil.parse(options);
 
         Set<URL> urlSet = new HashSet<>();
@@ -348,8 +348,8 @@ public class PluginUtil {
         if (null != config.getCdcConf()) {
             Set<URL> restoreUrlSet = new HashSet<>();
 
-            CacheConf cache = config.getCdcConf().getCache();
-            DDLConf ddl = config.getCdcConf().getDdl();
+            CacheConfig cache = config.getCdcConf().getCache();
+            DDLConfig ddl = config.getCdcConf().getDdl();
 
             if (null != cache) {
                 Set<URL> cacheUrlSet =

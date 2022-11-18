@@ -40,7 +40,7 @@
 		<module>chunjun-restore</module>
 		<module>chunjun-ddl</module>
 		<module>chunjun-assembly</module>
-		<module>chunjun-local-test</module>
+<!--		<module>chunjun-local-test</module>-->
 	</modules>
 
 	<properties>

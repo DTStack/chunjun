@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.restore.mysql;
 
 import com.dtstack.chunjun.cdc.DdlRowData;
-import com.dtstack.chunjun.cdc.conf.DDLConf;
+import com.dtstack.chunjun.cdc.config.DDLConfig;
 import com.dtstack.chunjun.cdc.ddl.DdlRowDataConvented;
 import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
 import com.dtstack.chunjun.cdc.handler.DDLHandler;
@@ -69,8 +69,8 @@ public class MysqlDDLHandler extends DDLHandler {
     private transient PreparedStatement deleteChangedDDLStatement;
     private transient PreparedStatement deleteChangedDDLStatementDataBaseNullAbleStatement;
 
-    public MysqlDDLHandler(DDLConf ddlConf) {
-        super(ddlConf);
+    public MysqlDDLHandler(DDLConfig ddlConfig) {
+        super(ddlConfig);
     }
 
     @Override

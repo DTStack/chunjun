@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hive3.util;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
 import com.dtstack.chunjun.connector.hive3.converter.HdfsOrcColumnConverter;
 import com.dtstack.chunjun.connector.hive3.converter.HdfsOrcRowConverter;

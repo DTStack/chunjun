@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.hdfs.InputSplit.HdfsTextInputSplit;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -53,7 +53,7 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
         org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(
                 hadoopJobConf, HdfsPathFilter.class);
 
-        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(hadoopJobConf, hdfsConf.getPath());
+        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(hadoopJobConf, hdfsConfig.getPath());
         TextInputFormat inputFormat = new TextInputFormat();
 
         // 是否在MapReduce中递归遍历Input目录
@@ -121,11 +121,11 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
                             ((Text) value).getBytes(),
                             0,
                             ((Text) value).getLength(),
-                            hdfsConf.getEncoding());
+                            hdfsConfig.getEncoding());
             String[] fields =
-                    StringUtils.splitPreserveAllTokens(line, hdfsConf.getFieldDelimiter());
+                    StringUtils.splitPreserveAllTokens(line, hdfsConfig.getFieldDelimiter());
 
-            List<FieldConf> fieldConfList = hdfsConf.getColumn();
+            List<FieldConf> fieldConfList = hdfsConfig.getColumn();
             GenericRowData genericRowData;
             if (fieldConfList.size() == 1
                     && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())) {

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRawTypeConverterTest;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -53,7 +53,7 @@ public class SourceFactoryTest {
     private static StreamExecutionEnvironment env;
     private static String json;
 
-    private static SyncConf syncConf;
+    private static SyncConfig syncConf;
 
     @Before
     public void setup() throws IOException {
@@ -61,7 +61,7 @@ public class SourceFactoryTest {
 
         env = mock(StreamExecutionEnvironment.class);
         json = readFile("sync_test.json");
-        syncConf = SyncConf.parseJob(json);
+        syncConf = SyncConfig.parseJob(json);
         sourceFactory =
                 new TestSourceFactory(
                         syncConf,
@@ -112,7 +112,7 @@ public class SourceFactoryTest {
 
     public static class TestSourceFactory extends JdbcSourceFactory {
         public TestSourceFactory(
-                SyncConf syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
+                SyncConfig syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
             super(syncConf, env, jdbcDialect);
         }
     }

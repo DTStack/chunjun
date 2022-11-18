@@ -19,7 +19,7 @@
 
 package com.dtstack.chunjun.connector.influxdb.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.influxdb.conf.InfluxdbSourceConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 

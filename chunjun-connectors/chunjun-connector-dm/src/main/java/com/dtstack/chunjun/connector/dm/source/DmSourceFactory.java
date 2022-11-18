@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.dm.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.dm.dialect.DmDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 
@@ -26,16 +26,15 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import org.apache.commons.lang3.StringUtils;
 
-/** @author kunni */
 public class DmSourceFactory extends JdbcSourceFactory {
 
-    public DmSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, new DmDialect());
+    public DmSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env, new DmDialect());
         // 避免result.next阻塞
-        if (jdbcConf.isPolling()
-                && StringUtils.isEmpty(jdbcConf.getStartLocation())
-                && jdbcConf.getFetchSize() == 0) {
-            jdbcConf.setFetchSize(1000);
+        if (jdbcConfig.isPolling()
+                && StringUtils.isEmpty(jdbcConfig.getStartLocation())
+                && jdbcConfig.getFetchSize() == 0) {
+            jdbcConfig.setFetchSize(1000);
         }
     }
 }

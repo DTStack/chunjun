@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.postgresql.dialect;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -69,7 +69,7 @@ public class PostgresqlDialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+            getColumnConverter(RowType rowType, CommonConfig commonConf) {
         return new PostgresqlColumnConverter(rowType, commonConf);
     }
 

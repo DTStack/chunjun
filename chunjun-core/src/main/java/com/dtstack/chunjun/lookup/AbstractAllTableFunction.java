@@ -20,7 +20,7 @@ package com.dtstack.chunjun.lookup;
 
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.factory.ChunJunThreadFactory;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.conf.LookupConfig;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -45,11 +45,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-/**
- * @author chuixue
- * @create 2021-04-09 14:30
- * @description
- */
 public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractAllTableFunction.class);
     /** 和维表join字段的名称 */
@@ -59,7 +54,7 @@ public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
     /** 定时加载 */
     private ScheduledExecutorService es;
     /** 维表配置 */
-    protected final LookupConf lookupConf;
+    protected final LookupConfig lookupConfig;
     /** 字段名称 */
     protected final String[] fieldsName;
     /** 数据类型转换器 */
@@ -68,10 +63,10 @@ public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
     public AbstractAllTableFunction(
             String[] fieldNames,
             String[] keyNames,
-            LookupConf lookupConf,
+            LookupConfig lookupConfig,
             AbstractRowConverter rowConverter) {
         this.keyNames = keyNames;
-        this.lookupConf = lookupConf;
+        this.lookupConfig = lookupConfig;
         this.fieldsName = fieldNames;
         this.rowConverter = rowConverter;
     }
@@ -95,7 +90,7 @@ public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
 
         cacheRef.set(newCache);
         LOG.info(
-                "----- " + lookupConf.getTableName() + ": all cacheRef reload end:{}",
+                "----- " + lookupConfig.getTableName() + ": all cacheRef reload end:{}",
                 LocalDateTime.now());
     }
 
@@ -116,8 +111,8 @@ public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
         es = new ScheduledThreadPoolExecutor(1, new ChunJunThreadFactory("cache-all-reload"));
         es.scheduleAtFixedRate(
                 this::reloadCache,
-                lookupConf.getPeriod(),
-                lookupConf.getPeriod(),
+                lookupConfig.getPeriod(),
+                lookupConfig.getPeriod(),
                 TimeUnit.MILLISECONDS);
     }
 

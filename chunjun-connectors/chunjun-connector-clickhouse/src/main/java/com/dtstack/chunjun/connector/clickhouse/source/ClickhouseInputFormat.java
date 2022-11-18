@@ -27,11 +27,6 @@ import org.apache.flink.core.io.InputSplit;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/10
- */
 public class ClickhouseInputFormat extends JdbcInputFormat {
 
     @Override

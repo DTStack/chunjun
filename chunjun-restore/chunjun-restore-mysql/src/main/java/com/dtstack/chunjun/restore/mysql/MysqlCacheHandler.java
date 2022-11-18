@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.restore.mysql;
 
 import com.dtstack.chunjun.cdc.DdlRowData;
-import com.dtstack.chunjun.cdc.conf.CacheConf;
+import com.dtstack.chunjun.cdc.config.CacheConfig;
 import com.dtstack.chunjun.cdc.ddl.DdlRowDataConvented;
 import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
 import com.dtstack.chunjun.cdc.handler.CacheHandler;
@@ -73,8 +73,8 @@ public class MysqlCacheHandler extends CacheHandler {
 
     private transient PreparedStatement deleteCacheStatementDataBaseNullAble;
 
-    public MysqlCacheHandler(CacheConf cacheConf) {
-        super(cacheConf);
+    public MysqlCacheHandler(CacheConfig cacheConfig) {
+        super(cacheConfig);
     }
 
     @Override
@@ -172,7 +172,7 @@ public class MysqlCacheHandler extends CacheHandler {
 
     @Override
     public Queue<RowData> fromCache(TableIdentifier tableIdentifier) {
-        int batchSize = cacheConf.getCacheSize();
+        int batchSize = cacheConfig.getCacheSize();
         Queue<RowData> queue = Queues.newLinkedBlockingQueue(batchSize);
         try {
             ResultSet resultSet;

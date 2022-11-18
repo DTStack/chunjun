@@ -19,14 +19,14 @@
 package com.dtstack.chunjun.connector.doris.table;
 
 import com.dtstack.chunjun.connector.doris.DorisUtil;
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.doris.options.DorisOptions;
-import com.dtstack.chunjun.connector.doris.options.LoadConf;
 import com.dtstack.chunjun.connector.doris.options.LoadConfBuilder;
+import com.dtstack.chunjun.connector.doris.options.LoadConfig;
 import com.dtstack.chunjun.connector.doris.sink.DorisDynamicTableSink;
 import com.dtstack.chunjun.connector.doris.source.DorisInputFormat;
 import com.dtstack.chunjun.connector.doris.source.DorisInputFormatBuilder;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcDynamicTableSource;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
@@ -36,6 +36,7 @@ import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
@@ -81,11 +82,10 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
         }
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
-        DorisConf ftpConfig = getConfByOptions(config);
-        return new DorisDynamicTableSink(physicalSchema, ftpConfig);
+        DorisConfig ftpConfig = getConfByOptions(config);
+        return new DorisDynamicTableSink(resolvedSchema, ftpConfig);
     }
 
     @Override
@@ -98,11 +98,11 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
         // 1.所有的requiredOptions和optionalOptions参数
         final ReadableConfig config = helper.getOptions();
 
-        DorisConf dorisConf = new DorisConf();
-        dorisConf.setUrl(config.get(DorisOptions.URL));
-        dorisConf.setFeNodes(config.get(DorisOptions.FENODES));
+        DorisConfig dorisConfig = new DorisConfig();
+        dorisConfig.setUrl(config.get(DorisOptions.URL));
+        dorisConfig.setFeNodes(config.get(DorisOptions.FENODES));
 
-        dorisInputFormat.setDorisConf(dorisConf);
+        dorisInputFormat.setDorisConf(dorisConfig);
 
         // 2.参数校验
         helper.validateExcept(VERTX_PREFIX, DRUID_PREFIX);
@@ -127,8 +127,8 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
     }
 
     @Override
-    protected JdbcConf getSourceConnectionConf(ReadableConfig readableConfig) {
-        JdbcConf jdbcConf = super.getSourceConnectionConf(readableConfig);
+    protected JdbcConfig getSourceConnectionConf(ReadableConfig readableConfig) {
+        JdbcConfig jdbcConf = super.getSourceConnectionConf(readableConfig);
         String url = readableConfig.get(DorisOptions.URL);
         List<String> feNodes = readableConfig.get(DorisOptions.FENODES);
 
@@ -150,41 +150,41 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
         }
     }
 
-    private static DorisConf getConfByOptions(ReadableConfig config) {
-        DorisConf dorisConf = new DorisConf();
+    private static DorisConfig getConfByOptions(ReadableConfig config) {
+        DorisConfig dorisConfig = new DorisConfig();
 
-        dorisConf.setFeNodes(config.get(DorisOptions.FENODES));
+        dorisConfig.setFeNodes(config.get(DorisOptions.FENODES));
 
         String schema = config.get(DorisOptions.SCHEMA);
         String tableName = config.get(DorisOptions.TABLE_NAME);
-        dorisConf.setDatabase(schema);
-        dorisConf.setTable(tableName);
+        dorisConfig.setDatabase(schema);
+        dorisConfig.setTable(tableName);
 
         String url = config.get(DorisOptions.URL);
         List<String> feNodes = config.get(DorisOptions.FENODES);
 
-        dorisConf.setUrl(url);
-        dorisConf.setFeNodes(feNodes);
+        dorisConfig.setUrl(url);
+        dorisConfig.setFeNodes(feNodes);
 
         if (config.get(DorisOptions.USERNAME) != null) {
-            dorisConf.setUsername(config.get(DorisOptions.USERNAME));
+            dorisConfig.setUsername(config.get(DorisOptions.USERNAME));
         }
 
         if (config.get(DorisOptions.PASSWORD) != null) {
-            dorisConf.setPassword(config.get(DorisOptions.PASSWORD));
+            dorisConfig.setPassword(config.get(DorisOptions.PASSWORD));
         }
 
-        LoadConf loadConf = getLoadConf(config);
-        dorisConf.setLoadConf(loadConf);
-        dorisConf.setLoadProperties(new Properties());
-        dorisConf.setMaxRetries(config.get(DorisOptions.MAX_RETRIES));
-        dorisConf.setMode(config.get(DorisOptions.WRITE_MODE));
-        dorisConf.setBatchSize(config.get(DorisOptions.BATCH_SIZE));
+        LoadConfig loadConfig = getLoadConf(config);
+        dorisConfig.setLoadConf(loadConfig);
+        dorisConfig.setLoadProperties(new Properties());
+        dorisConfig.setMaxRetries(config.get(DorisOptions.MAX_RETRIES));
+        dorisConfig.setMode(config.get(DorisOptions.WRITE_MODE));
+        dorisConfig.setBatchSize(config.get(DorisOptions.BATCH_SIZE));
 
-        return dorisConf;
+        return dorisConfig;
     }
 
-    private static LoadConf getLoadConf(ReadableConfig config) {
+    private static LoadConfig getLoadConf(ReadableConfig config) {
         LoadConfBuilder loadConfBuilder = new LoadConfBuilder();
         return loadConfBuilder
                 .setRequestTabletSize(config.get(DorisOptions.REQUEST_TABLET_SIZE))

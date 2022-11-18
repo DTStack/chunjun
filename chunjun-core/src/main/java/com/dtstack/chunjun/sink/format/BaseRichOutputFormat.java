@@ -19,11 +19,11 @@
 package com.dtstack.chunjun.sink.format;
 
 import com.dtstack.chunjun.cdc.DdlRowData;
-import com.dtstack.chunjun.cdc.conf.DDLConf;
+import com.dtstack.chunjun.cdc.config.DDLConfig;
 import com.dtstack.chunjun.cdc.exception.LogExceptionHandler;
 import com.dtstack.chunjun.cdc.handler.DDLHandler;
 import com.dtstack.chunjun.cdc.utils.ExecutorUtils;
-import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.dirty.DirtyConf;
@@ -173,7 +173,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     /** 是否执行ddl语句 * */
     protected boolean executeDdlAble;
 
-    protected DDLConf ddlConf;
+    protected DDLConfig ddlConfig;
 
     protected DDLHandler ddlHandler;
 
@@ -215,9 +215,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         this.rows = new ArrayList<>(batchSize);
         this.executeDdlAble = config.isExecuteDdlAble();
         if (executeDdlAble) {
-            ddlHandler = DataSyncFactoryUtil.discoverDdlHandler(ddlConf);
+            ddlHandler = DataSyncFactoryUtil.discoverDdlHandler(ddlConfig);
             try {
-                ddlHandler.init(ddlConf.getProperties());
+                ddlHandler.init(ddlConfig.getProperties());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -715,7 +715,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         this.useAbstractColumn = useAbstractColumn;
     }
 
-    public void setDdlConf(DDLConf ddlConf) {
-        this.ddlConf = ddlConf;
+    public void setDdlConf(DDLConfig ddlConfig) {
+        this.ddlConfig = ddlConfig;
     }
 }

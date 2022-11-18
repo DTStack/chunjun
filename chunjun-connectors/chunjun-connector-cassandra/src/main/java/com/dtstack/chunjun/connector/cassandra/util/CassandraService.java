@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.cassandra.util;
 
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraCommonConf;
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraSourceConf;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraCommonConfig;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraSourceConfig;
 import com.dtstack.chunjun.connector.cassandra.source.CassandraInputSplit;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
@@ -40,13 +40,10 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Locale;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraService {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraService.class);
 
@@ -59,10 +56,10 @@ public class CassandraService {
     /**
      * Build cassandra session.
      *
-     * @param commonConf cassandra common conf {@link CassandraCommonConf}
+     * @param commonConf cassandra common conf {@link CassandraCommonConfig}
      * @return cassandraSession
      */
-    public static Session session(CassandraCommonConf commonConf) {
+    public static Session session(CassandraCommonConfig commonConf) {
         try {
             String keySpace = commonConf.getKeyspaces();
 
@@ -87,7 +84,7 @@ public class CassandraService {
      * @param commonConf cassandra配置
      * @return 返回Cluster实例
      */
-    public static Cluster cluster(CassandraCommonConf commonConf) {
+    public static Cluster cluster(CassandraCommonConfig commonConf) {
         try {
             Integer port = commonConf.getPort();
             String hosts = commonConf.getHost();
@@ -209,7 +206,7 @@ public class CassandraService {
      * @return 返回InputSplit[]
      */
     public static InputSplit[] splitJob(
-            CassandraSourceConf sourceConf,
+            CassandraSourceConfig sourceConf,
             int minNumSplits,
             ArrayList<CassandraInputSplit> splits) {
 
@@ -234,7 +231,7 @@ public class CassandraService {
                             .divide(
                                     BigDecimal.valueOf(minNumSplits),
                                     2,
-                                    BigDecimal.ROUND_HALF_EVEN);
+                                    RoundingMode.HALF_EVEN);
             for (int i = 0; i < minNumSplits; i++) {
                 BigInteger l = minToken.add(step.multiply(BigDecimal.valueOf(i))).toBigInteger();
                 BigInteger r =
@@ -252,7 +249,7 @@ public class CassandraService {
                             .divide(
                                     BigDecimal.valueOf(minNumSplits),
                                     2,
-                                    BigDecimal.ROUND_HALF_EVEN);
+                                    RoundingMode.HALF_EVEN);
             for (int i = 0; i < minNumSplits; i++) {
                 long l = minToken.add(step.multiply(BigDecimal.valueOf(i))).longValue();
                 long r = minToken.add(step.multiply(BigDecimal.valueOf(i + 1L))).longValue();

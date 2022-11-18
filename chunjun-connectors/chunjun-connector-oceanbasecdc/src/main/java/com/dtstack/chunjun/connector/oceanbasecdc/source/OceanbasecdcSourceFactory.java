@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oceanbasecdc.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.oceanbasecdc.conf.OceanBaseCdcConf;
 import com.dtstack.chunjun.connector.oceanbasecdc.converter.OceanBaseCdcColumnConverter;
 import com.dtstack.chunjun.connector.oceanbasecdc.converter.OceanBaseCdcRawTypeConverter;

@@ -37,9 +37,9 @@ import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_PARALLELIS
  */
 public class LookupConfFactory {
 
-    public static LookupConf createLookupConf(ReadableConfig readableConfig) {
-        LookupConf lookupConf = new LookupConf();
-        lookupConf
+    public static LookupConfig createLookupConf(ReadableConfig readableConfig) {
+        LookupConfig lookupConfig = new LookupConfig();
+        lookupConfig
                 .setPeriod(readableConfig.get(LOOKUP_CACHE_PERIOD))
                 .setCacheSize(readableConfig.get(LOOKUP_CACHE_MAX_ROWS))
                 .setCacheTtl(readableConfig.get(LOOKUP_CACHE_TTL))
@@ -49,6 +49,6 @@ public class LookupConfFactory {
                 .setFetchSize(readableConfig.get(LOOKUP_FETCH_SIZE))
                 .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNC_TIMEOUT))
                 .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
-        return lookupConf;
+        return lookupConfig;
     }
 }

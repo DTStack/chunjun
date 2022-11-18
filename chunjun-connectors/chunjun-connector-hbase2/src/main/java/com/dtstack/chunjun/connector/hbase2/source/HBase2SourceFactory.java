@@ -34,7 +34,7 @@
 
 package com.dtstack.chunjun.connector.hbase2.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConf;
 import com.dtstack.chunjun.connector.hbase.source.HBaseSourceFactoryBase;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;

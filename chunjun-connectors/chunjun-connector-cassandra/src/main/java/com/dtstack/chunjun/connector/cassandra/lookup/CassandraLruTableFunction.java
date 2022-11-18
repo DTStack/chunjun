@@ -18,15 +18,15 @@
 
 package com.dtstack.chunjun.connector.cassandra.lookup;
 
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraCommonConf;
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraLookupConf;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraCommonConfig;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraLookupConfig;
 import com.dtstack.chunjun.connector.cassandra.util.CassandraService;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
 import com.dtstack.chunjun.lookup.cache.CacheMissVal;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.conf.LookupConfig;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
@@ -57,17 +57,13 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.dtstack.chunjun.connector.cassandra.util.CassandraService.quoteColumn;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraLruTableFunction extends AbstractLruTableFunction {
 
     private static final long serialVersionUID = 1L;
 
     private static final Logger LOG = LoggerFactory.getLogger(CassandraLruTableFunction.class);
 
-    private final CassandraLookupConf cassandraLookupConf;
+    private final CassandraLookupConfig cassandraLookupConfig;
 
     private transient Cluster cluster;
 
@@ -78,12 +74,12 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
     private final String[] keyNames;
 
     public CassandraLruTableFunction(
-            LookupConf lookupConf,
+            LookupConfig lookupConf,
             AbstractRowConverter<?, ?, ?, ?> rowConverter,
             String[] fieldNames,
             String[] keyNames) {
         super(lookupConf, rowConverter);
-        this.cassandraLookupConf = (CassandraLookupConf) lookupConf;
+        this.cassandraLookupConfig = (CassandraLookupConfig) lookupConf;
         this.fieldNames = fieldNames;
         this.keyNames = keyNames;
     }
@@ -92,7 +88,7 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
     public void open(FunctionContext context) throws Exception {
         super.open(context);
 
-        cluster = CassandraService.cluster(cassandraLookupConf.getCommonConf());
+        cluster = CassandraService.cluster(cassandraLookupConfig.getCommonConfig());
         session = cluster.connectAsync();
     }
 
@@ -104,7 +100,7 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
             return;
         }
 
-        CassandraCommonConf commonConf = cassandraLookupConf.getCommonConf();
+        CassandraCommonConfig commonConf = cassandraLookupConfig.getCommonConfig();
         String keyspaces = commonConf.getKeyspaces();
         String tableName = commonConf.getTableName();
 

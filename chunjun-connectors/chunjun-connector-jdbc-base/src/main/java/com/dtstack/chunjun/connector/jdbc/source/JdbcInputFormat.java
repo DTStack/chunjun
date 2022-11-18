@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
@@ -54,13 +54,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-/**
- * InputFormat for reading data from a database and generate Rows.
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+/** InputFormat for reading data from a database and generate Rows. */
 public class JdbcInputFormat extends BaseRichInputFormat {
 
     public static final long serialVersionUID = 1L;
@@ -720,6 +714,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         ps.setFetchSize(jdbcConf.getFetchSize());
         ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
     }
+
     /**
      * polling mode first query when startLocation is not set
      *
@@ -808,7 +803,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         return true;
     }
 
-    public JdbcConfig getJdbcConf() {
+    public JdbcConfig getJdbcConfig() {
         return jdbcConf;
     }
 

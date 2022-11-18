@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.clickhouse.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.clickhouse.dialect.ClickhouseDialect;
 import com.dtstack.chunjun.connector.clickhouse.util.ClickhouseUtil;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
@@ -32,20 +32,15 @@ import org.apache.commons.lang3.StringUtils;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-/**
- * @program: ChunJun
- * @author: xiuzhu
- * @create: 2021/05/10
- */
 public class ClickhouseSourceFactory extends JdbcSourceFactory {
 
-    public ClickhouseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public ClickhouseSourceFactory(SyncConfig syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env, new ClickhouseDialect());
         // 避免result.next阻塞
-        if (jdbcConf.isPolling()
-                && StringUtils.isEmpty(jdbcConf.getStartLocation())
-                && jdbcConf.getFetchSize() == 0) {
-            jdbcConf.setFetchSize(1000);
+        if (jdbcConfig.isPolling()
+                && StringUtils.isEmpty(jdbcConfig.getStartLocation())
+                && jdbcConfig.getFetchSize() == 0) {
+            jdbcConfig.setFetchSize(1000);
         }
     }
 
@@ -58,12 +53,12 @@ public class ClickhouseSourceFactory extends JdbcSourceFactory {
     protected Connection getConn() {
         try {
             return ClickhouseUtil.getConnection(
-                    jdbcConf.getJdbcUrl(), jdbcConf.getUsername(), jdbcConf.getPassword());
+                    jdbcConfig.getJdbcUrl(), jdbcConfig.getUsername(), jdbcConfig.getPassword());
         } catch (SQLException e) {
             throw new ChunJunRuntimeException(
                     String.format(
                             "failed to get clickhouse jdbc connection,jdbcUrl=%s",
-                            jdbcConf.getJdbcUrl()),
+                            jdbcConfig.getJdbcUrl()),
                     e);
         }
     }

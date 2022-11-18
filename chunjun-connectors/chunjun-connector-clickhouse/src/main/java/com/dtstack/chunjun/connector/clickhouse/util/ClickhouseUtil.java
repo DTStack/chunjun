@@ -61,7 +61,6 @@ public class ClickhouseUtil {
                 }
             }
         }
-
         return conn;
     }
 }

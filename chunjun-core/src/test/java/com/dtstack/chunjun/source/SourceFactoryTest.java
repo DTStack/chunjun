@@ -18,11 +18,11 @@
 
 package com.dtstack.chunjun.source;
 
-import com.dtstack.chunjun.conf.CommonConfig;
-import com.dtstack.chunjun.conf.ContentConf;
-import com.dtstack.chunjun.conf.JobConf;
-import com.dtstack.chunjun.conf.OperatorConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.ContentConfig;
+import com.dtstack.chunjun.config.JobConfig;
+import com.dtstack.chunjun.config.OperatorConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.constants.ConfigConstant;
 import com.dtstack.chunjun.constants.ConstantValue;
 
@@ -49,19 +49,19 @@ public class SourceFactoryTest {
 
     @Test
     public void testStarWithTransformer() {
-        SyncConf syncConf = new SyncConf();
-        JobConf jobConf = new JobConf();
-        ContentConf contentConf = new ContentConf();
-        OperatorConf reader = new OperatorConf();
+        SyncConfig syncConfig = new SyncConfig();
+        JobConfig jobConfig = new JobConfig();
+        ContentConfig contentConfig = new ContentConfig();
+        OperatorConfig reader = new OperatorConfig();
         reader.setParameter(
                 ImmutableMap.<String, Object>builder()
                         .put(ConfigConstant.KEY_COLUMN, ImmutableList.of(ConstantValue.STAR_SYMBOL))
                         .build());
-        contentConf.setReader(reader);
-        jobConf.setContent(new LinkedList<>(ImmutableList.of(contentConf)));
-        syncConf.setJob(jobConf);
+        contentConfig.setReader(reader);
+        jobConfig.setContent(new LinkedList<>(ImmutableList.of(contentConfig)));
+        syncConfig.setJob(jobConfig);
         MockSourceFactory sourceFactory =
-                new MockSourceFactory(syncConf, new DummyStreamExecutionEnvironment());
+                new MockSourceFactory(syncConfig, new DummyStreamExecutionEnvironment());
         CommonConfig commonConf = new CommonConfig();
         commonConf.setColumn(reader.getFieldList());
         IllegalArgumentException thrownA =
@@ -74,10 +74,10 @@ public class SourceFactoryTest {
 
     @Test
     public void testDefaultValueWithTransformer() {
-        SyncConf syncConf = new SyncConf();
-        JobConf jobConf = new JobConf();
-        ContentConf contentConf = new ContentConf();
-        OperatorConf reader = new OperatorConf();
+        SyncConfig syncConfig = new SyncConfig();
+        JobConfig jobConfig = new JobConfig();
+        ContentConfig contentConfig = new ContentConfig();
+        OperatorConfig reader = new OperatorConfig();
         reader.setParameter(
                 ImmutableMap.<String, Object>builder()
                         .put(
@@ -90,11 +90,11 @@ public class SourceFactoryTest {
                                                 .put("value", 123)
                                                 .build()))
                         .build());
-        contentConf.setReader(reader);
-        jobConf.setContent(new LinkedList<>(ImmutableList.of(contentConf)));
-        syncConf.setJob(jobConf);
+        contentConfig.setReader(reader);
+        jobConfig.setContent(new LinkedList<>(ImmutableList.of(contentConfig)));
+        syncConfig.setJob(jobConfig);
         MockSourceFactory sourceFactory =
-                new MockSourceFactory(syncConf, new DummyStreamExecutionEnvironment());
+                new MockSourceFactory(syncConfig, new DummyStreamExecutionEnvironment());
         CommonConfig commonConf = new CommonConfig();
         commonConf.setColumn(reader.getFieldList());
         IllegalArgumentException thrownA =
@@ -109,10 +109,10 @@ public class SourceFactoryTest {
 
     @Test
     public void testFormatWithTransformer() {
-        SyncConf syncConf = new SyncConf();
-        JobConf jobConf = new JobConf();
-        ContentConf contentConf = new ContentConf();
-        OperatorConf reader = new OperatorConf();
+        SyncConfig syncConfig = new SyncConfig();
+        JobConfig jobConfig = new JobConfig();
+        ContentConfig contentConfig = new ContentConfig();
+        OperatorConfig reader = new OperatorConfig();
         reader.setParameter(
                 ImmutableMap.<String, Object>builder()
                         .put(
@@ -125,11 +125,11 @@ public class SourceFactoryTest {
                                                 .put("format", "yyyy-MM-dd hh:mm:ss")
                                                 .build()))
                         .build());
-        contentConf.setReader(reader);
-        jobConf.setContent(new LinkedList<>(ImmutableList.of(contentConf)));
-        syncConf.setJob(jobConf);
+        contentConfig.setReader(reader);
+        jobConfig.setContent(new LinkedList<>(ImmutableList.of(contentConfig)));
+        syncConfig.setJob(jobConfig);
         MockSourceFactory sourceFactory =
-                new MockSourceFactory(syncConf, new DummyStreamExecutionEnvironment());
+                new MockSourceFactory(syncConfig, new DummyStreamExecutionEnvironment());
         CommonConfig commonConf = new CommonConfig();
         commonConf.setColumn(reader.getFieldList());
         IllegalArgumentException thrownA =
@@ -144,10 +144,10 @@ public class SourceFactoryTest {
 
     @Test
     public void testCreateInput() {
-        SyncConf syncConf = new SyncConf();
-        JobConf jobConf = new JobConf();
-        ContentConf contentConf = new ContentConf();
-        OperatorConf reader = new OperatorConf();
+        SyncConfig syncConfig = new SyncConfig();
+        JobConfig jobConfig = new JobConfig();
+        ContentConfig contentConfig = new ContentConfig();
+        OperatorConfig reader = new OperatorConfig();
         reader.setParameter(
                 ImmutableMap.<String, Object>builder()
                         .put(
@@ -160,9 +160,9 @@ public class SourceFactoryTest {
                                                 .put("format", "yyyy-MM-dd hh:mm:ss")
                                                 .build()))
                         .build());
-        contentConf.setReader(reader);
-        jobConf.setContent(new LinkedList<>(ImmutableList.of(contentConf)));
-        syncConf.setJob(jobConf);
+        contentConfig.setReader(reader);
+        jobConfig.setContent(new LinkedList<>(ImmutableList.of(contentConfig)));
+        syncConfig.setJob(jobConfig);
         /*MockSourceFactory sourceFactory =
         new MockSourceFactory(syncConf, new DummyStreamExecutionEnvironment());
         sourceFactory.createInput()*/

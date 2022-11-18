@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.lookup;
 
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.conf.LookupConfig;
 
 import org.apache.flink.table.data.RowData;
 
@@ -28,8 +28,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class MockLruTableFunction extends AbstractLruTableFunction {
 
-    public MockLruTableFunction(LookupConf lookupConf, AbstractRowConverter rowConverter) {
-        super(lookupConf, rowConverter);
+    public MockLruTableFunction(LookupConfig lookupConfig, AbstractRowConverter rowConverter) {
+        super(lookupConfig, rowConverter);
     }
 
     @Override

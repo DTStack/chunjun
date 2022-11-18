@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.file.source;
 
-import com.dtstack.chunjun.conf.BaseFileConf;
+import com.dtstack.chunjun.config.BaseFileConf;
 
 import java.io.File;
 import java.io.FileInputStream;

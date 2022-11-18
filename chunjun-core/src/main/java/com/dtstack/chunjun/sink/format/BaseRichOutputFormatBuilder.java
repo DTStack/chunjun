@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.sink.format;
 
-import com.dtstack.chunjun.cdc.conf.DDLConf;
-import com.dtstack.chunjun.conf.CommonConfig;
+import com.dtstack.chunjun.cdc.config.DDLConfig;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 
@@ -43,8 +43,8 @@ public abstract class BaseRichOutputFormatBuilder<T extends BaseRichOutputFormat
         this.format = format;
     }
 
-    public void setDdlConf(DDLConf ddlConf) {
-        format.setDdlConf(ddlConf);
+    public void setDdlConf(DDLConfig ddlConfig) {
+        format.setDdlConf(ddlConfig);
     }
 
     public void setConfig(CommonConfig config) {

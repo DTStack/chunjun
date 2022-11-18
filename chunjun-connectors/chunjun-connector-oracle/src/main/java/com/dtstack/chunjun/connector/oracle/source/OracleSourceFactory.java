@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oracle.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -35,8 +35,8 @@ import java.util.Properties;
  */
 public class OracleSourceFactory extends JdbcSourceFactory {
 
-    public OracleSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, new OracleDialect());
+    public OracleSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env, new OracleDialect());
     }
 
     @Override
@@ -49,13 +49,14 @@ public class OracleSourceFactory extends JdbcSourceFactory {
         super.rebuildJdbcConf();
 
         Properties properties = new Properties();
-        if (jdbcConf.getConnectTimeOut() != 0) {
+        if (jdbcConfig.getConnectTimeOut() != 0) {
             properties.put(
-                    "oracle.jdbc.ReadTimeout", String.valueOf(jdbcConf.getConnectTimeOut() * 1000));
+                    "oracle.jdbc.ReadTimeout",
+                    String.valueOf(jdbcConfig.getConnectTimeOut() * 1000));
             properties.put(
                     "oracle.net.CONNECT_TIMEOUT",
-                    String.valueOf((jdbcConf.getConnectTimeOut()) * 1000));
+                    String.valueOf((jdbcConfig.getConnectTimeOut()) * 1000));
         }
-        JdbcUtil.putExtParam(jdbcConf, properties);
+        JdbcUtil.putExtParam(jdbcConfig, properties);
     }
 }

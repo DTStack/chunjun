@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.metrics.mock;
 
-import com.dtstack.chunjun.conf.MetricParam;
+import com.dtstack.chunjun.config.MetricParam;
 import com.dtstack.chunjun.metrics.CustomReporter;
 
 import org.apache.flink.api.common.accumulators.Accumulator;

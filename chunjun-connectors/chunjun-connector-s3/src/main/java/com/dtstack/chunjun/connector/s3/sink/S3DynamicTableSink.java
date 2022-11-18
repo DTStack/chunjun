@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.s3.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConf;
 import com.dtstack.chunjun.connector.s3.conf.S3Conf;
 import com.dtstack.chunjun.connector.s3.converter.S3RowConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
