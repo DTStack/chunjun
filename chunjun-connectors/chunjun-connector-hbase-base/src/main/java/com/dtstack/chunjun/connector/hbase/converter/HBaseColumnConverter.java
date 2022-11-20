@@ -430,6 +430,12 @@ public class HBaseColumnConverter
                     ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
                 };
             case DATE:
+                return (rowData, pos, output) -> {
+                    String value = ((ColumnRowData) rowData).getField(pos).asSqlDate().toString();
+                    byte[] bytes = Bytes.toBytes(value);
+                    byte[][] qualifier = familyAndQualifier[pos];
+                    ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
+                };
             case INTERVAL_YEAR_MONTH:
             case INTEGER:
                 return (rowData, pos, output) -> {
