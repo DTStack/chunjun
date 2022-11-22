@@ -130,7 +130,7 @@ public class HdfsTextColumnConverter
             ISerializationConverter serializationConverter, String type) {
         return (rowData, index, data) -> {
             if (rowData == null || rowData.isNullAt(index)) {
-                data[index] = null;
+                data[index] = "\\N";
             } else {
                 serializationConverter.serialize(rowData, index, data);
             }
