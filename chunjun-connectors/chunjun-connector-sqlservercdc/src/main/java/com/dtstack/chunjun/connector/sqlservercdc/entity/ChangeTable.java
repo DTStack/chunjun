@@ -26,14 +26,6 @@ package com.dtstack.chunjun.connector.sqlservercdc.entity;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Date: 2019/12/03 Company: www.dtstack.com
- *
- * <p>this class is copied from (https://github.com/debezium/debezium). but there are some different
- * from the origin.
- *
- * @author tudou
- */
 public class ChangeTable {
 
     private static final String CDC_SCHEMA = "cdc";

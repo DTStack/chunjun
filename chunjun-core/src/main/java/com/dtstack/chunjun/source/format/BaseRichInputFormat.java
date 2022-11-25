@@ -62,8 +62,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * <p>扩展了org.apache.flink.api.common.io.RichInputFormat, 因而可以通过{@link
  * #getRuntimeContext()}获取运行时执行上下文 自动完成 用户只需覆盖openInternal,closeInternal等方法, 无需操心细节
- *
- * @author jiangbo
  */
 public abstract class BaseRichInputFormat extends RichInputFormat<RowData, InputSplit> {
     protected static final long serialVersionUID = 1L;

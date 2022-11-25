@@ -20,11 +20,6 @@ package com.dtstack.chunjun.security;
 
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
-/**
- * @author Ada Wong
- * @program ChunJun
- * @create 2021/06/16
- */
 public class ChunJunKerberosException extends ChunJunRuntimeException {
 
     public ChunJunKerberosException(Throwable cause) {

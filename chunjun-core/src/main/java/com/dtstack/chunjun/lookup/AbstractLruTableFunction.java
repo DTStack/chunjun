@@ -25,7 +25,7 @@ import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.lookup.cache.AbstractSideCache;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
 import com.dtstack.chunjun.lookup.cache.LRUSideCache;
-import com.dtstack.chunjun.lookup.conf.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.util.ReflectionUtils;
 
 import org.apache.flink.annotation.VisibleForTesting;
@@ -54,11 +54,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
-/**
- * @author chuixue
- * @create 2021-04-09 14:40
- * @description
- */
 public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowData> {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLruTableFunction.class);
     /** 指标 */

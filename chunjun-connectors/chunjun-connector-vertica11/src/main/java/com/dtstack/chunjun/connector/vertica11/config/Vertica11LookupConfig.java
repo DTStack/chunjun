@@ -17,29 +17,28 @@
  * under the License.
  */
 
-package com.dtstack.chunjun.connector.vertica11.conf;
+package com.dtstack.chunjun.connector.vertica11.config;
 
-import com.dtstack.chunjun.connector.jdbc.config.JdbcLookupConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcLookupConfig;
 
 import java.util.Map;
 
-/** @author menghan on 2022/8/1. */
-public class Vertica11LookupConf extends JdbcLookupConf {
+public class Vertica11LookupConfig extends JdbcLookupConfig {
     /** vertx pool size */
     protected int asyncPoolSize = 5;
 
     protected Map<String, Object> poolConf;
 
-    public static Vertica11LookupConf build() {
-        return new Vertica11LookupConf();
+    public static Vertica11LookupConfig build() {
+        return new Vertica11LookupConfig();
     }
 
-    public Map<String, Object> getPoolConf() {
+    public Map<String, Object> getPoolConfig() {
         return poolConf;
     }
 
-    public Vertica11LookupConf setPoolConf(Map<String, Object> poolConf) {
-        this.poolConf = poolConf;
+    public Vertica11LookupConfig setPoolConfig(Map<String, Object> poolConfig) {
+        this.poolConf = poolConfig;
         return this;
     }
 
@@ -47,7 +46,7 @@ public class Vertica11LookupConf extends JdbcLookupConf {
         return asyncPoolSize;
     }
 
-    public Vertica11LookupConf setAsyncPoolSize(int asyncPoolSize) {
+    public Vertica11LookupConfig setAsyncPoolSize(int asyncPoolSize) {
         this.asyncPoolSize = asyncPoolSize;
         return this;
     }

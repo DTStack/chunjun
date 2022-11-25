@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.sink;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcColumnConverter;
 import com.dtstack.chunjun.connector.hdfs.enums.CompressType;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
@@ -31,9 +31,10 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.FileSystemUtil;
 import com.dtstack.chunjun.util.ReflectionUtils;
 
+import com.google.common.collect.Maps;
+
 import org.apache.flink.table.data.RowData;
 
-import com.google.common.collect.Maps;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.orc.OrcFile;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
@@ -42,6 +43,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.compress.BZip2Codec;
+import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.DefaultCodec;
 import org.apache.hadoop.io.compress.GzipCodec;
 import org.apache.hadoop.io.compress.Lz4Codec;
@@ -57,11 +59,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Date: 2021/06/19 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
     private static final ColumnTypeUtil.DecimalInfo ORC_DEFAULT_DECIMAL_INFO =
@@ -71,20 +68,19 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     private OrcSerde orcSerde;
     private StructObjectInspector inspector;
     private FileOutputFormat outputFormat;
-    private JobConf jobConf;
+    private JobConf jobConfig;
 
     protected int[] colIndices;
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void openSource() {
         super.openSource();
 
         orcSerde = new OrcSerde();
         outputFormat = new org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat();
-        jobConf = new JobConf(conf);
+        jobConfig = new JobConf(conf);
 
-        Class codecClass;
+        Class<? extends CompressionCodec> codecClass;
         switch (compressType) {
             case ORC_SNAPPY:
                 codecClass = SnappyCodec.class;
@@ -101,7 +97,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             default:
                 codecClass = DefaultCodec.class;
         }
-        FileOutputFormat.setOutputCompressorClass(jobConf, codecClass);
+        FileOutputFormat.setOutputCompressorClass(jobConfig, codecClass);
 
         int size = hdfsConfig.getFullColumnType().size();
         decimalColInfo = Maps.newHashMapWithExpectedSize(size);
@@ -123,7 +119,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             ((HdfsOrcColumnConverter) rowConverter)
                     .setColumnNameList(
                             hdfsConfig.getColumn().stream()
-                                    .map(FieldConf::getName)
+                                    .map(FieldConfig::getName)
                                     .collect(Collectors.toList()));
         }
         this.inspector =
@@ -164,7 +160,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
         try {
             String currentBlockTmpPath = tmpPath + getHdfsPathChar() + currentFileName;
             recordWriter =
-                    outputFormat.getRecordWriter(null, jobConf, currentBlockTmpPath, Reporter.NULL);
+                    outputFormat.getRecordWriter(null, jobConfig, currentBlockTmpPath, Reporter.NULL);
             currentFileIndex++;
 
             setFs();
@@ -259,7 +255,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
      * 数据源开启kerberos时 如果这里不通过反射对 writerOptions 赋值fs，则在recordWriter.writer时 会初始化一个fs 此fs不在ugi里获取的
      * 导致开启了kerberos的数据源在checkpoint时进行 recordWriter.close() 操作，会出现kerberos认证错误
      *
-     * @throws IllegalAccessException
+     * @throws IllegalAccessException illegal access exception.
      */
     private void setFs() throws IllegalAccessException {
         if (FileSystemUtil.isOpenKerberos(hdfsConfig.getHadoopConfig())) {

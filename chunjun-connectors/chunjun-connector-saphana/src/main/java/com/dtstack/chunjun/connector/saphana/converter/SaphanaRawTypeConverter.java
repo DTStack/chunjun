@@ -27,19 +27,16 @@ import org.apache.flink.table.types.logical.LogicalTypeRoot;
 
 import java.util.Locale;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class SaphanaRawTypeConverter {
 
     /**
      * 将 Spahana 数据库中的类型，转换成flink的DataType类型。
      *
-     * @link https://data-flair.training/blogs/sql-data-types-in-sap-hana/
-     * @param type
-     * @return
+     * @param type original type.
+     *
+     * @return data type
+     *
+     * @link <a href="https://data-flair.training/blogs/sql-data-types-in-sap-hana/">hana data type.</a>
      */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
@@ -51,7 +48,7 @@ public class SaphanaRawTypeConverter {
                 return DataTypes.TIMESTAMP(0);
             case "TIMESTAMP":
                 return DataTypes.TIMESTAMP(7);
-                // Numeric Data Type
+            // Numeric Data Type
             case "TINYINT":
                 return DataTypes.TINYINT();
             case "SMALLINT":
@@ -69,7 +66,7 @@ public class SaphanaRawTypeConverter {
             case "DOUBLE":
                 return DataTypes.DOUBLE();
 
-                // Character String Data Type
+            // Character String Data Type
             case "VARCHAR":
                 return DataTypes.STRING();
             case "NVARCHAR":
@@ -79,16 +76,16 @@ public class SaphanaRawTypeConverter {
             case "SHORTTEXT":
                 return DataTypes.STRING();
 
-                // Binary Data Type
+            // Binary Data Type
             case "VARBINARY":
                 // update mode 时不支持
                 return DataTypes.BYTES();
 
-                // Boolean Data Type
+            // Boolean Data Type
             case "BOOLEAN":
                 return DataTypes.BOOLEAN();
 
-                // Large Object (LOB) Data Type
+            // Large Object (LOB) Data Type
             case "CLOB":
             case "NCLOB":
             case "TEXT":

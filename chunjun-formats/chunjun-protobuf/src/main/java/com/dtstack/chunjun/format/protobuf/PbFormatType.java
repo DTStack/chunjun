@@ -24,7 +24,6 @@ import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.Descriptors;
 
-/** @author liuliu 2022/4/11 */
 public enum PbFormatType {
     MAP,
     ENUM,

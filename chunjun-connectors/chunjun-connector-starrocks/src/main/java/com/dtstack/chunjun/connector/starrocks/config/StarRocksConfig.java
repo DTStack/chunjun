@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.chunjun.connector.starrocks.conf;
+package com.dtstack.chunjun.connector.starrocks.config;
 
 import com.dtstack.chunjun.config.CommonConfig;
 
@@ -25,11 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author lihongwei
- * @date 2022/04/11
- */
-public class StarRocksConf extends CommonConfig {
+public class StarRocksConfig extends CommonConfig {
 
     // common
     private String url;
@@ -55,7 +51,7 @@ public class StarRocksConf extends CommonConfig {
     /** 是否配置了NameMapping, true, RowData中将携带名称匹配后的数据库和表名, sink端配置的database和table失效* */
     private boolean nameMapped;
 
-    private LoadConf loadConf = new LoadConf();
+    private LoadConfig loadConfig = new LoadConfig();
 
     // source
     private String[] fieldNames;
@@ -156,12 +152,12 @@ public class StarRocksConf extends CommonConfig {
         this.nameMapped = nameMapped;
     }
 
-    public LoadConf getLoadConf() {
-        return loadConf;
+    public LoadConfig getLoadConf() {
+        return loadConfig;
     }
 
-    public void setLoadConf(LoadConf loadConf) {
-        this.loadConf = loadConf;
+    public void setLoadConf(LoadConfig loadConfig) {
+        this.loadConfig = loadConfig;
     }
 
     public String[] getFieldNames() {

@@ -25,11 +25,6 @@ import com.dtstack.chunjun.connector.oracle.dialect.OracleDialect;
 
 import java.util.Properties;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class OracleSinkFactory extends JdbcSinkFactory {
 
     public OracleSinkFactory(SyncConfig syncConfig) {

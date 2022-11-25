@@ -23,11 +23,6 @@ import com.dtstack.chunjun.connector.http.client.Strategy;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * HttpRestConfig
- *
- * @author by shifang@dtstack.com @Date 2020/9/28
- */
 public class HttpRestConfig extends CommonConfig {
 
     private static final long serialVersionUID = 1L;

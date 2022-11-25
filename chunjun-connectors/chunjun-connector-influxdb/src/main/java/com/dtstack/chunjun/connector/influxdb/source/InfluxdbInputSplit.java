@@ -21,12 +21,6 @@ package com.dtstack.chunjun.connector.influxdb.source;
 
 import org.apache.flink.core.io.GenericInputSplit;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/3/10
- */
 public class InfluxdbInputSplit extends GenericInputSplit {
 
     private int mod;

@@ -34,11 +34,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Date: 2021/04/27 Company: www.dtstack.com
- *
- * @author shifang
- */
 @SuppressWarnings("all")
 public class SqlservercdcDynamicTableFactory implements DynamicTableSourceFactory {
     public static final String IDENTIFIER = "sqlservercdc-x";

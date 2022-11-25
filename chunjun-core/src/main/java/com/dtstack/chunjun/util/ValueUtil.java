@@ -24,13 +24,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 
-/**
- * Utilities for Type conversion
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public class ValueUtil {
 
     public static Integer getInt(Object obj) {

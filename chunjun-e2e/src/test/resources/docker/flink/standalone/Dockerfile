@@ -17,7 +17,7 @@
 
 FROM openjdk:8-jdk-alpine
 
-LABEL maintainer="www.dtstack.com"
+LABEL maintainer="chunjun@github.com"
 
 ENV TZ=Asia/Shanghai
 ENV LANG=C.UTF-8

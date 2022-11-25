@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.doris.sink;
 
 import com.dtstack.chunjun.connector.doris.options.DorisConfig;
-import com.dtstack.chunjun.connector.jdbc.config.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import java.util.List;
@@ -32,9 +32,9 @@ public class DorisHttpOutputFormatBuilder
     }
 
     public void setDorisOptions(DorisConfig options) {
-        JdbcConf jdbcConf = options.setToJdbcConf();
+        JdbcConfig jdbcConfig = options.setToJdbcConf();
         format.setOptions(options);
-        format.setConfig(jdbcConf);
+        format.setConfig(jdbcConfig);
     }
 
     public void setColumns(List<String> columns) {
@@ -42,5 +42,6 @@ public class DorisHttpOutputFormatBuilder
     }
 
     @Override
-    protected void checkFormat() {}
+    protected void checkFormat() {
+    }
 }

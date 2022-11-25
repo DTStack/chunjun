@@ -21,7 +21,7 @@ package com.dtstack.chunjun.connector.oraclelogminer.listener;
 import com.dtstack.chunjun.cdc.DdlRowData;
 import com.dtstack.chunjun.cdc.DdlRowDataBuilder;
 import com.dtstack.chunjun.cdc.EventType;
-import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
+import com.dtstack.chunjun.connector.oraclelogminer.config.LogMinerConfig;
 import com.dtstack.chunjun.connector.oraclelogminer.converter.LogMinerColumnConverter;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.ColumnInfo;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.QueueData;
@@ -73,15 +73,11 @@ import java.util.stream.Collectors;
 import static com.dtstack.chunjun.connector.oraclelogminer.listener.LogMinerConnection.RETRY_TIMES;
 import static com.dtstack.chunjun.connector.oraclelogminer.listener.LogMinerConnection.SLEEP_TIME;
 
-/**
- * @author jiangbo
- * @date 2020/3/27
- */
 public class LogMinerListener implements Runnable {
     private final BigInteger MINUS_ONE = new BigInteger("-1");
 
     public static Logger LOG = LoggerFactory.getLogger(LogMinerListener.class);
-    private final LogMinerConf logMinerConf;
+    private final LogMinerConfig logMinerConfig;
     private final PositionManager positionManager;
     private final AbstractCDCRowConverter rowConverter;
     private final LogMinerHelper logMinerHelper;
@@ -94,14 +90,14 @@ public class LogMinerListener implements Runnable {
     private int failedTimes = 0;
 
     public LogMinerListener(
-            LogMinerConf logMinerConf,
+            LogMinerConfig logMinerConfig,
             PositionManager positionManager,
             AbstractCDCRowConverter rowConverter) {
         this.positionManager = positionManager;
-        this.logMinerConf = logMinerConf;
+        this.logMinerConfig = logMinerConfig;
         this.listener = this;
         this.rowConverter = rowConverter;
-        this.logMinerHelper = new LogMinerHelper(listener, logMinerConf, null);
+        this.logMinerHelper = new LogMinerHelper(listener, logMinerConfig, null);
     }
 
     public void init() {
@@ -119,7 +115,7 @@ public class LogMinerListener implements Runnable {
                         namedThreadFactory,
                         new ThreadPoolExecutor.AbortPolicy());
 
-        logParser = new LogParser(logMinerConf);
+        logParser = new LogParser();
     }
 
     public void start() {
@@ -128,13 +124,13 @@ public class LogMinerListener implements Runnable {
                 RetryUtil.executeWithRetry(
                         () ->
                                 DriverManager.getConnection(
-                                        logMinerConf.getJdbcUrl(),
-                                        logMinerConf.getUsername(),
-                                        logMinerConf.getPassword()),
+                                        logMinerConfig.getJdbcUrl(),
+                                        logMinerConfig.getUsername(),
+                                        logMinerConfig.getPassword()),
                         RETRY_TIMES,
                         SLEEP_TIME,
                         false);
-        if (logMinerConf.getEnableFetchAll()) {
+        if (logMinerConfig.getEnableFetchAll()) {
             BigInteger cacheScn = positionManager.getPosition();
             if (null != cacheScn && cacheScn.compareTo(BigInteger.valueOf(-1)) != 0) {
                 startScn = cacheScn;
@@ -155,7 +151,7 @@ public class LogMinerListener implements Runnable {
         }
 
         // 初始化
-        if (logMinerConf.isInitialTableStructure() && !logMinerConf.getEnableFetchAll()) {
+        if (logMinerConfig.isInitialTableStructure() && !logMinerConfig.getEnableFetchAll()) {
             initialTableStruct(connection);
         }
 
@@ -249,7 +245,7 @@ public class LogMinerListener implements Runnable {
             if (Objects.nonNull(poll)) {
                 rowData = poll.getData();
                 if (rowData instanceof ErrorMsgRowData) {
-                    if (++failedTimes >= logMinerConf.getRetryTimes()) {
+                    if (++failedTimes >= logMinerConfig.getRetryTimes()) {
                         String errorMsg = rowData.toString();
                         StringBuilder sb = new StringBuilder(errorMsg.length() + 128);
                         sb.append("Error data is received ")
@@ -281,9 +277,9 @@ public class LogMinerListener implements Runnable {
     }
 
     private void initialTableStruct(Connection connection) {
-        if (CollectionUtils.isNotEmpty(logMinerConf.getTable())) {
+        if (CollectionUtils.isNotEmpty(logMinerConfig.getTable())) {
             Set<String> schemas = new HashSet<>();
-            logMinerConf
+            logMinerConfig
                     .getTable()
                     .forEach(
                             i -> {
@@ -294,7 +290,7 @@ public class LogMinerListener implements Runnable {
                             });
 
             List<Pattern> patterns =
-                    logMinerConf.getTable().stream()
+                    logMinerConfig.getTable().stream()
                             .map(Pattern::compile)
                             .collect(Collectors.toList());
 
@@ -303,9 +299,9 @@ public class LogMinerListener implements Runnable {
             schemas.forEach(
                     i -> {
                         try (final ResultSet rs =
-                                connection
-                                        .getMetaData()
-                                        .getTables(null, i, null, new String[] {"TABLE"})) {
+                                     connection
+                                             .getMetaData()
+                                             .getTables(null, i, null, new String[]{"TABLE"})) {
                             while (rs.next()) {
 
                                 final String schemaName = rs.getString(2);
@@ -422,17 +418,17 @@ public class LogMinerListener implements Runnable {
                                             .filter(c -> StringUtils.isNotBlank(c.getComment()))
                                             .map(ColumnInfo::getCommentSql)
                                             .collect(Collectors.toList());
-                            int lsn_sequencee = 1;
-                            for (int j = 0; j < comments.size(); j++) {
+                            int lsnSequences = 1;
+                            for (String comment : comments) {
                                 DdlRowData commentDdlData =
                                         DdlRowDataBuilder.builder()
                                                 .setDatabaseName(null)
                                                 .setSchemaName(entry.getKey().getLeft())
                                                 .setTableName(entry.getKey().getRight())
-                                                .setContent(comments.get(j))
+                                                .setContent(comment)
                                                 .setType(EventType.ALTER_COLUMN.name())
                                                 .setLsn("")
-                                                .setLsnSequence(String.valueOf(lsn_sequencee++))
+                                                .setLsnSequence(String.valueOf(lsnSequences++))
                                                 .setSnapShot(true)
                                                 .build();
                                 queue.put(new QueueData(new BigInteger("-1"), commentDdlData));
@@ -451,7 +447,7 @@ public class LogMinerListener implements Runnable {
                                                                 commentMap.get(entry.getKey())))
                                                 .setType(EventType.ALTER_TABLE_COMMENT.name())
                                                 .setLsn("")
-                                                .setLsnSequence(String.valueOf(lsn_sequencee++))
+                                                .setLsnSequence(String.valueOf(lsnSequences++))
                                                 .setSnapShot(true)
                                                 .build();
                                 queue.put(new QueueData(new BigInteger("-1"), commentDdlData));
@@ -487,12 +483,12 @@ public class LogMinerListener implements Runnable {
      */
     public BigInteger oracleFullSyncOperation(Connection connection) {
         try {
-            if (logMinerConf.getTable().size() != 1) {
+            if (logMinerConfig.getTable().size() != 1) {
                 throw new ChunJunRuntimeException(
                         "oracle logminer full sync, only support one table");
             }
 
-            String tbnWithSchema = logMinerConf.getTable().get(0);
+            String tbnWithSchema = logMinerConfig.getTable().get(0);
             BigInteger scn = getLockTableScn(connection, tbnWithSchema);
 
             /* select data by scn, to columnRowData */
@@ -505,8 +501,8 @@ public class LogMinerListener implements Runnable {
     }
 
     private BigInteger getLockTableScn(Connection conn, String tbnWithSchema) {
-        try {
-            Statement stmt = conn.createStatement();
+        try (Statement stmt = conn.createStatement()) {
+
             String lockTableSql = SqlUtil.formatLockTableWithRowShare(tbnWithSchema);
 
             /* lock table */
@@ -524,16 +520,13 @@ public class LogMinerListener implements Runnable {
             }
 
             /* generate create table ddl */
-            if (logMinerConf.isInitialTableStructure()) {
+            if (logMinerConfig.isInitialTableStructure()) {
                 initialTableStruct(conn);
             }
 
             /* release lock */
             stmt.execute(SqlUtil.releaseTableLock());
 
-            if (stmt != null) {
-                stmt.close();
-            }
             return new BigInteger(scn);
         } catch (Exception e) {
             throw new ChunJunRuntimeException(e);
@@ -562,9 +555,8 @@ public class LogMinerListener implements Runnable {
         String tbn = tbnWithSchema.substring(tbnWithSchema.indexOf('.') + 1);
         List<ColumnInfo> columnInfos = new ArrayList<>();
 
-        try {
-            Statement stmt = conn.createStatement();
-            ResultSet resultSet = stmt.executeQuery(SqlUtil.formatGetTableInfoSql(schema, tbn));
+        try (Statement stmt = conn.createStatement();
+             ResultSet resultSet = stmt.executeQuery(SqlUtil.formatGetTableInfoSql(schema, tbn))) {
 
             while (resultSet.next()) {
                 String columnName = resultSet.getString(3);
@@ -602,10 +594,6 @@ public class LogMinerListener implements Runnable {
                                 isPk);
 
                 columnInfos.add(columnInfo);
-            }
-
-            if (stmt != null) {
-                stmt.close();
             }
             return columnInfos;
         } catch (Exception e) {

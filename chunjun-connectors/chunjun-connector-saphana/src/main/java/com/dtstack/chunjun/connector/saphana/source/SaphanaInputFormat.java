@@ -24,11 +24,6 @@ import org.apache.flink.core.io.InputSplit;
 
 import java.util.Properties;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class SaphanaInputFormat extends JdbcInputFormat {
 
     @Override

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.table;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.options.FtpOptions;
 import com.dtstack.chunjun.connector.ftp.sink.FtpDynamicTableSink;
@@ -28,7 +28,8 @@ import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.Column;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.format.DecodingFormat;
 import org.apache.flink.table.connector.format.EncodingFormat;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
@@ -39,19 +40,12 @@ import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.factories.SerializationFormatFactory;
-import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/06/19
- */
 public class FtpDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     private static final String IDENTIFIER = "ftp-x";
@@ -91,27 +85,25 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         final ReadableConfig config = helper.getOptions();
         helper.validate();
 
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
         DecodingFormat<DeserializationSchema<RowData>> decodingFormat =
                 helper.discoverDecodingFormat(
                         DeserializationFormatFactory.class, FtpOptions.FORMAT);
 
-        RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
+        List<Column> columns = resolvedSchema.getColumns();
         FtpConfig ftpConfig = getFtpConfByOptions(config);
-        String[] fieldNames = physicalSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        for (int i = 0; i < fieldNames.length; i++) {
-            FieldConf field = new FieldConf();
-            field.setName(fieldNames[i]);
-            field.setType(rowType.getTypeAt(i).asSummaryString());
-            field.setIndex(i);
+        List<FieldConfig> columnList = new ArrayList<>(columns.size());
+        for (Column column : columns) {
+            FieldConfig field = new FieldConfig();
+            field.setName(column.getName());
+            field.setType(column.getDataType().getLogicalType().asSummaryString());
+            field.setIndex(columns.indexOf(column));
             columnList.add(field);
         }
         ftpConfig.setColumn(columnList);
 
-        return new FtpDynamicTableSource(physicalSchema, ftpConfig, decodingFormat);
+        return new FtpDynamicTableSource(resolvedSchema, ftpConfig, decodingFormat);
     }
 
     @Override
@@ -121,8 +113,7 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         final ReadableConfig config = helper.getOptions();
         helper.validate();
 
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
         EncodingFormat<SerializationSchema<RowData>> valueEncodingFormat =
                 helper.discoverOptionalEncodingFormat(
@@ -135,7 +126,7 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
 
         FtpConfig ftpConfig = getFtpConfByOptions(config);
 
-        return new FtpDynamicTableSink(physicalSchema, ftpConfig, valueEncodingFormat);
+        return new FtpDynamicTableSink(resolvedSchema, ftpConfig, valueEncodingFormat);
     }
 
     @Override

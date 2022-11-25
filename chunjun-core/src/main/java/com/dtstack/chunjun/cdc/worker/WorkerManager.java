@@ -34,9 +34,6 @@ import java.util.concurrent.ThreadPoolExecutor;
  * 线程池的创建,管理overseerExecutor和workerExecutor两个线程池,
  *
  * <p>worker线程一次只处理一张表的队列
- *
- * @author shitou
- * @date 2021/12/2
  */
 public class WorkerManager implements Serializable {
 

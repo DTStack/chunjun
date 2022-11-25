@@ -18,49 +18,43 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.source;
 
-import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
+import com.dtstack.chunjun.connector.oraclelogminer.config.LogMinerConfig;
 import com.dtstack.chunjun.connector.oraclelogminer.converter.LogMinerRowConverter;
+import com.dtstack.chunjun.connector.oraclelogminer.format.TimestampFormat;
 import com.dtstack.chunjun.connector.oraclelogminer.inputformat.OracleLogMinerInputFormatBuilder;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.formats.json.TimestampFormat;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-/**
- * @author chuixue
- * @create 2021-04-09 09:20
- * @description
- */
 public class OraclelogminerDynamicTableSource implements ScanTableSource {
-    private final TableSchema schema;
-    private final LogMinerConf logMinerConf;
+    private final ResolvedSchema schema;
+    private final LogMinerConfig logMinerConfig;
     private final TimestampFormat timestampFormat;
 
     public OraclelogminerDynamicTableSource(
-            TableSchema schema, LogMinerConf logMinerConf, TimestampFormat timestampFormat) {
+            ResolvedSchema schema, LogMinerConfig logMinerConfig, TimestampFormat timestampFormat) {
         this.schema = schema;
-        this.logMinerConf = logMinerConf;
+        this.logMinerConfig = logMinerConfig;
         this.timestampFormat = timestampFormat;
     }
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        final RowType rowType = (RowType) schema.toRowDataType().getLogicalType();
-        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
+        final TypeInformation<RowData> typeInformation =
+                InternalTypeInfo.of(schema.toPhysicalRowDataType().getLogicalType());
 
         OracleLogMinerInputFormatBuilder builder = new OracleLogMinerInputFormatBuilder();
-        builder.setLogMinerConfig(logMinerConf);
+        builder.setLogMinerConfig(logMinerConfig);
         builder.setRowConverter(
-                new LogMinerRowConverter((RowType) this.schema.toRowDataType().getLogicalType()));
+                new LogMinerRowConverter(InternalTypeInfo.of(schema.toPhysicalRowDataType().getLogicalType()).toRowType()));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
@@ -69,7 +63,7 @@ public class OraclelogminerDynamicTableSource implements ScanTableSource {
     @Override
     public DynamicTableSource copy() {
         return new OraclelogminerDynamicTableSource(
-                this.schema, this.logMinerConf, this.timestampFormat);
+                this.schema, this.logMinerConfig, this.timestampFormat);
     }
 
     @Override

@@ -41,7 +41,6 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/** @Author OT @Date 2022/6/16 17:52 @Version 1.0 */
 public class SybaseColumnConverter extends JdbcColumnConverter {
     public SybaseColumnConverter(RowType rowType, CommonConfig commonConf) {
         super(rowType, commonConf);

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.kudu.conf;
 
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConf;
 
 import org.apache.flink.configuration.ReadableConfig;
 

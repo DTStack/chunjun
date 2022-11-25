@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.starrocks.converter;
 
 import com.dtstack.chunjun.config.CommonConfig;
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.starrocks.streamload.StarRocksSinkOP;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -51,7 +51,6 @@ import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.starrocks.util.StarRocksUtil.addStrForNum;
 
-/** @author liuliu 2022/7/12 */
 public class StarRocksColumnConverter
         extends AbstractRowConverter<Object[], Object[], Map<String, Object>, LogicalType> {
 
@@ -61,7 +60,7 @@ public class StarRocksColumnConverter
     public StarRocksColumnConverter(RowType rowType, CommonConfig conf) {
         super(rowType, conf);
         this.columnList =
-                conf.getColumn().stream().map(FieldConf::getName).collect(Collectors.toList());
+                conf.getColumn().stream().map(FieldConfig::getName).collect(Collectors.toList());
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
@@ -77,7 +76,7 @@ public class StarRocksColumnConverter
         ColumnRowData columnRowData = new ColumnRowData(rowType.getFieldCount());
         int index = 0;
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
-            FieldConf fieldConf = commonConf.getColumn().get(pos);
+            FieldConfig fieldConf = commonConfig.getColumn().get(pos);
             AbstractBaseColumn val = null;
             if (StringUtils.isBlank(fieldConf.getValue())) {
                 val =

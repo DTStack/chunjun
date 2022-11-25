@@ -47,11 +47,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/**
- * Date: 2019/12/03 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class SqlServerCdcUtil {
     private static final Logger LOG = LoggerFactory.getLogger(SqlServerCdcUtil.class);
 

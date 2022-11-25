@@ -31,8 +31,6 @@ import java.util.List;
 /**
  * Reflect all GET methods in the order of the fields in the protobuf message, then we can get the
  * values of all the fields in the Message object by index.
- *
- * @author liuliu 2022/4/13
  */
 public class PbMessageGetter extends PbMessageAdaptor {
 

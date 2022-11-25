@@ -25,11 +25,6 @@ import org.apache.flink.configuration.ConfigOptions;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Date: 2021/06/17 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsOptions extends BaseFileOptions {
     public static final ConfigOption<String> DEFAULT_FS =
             ConfigOptions.key("default-fs")

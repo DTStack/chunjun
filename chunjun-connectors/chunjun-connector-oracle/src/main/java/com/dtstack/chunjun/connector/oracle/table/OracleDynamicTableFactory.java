@@ -24,11 +24,6 @@ import com.dtstack.chunjun.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.chunjun.connector.oracle.dialect.OracleDialect;
 import com.dtstack.chunjun.connector.oracle.source.OracleInputFormat;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class OracleDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** 通过该值查找具体插件 */

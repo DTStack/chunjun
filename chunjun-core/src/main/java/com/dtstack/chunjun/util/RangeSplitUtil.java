@@ -23,13 +23,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Range Split Utilities
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public final class RangeSplitUtil {
 
     public static long[] doLongSplit(long left, long right, int expectSliceNumber) {

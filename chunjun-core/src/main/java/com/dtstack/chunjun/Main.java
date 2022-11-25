@@ -84,13 +84,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-/**
- * The main class entry
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public class Main {
 
     public static Logger LOG = LoggerFactory.getLogger(Main.class);

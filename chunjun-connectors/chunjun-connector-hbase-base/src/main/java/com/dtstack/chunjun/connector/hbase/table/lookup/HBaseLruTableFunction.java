@@ -28,7 +28,7 @@ import com.dtstack.chunjun.factory.ChunJunThreadFactory;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
 import com.dtstack.chunjun.lookup.cache.CacheMissVal;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConf;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;

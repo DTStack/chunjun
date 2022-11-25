@@ -17,18 +17,13 @@
  */
 package com.dtstack.chunjun.connector.hive.sink;
 
-import com.dtstack.chunjun.connector.hive.conf.HiveConfig;
+import com.dtstack.chunjun.connector.hive.config.HiveConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder<HiveOutputFormat> {
 
     public HiveOutputFormatBuilder() {
@@ -37,13 +32,13 @@ public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder<HiveOut
 
     public void setHiveConf(HiveConfig hiveConf) {
         super.setConfig(hiveConf);
-        format.setHiveConf(hiveConf);
+        format.setHiveConfig(hiveConf);
     }
 
     @Override
     protected void checkFormat() {
         StringBuilder errorMessage = new StringBuilder(256);
-        HiveConfig hiveConf = format.getHiveConf();
+        HiveConfig hiveConf = format.getHiveConfig();
         if (StringUtils.isBlank(hiveConf.getJdbcUrl())) {
             errorMessage.append("No url supplied. \n");
         }

@@ -17,13 +17,6 @@
  */
 package com.dtstack.chunjun.sink;
 
-/**
- * This Class defined several types of errors when writing record
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public class WriteErrorTypes {
 
     public static final String ERR_NULL_POINTER = "npe";

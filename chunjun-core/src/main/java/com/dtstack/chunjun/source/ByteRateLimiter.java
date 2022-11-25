@@ -33,10 +33,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * This class is user for speed control
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
  */
 @SuppressWarnings("all")
 public class ByteRateLimiter {

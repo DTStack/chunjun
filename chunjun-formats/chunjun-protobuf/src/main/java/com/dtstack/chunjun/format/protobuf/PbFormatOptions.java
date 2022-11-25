@@ -21,7 +21,6 @@ package com.dtstack.chunjun.format.protobuf;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/** @author liuliu 2022/4/18 */
 public class PbFormatOptions {
     private PbFormatOptions() {}
 

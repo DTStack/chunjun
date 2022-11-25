@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.file.table;
 
-import com.dtstack.chunjun.config.BaseFileConf;
+import com.dtstack.chunjun.config.BaseFileConfig;
 import com.dtstack.chunjun.connector.file.converter.FileRowConverter;
 import com.dtstack.chunjun.connector.file.source.FileInputFormatBuilder;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
@@ -26,32 +26,27 @@ import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.format.DecodingFormat;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.DataType;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/06/24
- */
 public class FileDynamicTableSource implements ScanTableSource {
 
-    private TableSchema schema;
-    private BaseFileConf fileConf;
-    private DecodingFormat<DeserializationSchema<RowData>> decodingFormat;
+    private final ResolvedSchema schema;
+    private final BaseFileConfig fileConfig;
+    private final DecodingFormat<DeserializationSchema<RowData>> decodingFormat;
 
     public FileDynamicTableSource(
-            TableSchema schema,
-            BaseFileConf fileConf,
+            ResolvedSchema schema,
+            BaseFileConfig fileConfig,
             DecodingFormat<DeserializationSchema<RowData>> decodingFormat) {
         this.schema = schema;
-        this.fileConf = fileConf;
+        this.fileConfig = fileConfig;
         this.decodingFormat = decodingFormat;
     }
 
@@ -63,23 +58,24 @@ public class FileDynamicTableSource implements ScanTableSource {
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
 
-        final RowType rowType = (RowType) schema.toRowDataType().getLogicalType();
-        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
+        DataType dataType = schema.toPhysicalRowDataType();
+
+        TypeInformation<RowData> typeInformation =
+                InternalTypeInfo.of(dataType.getLogicalType());
 
         FileInputFormatBuilder builder = new FileInputFormatBuilder();
-        builder.setFileConf(fileConf);
+        builder.setFileConf(fileConfig);
         builder.setRowConverter(
                 new FileRowConverter(
-                        decodingFormat.createRuntimeDecoder(
-                                runtimeProviderContext, schema.toRowDataType())));
+                        decodingFormat.createRuntimeDecoder(runtimeProviderContext, dataType)));
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), true, 1);
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), true, fileConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new FileDynamicTableSource(schema, fileConf, decodingFormat);
+        return new FileDynamicTableSource(schema, fileConfig, decodingFormat);
     }
 
     @Override

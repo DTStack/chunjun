@@ -23,11 +23,6 @@ import org.apache.flink.metrics.Gauge;
 
 import java.io.Serializable;
 
-/**
- * company: www.dtstack.com
- *
- * @author: toutian create: 2019/3/21
- */
 public class SimpleAccumulatorGauge<T extends Serializable> implements Gauge<T> {
 
     private final Accumulator<T, T> accumulator;

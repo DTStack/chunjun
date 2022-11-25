@@ -19,34 +19,34 @@
 
 package com.dtstack.chunjun.connector.vertica11.lookup;
 
-import com.dtstack.chunjun.connector.jdbc.config.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.lookup.JdbcLruTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
-
-import org.apache.flink.table.types.logical.RowType;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import io.vertx.core.json.JsonObject;
+
+import org.apache.flink.table.types.logical.RowType;
 
 import java.util.Map;
 
 import static com.dtstack.chunjun.connector.vertica11.lookup.options.Vertica11LookupOptions.DT_PROVIDER_CLASS;
 
-/** @author menghan on 2022/7/24. */
 public class Vertica11LruTableFunction extends JdbcLruTableFunction {
-    private final JdbcConf jdbcConf;
+
+    private final JdbcConfig jdbcConfig;
 
     private final JdbcDialect jdbcDialect;
 
     public Vertica11LruTableFunction(
-            JdbcConf jdbcConf,
+            JdbcConfig jdbcConfig,
             JdbcDialect jdbcDialect,
-            LookupConf lookupConf,
+            LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
-        super(jdbcConf, jdbcDialect, lookupConf, fieldNames, keyNames, rowType);
-        this.jdbcConf = jdbcConf;
+        super(jdbcConfig, jdbcDialect, lookupConfig, fieldNames, keyNames, rowType);
+        this.jdbcConfig = jdbcConfig;
         this.jdbcDialect = jdbcDialect;
     }
 
@@ -54,10 +54,10 @@ public class Vertica11LruTableFunction extends JdbcLruTableFunction {
     public JsonObject createJdbcConfig(Map<String, Object> druidConfMap) {
         JsonObject clientConfig = new JsonObject();
         clientConfig
-                .put("url", jdbcConf.getJdbcUrl())
-                .put("username", jdbcConf.getUsername())
-                .put("password", jdbcConf.getPassword())
-                .put("driverClassName", jdbcDialect.defaultDriverName().get())
+                .put("url", jdbcConfig.getJdbcUrl())
+                .put("username", jdbcConfig.getUsername())
+                .put("password", jdbcConfig.getPassword())
+                .put("driverClassName", jdbcDialect.defaultDriverName().orElse(""))
                 .put("provider_class", DT_PROVIDER_CLASS.defaultValue())
                 .put("maxActive", asyncPoolSize);
 

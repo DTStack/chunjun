@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.oraclelogminer.conf;
+package com.dtstack.chunjun.connector.oraclelogminer.config;
 
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -25,12 +25,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 import java.util.Properties;
+import java.util.StringJoiner;
 
-/**
- * @author dujie
- * @date 2019/12/14
- */
-public class LogMinerConf extends CommonConfig {
+public class LogMinerConfig extends CommonConfig {
 
     private String driverName = "oracle.jdbc.driver.OracleDriver";
 
@@ -317,69 +314,33 @@ public class LogMinerConf extends CommonConfig {
 
     @Override
     public String toString() {
-        return "LogMinerConf{"
-                + "driverName='"
-                + driverName
-                + '\''
-                + ", jdbcUrl='"
-                + jdbcUrl
-                + '\''
-                + ", username='"
-                + username
-                + '\''
-                + ", password='"
-                + password
-                + '\''
-                + ", fetchSize="
-                + fetchSize
-                + ", listenerTables='"
-                + listenerTables
-                + '\''
-                + ", timestampFormat='"
-                + timestampFormat
-                + '\''
-                + ", cat='"
-                + cat
-                + '\''
-                + ", ddlSkip='"
-                + ddlSkip
-                + '\''
-                + ", initialTableStructure='"
-                + initialTableStructure
-                + '\''
-                + ", readPosition='"
-                + readPosition
-                + '\''
-                + ", startTime="
-                + startTime
-                + ", startScn='"
-                + startScn
-                + '\''
-                + ", pavingData="
-                + pavingData
-                + ", table="
-                + table
-                + ", queryTimeout="
-                + queryTimeout
-                + ", supportAutoAddLog="
-                + supportAutoAddLog
-                + ", splitUpdate="
-                + split
-                + ", maxLogFileSize="
-                + maxLogFileSize
-                + ", ioThreads="
-                + ioThreads
-                + ", retryTimes="
-                + retryTimes
-                + ", transactionCacheNumSize="
-                + transactionCacheNumSize
-                + ", transactionEventSize="
-                + transactionEventSize
-                + ", transactionExpireTime="
-                + transactionExpireTime
-                + ", properties="
-                + properties
-                + "} "
-                + super.toString();
+        return new StringJoiner(", ", LogMinerConfig.class.getSimpleName() + "[", "]")
+                .add("driverName='" + driverName + "'")
+                .add("jdbcUrl='" + jdbcUrl + "'")
+                .add("username='" + username + "'")
+                .add("password='" + password + "'")
+                .add("fetchSize=" + fetchSize)
+                .add("listenerTables='" + listenerTables + "'")
+                .add("timestampFormat='" + timestampFormat + "'")
+                .add("cat='" + cat + "'")
+                .add("ddlSkip=" + ddlSkip)
+                .add("initialTableStructure=" + initialTableStructure)
+                .add("readPosition='" + readPosition + "'")
+                .add("startTime=" + startTime)
+                .add("startScn='" + startScn + "'")
+                .add("pavingData=" + pavingData)
+                .add("table=" + table)
+                .add("queryTimeout=" + queryTimeout)
+                .add("supportAutoAddLog=" + supportAutoAddLog)
+                .add("split=" + split)
+                .add("maxLogFileSize=" + maxLogFileSize)
+                .add("ioThreads=" + ioThreads)
+                .add("retryTimes=" + retryTimes)
+                .add("transactionCacheNumSize=" + transactionCacheNumSize)
+                .add("transactionEventSize=" + transactionEventSize)
+                .add("properties=" + properties)
+                .add("transactionExpireTime=" + transactionExpireTime)
+                .add("enableFetchAll=" + enableFetchAll)
+                .toString();
     }
 }

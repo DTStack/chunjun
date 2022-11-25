@@ -32,9 +32,6 @@ import java.util.concurrent.Callable;
 
 /**
  * 下发数据队列中的dml数据，在遇到ddl数据之后，将数据队列的状态置为"block"
- *
- * @author tiezhu@dtstack.com
- * @since 2021/12/1 星期三
  */
 public class Worker implements Callable<Integer> {
 

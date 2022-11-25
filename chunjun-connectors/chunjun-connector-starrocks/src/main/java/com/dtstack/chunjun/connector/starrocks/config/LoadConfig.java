@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.starrocks.conf;
+package com.dtstack.chunjun.connector.starrocks.config;
 
 import com.dtstack.chunjun.connector.starrocks.options.ConstantValue;
 
@@ -24,8 +24,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-/** @author liuliu 2022/7/12 */
-public class LoadConf implements Serializable {
+public class LoadConfig implements Serializable {
 
     private static final Long serialVersionUID = 1L;
 

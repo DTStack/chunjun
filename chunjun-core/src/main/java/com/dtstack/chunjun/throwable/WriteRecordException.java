@@ -20,10 +20,6 @@ package com.dtstack.chunjun.throwable;
 
 /**
  * The Exception describing errors when writing a record
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
  */
 public class WriteRecordException extends Exception {
 

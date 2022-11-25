@@ -42,10 +42,6 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * @author tiezhu@dtstack
- * @date 22/09/2021 Wednesday
- */
 public class MysqlDirtyDataCollector extends DirtyDataCollector {
 
     private static final Logger LOG = LoggerFactory.getLogger(MysqlDirtyDataCollector.class);

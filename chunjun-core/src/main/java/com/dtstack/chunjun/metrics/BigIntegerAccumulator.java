@@ -22,11 +22,6 @@ import org.apache.flink.api.common.accumulators.SimpleAccumulator;
 
 import java.math.BigInteger;
 
-/**
- * Date: 2020/06/28 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class BigIntegerAccumulator implements SimpleAccumulator<BigInteger> {
 
     private static final long serialVersionUID = 1L;

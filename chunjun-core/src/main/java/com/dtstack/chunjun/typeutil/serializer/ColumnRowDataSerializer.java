@@ -43,7 +43,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-/** @author liuliu 2022/5/12 */
+
 public class ColumnRowDataSerializer extends TypeSerializer<RowData> {
 
     StringSerializer stringSerializer = StringSerializer.INSTANCE;

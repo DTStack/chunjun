@@ -33,6 +33,7 @@ import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.CollectionUtil;
 
@@ -64,9 +65,9 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
 
     @Override
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
         String url = dorisConfig.getUrl();
 
+        RowType rowType = InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType();
         BaseRichOutputFormatBuilder<?> builder =
                 StringUtils.isBlank(url)
                         ? httpBuilder(rowType, dorisConfig)
@@ -78,7 +79,7 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
 
     private DorisHttpOutputFormatBuilder httpBuilder(RowType rowType, DorisConfig dorisConfig) {
         DorisHttpOutputFormatBuilder builder = new DorisHttpOutputFormatBuilder();
-        builder.setColumns(tableSchema.getColumnNames()));
+        builder.setColumns(tableSchema.getColumnNames());
         builder.setConfig(dorisConfig);
         builder.setDorisOptions(dorisConfig);
         builder.setRowConverter(new DorisHttpRowConverter(rowType));

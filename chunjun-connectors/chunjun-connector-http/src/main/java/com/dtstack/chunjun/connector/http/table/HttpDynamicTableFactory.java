@@ -41,11 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Date: 2021/04/27 Company: www.dtstack.com
- *
- * @author shifang
- */
 public class HttpDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
     public static final String IDENTIFIER = "http-x";
 

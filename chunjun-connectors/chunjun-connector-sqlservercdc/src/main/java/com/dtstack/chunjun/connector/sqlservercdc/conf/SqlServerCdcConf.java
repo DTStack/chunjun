@@ -23,11 +23,7 @@ import com.dtstack.chunjun.config.FieldConf;
 
 import java.util.List;
 
-/**
- * Date: 2021/05/12 Company: www.dtstack.com
- *
- * @author shifang
- */
+
 public class SqlServerCdcConf extends CommonConfig {
 
     private String username;

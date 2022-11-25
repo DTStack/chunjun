@@ -23,11 +23,6 @@ import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @author chuixue
- * @create 2021-06-04 09:55
- * @description
- */
 public class EmqxOutputFormatBuilder extends BaseRichOutputFormatBuilder<EmqxOutputFormat> {
 
     public EmqxOutputFormatBuilder() {

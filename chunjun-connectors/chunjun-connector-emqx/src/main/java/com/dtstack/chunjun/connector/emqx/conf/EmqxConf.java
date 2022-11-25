@@ -21,11 +21,6 @@ import com.dtstack.chunjun.config.CommonConfig;
 
 import java.util.List;
 
-/**
- * @author chuixue
- * @create 2021-06-02 09:44
- * @description
- */
 public class EmqxConf extends CommonConfig {
 
     /** emq address:tcp://localhost:1883 */

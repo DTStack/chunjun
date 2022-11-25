@@ -48,6 +48,5 @@ public class BinlogInputFormatBuilderTest {
         Whitebox.setInternalState(inputFormat, "binlogConf", binlogConfig);
         Whitebox.setInternalState(builder, "format", inputFormat);
         when(builder.finish()).thenCallRealMethod();
-        assert builder.finish() instanceof UpdrdbBinlogInputFormat;
     }
 }

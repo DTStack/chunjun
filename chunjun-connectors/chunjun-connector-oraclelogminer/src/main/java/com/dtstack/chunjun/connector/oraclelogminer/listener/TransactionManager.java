@@ -35,10 +35,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Date: 2021/08/13 Company: www.dtstack.com
- *
- * @author dujie
- *     <p>事务管理器 监听的DML语句缓存，在commit/rollback时删除
+ * 事务管理器 监听的DML语句缓存，在commit/rollback时删除
  */
 public class TransactionManager {
 
@@ -65,11 +62,6 @@ public class TransactionManager {
         this.earliestResolveOperateForRollback = new HashMap<>();
     }
 
-    /**
-     * insert以及update record放入缓存中
-     *
-     * @param recordLog
-     */
     public void putCache(RecordLog recordLog) {
         // 缓存里不放入delete的DML语句
         if (recordLog.getOperationCode() == 2) {
@@ -106,11 +98,6 @@ public class TransactionManager {
 
     /**
      * 从缓存的dml语句里找到rollback语句对应的DML语句 如果查找到 需要删除对应的缓存信息
-     *
-     * @param xidUsn
-     * @param xidSlt
-     * @param xidSqn
-     * @return dml Log
      */
     public RecordLog queryUndoLogFromCache(String xidUsn, String xidSlt, String xidSqn) {
         String key = xidUsn + xidSlt + xidSqn;

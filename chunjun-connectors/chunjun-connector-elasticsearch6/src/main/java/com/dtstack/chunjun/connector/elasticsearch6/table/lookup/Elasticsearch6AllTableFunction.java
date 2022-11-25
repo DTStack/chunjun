@@ -23,7 +23,7 @@ import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6RequestFactory;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.GenericRowData;
 

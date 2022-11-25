@@ -22,11 +22,6 @@ import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.chunjun.connector.postgresql.dialect.PostgresqlDialect;
 
-/**
- * @program chunjun
- * @author: wuren
- * @create: 2021/04/22
- */
 public class PostgresqlDynamicTableFactory extends JdbcDynamicTableFactory {
 
     private static final String IDENTIFIER = "postgresql-x";

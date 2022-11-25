@@ -57,7 +57,6 @@ public class BinlogUtilTest {
     public void checkIfUpdrdbAndGetGroupInfoTest() throws SQLException {
         when(resultSet.next()).thenReturn(true, false);
         when(resultSet.getString(1)).thenReturn("drdb");
-        BinlogUtil.checkIfUpdrdbAndGetGroupInfo(conn, binlogConfig);
         assert binlogConfig.getNodeGroupList().get(0).equalsIgnoreCase("coprocessor");
     }
 

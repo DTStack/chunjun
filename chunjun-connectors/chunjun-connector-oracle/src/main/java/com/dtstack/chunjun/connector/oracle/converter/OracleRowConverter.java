@@ -51,11 +51,6 @@ import java.sql.Timestamp;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class OracleRowConverter extends JdbcRowConverter {
 
     private static final long serialVersionUID = 1L;

@@ -29,11 +29,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * Date: 2021/04/12 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class MysqlSourceFactory extends JdbcSourceFactory {
 
     // 默认是Mysql流式拉取

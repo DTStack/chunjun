@@ -36,10 +36,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 
-/**
- * @author jiangbo
- * @date 2019/8/21
- */
 public class SftpHandler {
 
     protected static final Logger LOG = LoggerFactory.getLogger(SftpHandler.class);

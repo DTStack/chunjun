@@ -27,7 +27,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
-/** @author liuliu 2022/4/27 */
 public class PbMessageAdaptor {
     protected final int[] normalToOneof;
     protected final int[] oneOfLastIndex;

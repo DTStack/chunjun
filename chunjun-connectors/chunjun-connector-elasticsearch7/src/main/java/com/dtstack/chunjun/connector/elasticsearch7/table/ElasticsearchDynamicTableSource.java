@@ -24,7 +24,7 @@ import com.dtstack.chunjun.connector.elasticsearch7.source.ElasticsearchInputFor
 import com.dtstack.chunjun.connector.elasticsearch7.table.lookup.ElasticsearchAllTableFunction;
 import com.dtstack.chunjun.connector.elasticsearch7.table.lookup.ElasticsearchLruTableFunction;
 import com.dtstack.chunjun.enums.CacheType;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConf;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;

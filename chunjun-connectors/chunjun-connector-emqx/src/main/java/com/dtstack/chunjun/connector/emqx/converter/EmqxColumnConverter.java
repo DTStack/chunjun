@@ -40,11 +40,6 @@ import java.util.Map;
 
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.DEFAULT_CODEC;
 
-/**
- * @author chuixue
- * @create 2021-06-02 09:34
- * @description
- */
 public class EmqxColumnConverter
         extends AbstractRowConverter<String, Object, MqttMessage, LogicalType> {
 

@@ -35,9 +35,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * QueuesChamberlain维护blockedQueues、unblockQueues,对外提供访问二者的方法.
- *
- * @author shitou
- * @date 2021/12/6
  */
 public class QueuesChamberlain implements Serializable {
 

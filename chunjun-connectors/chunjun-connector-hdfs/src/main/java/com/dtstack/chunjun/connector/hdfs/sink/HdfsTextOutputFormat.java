@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.sink;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hdfs.enums.CompressType;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
@@ -35,11 +35,6 @@ import org.apache.hadoop.fs.Path;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/**
- * Date: 2021/06/09 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     private static final int NEWLINE = 10;
@@ -110,7 +105,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
         String[] result = new String[fullColumnNameList.size()];
         for (int i = 0; i < hdfsConfig.getColumn().size(); i++) {
-            FieldConf fieldConf = hdfsConfig.getColumn().get(i);
+            FieldConfig fieldConf = hdfsConfig.getColumn().get(i);
             result[fieldConf.getIndex()] = data[i];
         }
         String line = String.join(hdfsConfig.getFieldDelimiter(), result);

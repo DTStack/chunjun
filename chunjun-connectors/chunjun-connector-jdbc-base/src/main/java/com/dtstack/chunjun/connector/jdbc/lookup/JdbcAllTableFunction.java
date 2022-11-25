@@ -22,7 +22,7 @@ import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.table.data.GenericRowData;

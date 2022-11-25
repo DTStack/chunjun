@@ -38,10 +38,6 @@ import java.util.Map;
 
 import static com.dtstack.chunjun.security.KerberosUtil.KRB_STR;
 
-/**
- * @author jiangbo
- * @date 2019/8/21
- */
 public class FileSystemUtil {
 
     public static final Logger LOG = LoggerFactory.getLogger(FileSystemUtil.class);

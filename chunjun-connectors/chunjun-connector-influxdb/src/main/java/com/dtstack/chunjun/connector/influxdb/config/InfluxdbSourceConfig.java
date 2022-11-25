@@ -17,16 +17,11 @@
  * under the License.
  */
 
-package com.dtstack.chunjun.connector.influxdb.conf;
+package com.dtstack.chunjun.connector.influxdb.config;
 
 import java.util.Locale;
+import java.util.StringJoiner;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/3/15
- */
 public class InfluxdbSourceConfig extends InfluxdbConfig {
     private static final long serialVersionUID = 1L;
 
@@ -96,26 +91,14 @@ public class InfluxdbSourceConfig extends InfluxdbConfig {
 
     @Override
     public String toString() {
-        return "InfluxdbSourceConfig{"
-                + "where='"
-                + where
-                + '\''
-                + ", customSql='"
-                + customSql
-                + '\''
-                + ", splitPk='"
-                + splitPk
-                + '\''
-                + ", queryTimeOut="
-                + queryTimeOut
-                + ", fetchSize="
-                + fetchSize
-                + ", epoch='"
-                + epoch
-                + '\''
-                + ", format='"
-                + format
-                + '\''
-                + '}';
+        return new StringJoiner(", ", InfluxdbSourceConfig.class.getSimpleName() + "[", "]")
+                .add("where='" + where + "'")
+                .add("customSql='" + customSql + "'")
+                .add("splitPk='" + splitPk + "'")
+                .add("queryTimeOut=" + queryTimeOut)
+                .add("fetchSize=" + fetchSize)
+                .add("epoch='" + epoch + "'")
+                .add("format='" + format + "'")
+                .toString();
     }
 }

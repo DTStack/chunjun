@@ -20,11 +20,6 @@ package com.dtstack.chunjun.connector.sqlservercdc.options;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * Date: 2021/05/06 Company: www.dtstack.com
- *
- * @author shifang
- */
 public class SqlServerCdcOptions {
 
     public static final ConfigOption<String> USERNAME =

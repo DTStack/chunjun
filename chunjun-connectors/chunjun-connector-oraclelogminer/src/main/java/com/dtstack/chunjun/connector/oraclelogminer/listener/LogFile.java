@@ -19,11 +19,8 @@ package com.dtstack.chunjun.connector.oraclelogminer.listener;
 
 import java.math.BigInteger;
 import java.util.Objects;
+import java.util.StringJoiner;
 
-/**
- * @author jiangbo
- * @date 2020/3/31
- */
 public class LogFile {
 
     private String fileName;
@@ -35,7 +32,7 @@ public class LogFile {
     private Long thread;
 
     /**
-     * 日志文件状态 https://docs.oracle.com/cd/B12037_01/server.101/b10755/dynviews_1132.htm
+     * <a href="https://docs.oracle.com/cd/B12037_01/server.101/b10755/dynviews_1132.htm">日志文件状态</a>
      * V$LOGMNR_LOGS里的status
      */
     private int status;
@@ -107,25 +104,6 @@ public class LogFile {
     }
 
     @Override
-    public String toString() {
-        return "LogFile{"
-                + "fileName='"
-                + fileName
-                + '\''
-                + ", firstChange="
-                + firstChange
-                + ", nextChange="
-                + nextChange
-                + ", thread="
-                + thread
-                + ", bytes="
-                + bytes
-                + ", type="
-                + type
-                + '}';
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -146,5 +124,18 @@ public class LogFile {
     @Override
     public int hashCode() {
         return Objects.hash(fileName, firstChange, nextChange, thread, bytes);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", LogFile.class.getSimpleName() + "[", "]")
+                .add("fileName='" + fileName + "'")
+                .add("firstChange=" + firstChange)
+                .add("nextChange=" + nextChange)
+                .add("thread=" + thread)
+                .add("status=" + status)
+                .add("type='" + type + "'")
+                .add("bytes=" + bytes)
+                .toString();
     }
 }

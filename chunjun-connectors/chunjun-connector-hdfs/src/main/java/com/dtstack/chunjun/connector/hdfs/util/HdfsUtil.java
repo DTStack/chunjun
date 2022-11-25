@@ -314,15 +314,6 @@ public class HdfsUtil {
         return str.toString();
     }
 
-    /**
-     * createRowConverter
-     *
-     * @param useAbstractBaseColumn
-     * @param fileType
-     * @param fieldConfList
-     * @param converter
-     * @return
-     */
     public static AbstractRowConverter createRowConverter(
             boolean useAbstractBaseColumn,
             String fileType,

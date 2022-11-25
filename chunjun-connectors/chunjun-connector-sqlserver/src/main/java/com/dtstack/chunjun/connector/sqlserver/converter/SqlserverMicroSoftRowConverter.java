@@ -35,14 +35,6 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/**
- * Company：www.dtstack.com
- *
- * <p>** sql task currently only supports Microsoft driver **
- *
- * @author shitou
- * @date 2021/8/16
- */
 public class SqlserverMicroSoftRowConverter extends JdbcRowConverter {
 
     public SqlserverMicroSoftRowConverter(RowType rowType) {

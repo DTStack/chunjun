@@ -19,10 +19,10 @@
 package com.dtstack.chunjun.connector.oceanbasecdc.converter;
 
 import com.dtstack.chunjun.connector.oceanbasecdc.entity.OceanBaseCdcEventRow;
+import com.dtstack.chunjun.connector.oceanbasecdc.format.TimestampFormat;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 
-import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.RowData;

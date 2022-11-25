@@ -45,11 +45,6 @@ import java.util.regex.Matcher;
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.REDIS_DEFAULT_PORT;
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.REDIS_HOST_PATTERN;
 
-/**
- * Utilities for redis database connection
- *
- * @author jiangbo @Company: www.dtstack.com
- */
 public class RedisSyncClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(RedisSyncClient.class);

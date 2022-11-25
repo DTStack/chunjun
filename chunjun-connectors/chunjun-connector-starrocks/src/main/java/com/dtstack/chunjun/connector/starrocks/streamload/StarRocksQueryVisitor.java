@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.starrocks.streamload;
 
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.connection.StarRocksJdbcConnectionOptions;
 import com.dtstack.chunjun.connector.starrocks.connection.StarRocksJdbcConnectionProvider;
 
@@ -45,15 +45,15 @@ public class StarRocksQueryVisitor implements Serializable {
     private final String database;
     private final String table;
 
-    public StarRocksQueryVisitor(StarRocksConf starRocksConf) {
+    public StarRocksQueryVisitor(StarRocksConfig starRocksConfig) {
         StarRocksJdbcConnectionOptions jdbcOptions =
                 new StarRocksJdbcConnectionOptions(
-                        starRocksConf.getUrl(),
-                        starRocksConf.getUsername(),
-                        starRocksConf.getPassword());
+                        starRocksConfig.getUrl(),
+                        starRocksConfig.getUsername(),
+                        starRocksConfig.getPassword());
         this.jdbcConnProvider = new StarRocksJdbcConnectionProvider(jdbcOptions);
-        this.database = starRocksConf.getDatabase();
-        this.table = starRocksConf.getTable();
+        this.database = starRocksConfig.getDatabase();
+        this.table = starRocksConfig.getTable();
     }
 
     public List<Map<String, Object>> getTableColumnsMetaData() {

@@ -25,7 +25,7 @@ import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
 import com.dtstack.chunjun.enums.CacheType;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConf;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;

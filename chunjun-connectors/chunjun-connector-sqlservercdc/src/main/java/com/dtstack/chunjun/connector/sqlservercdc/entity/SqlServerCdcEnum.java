@@ -22,11 +22,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * Date: 2019/12/05 Company: www.dtstack.com
- *
- * @author tudou
- */
 public enum SqlServerCdcEnum {
 
     /** 操作未知 */

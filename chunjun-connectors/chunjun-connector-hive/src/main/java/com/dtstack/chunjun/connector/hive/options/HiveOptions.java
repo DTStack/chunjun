@@ -23,11 +23,6 @@ import com.dtstack.chunjun.connector.hive.enums.PartitionEnum;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * Date: 2021/06/24 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HiveOptions extends HdfsOptions {
     public static final ConfigOption<String> JDBC_URL =
             ConfigOptions.key("url").stringType().noDefaultValue().withDescription("hive jdbc url");

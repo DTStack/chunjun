@@ -21,8 +21,8 @@ package com.dtstack.chunjun.connector.mongodb.table;
 import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
 import com.dtstack.chunjun.connector.mongodb.conf.MongoWriteConf;
 import com.dtstack.chunjun.connector.mongodb.table.options.MongoClientOptions;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
-import com.dtstack.chunjun.lookup.conf.LookupConfFactory;
+import com.dtstack.chunjun.lookup.config.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfFactory;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;

@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.oraclelogminer.inputformat;
 
-import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
+import com.dtstack.chunjun.connector.oraclelogminer.config.LogMinerConfig;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.OracleInfo;
 import com.dtstack.chunjun.connector.oraclelogminer.listener.LogMinerConnection;
 import com.dtstack.chunjun.connector.oraclelogminer.util.SqlUtil;
@@ -46,10 +46,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * @author jiangbo
- * @date 2019/12/16
- */
 public class OracleLogMinerInputFormatBuilder
         extends BaseRichInputFormatBuilder<OracleLogMinerInputFormat> {
 
@@ -57,9 +53,9 @@ public class OracleLogMinerInputFormatBuilder
         super(new OracleLogMinerInputFormat());
     }
 
-    public void setLogMinerConfig(LogMinerConf logMinerConf) {
-        super.setConfig(logMinerConf);
-        format.logMinerConf = logMinerConf;
+    public void setLogMinerConfig(LogMinerConfig logMinerConfig) {
+        super.setConfig(logMinerConfig);
+        format.logMinerConfig = logMinerConfig;
     }
 
     public void setRowConverter(AbstractCDCRowConverter rowConverter) {
@@ -68,7 +64,7 @@ public class OracleLogMinerInputFormatBuilder
 
     @Override
     protected void checkFormat() {
-        LogMinerConf config = format.logMinerConf;
+        LogMinerConfig config = format.logMinerConfig;
         StringBuilder sb = new StringBuilder(256);
         if (StringUtils.isBlank(config.getJdbcUrl())) {
             sb.append("No jdbc URL supplied;\n");
@@ -136,27 +132,27 @@ public class OracleLogMinerInputFormatBuilder
             }
         }
 
-        LogMinerConf logMinerConf = format.logMinerConf;
+        LogMinerConfig logMinerConfig = format.logMinerConfig;
 
-        if (logMinerConf.getParallelism() > 1) {
+        if (logMinerConfig.getParallelism() > 1) {
             sb.append(
                             "logMiner can not support readerChannel bigger than 1, current readerChannel is [")
-                    .append(logMinerConf.getParallelism())
+                    .append(logMinerConfig.getParallelism())
                     .append("];\n");
         }
 
         ClassUtil.forName(config.getDriverName(), getClass().getClassLoader());
         try (Connection connection =
-                        RetryUtil.executeWithRetry(
-                                () ->
-                                        DriverManager.getConnection(
-                                                config.getJdbcUrl(),
-                                                config.getUsername(),
-                                                config.getPassword()),
-                                LogMinerConnection.RETRY_TIMES,
-                                LogMinerConnection.SLEEP_TIME,
-                                false);
-                Statement statement = connection.createStatement()) {
+                     RetryUtil.executeWithRetry(
+                             () ->
+                                     DriverManager.getConnection(
+                                             config.getJdbcUrl(),
+                                             config.getUsername(),
+                                             config.getPassword()),
+                             LogMinerConnection.RETRY_TIMES,
+                             LogMinerConnection.SLEEP_TIME,
+                             false);
+             Statement statement = connection.createStatement()) {
             statement.setQueryTimeout(config.getQueryTimeout().intValue());
 
             OracleInfo oracleInfo = LogMinerConnection.getOracleInfo(connection);
@@ -273,7 +269,7 @@ public class OracleLogMinerInputFormatBuilder
 
             rs.close();
 
-            if (format.logMinerConf.getIoThreads() > 3) {
+            if (format.logMinerConfig.getIoThreads() > 3) {
                 sb.append("logMinerConfig param ioThreads must less than " + 3);
             }
 
@@ -300,10 +296,7 @@ public class OracleLogMinerInputFormatBuilder
 
         // 10以下数据源不支持
         if (oracleInfo.getVersion() < 10) {
-            sb.append(
-                    "we not support "
-                            + oracleInfo.getVersion()
-                            + ". we only support versions greater than or equal to oracle10 \n");
+            sb.append("we not support ").append(oracleInfo.getVersion()).append(". we only support versions greater than or equal to oracle10 \n");
         }
     }
 
@@ -317,15 +310,9 @@ public class OracleLogMinerInputFormatBuilder
             // 格式是pdb.schema.table 或者schema.table
             if (tables.length != 2 && tables.length != 3) {
                 if (isCdb) {
-                    sb.append(
-                            "The monitored table "
-                                    + tableWithPdb
-                                    + " does not conform to the specification.，The correct format is pdbName.schema.table \n ");
+                    sb.append("The monitored table ").append(tableWithPdb).append(" does not conform to the specification.，The correct format is pdbName.schema.table \n ");
                 } else {
-                    sb.append(
-                            "The monitored table "
-                                    + tableWithPdb
-                                    + " does not conform to the specification.，The correct format is schema.table \n ");
+                    sb.append("The monitored table ").append(tableWithPdb).append(" does not conform to the specification.，The correct format is schema.table \n ");
                 }
             }
         }

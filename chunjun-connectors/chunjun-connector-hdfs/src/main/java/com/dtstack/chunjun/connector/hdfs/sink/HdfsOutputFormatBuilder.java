@@ -25,11 +25,6 @@ import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * Date: 2021/06/18 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsOutputFormatBuilder extends BaseRichOutputFormatBuilder<BaseHdfsOutputFormat> {
 
     public HdfsOutputFormatBuilder(BaseHdfsOutputFormat format) {
@@ -37,18 +32,14 @@ public class HdfsOutputFormatBuilder extends BaseRichOutputFormatBuilder<BaseHdf
     }
 
     public static HdfsOutputFormatBuilder newBuild(String type) {
-        BaseHdfsOutputFormat format;
         switch (FileType.getByName(type)) {
             case ORC:
-                format = new HdfsOrcOutputFormat();
-                break;
+                return new HdfsOutputFormatBuilder(new HdfsOrcOutputFormat());
             case PARQUET:
-                format = new HdfsParquetOutputFormat();
-                break;
+                return new HdfsOutputFormatBuilder(new HdfsParquetOutputFormat());
             default:
-                format = new HdfsTextOutputFormat();
+                return new HdfsOutputFormatBuilder(new HdfsTextOutputFormat());
         }
-        return new HdfsOutputFormatBuilder(format);
     }
 
     public void setHdfsConf(HdfsConfig hdfsConfig) {

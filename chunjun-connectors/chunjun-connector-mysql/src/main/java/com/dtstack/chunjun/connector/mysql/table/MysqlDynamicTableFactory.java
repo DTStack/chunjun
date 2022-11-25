@@ -69,21 +69,11 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
         return jdbcConf;
     }
 
-    /**
-     * 获取JDBC插件的具体inputFormatBuilder
-     *
-     * @return JdbcInputFormatBuilder
-     */
     @Override
     protected JdbcInputFormatBuilder getInputFormatBuilder() {
         return new JdbcInputFormatBuilder(new JdbcInputFormat());
     }
 
-    /**
-     * 获取JDBC插件的具体outputFormatBuilder
-     *
-     * @return JdbcOutputFormatBuilder
-     */
     @Override
     protected JdbcOutputFormatBuilder getOutputFormatBuilder() {
         return new JdbcOutputFormatBuilder(new JdbcOutputFormat());

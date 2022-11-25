@@ -27,11 +27,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * ZooKeeper Util类
- *
- * @author kunni@dtstack.com
- */
 public class ZkHelper {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZkHelper.class);

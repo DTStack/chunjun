@@ -21,10 +21,6 @@ package com.dtstack.chunjun.util;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * @author jiangbo
- * @date 2020/3/12
- */
 public class Md5UtilTest {
 
     @Test

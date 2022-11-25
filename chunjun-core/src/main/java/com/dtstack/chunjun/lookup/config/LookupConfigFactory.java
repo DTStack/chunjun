@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.lookup.conf;
+package com.dtstack.chunjun.lookup.config;
 
 import org.apache.flink.configuration.ReadableConfig;
 
@@ -30,14 +30,9 @@ import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/27
- */
-public class LookupConfFactory {
+public class LookupConfigFactory {
 
-    public static LookupConfig createLookupConf(ReadableConfig readableConfig) {
+    public static LookupConfig createLookupConfig(ReadableConfig readableConfig) {
         LookupConfig lookupConfig = new LookupConfig();
         lookupConfig
                 .setPeriod(readableConfig.get(LOOKUP_CACHE_PERIOD))

@@ -18,12 +18,8 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.entity;
 
-/**
- * Date: 2021/08/13 Company: www.dtstack.com
- *
- * @author dujie
- *     <p>logminer监听的oracle数据源信息
- */
+import java.util.StringJoiner;
+
 public class OracleInfo {
 
     /** 数据库版本 * */
@@ -77,16 +73,11 @@ public class OracleInfo {
 
     @Override
     public String toString() {
-        return "OracleInfo{"
-                + "version="
-                + version
-                + ", isRacMode="
-                + isRacMode
-                + ", isCdbMode="
-                + isCdbMode
-                + ", encoding='"
-                + encoding
-                + '\''
-                + '}';
+        return new StringJoiner(", ", OracleInfo.class.getSimpleName() + "[", "]")
+                .add("version=" + version)
+                .add("isRacMode=" + isRacMode)
+                .add("isCdbMode=" + isCdbMode)
+                .add("encoding='" + encoding + "'")
+                .toString();
     }
 }

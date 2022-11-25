@@ -52,7 +52,6 @@ import static com.dtstack.chunjun.format.protobuf.util.PbReflectUtil.getClassNam
 import static com.dtstack.chunjun.format.protobuf.util.PbReflectUtil.getDescriptorByMessageClassName;
 import static com.dtstack.chunjun.format.protobuf.util.PbReflectUtil.getMapTypeTuple;
 
-/** @author liuliu 2022/4/26 */
 public class RowDataToPbConverter {
 
     /** proto class full name example as com.dtstack.messageOutClass */

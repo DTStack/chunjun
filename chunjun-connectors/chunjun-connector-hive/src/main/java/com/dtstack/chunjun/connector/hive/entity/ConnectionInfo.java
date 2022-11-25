@@ -19,12 +19,8 @@ package com.dtstack.chunjun.connector.hive.entity;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.StringJoiner;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class ConnectionInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -76,21 +72,12 @@ public class ConnectionInfo implements Serializable {
 
     @Override
     public String toString() {
-        return "ConnectionInfo{"
-                + "jdbcUrl='"
-                + jdbcUrl
-                + '\''
-                + ", username='"
-                + username
-                + '\''
-                + ", password='"
-                + password
-                + '\''
-                + ", timeout='"
-                + timeout
-                + '\''
-                + ", hiveConf="
-                + hiveConf
-                + '}';
+        return new StringJoiner(", ", ConnectionInfo.class.getSimpleName() + "[", "]")
+                .add("jdbcUrl='" + jdbcUrl + "'")
+                .add("username='" + username + "'")
+                .add("password='" + password + "'")
+                .add("timeout=" + timeout)
+                .add("hiveConf=" + hiveConf)
+                .toString();
     }
 }

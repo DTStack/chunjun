@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.sqlserver.converter;
 
 import com.dtstack.chunjun.config.CommonConfig;
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -53,12 +53,6 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
-/**
- * Company：www.dtstack.com
- *
- * @author shitou
- * @date 2021/8/12 11:24
- */
 public class SqlserverJtdsColumnConverter extends JdbcColumnConverter {
 
     public SqlserverJtdsColumnConverter(RowType rowType, CommonConfig commonConf) {
@@ -68,10 +62,10 @@ public class SqlserverJtdsColumnConverter extends JdbcColumnConverter {
     @Override
     @SuppressWarnings("unchecked")
     public RowData toInternal(ResultSet resultSet) throws Exception {
-        List<FieldConf> fieldConfList = commonConf.getColumn();
+        List<FieldConfig> fieldConfList = commonConfig.getColumn();
         ColumnRowData result = new ColumnRowData(fieldConfList.size());
         int converterIndex = 0;
-        for (FieldConf fieldConf : fieldConfList) {
+        for (FieldConfig fieldConf : fieldConfList) {
             AbstractBaseColumn baseColumn = null;
             if (StringUtils.isBlank(fieldConf.getValue())) {
                 Object field = resultSet.getObject(converterIndex + 1);

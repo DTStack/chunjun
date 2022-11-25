@@ -22,7 +22,7 @@ import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
 import com.dtstack.chunjun.connector.mongodb.table.lookup.MongoAllTableFunction;
 import com.dtstack.chunjun.connector.mongodb.table.lookup.MongoLruTableFunction;
 import com.dtstack.chunjun.enums.CacheType;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConf;
 import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelTableFunctionProvider;
 

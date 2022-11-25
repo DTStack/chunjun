@@ -35,13 +35,11 @@ import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -106,9 +104,8 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
 
         // 2.参数校验
         helper.validateExcept(VERTX_PREFIX, DRUID_PREFIX);
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        validateConfigOptions(config, physicalSchema);
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+        validateConfigOptions(config, resolvedSchema);
         // 3.封装参数
         JdbcDialect jdbcDialect = getDialect();
 
@@ -121,7 +118,7 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
                         helper.getOptions(),
                         context.getObjectIdentifier().getObjectName(),
                         druidConf),
-                physicalSchema,
+                resolvedSchema,
                 jdbcDialect,
                 new DorisInputFormatBuilder(dorisInputFormat));
     }
@@ -140,7 +137,7 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
     }
 
     @Override
-    protected void validateConfigOptions(ReadableConfig config, TableSchema tableSchema) {
+    protected void validateConfigOptions(ReadableConfig config, ResolvedSchema tableSchema) {
         String url = config.get(DorisOptions.URL);
         List<String> feNodes = config.get(DorisOptions.FENODES);
 

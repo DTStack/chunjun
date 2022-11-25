@@ -23,7 +23,7 @@ import com.dtstack.chunjun.connector.redis.connection.RedisSyncClient;
 import com.dtstack.chunjun.connector.redis.util.RedisUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConf;
 
 import org.apache.flink.table.data.GenericRowData;
 

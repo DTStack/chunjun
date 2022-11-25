@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.oceanbasecdc.conf;
+package com.dtstack.chunjun.connector.oceanbasecdc.config;
 
 import com.dtstack.chunjun.config.CommonConfig;
 
 import com.oceanbase.clogproxy.client.config.ObReaderConfig;
 
-public class OceanBaseCdcConf extends CommonConfig {
+public class OceanBaseCdcConfig extends CommonConfig {
     private String logProxyHost;
     private int logProxyPort;
     private ObReaderConfig obReaderConfig;

@@ -38,11 +38,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Date: 2021/06/09 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     private static final int NEWLINE = 10;

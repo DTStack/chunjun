@@ -29,11 +29,6 @@ import org.apache.flink.table.functions.TableFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * 自定义函数管理类 Reason: Date: 2017/2/21 Company: www.dtstack.com
- *
- * @author xuchao
- */
 public class FunctionManager {
     private static final Logger logger = LoggerFactory.getLogger(FunctionManager.class);
 

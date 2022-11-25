@@ -26,12 +26,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/3/9
- */
 public class InfluxdbRawTypeConverter {
 
     public static DataType apply(String type) {

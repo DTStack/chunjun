@@ -15,19 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.chunjun.connector.hive.conf;
+package com.dtstack.chunjun.connector.hive.config;
 
 import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hive.entity.TableInfo;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HiveConfig extends HdfsConfig {
 
     private String jdbcUrl;
@@ -151,43 +147,20 @@ public class HiveConfig extends HdfsConfig {
 
     @Override
     public String toString() {
-        return "HiveConf{"
-                + "jdbcUrl='"
-                + jdbcUrl
-                + '\''
-                + ", username='"
-                + username
-                + '\''
-                + ", password='"
-                + password
-                + '\''
-                + ", partitionType='"
-                + partitionType
-                + '\''
-                + ", partition='"
-                + partition
-                + '\''
-                + ", tablesColumn='"
-                + tablesColumn
-                + '\''
-                + ", distributeTable='"
-                + distributeTable
-                + '\''
-                + ", schema='"
-                + schema
-                + '\''
-                + ", analyticalRules='"
-                + analyticalRules
-                + '\''
-                + ", distributeTableMapping="
-                + distributeTableMapping
-                + ", tableInfos="
-                + tableInfos
-                + ", tableName='"
-                + tableName
-                + '\''
-                + ", autoCreateTable="
-                + autoCreateTable
-                + '}';
+        return new StringJoiner(", ", HiveConfig.class.getSimpleName() + "[", "]")
+                .add("jdbcUrl='" + jdbcUrl + "'")
+                .add("username='" + username + "'")
+                .add("password='" + password + "'")
+                .add("partitionType='" + partitionType + "'")
+                .add("partition='" + partition + "'")
+                .add("tablesColumn='" + tablesColumn + "'")
+                .add("distributeTable='" + distributeTable + "'")
+                .add("schema='" + schema + "'")
+                .add("analyticalRules='" + analyticalRules + "'")
+                .add("distributeTableMapping=" + distributeTableMapping)
+                .add("tableInfos=" + tableInfos)
+                .add("tableName='" + tableName + "'")
+                .add("autoCreateTable=" + autoCreateTable)
+                .toString();
     }
 }

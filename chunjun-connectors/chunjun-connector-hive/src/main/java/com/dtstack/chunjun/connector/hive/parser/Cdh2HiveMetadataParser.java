@@ -23,11 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class Cdh2HiveMetadataParser extends AbstractHiveMetadataParser {
 
     @Override

@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.source;
 
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsRawTypeConverter;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
@@ -30,15 +30,10 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsSourceFactory extends SourceFactory {
     private final HdfsConfig hdfsConfig;
 
-    public HdfsSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
+    public HdfsSourceFactory(SyncConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         hdfsConfig =
                 GsonUtil.GSON.fromJson(

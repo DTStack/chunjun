@@ -57,11 +57,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * build prepare proxy, proxy implements FieldNamedPreparedStatement. it support to build
  * preparestmt and manager it with cache.
- *
- * <p></>Company: www.dtstack.com
- *
- * @author xuchao
- * @date 2021-12-20
  */
 public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 

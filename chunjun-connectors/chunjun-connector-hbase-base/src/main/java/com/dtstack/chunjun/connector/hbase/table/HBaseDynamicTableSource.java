@@ -27,7 +27,7 @@ import com.dtstack.chunjun.connector.hbase.util.ScanBuilder;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConf;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import org.apache.flink.table.api.TableSchema;

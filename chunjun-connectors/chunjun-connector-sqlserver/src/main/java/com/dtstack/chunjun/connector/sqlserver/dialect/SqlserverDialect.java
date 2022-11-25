@@ -55,12 +55,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Company：www.dtstack.com
- *
- * @author shitou
- * @date 2021/5/17 11:24
- */
 public class SqlserverDialect implements JdbcDialect {
 
     private static final String SET_IDENTITY_INSERT_ON_SQL =

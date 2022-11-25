@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oceanbasecdc.inputformat;
 
-import com.dtstack.chunjun.connector.oceanbasecdc.conf.OceanBaseCdcConf;
+import com.dtstack.chunjun.connector.oceanbasecdc.config.OceanBaseCdcConfig;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
@@ -32,7 +32,7 @@ public class OceanBaseCdcInputFormatBuilder
         super(new OceanBaseCdcInputFormat());
     }
 
-    public void setOceanBaseCdcConf(OceanBaseCdcConf cdcConf) {
+    public void setOceanBaseCdcConf(OceanBaseCdcConfig cdcConf) {
         super.setConfig(cdcConf);
         this.format.setCdcConf(cdcConf);
     }

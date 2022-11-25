@@ -23,11 +23,6 @@ import org.junit.Test;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class OracleRawTypeConverterTest {
 
     @Test

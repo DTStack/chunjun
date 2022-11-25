@@ -22,11 +22,6 @@ import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.chunjun.connector.saphana.dialect.SaphanaDialect;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class SaphanaDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** 通过该值查找具体插件 */

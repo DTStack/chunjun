@@ -27,20 +27,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class PathConverterUtil {
     private static final Logger logger = LoggerFactory.getLogger(PathConverterUtil.class);
     private static final Pattern pat1 = Pattern.compile("\\$\\{.*?\\}");
     private static final String KEY_TABLE = "table";
 
-    /**
-     * @param path
-     * @return
-     */
     public static String regexByRules(
             Map<String, Object> output, String path, Map<String, String> distributeTableMapping) {
         try {

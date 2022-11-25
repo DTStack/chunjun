@@ -30,11 +30,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * @program: ChunJun
- * @author: wuren
- * @create: 2021/03/17
- */
 public class MysqlDialect implements JdbcDialect {
 
     @Override

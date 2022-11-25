@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.source;
 
-import com.dtstack.chunjun.config.SyncConf;
-import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.oraclelogminer.config.LogMinerConfig;
 import com.dtstack.chunjun.connector.oraclelogminer.converter.LogMinerColumnConverter;
 import com.dtstack.chunjun.connector.oraclelogminer.converter.LogMinerRowConverter;
 import com.dtstack.chunjun.connector.oraclelogminer.converter.OracleRawTypeConverter;
@@ -40,39 +40,39 @@ import org.apache.commons.lang3.StringUtils;
 
 public class OraclelogminerSourceFactory extends SourceFactory {
 
-    private final LogMinerConf logMinerConf;
+    private final LogMinerConfig logMinerConfig;
 
-    public OraclelogminerSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
+    public OraclelogminerSourceFactory(SyncConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        logMinerConf =
+        logMinerConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(config.getReader().getParameter()), LogMinerConf.class);
-        logMinerConf.setColumn(config.getReader().getFieldList());
+                        JsonUtil.toJson(config.getReader().getParameter()), LogMinerConfig.class);
+        logMinerConfig.setColumn(config.getReader().getFieldList());
         buildTableListenerRegex();
-        super.initCommonConf(logMinerConf);
+        super.initCommonConf(logMinerConfig);
     }
 
     private void buildTableListenerRegex() {
-        if (CollectionUtils.isEmpty(logMinerConf.getTable())) {
+        if (CollectionUtils.isEmpty(logMinerConfig.getTable())) {
             return;
         }
 
-        String tableListener = StringUtils.join(logMinerConf.getTable(), ",");
-        logMinerConf.setListenerTables(tableListener);
+        String tableListener = StringUtils.join(logMinerConfig.getTable(), ",");
+        logMinerConfig.setListenerTables(tableListener);
     }
 
     @Override
     public DataStream<RowData> createSource() {
         OracleLogMinerInputFormatBuilder builder = new OracleLogMinerInputFormatBuilder();
-        builder.setLogMinerConfig(logMinerConf);
+        builder.setLogMinerConfig(logMinerConfig);
         AbstractCDCRowConverter rowConverter;
         if (useAbstractBaseColumn) {
             rowConverter =
                     new LogMinerColumnConverter(
-                            logMinerConf.isPavingData(), logMinerConf.isSplit());
+                            logMinerConfig.isPavingData(), logMinerConfig.isSplit());
         } else {
             final RowType rowType =
-                    TableUtil.createRowType(logMinerConf.getColumn(), getRawTypeConverter());
+                    TableUtil.createRowType(logMinerConfig.getColumn(), getRawTypeConverter());
             rowConverter = new LogMinerRowConverter(rowType);
         }
         builder.setRowConverter(rowConverter);

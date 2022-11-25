@@ -32,8 +32,6 @@ import java.util.List;
 /**
  * Reflect all Builder#Set methods in the order of the fields in the Protobuf Message, then we can
  * set the values by index.
- *
- * @author liuliu 2022/4/26
  */
 public class PbMessageSetter extends PbMessageAdaptor {
 

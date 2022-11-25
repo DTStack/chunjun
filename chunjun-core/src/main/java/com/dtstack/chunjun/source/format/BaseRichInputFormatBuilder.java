@@ -27,10 +27,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Abstract specification for all the InputFormatBuilder implementation
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
  */
 public abstract class BaseRichInputFormatBuilder<T extends BaseRichInputFormat> {
 

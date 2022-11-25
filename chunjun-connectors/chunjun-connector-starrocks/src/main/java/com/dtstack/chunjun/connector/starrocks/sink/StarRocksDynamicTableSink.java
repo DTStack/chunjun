@@ -18,16 +18,16 @@
 
 package com.dtstack.chunjun.connector.starrocks.sink;
 
-import com.dtstack.chunjun.config.FieldConf;
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRowConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
-import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.types.RowKind;
 
 import java.util.Arrays;
@@ -36,14 +36,13 @@ import java.util.stream.Collectors;
 
 import static org.apache.flink.util.Preconditions.checkState;
 
-/** @author liuliu 2022/7/12 */
 public class StarRocksDynamicTableSink implements DynamicTableSink {
-    private final StarRocksConf sinkConf;
-    private final TableSchema physicalSchema;
+    private final StarRocksConfig sinkConfig;
+    private final ResolvedSchema resolvedSchema;
 
-    public StarRocksDynamicTableSink(StarRocksConf sinkConf, TableSchema physicalSchema) {
-        this.sinkConf = sinkConf;
-        this.physicalSchema = physicalSchema;
+    public StarRocksDynamicTableSink(StarRocksConfig sinkConfig, ResolvedSchema resolvedSchema) {
+        this.sinkConfig = sinkConfig;
+        this.resolvedSchema = resolvedSchema;
     }
 
     @Override
@@ -59,22 +58,23 @@ public class StarRocksDynamicTableSink implements DynamicTableSink {
 
     @Override
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
         StarRocksOutputFormatBuilder builder =
                 new StarRocksOutputFormatBuilder(new StarRocksOutputFormat());
 
-        sinkConf.setColumn(getFieldConfFromSchema());
+        sinkConfig.setColumn(getFieldConfigFromSchema());
         builder.setRowConverter(
-                new StarRocksRowConverter(rowType, Arrays.asList(physicalSchema.getFieldNames())));
-        builder.setStarRocksConf(sinkConf);
+                new StarRocksRowConverter(
+                        InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType()).toRowType(),
+                        Arrays.asList(resolvedSchema.getColumnNames().toArray(new String[0]))));
+        builder.setStarRocksConf(sinkConfig);
 
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction<>(builder.finish()), sinkConf.getParallelism());
+                new DtOutputFormatSinkFunction<>(builder.finish()), sinkConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new StarRocksDynamicTableSink(sinkConf, physicalSchema);
+        return new StarRocksDynamicTableSink(sinkConfig, resolvedSchema);
     }
 
     @Override
@@ -82,14 +82,14 @@ public class StarRocksDynamicTableSink implements DynamicTableSink {
         return "StarRocks Sink";
     }
 
-    private List<FieldConf> getFieldConfFromSchema() {
+    private List<FieldConfig> getFieldConfigFromSchema() {
 
-        return physicalSchema.getTableColumns().stream()
+        return resolvedSchema.getColumns().stream()
                 .map(
                         tableColumn -> {
-                            FieldConf fieldConf = new FieldConf();
+                            FieldConfig fieldConf = new FieldConfig();
                             fieldConf.setName(tableColumn.getName());
-                            fieldConf.setType(tableColumn.getType().getConversionClass().getName());
+                            fieldConf.setType(tableColumn.getDataType().getLogicalType().asSummaryString());
                             return fieldConf;
                         })
                 .collect(Collectors.toList());
@@ -98,7 +98,7 @@ public class StarRocksDynamicTableSink implements DynamicTableSink {
     private void validatePrimaryKey(ChangelogMode requestedMode) {
         checkState(
                 ChangelogMode.insertOnly().equals(requestedMode)
-                        || physicalSchema.getPrimaryKey().isPresent(),
+                        || resolvedSchema.getPrimaryKey().isPresent(),
                 "please declare primary key for sink table when query contains update/delete record.");
     }
 }

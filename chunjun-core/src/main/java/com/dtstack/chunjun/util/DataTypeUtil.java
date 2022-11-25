@@ -42,11 +42,6 @@ import java.util.regex.Pattern;
 import static org.apache.flink.table.api.DataTypes.DECIMAL;
 import static org.apache.flink.table.api.DataTypes.TIMESTAMP;
 
-/**
- * @program: flink.sql
- * @author: wuren
- * @create: 2020/07/09
- */
 public class DataTypeUtil {
 
     private static final Pattern COMPOSITE_TYPE_PATTERN = Pattern.compile("(.+?)<(.+)>");

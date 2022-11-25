@@ -33,13 +33,6 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * The builder of JdbcInputFormat
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInputFormat> {
 
     public JdbcInputFormatBuilder(JdbcInputFormat format) {

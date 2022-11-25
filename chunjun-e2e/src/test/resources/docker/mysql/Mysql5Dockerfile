@@ -17,7 +17,7 @@
 
 FROM mysql:5.7
 
-LABEL maintainer="www.dtstack.com"
+LABEL maintainer="chunjun@github.com"
 
 ENV LANG=C.UTF-8
 

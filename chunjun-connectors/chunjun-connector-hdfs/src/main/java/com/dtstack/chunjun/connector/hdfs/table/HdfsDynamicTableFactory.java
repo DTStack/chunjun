@@ -27,23 +27,17 @@ import com.dtstack.chunjun.table.options.SinkOptions;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Date: 2021/06/17 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     public static final String IDENTIFIER = "hdfs-x";
@@ -92,15 +86,14 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         helper.validateExcept("properties.");
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        HdfsConfig hdfsConfig = getHdfsConf(config);
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+        HdfsConfig hdfsConfig = getHdfsConfig(config);
         List<String> partitionKeys = context.getCatalogTable().getPartitionKeys();
         hdfsConfig.setParallelism(config.get(SourceOptions.SCAN_PARALLELISM));
         hdfsConfig.setHadoopConfig(
                 HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
 
-        return new HdfsDynamicTableSource(hdfsConfig, physicalSchema, partitionKeys);
+        return new HdfsDynamicTableSource(hdfsConfig, resolvedSchema, partitionKeys);
     }
 
     @Override
@@ -114,23 +107,23 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         helper.validateExcept("properties.");
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        HdfsConfig hdfsConfig = getHdfsConf(config);
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+        HdfsConfig hdfsConfig = getHdfsConfig(config);
         hdfsConfig.setParallelism(config.get(SinkOptions.SINK_PARALLELISM));
         hdfsConfig.setHadoopConfig(
                 HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
 
-        return new HdfsDynamicTableSink(hdfsConfig, physicalSchema);
+        return new HdfsDynamicTableSink(hdfsConfig, resolvedSchema);
     }
 
     /**
      * initialize HdfsConf
      *
      * @param config
+     *
      * @return
      */
-    private HdfsConfig getHdfsConf(ReadableConfig config) {
+    private HdfsConfig getHdfsConfig(ReadableConfig config) {
         HdfsConfig hdfsConfig = new HdfsConfig();
 
         hdfsConfig.setPath(config.get(BaseFileOptions.PATH));

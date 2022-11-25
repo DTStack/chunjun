@@ -31,10 +31,6 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author jiangbo
- * @date 2019/6/5
- */
 public class BaseMetric {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
