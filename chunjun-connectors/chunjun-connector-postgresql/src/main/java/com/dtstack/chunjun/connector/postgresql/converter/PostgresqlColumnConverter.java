@@ -76,12 +76,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/4/14
- */
 public class PostgresqlColumnConverter extends JdbcColumnConverter {
 
     private List<String> fieldTypeList;

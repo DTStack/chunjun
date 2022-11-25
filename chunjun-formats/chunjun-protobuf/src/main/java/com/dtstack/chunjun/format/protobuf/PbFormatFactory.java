@@ -42,7 +42,6 @@ import org.apache.flink.table.types.logical.RowType;
 import java.util.HashSet;
 import java.util.Set;
 
-/** @author liuliu 2022/4/8 */
 public class PbFormatFactory implements DeserializationFormatFactory, SerializationFormatFactory {
 
     public static final String IDENTIFIER = "protobuf-x";

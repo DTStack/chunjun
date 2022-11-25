@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/** @author liuliu 2022/7/20 */
 public class StarRocksUtil {
 
     public static String getBasicAuthHeader(String username, String password) {

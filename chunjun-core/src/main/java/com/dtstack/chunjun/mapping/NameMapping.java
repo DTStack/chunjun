@@ -42,12 +42,6 @@ import static com.dtstack.chunjun.constants.CDCConstantValue.DATABASE;
 import static com.dtstack.chunjun.constants.CDCConstantValue.SCHEMA;
 import static com.dtstack.chunjun.constants.CDCConstantValue.TABLE;
 
-/**
- * 名称匹配.
- *
- * @author shitou
- * @date 2021/12/15
- */
 public class NameMapping implements Mapping<RowData, RowData>, Serializable {
 
     public static final long serialVersionUID = 1L;

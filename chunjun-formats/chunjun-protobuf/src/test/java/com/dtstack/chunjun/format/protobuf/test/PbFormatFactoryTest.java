@@ -42,7 +42,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import static com.dtstack.chunjun.format.protobuf.PbFormatOptions.MESSAGE_CLASS_NAME;
 
-/** @author liuliu 2022/5/4 */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({PbFormatFactory.class})
 public class PbFormatFactoryTest {

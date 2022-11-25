@@ -18,11 +18,6 @@
 
 package com.dtstack.chunjun.connector.redis.enums;
 
-/**
- * Operation type of redis database
- *
- * @author jiangbo @Company: www.dtstack.com
- */
 public enum RedisDataMode {
 
     /** reader mode */

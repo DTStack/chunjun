@@ -43,11 +43,6 @@ import java.util.Set;
 /**
  * base on row data info to build preparedStatement. row data info include rowkind(which is to set
  * which sql kind to use )
- *
- * <p>Company: www.dtstack.com
- *
- * @author xuchao
- * @date 2021-12-20
  */
 public class DynamicPreparedStmt {
 

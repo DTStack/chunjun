@@ -38,11 +38,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * @program chunjun
- * @author: wuren
- * @create: 2021/04/22
- */
 public class PostgresqlDialect implements JdbcDialect {
 
     private static final String DIALECT_NAME = "PostgreSQL";

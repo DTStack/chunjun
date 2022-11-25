@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.starrocks.streamload;
 
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
@@ -40,7 +40,7 @@ public class StreamLoadManager {
     final LinkedBlockingDeque<StarRocksSinkBufferEntity> flushQueue = new LinkedBlockingDeque<>(1);
     private final Map<String, StarRocksSinkBufferEntity> bufferMap = new ConcurrentHashMap<>();
 
-    private final StarRocksConf starRocksConf;
+    private final StarRocksConfig starRocksConfig;
     private final boolean __opAutoProjectionInJson;
 
     private final StarRocksQueryVisitor starrocksQueryVisitor;
@@ -51,13 +51,13 @@ public class StreamLoadManager {
 
     private final Logger LOG = LoggerFactory.getLogger(StreamLoadManager.class);
 
-    public StreamLoadManager(StarRocksConf starRocksConf) {
-        this.starRocksConf = starRocksConf;
-        this.starrocksQueryVisitor = new StarRocksQueryVisitor(starRocksConf);
+    public StreamLoadManager(StarRocksConfig starRocksConfig) {
+        this.starRocksConfig = starRocksConfig;
+        this.starrocksQueryVisitor = new StarRocksQueryVisitor(starRocksConfig);
 
         String version = starrocksQueryVisitor.getStarRocksVersion();
         __opAutoProjectionInJson = version.length() > 0 && !version.trim().startsWith("1.");
-        this.starrocksStreamLoadVisitor = new StarRocksStreamLoadVisitor(starRocksConf);
+        this.starrocksStreamLoadVisitor = new StarRocksStreamLoadVisitor(starRocksConfig);
     }
 
     public void write(String tableIdentify, List<String> columnList, List<Map<String, Object>> data)
@@ -79,9 +79,9 @@ public class StreamLoadManager {
                             });
             bufferEntity.addToBuffer(
                     JSON.toJSONString(data).getBytes(StandardCharsets.UTF_8), data.size());
-            if (bufferEntity.getBatchCount() >= starRocksConf.getLoadConf().getBatchMaxRows()
+            if (bufferEntity.getBatchCount() >= starRocksConfig.getLoadConf().getBatchMaxRows()
                     || bufferEntity.getBatchSize()
-                            >= starRocksConf.getLoadConf().getBatchMaxSize()) {
+                            >= starRocksConfig.getLoadConf().getBatchMaxSize()) {
                 LOG.info(
                         String.format(
                                 "StarRocks buffer Sinking triggered: tableIdentify[%s] rows[%d] label[%s].",
@@ -96,7 +96,7 @@ public class StreamLoadManager {
     }
 
     public void validateTableStructure(StarRocksSinkBufferEntity entity) {
-        if (starRocksConf.getLoadConf().getHeadProperties().containsKey("columns")) {
+        if (starRocksConfig.getLoadConf().getHeadProperties().containsKey("columns")) {
             return;
         }
         List<Map<String, Object>> rows = starrocksQueryVisitor.getTableColumnsMetaData();
@@ -170,7 +170,7 @@ public class StreamLoadManager {
     void offer(StarRocksSinkBufferEntity bufferEntity) throws InterruptedException {
         if (!flushQueue.offer(
                 bufferEntity,
-                starRocksConf.getLoadConf().getQueueOfferTimeoutMs(),
+                starRocksConfig.getLoadConf().getQueueOfferTimeoutMs(),
                 TimeUnit.MILLISECONDS)) {
             throw new RuntimeException("Timeout while offering data to flushQueue");
         }
@@ -224,7 +224,7 @@ public class StreamLoadManager {
     private boolean asyncFlush() throws Exception {
         StarRocksSinkBufferEntity flushData =
                 flushQueue.poll(
-                        starRocksConf.getLoadConf().getQueuePollTimeoutMs(), TimeUnit.MILLISECONDS);
+                        starRocksConfig.getLoadConf().getQueuePollTimeoutMs(), TimeUnit.MILLISECONDS);
         if (flushData == null || 0 == flushData.getBatchCount()) {
             return true;
         }
@@ -236,7 +236,7 @@ public class StreamLoadManager {
                         flushData.getBatchCount(),
                         flushData.getBatchSize(),
                         flushData.getLabel()));
-        for (int i = 0; i <= starRocksConf.getMaxRetries(); i++) {
+        for (int i = 0; i <= starRocksConfig.getMaxRetries(); i++) {
             try {
                 starrocksStreamLoadVisitor.doStreamLoad(flushData);
                 LOG.info(
@@ -245,7 +245,7 @@ public class StreamLoadManager {
                 break;
             } catch (Exception e) {
                 LOG.warn("Failed to flush batch data to StarRocks, retry times = {}", i, e);
-                if (i >= starRocksConf.getMaxRetries()) {
+                if (i >= starRocksConfig.getMaxRetries()) {
                     throw e;
                 }
                 if (e instanceof StarRocksStreamLoadFailedException

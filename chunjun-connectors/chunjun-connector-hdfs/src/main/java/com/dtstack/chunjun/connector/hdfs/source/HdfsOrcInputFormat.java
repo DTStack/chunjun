@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.source;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hdfs.InputSplit.HdfsOrcInputSplit;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -48,11 +48,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
 
     private static final String COMPLEX_FIELD_TYPE_SYMBOL_REGEX = ".*(<|>|\\{|}|[|]).*";
@@ -106,17 +101,14 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
 
         if (openKerberos) {
             ugi.doAs(
-                    new PrivilegedAction<Object>() {
-                        @Override
-                        public Object run() {
-                            try {
-                                init(orcSplit);
-                                openOrcReader(inputSplit);
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                            return null;
+                    (PrivilegedAction<Object>) () -> {
+                        try {
+                            init(orcSplit);
+                            openOrcReader(inputSplit);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
                         }
+                        return null;
                     });
         } else {
             init(orcSplit);
@@ -145,60 +137,51 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         fields = inspector.getAllStructFieldRefs();
     }
 
-    /**
-     * init hdfs orc inspector
-     *
-     * @param path orc file path
-     * @throws Exception
-     */
     private void init(Path path) throws Exception {
         OrcFile.ReaderOptions readerOptions = OrcFile.readerOptions(hadoopJobConf);
         readerOptions.filesystem(fs);
 
-        org.apache.hadoop.hive.ql.io.orc.Reader reader = OrcFile.createReader(path, readerOptions);
-        String typeStruct = reader.getObjectInspector().getTypeName();
-        LOG.info("orc typeStruct = {}", typeStruct);
+        try (org.apache.hadoop.hive.ql.io.orc.Reader reader = OrcFile.createReader(path, readerOptions)) {
+            String typeStruct = reader.getObjectInspector().getTypeName();
+            LOG.info("orc typeStruct = {}", typeStruct);
 
-        if (StringUtils.isEmpty(typeStruct)) {
-            throw new ChunJunRuntimeException("can't retrieve type struct from " + path);
+
+            if (StringUtils.isEmpty(typeStruct)) {
+                throw new ChunJunRuntimeException("can't retrieve type struct from " + path);
+            }
+
+            int startIndex = typeStruct.indexOf("<") + 1;
+            int endIndex = typeStruct.lastIndexOf(">");
+            typeStruct = typeStruct.substring(startIndex, endIndex);
+
+            if (typeStruct.matches(COMPLEX_FIELD_TYPE_SYMBOL_REGEX)) {
+                throw new ChunJunRuntimeException(
+                        "Field types such as array, map, and struct are not supported.");
+            }
+
+            List<String> columnList = parseColumnAndType(typeStruct);
+
+
+            fullColNames = new String[columnList.size()];
+            String[] fullColTypes = new String[columnList.size()];
+
+            for (int i = 0; i < columnList.size(); ++i) {
+                String[] temp = columnList.get(i).split(ConstantValue.COLON_SYMBOL);
+                fullColNames[i] = temp[0];
+                fullColTypes[i] = temp[1];
+            }
+
+            Properties p = new Properties();
+            p.setProperty("columns", StringUtils.join(fullColNames, ConstantValue.COMMA_SYMBOL));
+            p.setProperty("columns.types", StringUtils.join(fullColTypes, ConstantValue.COLON_SYMBOL));
+
+            OrcSerde orcSerde = new OrcSerde();
+            orcSerde.initialize(hadoopJobConf, p);
+
+            this.inspector = (StructObjectInspector) orcSerde.getObjectInspector();
         }
-
-        int startIndex = typeStruct.indexOf("<") + 1;
-        int endIndex = typeStruct.lastIndexOf(">");
-        typeStruct = typeStruct.substring(startIndex, endIndex);
-
-        if (typeStruct.matches(COMPLEX_FIELD_TYPE_SYMBOL_REGEX)) {
-            throw new ChunJunRuntimeException(
-                    "Field types such as array, map, and struct are not supported.");
-        }
-
-        List<String> columnList = parseColumnAndType(typeStruct);
-
-        fullColNames = new String[columnList.size()];
-        String[] fullColTypes = new String[columnList.size()];
-
-        for (int i = 0; i < columnList.size(); ++i) {
-            String[] temp = columnList.get(i).split(ConstantValue.COLON_SYMBOL);
-            fullColNames[i] = temp[0];
-            fullColTypes[i] = temp[1];
-        }
-
-        Properties p = new Properties();
-        p.setProperty("columns", StringUtils.join(fullColNames, ConstantValue.COMMA_SYMBOL));
-        p.setProperty("columns.types", StringUtils.join(fullColTypes, ConstantValue.COLON_SYMBOL));
-
-        OrcSerde orcSerde = new OrcSerde();
-        orcSerde.initialize(hadoopJobConf, p);
-
-        this.inspector = (StructObjectInspector) orcSerde.getObjectInspector();
     }
 
-    /**
-     * parse column and type from orc type struct string
-     *
-     * @param typeStruct
-     * @return
-     */
     private List<String> parseColumnAndType(String typeStruct) {
         List<String> columnList = new ArrayList<>();
         List<String> splitList = Arrays.asList(typeStruct.split(ConstantValue.COMMA_SYMBOL));
@@ -218,7 +201,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
                 continue;
             }
 
-            if (left && !right) {
+            if (left) {
                 while (it.hasNext()) {
                     String next = it.next();
                     current.append(ConstantValue.COMMA_SYMBOL).append(next);
@@ -235,7 +218,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
     @Override
     @SuppressWarnings("unchecked")
     public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
-        List<FieldConf> fieldConfList = hdfsConfig.getColumn();
+        List<FieldConfig> fieldConfList = hdfsConfig.getColumn();
         GenericRowData genericRowData;
         if (fieldConfList.size() == 1
                 && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())) {
@@ -247,7 +230,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         } else {
             genericRowData = new GenericRowData(fieldConfList.size());
             for (int i = 0; i < fieldConfList.size(); i++) {
-                FieldConf fieldConf = fieldConfList.get(i);
+                FieldConfig fieldConf = fieldConfList.get(i);
                 Object obj = null;
                 if (fieldConf.getValue() != null) {
                     obj = fieldConf.getValue();

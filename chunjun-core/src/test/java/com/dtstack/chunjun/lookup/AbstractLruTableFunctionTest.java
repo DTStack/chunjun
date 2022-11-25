@@ -21,8 +21,8 @@ package com.dtstack.chunjun.lookup;
 import com.dtstack.chunjun.enums.CacheType;
 import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.conf.LookupConfFactory;
-import com.dtstack.chunjun.lookup.conf.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfigFactory;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.source.format.MockInputFormat;
 import com.dtstack.chunjun.source.format.MockRowConverter;
 
@@ -85,7 +85,7 @@ public class AbstractLruTableFunctionTest {
     @Test
     @DisplayName("when cache type is none, initCache should do nothing and sideCache is null")
     public void testInitCacheWhenCacheTypeIsNone() {
-        LookupConfig lookupConfig = LookupConfFactory.createLookupConf(new Configuration());
+        LookupConfig lookupConfig = LookupConfigFactory.createLookupConfig(new Configuration());
         lookupConfig.setCache(CacheType.NONE.name());
         lruTableFunction.lookupConfig = lookupConfig;
         lruTableFunction.initCache();
@@ -95,7 +95,7 @@ public class AbstractLruTableFunctionTest {
     @Test
     @DisplayName("when cache type is all, initCache should throw RuntimeException")
     public void testInitCacheWhenCacheTypeIsAll() {
-        LookupConfig lookupConfig = LookupConfFactory.createLookupConf(new Configuration());
+        LookupConfig lookupConfig = LookupConfigFactory.createLookupConfig(new Configuration());
         lookupConfig.setCache(CacheType.ALL.name());
         lruTableFunction.lookupConfig = lookupConfig;
         RuntimeException thrown =
@@ -109,7 +109,7 @@ public class AbstractLruTableFunctionTest {
     @Test
     @DisplayName("when cache type is lru, initCache should init sideCache")
     public void testInitCacheWhenCacheTypeIsLru() {
-        LookupConfig lookupConfig = LookupConfFactory.createLookupConf(new Configuration());
+        LookupConfig lookupConfig = LookupConfigFactory.createLookupConfig(new Configuration());
         lookupConfig.setCache(CacheType.LRU.name());
         lruTableFunction.lookupConfig = lookupConfig;
         lruTableFunction.initCache();
@@ -147,7 +147,7 @@ public class AbstractLruTableFunctionTest {
 
     @Test
     public void testDealCacheData() {
-        LookupConfig lookupConfig = LookupConfFactory.createLookupConf(new Configuration());
+        LookupConfig lookupConfig = LookupConfigFactory.createLookupConfig(new Configuration());
         lookupConfig.setCache(CacheType.LRU.name());
         lruTableFunction.lookupConfig = lookupConfig;
         lruTableFunction.initCache();

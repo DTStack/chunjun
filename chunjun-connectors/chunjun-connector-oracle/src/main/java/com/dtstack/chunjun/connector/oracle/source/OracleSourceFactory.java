@@ -28,11 +28,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.Properties;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class OracleSourceFactory extends JdbcSourceFactory {
 
     public OracleSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {

@@ -18,7 +18,7 @@
 package com.dtstack.chunjun.connector.hive.table;
 
 import com.dtstack.chunjun.connector.hdfs.options.HdfsOptions;
-import com.dtstack.chunjun.connector.hive.conf.HiveConfig;
+import com.dtstack.chunjun.connector.hive.config.HiveConfig;
 import com.dtstack.chunjun.connector.hive.options.HiveOptions;
 import com.dtstack.chunjun.connector.hive.sink.HiveDynamicTableSink;
 import com.dtstack.chunjun.table.options.BaseFileOptions;
@@ -45,11 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HiveDynamicTableFactory implements DynamicTableSinkFactory {
     public static final String IDENTIFIER = "hive-x";
 

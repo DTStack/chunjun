@@ -25,8 +25,6 @@ import java.lang.reflect.Method;
 
 /**
  * trans byte[] to protobuf object by protobuf parseFrom method
- *
- * @author liuliu 2022/4/8
  */
 public class PbParser {
 

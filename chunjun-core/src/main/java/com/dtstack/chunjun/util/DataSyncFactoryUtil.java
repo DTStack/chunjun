@@ -48,11 +48,6 @@ import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.Set;
 
-/**
- * @program: chunjun
- * @author: wuren
- * @create: 2021/04/27
- */
 public class DataSyncFactoryUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(DataSyncFactoryUtil.class);

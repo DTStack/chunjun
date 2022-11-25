@@ -28,7 +28,6 @@ import org.apache.flink.table.types.logical.RowType;
 
 import java.util.Objects;
 
-/** @author liuliu 2022/4/8 */
 public class PbRowDataDeserializationSchema implements DeserializationSchema<RowData> {
 
     private static final long serialVersionUID = 1L;

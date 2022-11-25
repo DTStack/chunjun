@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.lookup;
 
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.lookup.conf.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.RowData;
 

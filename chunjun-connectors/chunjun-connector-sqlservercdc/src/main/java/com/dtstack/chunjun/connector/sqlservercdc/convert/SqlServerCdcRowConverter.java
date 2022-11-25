@@ -51,11 +51,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Date: 2021/05/12 Company: www.dtstack.com
- *
- * @author shifang
- */
+
 public class SqlServerCdcRowConverter
         extends AbstractCDCRowConverter<SqlServerCdcEventRow, LogicalType> {
     private final TimestampFormat timestampFormat;

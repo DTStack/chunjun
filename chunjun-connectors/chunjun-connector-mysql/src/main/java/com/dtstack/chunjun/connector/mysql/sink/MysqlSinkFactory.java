@@ -25,11 +25,6 @@ import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
 
-/**
- * Date: 2021/04/13 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class MysqlSinkFactory extends JdbcSinkFactory {
 
     public MysqlSinkFactory(SyncConfig syncConfig) {
@@ -37,11 +32,6 @@ public class MysqlSinkFactory extends JdbcSinkFactory {
         JdbcUtil.putExtParam(jdbcConfig);
     }
 
-    /**
-     * 获取JDBC插件的具体outputFormatBuilder
-     *
-     * @return JdbcOutputFormatBuilder
-     */
     @Override
     protected JdbcOutputFormatBuilder getBuilder() {
         return new JdbcOutputFormatBuilder(new JdbcOutputFormat());

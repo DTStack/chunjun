@@ -19,8 +19,8 @@
 
 package com.dtstack.chunjun.connector.influxdb.source;
 
-import com.dtstack.chunjun.config.SyncConf;
-import com.dtstack.chunjun.connector.influxdb.conf.InfluxdbSourceConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.influxdb.config.InfluxdbSourceConfig;
 import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.source.SourceFactory;
@@ -37,19 +37,13 @@ import com.google.gson.GsonBuilder;
 
 import java.util.Map;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/3/8
- */
 public class InfluxdbSourceFactory extends SourceFactory {
 
     private final InfluxdbSourceConfig config;
 
-    public InfluxdbSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
-        Map<String, Object> parameter = syncConf.getJob().getReader().getParameter();
+    public InfluxdbSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
+        Map<String, Object> parameter = syncConfig.getJob().getReader().getParameter();
         Gson gson =
                 new GsonBuilder()
                         .addDeserializationExclusionStrategy(
@@ -69,7 +63,7 @@ public class InfluxdbSourceFactory extends SourceFactory {
                         .create();
         GsonUtil.setTypeAdapter(gson);
         this.config = gson.fromJson(gson.toJson(parameter), InfluxdbSourceConfig.class);
-        config.setColumn(syncConf.getReader().getFieldList());
+        config.setColumn(syncConfig.getReader().getFieldList());
         super.initCommonConf(config);
     }
 

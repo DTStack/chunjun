@@ -36,7 +36,6 @@ import java.util.List;
 
 import static com.dtstack.chunjun.format.protobuf.util.PbReflectUtil.getMapTypeTuple;
 
-/** @author liuliu 2022/5/11 */
 public class FormatCheckUtil {
 
     /** proto class full name example as com.dtstack.messageOutClass */

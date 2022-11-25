@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.config;
 
-import com.dtstack.chunjun.lookup.conf.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import java.util.Map;
 

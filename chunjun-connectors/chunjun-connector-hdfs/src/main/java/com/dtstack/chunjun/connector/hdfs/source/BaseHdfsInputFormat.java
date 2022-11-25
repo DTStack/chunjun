@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.source;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
@@ -40,11 +40,6 @@ import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
 public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     protected HdfsConfig hdfsConfig;
@@ -140,27 +135,15 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
             pathStr = pathStr.substring(0, i);
         }
 
-        for (FieldConf fieldConf : hdfsConfig.getColumn()) {
+        for (FieldConfig fieldConf : hdfsConfig.getColumn()) {
             if (fieldConf.getPart()) {
                 fieldConf.setValue(map.get(fieldConf.getName()));
             }
         }
     }
 
-    /**
-     * create hdfs data splits
-     *
-     * @param minNumSplits
-     * @return
-     * @throws IOException
-     */
     public abstract InputSplit[] createHdfsSplit(int minNumSplits) throws IOException;
 
-    /**
-     * create hdfs inputFormat
-     *
-     * @return org.apache.hadoop.mapred.InputFormat
-     */
     public abstract org.apache.hadoop.mapred.InputFormat createInputFormat();
 
     public void setHdfsConf(HdfsConfig hdfsConfig) {

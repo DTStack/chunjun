@@ -39,11 +39,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class SaphanaDialect implements JdbcDialect {
 
     @Override

@@ -44,10 +44,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-/**
- * @author jiangbo
- * @date 2019/8/20
- */
 public class KerberosUtil {
 
     public static Logger LOG = LoggerFactory.getLogger(KerberosUtil.class);

@@ -62,11 +62,6 @@ import java.util.stream.Stream;
 
 import static org.apache.flink.util.Preconditions.checkState;
 
-/**
- * @author jayce
- * @version 1.0
- * @date 2022/8/11 11:18
- */
 public class ChunjunFlinkStandaloneTestEnvironment {
     private static final Logger LOG =
             LoggerFactory.getLogger(ChunjunFlinkStandaloneTestEnvironment.class);

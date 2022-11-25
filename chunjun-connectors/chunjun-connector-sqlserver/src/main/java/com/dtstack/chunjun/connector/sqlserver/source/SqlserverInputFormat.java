@@ -29,12 +29,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Company：www.dtstack.com
- *
- * @author shitou
- * @date 2021/5/19 13:57
- */
 public class SqlserverInputFormat extends JdbcInputFormat {
 
     @Override
@@ -67,7 +61,7 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                     queryForPolling(incrementKeyUtil.transToLocationValue(state).toString());
                     return false;
                 } catch (InterruptedException e) {
-                    LOG.warn("interrupted while waiting for polling, e = {}", e);
+                    LOG.warn("interrupted while waiting for polling", e);
                 } catch (SQLException e) {
                     JdbcUtil.closeDbResources(resultSet, ps, null, false);
                     String message =

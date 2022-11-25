@@ -40,7 +40,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-/** @author menghan */
 public class Vertica11Dialect implements JdbcDialect {
 
     private static final String DIALECT_NAME = "VERTICA11";

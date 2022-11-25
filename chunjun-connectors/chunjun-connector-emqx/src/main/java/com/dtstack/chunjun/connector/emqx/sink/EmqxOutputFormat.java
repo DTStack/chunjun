@@ -35,11 +35,6 @@ import java.time.LocalTime;
 
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.CLIENT_ID_WRITER;
 
-/**
- * @author chuixue
- * @create 2021-06-01 20:09
- * @description
- */
 public class EmqxOutputFormat extends BaseRichOutputFormat {
 
     /** emqx Conf */

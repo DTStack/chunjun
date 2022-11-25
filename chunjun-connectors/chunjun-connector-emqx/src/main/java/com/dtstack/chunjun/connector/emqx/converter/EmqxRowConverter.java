@@ -29,11 +29,6 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.nio.charset.StandardCharsets;
 
-/**
- * @author chuixue
- * @create 2021-06-02 09:34
- * @description
- */
 public class EmqxRowConverter
         extends AbstractRowConverter<String, Object, MqttMessage, LogicalType> {
 

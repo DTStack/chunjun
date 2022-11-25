@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.oceanbase.source;
 
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.chunjun.connector.oceanbase.dialect.OceanbaseDialect;
 
@@ -26,12 +26,12 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.commons.lang3.StringUtils;
 
 public class OceanbaseSourceFactory extends JdbcSourceFactory {
-    public OceanbaseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public OceanbaseSourceFactory(SyncConfig syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env, new OceanbaseDialect());
-        if (jdbcConf.isPolling()
-                && StringUtils.isEmpty(jdbcConf.getStartLocation())
-                && jdbcConf.getFetchSize() == 0) {
-            jdbcConf.setFetchSize(1000);
+        if (jdbcConfig.isPolling()
+                && StringUtils.isEmpty(jdbcConfig.getStartLocation())
+                && jdbcConfig.getFetchSize() == 0) {
+            jdbcConfig.setFetchSize(1000);
         }
     }
 }

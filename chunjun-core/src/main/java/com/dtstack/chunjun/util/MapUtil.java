@@ -34,11 +34,6 @@ import java.util.Map;
 
 import static com.dtstack.chunjun.util.StringUtil.escapeExprSpecialWord;
 
-/**
- * Reason: Date: 2019/8/9 Company: www.dtstack.com
- *
- * @author xuchao
- */
 public class MapUtil {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();

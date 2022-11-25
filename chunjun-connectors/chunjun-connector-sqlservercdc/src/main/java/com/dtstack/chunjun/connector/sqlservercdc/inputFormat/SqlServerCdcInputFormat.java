@@ -47,11 +47,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.dtstack.chunjun.connector.sqlservercdc.util.SqlServerCdcUtil.DRIVER;
 
-/**
- * Date: 2019/12/03 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class SqlServerCdcInputFormat extends BaseRichInputFormat {
     public SqlServerCdcConf sqlserverCdcConf;
 

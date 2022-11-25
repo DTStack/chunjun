@@ -24,11 +24,6 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/**
- * Convert val to specified numeric type Date: 2017/4/21 Company: www.dtstack.com
- *
- * @author xuchao
- */
 public class MathUtil {
     public static Long getLongVal(Object obj) {
         if (obj == null) {

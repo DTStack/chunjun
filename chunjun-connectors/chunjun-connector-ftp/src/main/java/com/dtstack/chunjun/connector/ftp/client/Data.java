@@ -22,8 +22,8 @@ import com.dtstack.chunjun.connector.ftp.handler.Position;
 
 /** return from ftpSeqBufferedReader contains line and position */
 public class Data {
-    private String[] data;
-    private Position position;
+    private final String[] data;
+    private final Position position;
 
     public Data(String[] data, Position position) {
         this.data = data;

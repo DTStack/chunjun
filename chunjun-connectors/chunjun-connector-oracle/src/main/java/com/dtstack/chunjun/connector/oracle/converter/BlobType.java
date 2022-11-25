@@ -27,11 +27,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class BlobType extends LogicalType {
 
     private static final Class<?> INPUT_CONVERSION = byte[].class;

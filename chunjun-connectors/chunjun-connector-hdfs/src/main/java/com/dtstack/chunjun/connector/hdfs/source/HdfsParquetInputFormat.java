@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.source;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hdfs.InputSplit.HdfsParquetSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.enums.ColumnType;
@@ -58,11 +58,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
 
     private static final int JULIAN_EPOCH_OFFSET_DAYS = 2440588;
@@ -82,7 +77,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         List<String> pathList = Lists.newArrayList();
         Path inputPath = new Path(tableLocation);
 
-        if (fs.isFile(inputPath)) {
+        if (fs.getFileStatus(inputPath).isFile()) {
             pathList.add(tableLocation);
             return pathList;
         }
@@ -101,10 +96,10 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         HdfsPathFilter pathFilter = new HdfsPathFilter(hdfsConfig.getFilterRegex());
 
         try (FileSystem fs =
-                FileSystemUtil.getFileSystem(
-                        hdfsConfig.getHadoopConfig(),
-                        hdfsConfig.getDefaultFS(),
-                        PluginUtil.createDistributedCacheFromContextClassLoader())) {
+                     FileSystemUtil.getFileSystem(
+                             hdfsConfig.getHadoopConfig(),
+                             hdfsConfig.getDefaultFS(),
+                             PluginUtil.createDistributedCacheFromContextClassLoader())) {
             allFilePaths = getAllPartitionPath(hdfsConfig.getPath(), fs, pathFilter);
         } catch (Exception e) {
             throw new ChunJunRuntimeException(e);
@@ -157,7 +152,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
             setMetaColumns();
             return true;
         }
-        for (; currentFileIndex <= currentSplitFilePaths.size() - 1; ) {
+        while (currentFileIndex <= currentSplitFilePaths.size() - 1) {
             if (openKerberos) {
                 ugi.doAs(
                         (PrivilegedAction<Object>)
@@ -192,7 +187,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                         getTypeName(type.asPrimitiveType().getPrimitiveTypeName().getMethod));
             }
 
-            for (FieldConf fieldConf : hdfsConfig.getColumn()) {
+            for (FieldConfig fieldConf : hdfsConfig.getColumn()) {
                 String name = fieldConf.getName();
                 if (StringUtils.isNotBlank(name)) {
                     name = name.toUpperCase();
@@ -218,11 +213,6 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                         });
     }
 
-    /**
-     * open next hdfs file for reading
-     *
-     * @throws IOException
-     */
     private void nextFile() throws IOException {
         Path path = new Path(currentSplitFilePaths.get(currentFileIndex));
         findCurrentPartition(path);
@@ -235,7 +225,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
     @Override
     @SuppressWarnings("unchecked")
     public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
-        List<FieldConf> fieldConfList = hdfsConfig.getColumn();
+        List<FieldConfig> fieldConfList = hdfsConfig.getColumn();
         GenericRowData genericRowData;
         if (fieldConfList.size() == 1
                 && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())) {
@@ -247,7 +237,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         } else {
             genericRowData = new GenericRowData(fieldConfList.size());
             for (int i = 0; i < fieldConfList.size(); i++) {
-                FieldConf fieldConf = fieldConfList.get(i);
+                FieldConfig fieldConf = fieldConfList.get(i);
                 Object obj = null;
                 if (fieldConf.getValue() != null) {
                     obj = fieldConf.getValue();
@@ -311,43 +301,40 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                 case "boolean":
                     data = currentLine.getBoolean(index, 0);
                     break;
-                case "timestamp":
-                    {
-                        long time = getTimestampMillis(currentLine.getInt96(index, 0));
-                        data = new Timestamp(time);
-                        break;
+                case "timestamp": {
+                    long time = getTimestampMillis(currentLine.getInt96(index, 0));
+                    data = new Timestamp(time);
+                    break;
+                }
+                case "decimal": {
+                    DecimalMetadata dm = ((PrimitiveType) colSchemaType).getDecimalMetadata();
+                    String primitiveTypeName =
+                            currentLine
+                                    .getType()
+                                    .getType(index)
+                                    .asPrimitiveType()
+                                    .getPrimitiveTypeName()
+                                    .name();
+                    if (ColumnType.INT32.name().equals(primitiveTypeName)) {
+                        int intVal = currentLine.getInteger(index, 0);
+                        data = longToDecimalStr(intVal, dm.getScale());
+                    } else if (ColumnType.INT64.name().equals(primitiveTypeName)) {
+                        long longVal = currentLine.getLong(index, 0);
+                        data = longToDecimalStr(longVal, dm.getScale());
+                    } else {
+                        Binary binary = currentLine.getBinary(index, 0);
+                        data = binaryToDecimalStr(binary, dm.getScale());
                     }
-                case "decimal":
-                    {
-                        DecimalMetadata dm = ((PrimitiveType) colSchemaType).getDecimalMetadata();
-                        String primitiveTypeName =
-                                currentLine
-                                        .getType()
-                                        .getType(index)
-                                        .asPrimitiveType()
-                                        .getPrimitiveTypeName()
-                                        .name();
-                        if (ColumnType.INT32.name().equals(primitiveTypeName)) {
-                            int intVal = currentLine.getInteger(index, 0);
-                            data = longToDecimalStr(intVal, dm.getScale());
-                        } else if (ColumnType.INT64.name().equals(primitiveTypeName)) {
-                            long longVal = currentLine.getLong(index, 0);
-                            data = longToDecimalStr(longVal, dm.getScale());
-                        } else {
-                            Binary binary = currentLine.getBinary(index, 0);
-                            data = binaryToDecimalStr(binary, dm.getScale());
-                        }
-                        break;
-                    }
-                case "date":
-                    {
-                        String val = currentLine.getValueToString(index, 0);
-                        data =
-                                new Timestamp(Integer.parseInt(val) * MILLIS_IN_DAY)
-                                        .toString()
-                                        .substring(0, 10);
-                        break;
-                    }
+                    break;
+                }
+                case "date": {
+                    String val = currentLine.getValueToString(index, 0);
+                    data =
+                            new Timestamp(Integer.parseInt(val) * MILLIS_IN_DAY)
+                                    .toString()
+                                    .substring(0, 10);
+                    break;
+                }
                 default:
                     data = currentLine.getValueToString(index, 0);
                     break;
@@ -406,10 +393,6 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         return typeName;
     }
 
-    /**
-     * @param timestampBinary
-     * @return
-     */
     private long getTimestampMillis(Binary timestampBinary) {
         if (timestampBinary.length() != TIMESTAMP_BINARY_LENGTH) {
             return 0;

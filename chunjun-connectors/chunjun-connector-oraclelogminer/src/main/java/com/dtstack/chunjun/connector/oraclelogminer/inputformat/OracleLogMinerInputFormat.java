@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.inputformat;
 
-import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
+import com.dtstack.chunjun.connector.oraclelogminer.config.LogMinerConfig;
 import com.dtstack.chunjun.connector.oraclelogminer.listener.LogMinerListener;
 import com.dtstack.chunjun.connector.oraclelogminer.listener.PositionManager;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
@@ -32,14 +32,9 @@ import org.apache.flink.table.data.RowData;
 import java.io.IOException;
 import java.math.BigInteger;
 
-/**
- * @author jiangbo
- * @date 2019/12/14
- *     <p>名词说明: SCN 即系统改变号(System Change Number)
- */
 public class OracleLogMinerInputFormat extends BaseRichInputFormat {
 
-    public LogMinerConf logMinerConf;
+    public LogMinerConfig logMinerConfig;
 
     private transient LogMinerListener logMinerListener;
 
@@ -58,7 +53,7 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
         positionManager = new PositionManager();
         initPosition();
 
-        logMinerListener = new LogMinerListener(logMinerConf, positionManager, rowConverter);
+        logMinerListener = new LogMinerListener(logMinerConfig, positionManager, rowConverter);
     }
 
     private void initPosition() {

@@ -33,11 +33,6 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * Utilities for relational database connection and sql execution company: www.dtstack.com
- *
- * @author huyifan_zju@
- */
 public class JdbcUtil {
 
     public static final String TEMPORARY_TABLE_NAME = "chunjun_tmp";

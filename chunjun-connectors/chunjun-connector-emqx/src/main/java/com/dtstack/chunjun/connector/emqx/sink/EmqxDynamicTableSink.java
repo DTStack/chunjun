@@ -34,11 +34,6 @@ import org.apache.flink.util.Preconditions;
 
 import static com.dtstack.chunjun.connector.emqx.util.DataTypeConventerUtil.createValueFormatProjection;
 
-/**
- * @author chuixue
- * @create 2021-06-01 20:11
- * @description
- */
 public class EmqxDynamicTableSink implements DynamicTableSink {
 
     private final TableSchema physicalSchema;

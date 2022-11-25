@@ -28,11 +28,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author chuixue
- * @create 2021-07-05 14:54
- * @description
- */
 public class ColumnBuildUtil {
 
     /**

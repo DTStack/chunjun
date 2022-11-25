@@ -26,13 +26,6 @@ import com.dtstack.chunjun.converter.AbstractRowConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * The builder of RichOutputFormat
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public abstract class BaseRichOutputFormatBuilder<T extends BaseRichOutputFormat> {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());

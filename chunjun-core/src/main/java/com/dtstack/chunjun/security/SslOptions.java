@@ -21,7 +21,6 @@ package com.dtstack.chunjun.security;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/** @author dujie */
 public class SslOptions {
 
     public static final ConfigOption<String> KEYSTOREFILENAME =

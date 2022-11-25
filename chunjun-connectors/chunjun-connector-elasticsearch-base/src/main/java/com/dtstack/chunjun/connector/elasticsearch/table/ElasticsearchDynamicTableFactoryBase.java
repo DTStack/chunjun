@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.elasticsearch.table;
 
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConf;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;

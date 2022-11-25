@@ -30,7 +30,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import java.sql.Time;
 import java.util.function.BiFunction;
 
-/** @author liuliu 2022/5/13 */
+
 public class TimeColumnSerializerTest extends SerializerTestBase<AbstractBaseColumn> {
 
     @Override

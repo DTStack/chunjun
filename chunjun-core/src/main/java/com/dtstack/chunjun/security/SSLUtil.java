@@ -43,12 +43,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.Map;
 
-/**
- * Company：www.dtstack.com
- *
- * @author shitou
- * @date 2021/8/16
- */
 public class SSLUtil {
 
     public static Logger LOG = LoggerFactory.getLogger(SSLUtil.class);

@@ -26,10 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.StringJoiner;
 
-/**
- * @author tiezhu@dtstack
- * @date 23/09/2021 Thursday
- */
 public class LogDirtyDataCollector extends DirtyDataCollector {
 
     private static final Logger LOG = LoggerFactory.getLogger(LogDirtyDataCollector.class);

@@ -59,7 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
-/** @author liuliu 2022/5/13 */
+
 public class ColumnRowDataSerializerTest extends SerializerTestBase<RowData> {
 
     private final DeeplyEqualsChecker.CustomEqualityChecker[] customEqualityCheckers = {

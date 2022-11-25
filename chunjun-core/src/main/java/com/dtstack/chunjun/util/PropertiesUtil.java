@@ -32,11 +32,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * Date: 2021/01/19 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class PropertiesUtil {
 
     /**

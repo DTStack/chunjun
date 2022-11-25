@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.sink;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.enums.CompressType;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -27,10 +27,11 @@ import com.dtstack.chunjun.util.ColumnTypeUtil;
 import com.dtstack.chunjun.util.FileSystemUtil;
 import com.dtstack.chunjun.util.PluginUtil;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.api.common.functions.RuntimeContext;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -44,11 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Date: 2021/06/09 Company: www.dtstack.com
- *
- * @author tudou
- */
 public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     protected FileSystem fs;
@@ -80,7 +76,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         } else {
             fullColumnNameList =
                     hdfsConfig.getColumn().stream()
-                            .map(FieldConf::getName)
+                            .map(FieldConfig::getName)
                             .collect(Collectors.toList());
             hdfsConfig.setFullColumnName(fullColumnNameList);
         }
@@ -90,7 +86,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         } else {
             fullColumnTypeList =
                     hdfsConfig.getColumn().stream()
-                            .map(FieldConf::getType)
+                            .map(FieldConfig::getType)
                             .collect(Collectors.toList());
             hdfsConfig.setFullColumnType(fullColumnTypeList);
         }
@@ -106,7 +102,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                 openSource();
             }
             if (fs.exists(dir)) {
-                if (fs.isFile(dir)) {
+                if (fs.getFileStatus(dir).isFile()) {
                     throw new ChunJunRuntimeException(String.format("dir:[%s] is a file", tmpPath));
                 }
             } else {
@@ -264,7 +260,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
     /**
      * get file compress type
      *
-     * @return
+     * @return compress type.
      */
     protected abstract CompressType getCompressType();
 
@@ -276,7 +272,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                 openSource();
             }
             if (fs.exists(dir)) {
-                if (fs.isFile(dir)) {
+                if (fs.getFileStatus(dir).isFile()) {
                     throw new ChunJunRuntimeException(String.format("dir:[%s] is a file", path));
                 } else {
                     fs.delete(dir, true);

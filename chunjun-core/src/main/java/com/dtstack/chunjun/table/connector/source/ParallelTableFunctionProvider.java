@@ -25,11 +25,6 @@ import org.apache.flink.table.functions.TableFunction;
 
 import java.util.Optional;
 
-/**
- * @program chunjun
- * @author: wuren
- * @create: 2021/04/19
- */
 public interface ParallelTableFunctionProvider extends TableFunctionProvider, ParallelismProvider {
 
     /** Helper method for creating a TableFunction provider with a provided lookup parallelism. */

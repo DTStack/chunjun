@@ -53,10 +53,6 @@ import java.util.Set;
 
 /**
  * OutputFormat for writing data to relational database.
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
  */
 public class JdbcOutputFormat extends BaseRichOutputFormat {
 

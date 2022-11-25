@@ -48,13 +48,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Date: 2019/12/04 Company: www.dtstack.com
- *
- * <p>some code in run() are copied from (https://github.com/debezium/debezium).
- *
- * @author tudou
- */
 public class SqlServerCdcListener implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(SqlServerCdcListener.class);
 

@@ -17,9 +17,9 @@
  */
 package com.dtstack.chunjun.connector.hive.sink;
 
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsRawTypeConverter;
-import com.dtstack.chunjun.connector.hive.conf.HiveConfig;
+import com.dtstack.chunjun.connector.hive.config.HiveConfig;
 import com.dtstack.chunjun.connector.hive.util.HiveUtil;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.sink.SinkFactory;
@@ -31,16 +31,11 @@ import org.apache.flink.table.data.RowData;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HiveSinkFactory extends SinkFactory {
 
     private final HiveConfig hiveConf;
 
-    public HiveSinkFactory(SyncConf config) {
+    public HiveSinkFactory(SyncConfig config) {
         super(config);
         hiveConf =
                 GsonUtil.GSON.fromJson(

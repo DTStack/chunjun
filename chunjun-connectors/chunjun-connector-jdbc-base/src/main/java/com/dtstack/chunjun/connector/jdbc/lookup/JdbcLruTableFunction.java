@@ -26,7 +26,7 @@ import com.dtstack.chunjun.factory.ChunJunThreadFactory;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
 import com.dtstack.chunjun.lookup.cache.CacheMissVal;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.conf.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.throwable.NoRestartException;
 import com.dtstack.chunjun.util.DateUtil;
 import com.dtstack.chunjun.util.ThreadUtil;

@@ -21,26 +21,17 @@ import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder<BaseHdfsInputFormat> {
 
     public static HdfsInputFormatBuilder newBuild(String type) {
-        BaseHdfsInputFormat format;
         switch (FileType.getByName(type)) {
             case ORC:
-                format = new HdfsOrcInputFormat();
-                break;
+                return new HdfsInputFormatBuilder(new HdfsOrcInputFormat());
             case PARQUET:
-                format = new HdfsParquetInputFormat();
-                break;
+                return new HdfsInputFormatBuilder(new HdfsParquetInputFormat());
             default:
-                format = new HdfsTextInputFormat();
+                return new HdfsInputFormatBuilder(new HdfsTextInputFormat());
         }
-        return new HdfsInputFormatBuilder(format);
     }
 
     private HdfsInputFormatBuilder(BaseHdfsInputFormat format) {
@@ -53,5 +44,6 @@ public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder<BaseHdfsI
     }
 
     @Override
-    protected void checkFormat() {}
+    protected void checkFormat() {
+    }
 }

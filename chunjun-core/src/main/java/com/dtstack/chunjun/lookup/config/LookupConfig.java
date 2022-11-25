@@ -16,17 +16,12 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.lookup.conf;
+package com.dtstack.chunjun.lookup.config;
 
 import com.dtstack.chunjun.enums.CacheType;
 
 import java.io.Serializable;
 
-/**
- * @author chuixue
- * @create 2021-04-10 13:11
- * @description
- */
 public class LookupConfig implements Serializable {
     /** 表名 */
     protected String tableName = "";

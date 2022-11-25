@@ -25,7 +25,7 @@ import com.dtstack.chunjun.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.chunjun.connector.jdbc.lookup.JdbcLruTableFunction;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.enums.CacheType;
-import com.dtstack.chunjun.lookup.conf.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
@@ -35,14 +35,12 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.catalog.Column;
 import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
-import org.apache.flink.table.connector.Projection;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Preconditions;
 
@@ -64,22 +62,19 @@ public class JdbcDynamicTableSource
     protected final JdbcDialect jdbcDialect;
     protected final JdbcInputFormatBuilder builder;
     protected ResolvedSchema resolvedSchema;
-    protected DataType physicalRowDataType;
 
     public JdbcDynamicTableSource(
             JdbcConfig jdbcConfig,
             LookupConfig lookupConfig,
             ResolvedSchema resolvedSchema,
             JdbcDialect jdbcDialect,
-            JdbcInputFormatBuilder builder,
-            DataType physicalRowDataType) {
+            JdbcInputFormatBuilder builder) {
         this.jdbcConfig = jdbcConfig;
         this.lookupConfig = lookupConfig;
         this.resolvedSchema = resolvedSchema;
         this.jdbcDialect = jdbcDialect;
         this.dialectName = jdbcDialect.dialectName();
         this.builder = builder;
-        this.physicalRowDataType = physicalRowDataType;
     }
 
     @Override
@@ -92,7 +87,7 @@ public class JdbcDynamicTableSource
             keyNames[i] = resolvedSchema.getColumnNames().get(innerKeyArr[0]);
         }
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
-        final RowType rowType = (RowType) physicalRowDataType.getLogicalType();
+        final RowType rowType = InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType()).toRowType();
 
         if (lookupConfig.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
             return ParallelTableFunctionProvider.of(
@@ -119,7 +114,7 @@ public class JdbcDynamicTableSource
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
         TypeInformation<RowData> typeInformation =
-                InternalTypeInfo.of(physicalRowDataType.getLogicalType());
+                InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType());
 
         JdbcInputFormatBuilder builder = this.builder;
         List<Column> columns = resolvedSchema.getColumns();
@@ -212,7 +207,7 @@ public class JdbcDynamicTableSource
         builder.setJdbcConf(jdbcConfig);
         builder.setRowConverter(
                 jdbcDialect.getRowConverter(
-                        InternalTypeInfo.of(physicalRowDataType.getLogicalType()).toRowType()));
+                        InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType()).toRowType()));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
@@ -232,19 +227,13 @@ public class JdbcDynamicTableSource
     }
 
     @Override
-    public void applyProjection(int[][] projectedFields, DataType dataType) {
-        this.physicalRowDataType = Projection.of(projectedFields).project(dataType);
-    }
-
-    @Override
     public DynamicTableSource copy() {
         return new JdbcDynamicTableSource(
                 jdbcConfig,
                 lookupConfig,
                 resolvedSchema,
                 jdbcDialect,
-                builder,
-                physicalRowDataType);
+                builder);
     }
 
     @Override

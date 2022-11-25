@@ -34,11 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Date: 2021/08/05 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class FactoryHelper {
     /** shipfile需要的jar的classPath name */
     public static final ConfigOption<String> CLASS_FILE_NAME_FMT =

@@ -57,9 +57,9 @@ public class HdfsOrcColumnConverter
     private List<String> ColumnNameList;
     private transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
-    public HdfsOrcColumnConverter(List<FieldConfig> fieldConfList, HdfsConfig hdfsConfig) {
-        super(fieldConfList.size(), hdfsConfig);
-        for (FieldConfig fieldConfig : fieldConfList) {
+    public HdfsOrcColumnConverter(List<FieldConfig> fieldConfigList, HdfsConfig hdfsConfig) {
+        super(fieldConfigList.size(), hdfsConfig);
+        for (FieldConfig fieldConfig : fieldConfigList) {
             String type = fieldConfig.getType();
             int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
             int right = type.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);

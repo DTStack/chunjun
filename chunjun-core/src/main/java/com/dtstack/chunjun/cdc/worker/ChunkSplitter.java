@@ -27,12 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2021/12/13
- */
 public class ChunkSplitter {
 
     /**

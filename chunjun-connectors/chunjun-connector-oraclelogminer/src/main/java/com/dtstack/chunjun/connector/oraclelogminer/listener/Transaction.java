@@ -26,17 +26,12 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.List;
 
-/**
- * Date: 2020/08/13 Company: www.dtstack.com
- *
- * @author dujie
- */
 public class Transaction implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private BigInteger scn;
 
-    private List<RecordLog> recordLogs;
+    private final List<RecordLog> recordLogs;
 
     public Transaction(BigInteger scn, List<RecordLog> recordLogs) {
         this.scn = scn;

@@ -16,14 +16,13 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.influxdb.conf;
+package com.dtstack.chunjun.connector.influxdb.config;
 
 import com.dtstack.chunjun.sink.WriteMode;
 
 import java.util.List;
 import java.util.Locale;
 
-/** @Author xirang @Company Dtstack @Date: 2022/3/14 6:00 PM */
 public class InfluxdbSinkConfig extends InfluxdbConfig {
 
     /** retention policy for influxdb writer */

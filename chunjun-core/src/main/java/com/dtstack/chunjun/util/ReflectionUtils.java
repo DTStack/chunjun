@@ -21,11 +21,6 @@ package com.dtstack.chunjun.util;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-/**
- * Date: 2019/4/22 Company: www.dtstack.com
- *
- * @author xuchao
- */
 public class ReflectionUtils {
 
     /**

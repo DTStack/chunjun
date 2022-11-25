@@ -18,11 +18,12 @@
 
 package com.dtstack.chunjun.connector.influxdb.sink;
 
-import com.dtstack.chunjun.config.SyncConf;
-import com.dtstack.chunjun.connector.influxdb.conf.InfluxdbSinkConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.influxdb.config.InfluxdbSinkConfig;
 import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.sink.SinkFactory;
+import com.dtstack.chunjun.sink.WriteMode;
 import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -34,20 +35,19 @@ import com.google.gson.GsonBuilder;
 
 import java.util.Map;
 
-/** @Author xirang @Company Dtstack @Date: 2022/3/14 9:56 AM */
 public class InfluxdbSinkFactory extends SinkFactory {
 
     protected InfluxdbSinkConfig influxdbConfig;
 
-    public InfluxdbSinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        Map<String, Object> parameter = syncConf.getJob().getWriter().getParameter();
+    public InfluxdbSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
+        Map<String, Object> parameter = syncConfig.getJob().getWriter().getParameter();
         Gson gson = new GsonBuilder().create();
         GsonUtil.setTypeAdapter(gson);
         this.influxdbConfig = gson.fromJson(gson.toJson(parameter), InfluxdbSinkConfig.class);
         Object writeMode = parameter.get("writeMode");
-        influxdbConfig.setWriteMode(writeMode == null ? null : writeMode.toString());
-        influxdbConfig.setColumn(syncConf.getWriter().getFieldList());
+        influxdbConfig.setWriteMode(writeMode == null ? WriteMode.APPEND.name() : writeMode.toString());
+        influxdbConfig.setColumn(syncConfig.getWriter().getFieldList());
         super.initCommonConf(influxdbConfig);
     }
 

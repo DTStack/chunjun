@@ -26,11 +26,6 @@ import org.apache.flink.metrics.CharacterFilter;
 
 import java.util.regex.Pattern;
 
-/**
- * @author: shifang
- * @description metrics abstract report
- * @date: 2021/6/28 下午5:09
- */
 public abstract class CustomReporter {
 
     protected boolean makeTaskFailedWhenReportFailed;

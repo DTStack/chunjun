@@ -34,11 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.SynchronousQueue;
 
-/**
- * 读取socket传入的数据
- *
- * @author kunni@dtstack.com
- */
 public class SocketInputFormat extends BaseRichInputFormat {
 
     private SocketConfig socketConfig;

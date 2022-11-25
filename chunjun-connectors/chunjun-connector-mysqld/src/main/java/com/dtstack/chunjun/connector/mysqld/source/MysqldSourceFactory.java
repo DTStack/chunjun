@@ -47,11 +47,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Date: 2022/01/12 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class MysqldSourceFactory extends DistributedJdbcSourceFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(MysqldSourceFactory.class);

@@ -56,7 +56,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** @author tiezhu Date 2020/6/19 星期五 */
 public class PluginUtilTest {
 
     @TempDir static File localPluginRoot;

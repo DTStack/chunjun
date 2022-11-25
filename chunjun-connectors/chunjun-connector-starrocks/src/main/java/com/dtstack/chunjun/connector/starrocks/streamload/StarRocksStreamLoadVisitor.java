@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.starrocks.streamload;
 
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 
 import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +57,7 @@ public class StarRocksStreamLoadVisitor implements Serializable {
 
     private static final int ERROR_LOG_MAX_LENGTH = 3000;
 
-    private final StarRocksConf starRocksConf;
+    private final StarRocksConfig starRocksConfig;
     private long pos;
     private static final String RESULT_FAILED = "Fail";
     private static final String RESULT_LABEL_EXISTED = "Label Already Exists";
@@ -67,8 +67,8 @@ public class StarRocksStreamLoadVisitor implements Serializable {
     private static final String RESULT_LABEL_ABORTED = "ABORTED";
     private static final String RESULT_LABEL_UNKNOWN = "UNKNOWN";
 
-    public StarRocksStreamLoadVisitor(StarRocksConf starRocksConf) {
-        this.starRocksConf = starRocksConf;
+    public StarRocksStreamLoadVisitor(StarRocksConfig starRocksConfig) {
+        this.starRocksConfig = starRocksConfig;
     }
 
     public void doStreamLoad(StarRocksSinkBufferEntity bufferEntity) throws IOException {
@@ -137,13 +137,13 @@ public class StarRocksStreamLoadVisitor implements Serializable {
                         new HttpGet(
                                 host
                                         + "/api/"
-                                        + starRocksConf.getDatabase()
+                                        + starRocksConfig.getDatabase()
                                         + "/get_load_state?label="
                                         + bufferEntity.getLabel());
                 httpGet.setHeader(
                         "Authorization",
                         getBasicAuthHeader(
-                                starRocksConf.getUsername(), starRocksConf.getPassword()));
+                                starRocksConfig.getUsername(), starRocksConfig.getPassword()));
                 httpGet.setHeader("Connection", "close");
 
                 try (CloseableHttpResponse resp = httpclient.execute(httpGet)) {
@@ -227,7 +227,7 @@ public class StarRocksStreamLoadVisitor implements Serializable {
     }
 
     private String getAvailableHost() {
-        List<String> hostList = starRocksConf.getFeNodes();
+        List<String> hostList = starRocksConfig.getFeNodes();
         long tmp = pos + hostList.size();
         for (; pos < tmp; pos++) {
             String host = "http://" + hostList.get((int) (pos % hostList.size()));
@@ -242,7 +242,7 @@ public class StarRocksStreamLoadVisitor implements Serializable {
         try {
             URL url = new URL(host);
             HttpURLConnection co = (HttpURLConnection) url.openConnection();
-            co.setConnectTimeout(starRocksConf.getLoadConf().getHttpCheckTimeoutMs());
+            co.setConnectTimeout(starRocksConfig.getLoadConf().getHttpCheckTimeoutMs());
             co.connect();
             co.disconnect();
             return true;
@@ -286,7 +286,7 @@ public class StarRocksStreamLoadVisitor implements Serializable {
                                 });
         try (CloseableHttpClient httpclient = httpClientBuilder.build()) {
             HttpPut httpPut = new HttpPut(loadUrl);
-            Map<String, String> props = starRocksConf.getLoadConf().getHeadProperties();
+            Map<String, String> props = starRocksConfig.getLoadConf().getHeadProperties();
             for (Map.Entry<String, String> entry : props.entrySet()) {
                 httpPut.setHeader(entry.getKey(), entry.getValue());
             }
@@ -303,7 +303,7 @@ public class StarRocksStreamLoadVisitor implements Serializable {
             httpPut.setHeader("label", label);
             httpPut.setHeader(
                     "Authorization",
-                    getBasicAuthHeader(starRocksConf.getUsername(), starRocksConf.getPassword()));
+                    getBasicAuthHeader(starRocksConfig.getUsername(), starRocksConfig.getPassword()));
             httpPut.setEntity(new ByteArrayEntity(data));
             httpPut.setConfig(RequestConfig.custom().setRedirectsEnabled(true).build());
             try (CloseableHttpResponse resp = httpclient.execute(httpPut)) {

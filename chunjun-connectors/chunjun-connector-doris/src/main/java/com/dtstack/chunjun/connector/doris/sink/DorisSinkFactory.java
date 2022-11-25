@@ -20,6 +20,7 @@ package com.dtstack.chunjun.connector.doris.sink;
 
 import com.dtstack.chunjun.config.OperatorConfig;
 import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.doris.converter.DorisRowTypeConverter;
 import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.doris.options.LoadConfBuilder;
 import com.dtstack.chunjun.connector.doris.options.LoadConfig;
@@ -48,6 +49,25 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Properties;
+
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DESERIALIZE_ARROW_ASYNC_KEY;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DESERIALIZE_QUEUE_SIZE_KEY;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_BATCH_SIZE_DEFAULT;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_DESERIALIZE_ARROW_ASYNC_DEFAULT;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_DESERIALIZE_QUEUE_SIZE_DEFAULT;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_EXEC_MEM_LIMIT_DEFAULT;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUEST_CONNECT_TIMEOUT_MS_DEFAULT;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUEST_QUERY_TIMEOUT_S_DEFAULT;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUEST_READ_TIMEOUT_MS_DEFAULT;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUEST_RETRIES_DEFAULT;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.EXEC_MEM_LIMIT_KEY;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.LOAD_OPTIONS_KEY;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_BATCH_SIZE_KEY;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_CONNECT_TIMEOUT_MS_KEY;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_QUERY_TIMEOUT_S_KEY;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_READ_TIMEOUT_MS_KEY;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_RETRIES_KEY;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_TABLET_SIZE_KEY;
 
 public class DorisSinkFactory extends SinkFactory {
     private final DorisConfig options;
@@ -135,7 +155,7 @@ public class DorisSinkFactory extends SinkFactory {
         MysqlDialect dialect = new MysqlDialect();
         initColumnInfo(options, dialect, builder);
         builder.setJdbcConf(options);
-        builder.setDdlConf(ddlConf);
+        builder.setDdlConf(ddlConfig);
 
         builder.setJdbcDialect(dialect);
 

@@ -18,11 +18,6 @@
 
 package com.dtstack.chunjun.enums;
 
-/**
- * Flink状态后端类型 Date: 2019/11/15 Company: www.dtstack.com
- *
- * @author maqi
- */
 public enum EStateBackend {
     /** memory */
     MEMORY,

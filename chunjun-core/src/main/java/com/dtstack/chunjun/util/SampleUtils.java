@@ -20,11 +20,6 @@ package com.dtstack.chunjun.util;
 
 import org.slf4j.Logger;
 
-/**
- * @program: flinkStreamSQL
- * @author: wuren
- * @create: 2021/01/19
- */
 public class SampleUtils {
 
     private static int samplingIntervalCount = 0;

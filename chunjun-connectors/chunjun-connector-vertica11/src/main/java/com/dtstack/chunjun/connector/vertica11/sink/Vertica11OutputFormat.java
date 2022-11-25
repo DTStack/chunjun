@@ -31,7 +31,6 @@ import org.apache.commons.collections.CollectionUtils;
 import java.sql.SQLException;
 import java.util.List;
 
-/** @author menghan on 2022/7/12. */
 public class Vertica11OutputFormat extends JdbcOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) {

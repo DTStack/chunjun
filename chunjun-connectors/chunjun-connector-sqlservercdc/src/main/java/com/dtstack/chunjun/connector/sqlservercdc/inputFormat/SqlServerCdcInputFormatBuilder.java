@@ -45,11 +45,6 @@ import java.util.Set;
 
 import static com.dtstack.chunjun.connector.sqlservercdc.util.SqlServerCdcUtil.DRIVER;
 
-/**
- * Date: 2019/12/03 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class SqlServerCdcInputFormatBuilder
         extends BaseRichInputFormatBuilder<SqlServerCdcInputFormat> {
 

@@ -30,7 +30,6 @@ import com.google.protobuf.Descriptors;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-/** @author liuliu 2022/4/26 */
 public abstract class PbReflectUtil {
 
     public static Tuple2<Descriptors.Descriptor, Class<? extends AbstractMessage>>

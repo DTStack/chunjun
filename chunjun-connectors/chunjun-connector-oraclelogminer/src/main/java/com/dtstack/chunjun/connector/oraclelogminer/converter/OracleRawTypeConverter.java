@@ -26,20 +26,8 @@ import org.apache.flink.table.types.DataType;
 import java.sql.SQLException;
 import java.util.Locale;
 
-/**
- * company www.dtstack.com
- *
- * @author dujie
- */
 public class OracleRawTypeConverter {
 
-    /**
-     * 将Oracle数据库中的类型，转换成flink的DataType类型。
-     *
-     * @param type
-     * @return
-     * @throws SQLException
-     */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "SMALLINT":

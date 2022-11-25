@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.source;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcRowConverter;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetRowConverter;
@@ -28,34 +28,29 @@ import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.Column;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.logical.RowType;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Date: 2021/06/17 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsDynamicTableSource implements ScanTableSource {
 
     private final HdfsConfig hdfsConfig;
-    private final TableSchema tableSchema;
+    private final ResolvedSchema tableSchema;
     private final List<String> partitionKeyList;
 
-    public HdfsDynamicTableSource(HdfsConfig hdfsConfig, TableSchema tableSchema) {
+    public HdfsDynamicTableSource(HdfsConfig hdfsConfig, ResolvedSchema tableSchema) {
         this(hdfsConfig, tableSchema, new ArrayList<>());
     }
 
     public HdfsDynamicTableSource(
-            HdfsConfig hdfsConfig, TableSchema tableSchema, List<String> partitionKeyList) {
+            HdfsConfig hdfsConfig, ResolvedSchema tableSchema, List<String> partitionKeyList) {
         this.hdfsConfig = hdfsConfig;
         this.tableSchema = tableSchema;
         this.partitionKeyList = partitionKeyList;
@@ -63,15 +58,15 @@ public class HdfsDynamicTableSource implements ScanTableSource {
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
-        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
-        String[] fieldNames = tableSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        for (int i = 0; i < fieldNames.length; i++) {
-            String fieldName = fieldNames[i];
-            FieldConf field = new FieldConf();
+        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType());
+        List<Column> columns = tableSchema.getColumns();
+        List<FieldConfig> columnList = new ArrayList<>(columns.size());
+        for (int i = 0; i < columns.size(); i++) {
+            Column column = columns.get(i);
+            String fieldName = column.getName();
+            FieldConfig field = new FieldConfig();
             field.setName(fieldName);
-            field.setType(rowType.getTypeAt(i).asSummaryString());
+            field.setType(column.getDataType().getLogicalType().asSummaryString());
             field.setIndex(i);
             if (partitionKeyList.contains(fieldName)) {
                 field.setPart(true);
@@ -84,13 +79,13 @@ public class HdfsDynamicTableSource implements ScanTableSource {
         AbstractRowConverter rowConverter;
         switch (FileType.getByName(hdfsConfig.getFileType())) {
             case ORC:
-                rowConverter = new HdfsOrcRowConverter(rowType);
+                rowConverter = new HdfsOrcRowConverter(InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType());
                 break;
             case PARQUET:
-                rowConverter = new HdfsParquetRowConverter(rowType);
+                rowConverter = new HdfsParquetRowConverter(InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType());
                 break;
             default:
-                rowConverter = new HdfsTextRowConverter(rowType);
+                rowConverter = new HdfsTextRowConverter(InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType());
         }
         builder.setRowConverter(rowConverter);
         return ParallelSourceFunctionProvider.of(

@@ -41,13 +41,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Abstract specification of Reader Plugin
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public abstract class SourceFactory implements RawTypeConvertible {
 
     protected StreamExecutionEnvironment env;

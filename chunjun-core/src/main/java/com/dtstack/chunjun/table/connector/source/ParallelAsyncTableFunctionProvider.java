@@ -25,11 +25,6 @@ import org.apache.flink.table.functions.AsyncTableFunction;
 
 import java.util.Optional;
 
-/**
- * @program chunjun
- * @author: wuren
- * @create: 2021/04/02
- */
 public interface ParallelAsyncTableFunctionProvider
         extends AsyncTableFunctionProvider, ParallelismProvider {
 

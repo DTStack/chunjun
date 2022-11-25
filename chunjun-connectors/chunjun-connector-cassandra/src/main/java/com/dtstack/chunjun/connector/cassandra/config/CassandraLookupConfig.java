@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.cassandra.config;
 
-import com.dtstack.chunjun.lookup.conf.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.configuration.ReadableConfig;
 

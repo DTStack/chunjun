@@ -32,11 +32,6 @@ import org.apache.flink.table.data.RowData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Date: 2021/04/13 Company: www.dtstack.com
- *
- * @author shifang
- */
 public class HttpSinkFactory extends SinkFactory {
 
     protected static final Logger LOG = LoggerFactory.getLogger(HttpSinkFactory.class);

@@ -26,10 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
 
-/**
- * @author lihongwei
- * @date 2022/04/11
- */
 public class StarRocksRawTypeConverter {
 
     public static DataType apply(String type) {

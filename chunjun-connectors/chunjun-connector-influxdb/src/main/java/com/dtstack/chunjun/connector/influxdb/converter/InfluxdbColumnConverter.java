@@ -20,7 +20,7 @@
 package com.dtstack.chunjun.connector.influxdb.converter;
 
 import com.dtstack.chunjun.config.CommonConfig;
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -46,27 +46,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/3/8
- */
 public class InfluxdbColumnConverter
         extends AbstractRowConverter<Map<String, Object>, RowData, Point.Builder, LogicalType> {
 
     private static final String TIME_KEY = "time";
 
+    private final List<String> fieldNameList;
+    private final List<FieldConfig> fieldConfList;
+    private final TimeUnit precision;
     private String format = "MSGPACK";
-    private List<String> fieldNameList;
-    private List<FieldConf> fieldConfList;
     private List<String> tags;
     private String timestamp;
-    private TimeUnit precision;
-
-    public InfluxdbColumnConverter(RowType rowType) {
-        super(rowType);
-    }
 
     public InfluxdbColumnConverter(
             RowType rowType,
@@ -138,7 +128,7 @@ public class InfluxdbColumnConverter
             return result;
         } else {
             ColumnRowData result = new ColumnRowData(fieldConfList.size());
-            for (FieldConf fieldConf : fieldConfList) {
+            for (FieldConfig fieldConf : fieldConfList) {
                 String fieldName = fieldConf.getName();
                 AbstractBaseColumn baseColumn = setValue(input, fieldName, converterIndex);
                 result.addField(assembleFieldProps(fieldConf, baseColumn));
@@ -154,7 +144,9 @@ public class InfluxdbColumnConverter
      * @param input input value.
      * @param fieldName field name of input.
      * @param index index of converter.
+     *
      * @return column
+     *
      * @throws Exception the exception from converter.
      */
     private AbstractBaseColumn setValue(Map<String, Object> input, String fieldName, int index)

@@ -31,7 +31,7 @@ import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.enums.Semantic;
-import com.dtstack.chunjun.lookup.conf.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
@@ -122,8 +122,7 @@ public abstract class JdbcDynamicTableFactory
                         druidConf),
                 resolvedSchema,
                 jdbcDialect,
-                getInputFormatBuilder(),
-                context.getPhysicalRowDataType());
+                getInputFormatBuilder());
     }
 
     @Override
@@ -145,8 +144,7 @@ public abstract class JdbcDynamicTableFactory
                 getSinkConnectionConf(helper.getOptions(), resolvedSchema),
                 jdbcDialect,
                 resolvedSchema,
-                getOutputFormatBuilder(),
-                context.getPhysicalRowDataType());
+                getOutputFormatBuilder());
     }
 
     protected JdbcConfig getSinkConnectionConf(
@@ -297,7 +295,7 @@ public abstract class JdbcDynamicTableFactory
         final Optional<JdbcDialect> dialect = Optional.of(getDialect());
         checkState(dialect.get().canHandle(jdbcUrl), "Cannot handle such jdbc url: " + jdbcUrl);
 
-        checkAllOrNone(config, new ConfigOption[] {USERNAME});
+        checkAllOrNone(config, new ConfigOption[]{USERNAME});
 
         if (config.getOptional(SCAN_POLLING_INTERVAL).isPresent()
                 && config.getOptional(SCAN_POLLING_INTERVAL).get() > 0) {
@@ -306,7 +304,7 @@ public abstract class JdbcDynamicTableFactory
                     "scan.increment.column can not null or empty in polling-interval mode.");
         }
 
-        checkAllOrNone(config, new ConfigOption[] {LOOKUP_CACHE_MAX_ROWS, LOOKUP_CACHE_TTL});
+        checkAllOrNone(config, new ConfigOption[]{LOOKUP_CACHE_MAX_ROWS, LOOKUP_CACHE_TTL});
 
         if (config.get(LOOKUP_MAX_RETRIES) < 0) {
             throw new IllegalArgumentException(

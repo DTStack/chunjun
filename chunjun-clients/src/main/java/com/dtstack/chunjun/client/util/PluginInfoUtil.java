@@ -23,11 +23,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
 public class PluginInfoUtil {
 
     private static final String MAIN_CLASS = "com.dtstack.chunjun.Main";

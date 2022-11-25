@@ -40,11 +40,6 @@ import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.util.List;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsTextInputFormat extends BaseHdfsInputFormat {
 
     @Override
@@ -96,12 +91,6 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
         }
     }
 
-    /**
-     * init Hdfs Text Reader
-     *
-     * @param inputSplit
-     * @throws IOException
-     */
     private void initHdfsTextReader(InputSplit inputSplit) throws IOException {
         HdfsTextInputSplit hdfsTextInputSplit = (HdfsTextInputSplit) inputSplit;
         org.apache.hadoop.mapred.InputSplit fileSplit = hdfsTextInputSplit.getTextSplit();

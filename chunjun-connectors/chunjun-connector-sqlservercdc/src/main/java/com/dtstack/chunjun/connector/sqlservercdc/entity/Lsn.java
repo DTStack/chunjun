@@ -27,14 +27,6 @@ import com.dtstack.chunjun.util.StringUtil;
 
 import java.util.Arrays;
 
-/**
- * Date: 2019/12/03 Company: www.dtstack.com
- *
- * <p>this class is copied from (https://github.com/debezium/debezium). but there are some different
- * from the origin.
- *
- * @author tudou
- */
 public class Lsn implements Comparable<Lsn> {
 
     private static final String NULL_STRING = "NULL";

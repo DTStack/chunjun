@@ -17,19 +17,13 @@
  * under the License.
  */
 
-package com.dtstack.chunjun.connector.influxdb.conf;
+package com.dtstack.chunjun.connector.influxdb.config;
 
 import com.dtstack.chunjun.config.CommonConfig;
 
 import java.io.Serializable;
 import java.util.List;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/3/9
- */
 public class InfluxdbConfig extends CommonConfig {
 
     private static final long serialVersionUID = 1L;

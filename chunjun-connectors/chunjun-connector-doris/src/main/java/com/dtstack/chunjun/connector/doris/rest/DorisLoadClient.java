@@ -19,7 +19,7 @@
 
 package com.dtstack.chunjun.connector.doris.rest;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.doris.DorisUtil;
 import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -71,10 +71,12 @@ public class DorisLoadClient implements Serializable {
         this.conf = conf;
         this.nameMapped = conf.isNameMapped();
     }
+
     /**
      * Each time a RowData is processed, a Carrier is obtained and then returned.
      *
      * @param value RowData
+     *
      * @return Carrier
      */
     public void process(RowData value, List<String> columns, AbstractRowConverter converter)
@@ -204,6 +206,7 @@ public class DorisLoadClient implements Serializable {
      * flush data to doris BE.
      *
      * @param carrier data carrier
+     *
      * @throws WriteRecordException
      */
     public void flush(final Carrier carrier) throws WriteRecordException {
@@ -387,7 +390,7 @@ public class DorisLoadClient implements Serializable {
         }
     }
 
-    private List<String> getColumnName(List<FieldConf> fields) {
+    private List<String> getColumnName(List<FieldConfig> fields) {
         List<String> columns = new LinkedList<>();
         if (fields != null) {
             fields.forEach(column -> columns.add(column.getName()));

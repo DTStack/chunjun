@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.starrocks.sink;
 
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.streamload.StreamLoadManager;
 import com.dtstack.chunjun.element.ColumnRowData;
 
@@ -33,14 +33,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/** @author liuliu 2022/7/28 */
 public class MappedWriteProcessor extends StarRocksWriteProcessor {
     private final Set<String> metaHeader =
             Stream.of("schema", "table", "type", "opTime", "ts", "scn")
                     .collect(Collectors.toCollection(HashSet::new));
 
-    public MappedWriteProcessor(StreamLoadManager streamLoadManager, StarRocksConf starRocksConf) {
-        super(streamLoadManager, starRocksConf);
+    public MappedWriteProcessor(StreamLoadManager streamLoadManager, StarRocksConfig starRocksConfig) {
+        super(streamLoadManager, starRocksConfig);
     }
 
     @Override
@@ -49,8 +48,8 @@ public class MappedWriteProcessor extends StarRocksWriteProcessor {
         for (RowData data : rowDataList) {
             ColumnRowData rowData = (ColumnRowData) data;
             Map<String, Integer> headerInfo = rowData.getHeaderInfo();
-            String schema = starRocksConf.getDatabase();
-            String table = starRocksConf.getTable();
+            String schema = starRocksConfig.getDatabase();
+            String table = starRocksConfig.getTable();
             Map<String, Object> value = new HashMap<>();
             for (Map.Entry<String, Integer> entry : headerInfo.entrySet()) {
                 String key = entry.getKey();

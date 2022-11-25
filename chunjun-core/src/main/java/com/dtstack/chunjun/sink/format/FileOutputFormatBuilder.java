@@ -19,11 +19,6 @@ package com.dtstack.chunjun.sink.format;
 
 import com.dtstack.chunjun.config.BaseFileConfig;
 
-/**
- * Date: 2021/06/21 Company: www.dtstack.com
- *
- * @author tudou
- */
 public abstract class FileOutputFormatBuilder<T extends BaseFileOutputFormat>
         extends BaseRichOutputFormatBuilder<T> {
 

@@ -19,8 +19,8 @@
 
 package com.dtstack.chunjun.connector.influxdb.source;
 
-import com.dtstack.chunjun.config.FieldConf;
-import com.dtstack.chunjun.connector.influxdb.conf.InfluxdbSourceConfig;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.influxdb.config.InfluxdbSourceConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 
 import org.apache.commons.lang3.StringUtils;
@@ -28,17 +28,11 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2022/3/14
- */
 public class InfluxdbQuerySqlBuilder {
     protected static final String CUSTOM_INFLUXQL_TEMPLATE = "select * from (%s)";
 
     protected String measurement;
-    protected List<FieldConf> fieldConfList;
+    protected List<FieldConfig> fieldConfList;
     protected String splitKey;
     protected String customFilter;
     protected String customInfluxql;

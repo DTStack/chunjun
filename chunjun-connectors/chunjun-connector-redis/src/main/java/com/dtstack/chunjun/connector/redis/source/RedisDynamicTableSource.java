@@ -23,7 +23,7 @@ import com.dtstack.chunjun.connector.redis.converter.RedisRowConverter;
 import com.dtstack.chunjun.connector.redis.lookup.RedisAllTableFunction;
 import com.dtstack.chunjun.connector.redis.lookup.RedisLruTableFunction;
 import com.dtstack.chunjun.enums.CacheType;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConf;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;

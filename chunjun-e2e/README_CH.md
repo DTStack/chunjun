@@ -119,7 +119,7 @@ public class PostgreContainer extends JdbcDatabaseContainer {
 ```dockerfile
 FROM debezium/postgres:9.6
 
-LABEL maintainer="www.dtstack.com"
+LABEL maintainer="chunjun@github.com"
 
 ENV LANG=C.UTF-8
 ENV TZ=Asia/Shanghai

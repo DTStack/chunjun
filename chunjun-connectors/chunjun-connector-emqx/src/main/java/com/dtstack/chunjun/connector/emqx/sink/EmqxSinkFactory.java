@@ -29,11 +29,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 
-/**
- * @author chuixue
- * @create 2021-06-01 20:08
- * @description
- */
 public class EmqxSinkFactory extends SinkFactory {
 
     private final EmqxConf emqxConf;

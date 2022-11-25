@@ -23,10 +23,6 @@ import org.apache.flink.table.data.GenericRowData;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * @author jiangbo
- * @date 2020/3/13
- */
 public class RowUtilTest {
 
     @Test

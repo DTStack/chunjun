@@ -33,9 +33,9 @@ import java.util.zip.ZipEntry;
 public class ZipInputStream extends InputStream {
     private static final Logger LOG = LoggerFactory.getLogger(ZipInputStream.class);
 
-    private java.util.zip.ZipInputStream zipInputStream;
+    private final java.util.zip.ZipInputStream zipInputStream;
+    private final List<String> fileNameList;
     private ZipEntry currentZipEntry;
-    private List<String> fileNameList;
 
     public ZipInputStream(InputStream in) {
         this.zipInputStream = new java.util.zip.ZipInputStream(in);

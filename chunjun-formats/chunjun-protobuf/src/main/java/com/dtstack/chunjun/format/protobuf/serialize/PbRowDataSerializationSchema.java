@@ -29,7 +29,6 @@ import com.google.protobuf.AbstractMessage;
 
 import java.util.Objects;
 
-/** @author liuliu 2022/4/26 */
 public class PbRowDataSerializationSchema implements SerializationSchema<RowData> {
     private static final long serialVersionUID = 1L;
 

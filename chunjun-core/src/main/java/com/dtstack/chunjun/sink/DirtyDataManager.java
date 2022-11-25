@@ -49,13 +49,6 @@ import static com.dtstack.chunjun.sink.WriteErrorTypes.ERR_FORMAT_TRANSFORM;
 import static com.dtstack.chunjun.sink.WriteErrorTypes.ERR_NULL_POINTER;
 import static com.dtstack.chunjun.sink.WriteErrorTypes.ERR_PRIMARY_CONFLICT;
 
-/**
- * The class handles dirty data management
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public class DirtyDataManager {
 
     private static final List<String> PRIMARY_CONFLICT_KEYWORDS = new ArrayList<>();

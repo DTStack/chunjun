@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.sqlserver.table;
 
-import com.dtstack.chunjun.connector.jdbc.config.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
@@ -34,14 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
-/**
- * Company：www.dtstack.com
- *
- * <p>** sql task currently only supports Microsoft driver **
- *
- * @author shitou
- * @date 2021/5/21 17:39
- */
 public class SqlserverDynamicTableFactory extends JdbcDynamicTableFactory {
 
     private static final String IDENTIFIER = "sqlserver-x";
@@ -75,7 +67,7 @@ public class SqlserverDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** table字段有可能是[schema].[table]格式 需要转换为对应的schema 和 table 字段* */
     @Override
-    protected void resetTableInfo(JdbcConf jdbcConf) {
+    protected void resetTableInfo(JdbcConfig jdbcConf) {
         if (jdbcConf.getTable().startsWith("[")
                 && jdbcConf.getTable().endsWith("]")
                 && StringUtils.isBlank(jdbcConf.getSchema())) {

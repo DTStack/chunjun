@@ -25,22 +25,17 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class GreenplumRawTypeConverter {
 
     /**
      * inspired by Postgresql doc. <a
      * href="https://www.postgresql.org/docs/current/datatype.html">...</a>
      *
-     * @param type
+     * @param type original type
      */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
-                // Numeric Types
+            // Numeric Types
             case "SMALLINT":
             case "SMALLSERIAL":
             case "INT2":
@@ -64,10 +59,9 @@ public class GreenplumRawTypeConverter {
                 return DataTypes.DOUBLE();
             case "DECIMAL":
             case "NUMERIC":
-                //            case "MONEY":
                 return DataTypes.DECIMAL(38, 18);
 
-                // Character Types
+            // Character Types
             case "CHARACTER VARYING":
             case "VARCHAR":
             case "CHARACTER":
@@ -77,11 +71,11 @@ public class GreenplumRawTypeConverter {
             case "BPCHAR":
                 return DataTypes.STRING();
 
-                // Binary Data Types
+            // Binary Data Types
             case "BYTEA":
                 return DataTypes.BYTES();
 
-                // Date/Time Types
+            // Date/Time Types
             case "TIMESTAMP":
             case "TIMESTAMP WITH TIME ZONE":
                 return DataTypes.TIMESTAMP();
@@ -90,9 +84,9 @@ public class GreenplumRawTypeConverter {
             case "TIME":
             case "TIME WITH TIME ZONE":
                 return DataTypes.TIME();
-                // interval 类型还不知道如何支持
+            // interval 类型还不知道如何支持
 
-                // Boolean Type
+            // Boolean Type
             case "BOOLEAN":
             case "BOOL":
                 return DataTypes.BOOLEAN();

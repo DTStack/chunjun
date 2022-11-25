@@ -42,11 +42,6 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-/**
- * @program: ChunJun
- * @author: wuren
- * @create: 2021/08/12
- */
 public class PostgresOutputFormat extends JdbcOutputFormat {
 
     // pg 字符串里含有\u0000 会报错 ERROR: invalid byte sequence for encoding "UTF8": 0x00

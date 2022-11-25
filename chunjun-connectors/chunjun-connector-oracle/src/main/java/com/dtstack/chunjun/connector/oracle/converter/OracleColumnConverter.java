@@ -43,11 +43,6 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class OracleColumnConverter extends JdbcColumnConverter {
 
     public OracleColumnConverter(RowType rowType, CommonConfig commonConf) {

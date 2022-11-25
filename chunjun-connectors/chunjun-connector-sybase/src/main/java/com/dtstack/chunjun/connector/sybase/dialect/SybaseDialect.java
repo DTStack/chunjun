@@ -35,7 +35,6 @@ import io.vertx.core.json.JsonArray;
 import java.sql.ResultSet;
 import java.util.Optional;
 
-/** @Author OT @Date 2022/6/16 13:54 @Version 1.0 */
 public class SybaseDialect implements JdbcDialect {
     private static final String DIALECT_NAME = "Sybase";
     private static final String DRIVER_NAME = "net.sourceforge.jtds.jdbc.Driver";

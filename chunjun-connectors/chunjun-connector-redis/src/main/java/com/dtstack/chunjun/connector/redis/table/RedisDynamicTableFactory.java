@@ -24,7 +24,7 @@ import com.dtstack.chunjun.connector.redis.enums.RedisDataMode;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataType;
 import com.dtstack.chunjun.connector.redis.sink.RedisDynamicTableSink;
 import com.dtstack.chunjun.connector.redis.source.RedisDynamicTableSource;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConf;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;

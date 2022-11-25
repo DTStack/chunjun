@@ -35,11 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Date: 2019/12/03 Company: www.dtstack.com
- *
- * <p>this class is copied from (https://github.com/debezium/debezium).
- *
- * @author tudou
+ * this class is copied from (https://github.com/debezium/debezium).
  */
 public class ChangeTablePointer {
     private static final Logger LOG = LoggerFactory.getLogger(ChangeTablePointer.class);

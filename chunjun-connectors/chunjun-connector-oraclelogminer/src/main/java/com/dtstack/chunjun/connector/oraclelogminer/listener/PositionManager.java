@@ -20,10 +20,6 @@ package com.dtstack.chunjun.connector.oraclelogminer.listener;
 
 import java.math.BigInteger;
 
-/**
- * @author jiangbo
- * @date 2020/3/27
- */
 public class PositionManager {
 
     private BigInteger scn;
