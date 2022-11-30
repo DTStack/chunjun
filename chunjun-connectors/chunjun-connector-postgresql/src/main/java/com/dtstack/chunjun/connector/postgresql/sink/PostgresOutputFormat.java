@@ -64,21 +64,22 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
         super.openInternal(taskNumber, numTasks);
         try {
             // check is use copy mode for insert
-            enableCopyMode = INSERT_SQL_MODE_TYPE.equalsIgnoreCase(jdbcConf.getInsertSqlMode());
-            if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode()) && enableCopyMode) {
+            enableCopyMode = INSERT_SQL_MODE_TYPE.equalsIgnoreCase(jdbcConfig.getInsertSqlMode());
+            if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConfig.getMode()) && enableCopyMode) {
                 copyManager = new CopyManager((BaseConnection) dbConn);
 
                 PostgresqlDialect pgDialect = (PostgresqlDialect) jdbcDialect;
                 copySql =
                         pgDialect.getCopyStatement(
-                                jdbcConf.getTable(),
+                                jdbcConfig.getTable(),
                                 columnNameList.toArray(new String[0]),
-                                StringUtils.isNullOrWhitespaceOnly(jdbcConf.getFieldDelim().trim())
+                                StringUtils.isNullOrWhitespaceOnly(
+                                                jdbcConfig.getFieldDelim().trim())
                                         ? DEFAULT_FIELD_DELIMITER
-                                        : jdbcConf.getFieldDelim(),
-                                StringUtils.isNullOrWhitespaceOnly(jdbcConf.getNullDelim().trim())
+                                        : jdbcConfig.getFieldDelim(),
+                                StringUtils.isNullOrWhitespaceOnly(jdbcConfig.getNullDelim().trim())
                                         ? DEFAULT_NULL_VALUE
-                                        : jdbcConf.getNullDelim());
+                                        : jdbcConfig.getNullDelim());
 
                 LOG.info("write sql:{}", copySql);
             }
@@ -156,18 +157,18 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
         Object col = colRowData.getField(pos);
         if (col == null) {
             rowStr.append(
-                    StringUtils.isNullOrWhitespaceOnly(jdbcConf.getNullDelim().trim())
+                    StringUtils.isNullOrWhitespaceOnly(jdbcConfig.getNullDelim().trim())
                             ? DEFAULT_NULL_VALUE
-                            : jdbcConf.getNullDelim());
+                            : jdbcConfig.getNullDelim());
 
         } else {
             rowStr.append(col);
         }
         if (!isLast) {
             rowStr.append(
-                    StringUtils.isNullOrWhitespaceOnly(jdbcConf.getFieldDelim().trim())
+                    StringUtils.isNullOrWhitespaceOnly(jdbcConfig.getFieldDelim().trim())
                             ? DEFAULT_FIELD_DELIMITER
-                            : jdbcConf.getFieldDelim());
+                            : jdbcConfig.getFieldDelim());
         }
     }
 
@@ -208,7 +209,7 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
      * @throws SQLException
      */
     public void checkUpsert() throws SQLException {
-        if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())) {
+        if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConfig.getMode())) {
             try (Connection connection = getConnection()) {
 
                 // 效验版本

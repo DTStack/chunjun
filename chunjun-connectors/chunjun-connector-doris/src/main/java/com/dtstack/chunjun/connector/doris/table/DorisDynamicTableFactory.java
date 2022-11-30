@@ -125,15 +125,15 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
 
     @Override
     protected JdbcConfig getSourceConnectionConf(ReadableConfig readableConfig) {
-        JdbcConfig jdbcConf = super.getSourceConnectionConf(readableConfig);
+        JdbcConfig jdbcConfig = super.getSourceConnectionConf(readableConfig);
         String url = readableConfig.get(DorisOptions.URL);
         List<String> feNodes = readableConfig.get(DorisOptions.FENODES);
 
         String jdbcUrl = DorisUtil.getJdbcUrlFromFe(feNodes, url);
 
-        jdbcConf.setJdbcUrl(jdbcUrl);
+        jdbcConfig.setJdbcUrl(jdbcUrl);
 
-        return jdbcConf;
+        return jdbcConfig;
     }
 
     @Override

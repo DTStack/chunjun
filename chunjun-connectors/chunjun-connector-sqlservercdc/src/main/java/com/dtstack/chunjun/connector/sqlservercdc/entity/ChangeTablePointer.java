@@ -33,9 +33,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 /**
- * this class is copied from (https://github.com/debezium/debezium).
+ * this class is copied from (<a href="https://github.com/debezium/debezium">class from
+ * debezium</a>).
  */
 public class ChangeTablePointer {
     private static final Logger LOG = LoggerFactory.getLogger(ChangeTablePointer.class);
@@ -70,12 +72,6 @@ public class ChangeTablePointer {
         return resultSet.getInt(COL_OPERATION);
     }
 
-    /**
-     * get data form resultSet
-     *
-     * @return
-     * @throws SQLException
-     */
     public Object[] getData() throws SQLException {
         final int dataColumnCount = resultSet.getMetaData().getColumnCount() - (COL_DATA - 1);
         final Object[] data = new Object[dataColumnCount];
@@ -85,12 +81,6 @@ public class ChangeTablePointer {
         return data;
     }
 
-    /**
-     * get types from metadata
-     *
-     * @return
-     * @throws SQLException
-     */
     public List<String> getTypes() throws SQLException {
         final int dataColumnCount = resultSet.getMetaData().getColumnCount() - (COL_DATA - 1);
         List<String> columnTypes = new ArrayList<>();
@@ -126,14 +116,12 @@ public class ChangeTablePointer {
 
     @Override
     public String toString() {
-        return "ChangeTablePointer [changeTable="
-                + changeTable
-                + ", resultSet="
-                + resultSet
-                + ", completed="
-                + completed
-                + ", currentChangePosition="
-                + currentChangePosition
-                + "]";
+        return new StringJoiner(", ", ChangeTablePointer.class.getSimpleName() + "[", "]")
+                .add("changeTable=" + changeTable)
+                .add("statement=" + statement)
+                .add("resultSet=" + resultSet)
+                .add("completed=" + completed)
+                .add("currentChangePosition=" + currentChangePosition)
+                .toString();
     }
 }

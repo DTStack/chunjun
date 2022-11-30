@@ -83,9 +83,7 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      * 将外部数据库类型转换为flink内部类型
      *
      * @param input
-     *
      * @return
-     *
      * @throws Exception
      */
     public abstract LinkedList<RowData> toInternal(SourceT input) throws Exception;
@@ -94,7 +92,6 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      * 将外部数据库类型转换为flink内部类型
      *
      * @param type
-     *
      * @return
      */
     protected abstract IDeserializationConverter createInternalConverter(T type);
@@ -114,7 +111,6 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      * 根据eventType获取RowKind
      *
      * @param type
-     *
      * @return
      */
     protected RowKind getRowKindByType(String type) {
@@ -135,7 +131,6 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      * @param fieldNameList
      * @param converters
      * @param valueMap
-     *
      * @return
      */
     @SuppressWarnings("unchecked")

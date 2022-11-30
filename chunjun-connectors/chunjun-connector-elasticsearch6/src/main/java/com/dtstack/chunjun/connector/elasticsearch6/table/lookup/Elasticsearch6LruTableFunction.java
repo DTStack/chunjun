@@ -51,19 +51,19 @@ public class Elasticsearch6LruTableFunction extends AbstractLruTableFunction {
     private static final long serialVersionUID = 2L;
     private static final Logger LOG = LoggerFactory.getLogger(Elasticsearch6LruTableFunction.class);
 
-    private Elasticsearch6Config elasticsearchConf;
+    private final Elasticsearch6Config elasticsearchConfig;
     private final String[] fieldNames;
     private final String[] keyNames;
     private RestHighLevelClient rhlClient;
 
     public Elasticsearch6LruTableFunction(
-            Elasticsearch6Config elasticsearchConf,
+            Elasticsearch6Config elasticsearchConfig,
             LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             AbstractRowConverter rowConverter) {
         super(lookupConfig, rowConverter);
-        this.elasticsearchConf = elasticsearchConf;
+        this.elasticsearchConfig = elasticsearchConfig;
         this.keyNames = keyNames;
         this.fieldNames = fieldNames;
     }
@@ -71,12 +71,11 @@ public class Elasticsearch6LruTableFunction extends AbstractLruTableFunction {
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-        rhlClient = Elasticsearch6ClientFactory.createClient(elasticsearchConf);
+        rhlClient = Elasticsearch6ClientFactory.createClient(elasticsearchConfig);
     }
 
     @Override
-    public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys)
-            throws Exception {
+    public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys) {
         String cacheKey = buildCacheKey(keys);
         SearchRequest searchRequest = buildSearchRequest(keys);
         rhlClient.searchAsync(
@@ -125,16 +124,11 @@ public class Elasticsearch6LruTableFunction extends AbstractLruTableFunction {
                 });
     }
 
-    /**
-     * build search request
-     *
-     * @return
-     */
     private SearchRequest buildSearchRequest(Object... keys) {
         SearchSourceBuilder sourceBuilder =
                 Elasticsearch6RequestFactory.createSourceBuilder(fieldNames, keyNames, keys);
         sourceBuilder.size(lookupConfig.getFetchSize());
         return Elasticsearch6RequestFactory.createSearchRequest(
-                elasticsearchConf.getIndex(), elasticsearchConf.getType(), null, sourceBuilder);
+                elasticsearchConfig.getIndex(), elasticsearchConfig.getType(), null, sourceBuilder);
     }
 }

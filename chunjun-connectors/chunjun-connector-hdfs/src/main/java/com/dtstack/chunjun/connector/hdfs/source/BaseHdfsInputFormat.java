@@ -65,7 +65,9 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
                     PluginUtil.createDistributedCacheFromContextClassLoader();
             UserGroupInformation ugi =
                     FileSystemUtil.getUGI(
-                            hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS(), distributedCache);
+                            hdfsConfig.getHadoopConfig(),
+                            hdfsConfig.getDefaultFS(),
+                            distributedCache);
             LOG.info("user:{}, ", ugi.getShortUserName());
             return ugi.doAs(
                     (PrivilegedAction<InputSplit[]>)

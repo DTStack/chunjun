@@ -18,31 +18,32 @@
 
 package com.dtstack.chunjun.connector.s3.source;
 
-import com.dtstack.chunjun.config.FieldConf;
-import com.dtstack.chunjun.connector.s3.conf.S3Conf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.connector.s3.converter.S3RowConverter;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.Column;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.LogicalType;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class S3DynamicTableSource implements ScanTableSource {
-    private final TableSchema schema;
-    private final S3Conf s3Conf;
+    private final ResolvedSchema schema;
+    private final S3Config s3Config;
 
-    public S3DynamicTableSource(TableSchema schema, S3Conf s3Conf) {
+    public S3DynamicTableSource(ResolvedSchema schema, S3Config s3Config) {
         this.schema = schema;
-        this.s3Conf = s3Conf;
+        this.s3Config = s3Config;
     }
 
     @Override
@@ -52,28 +53,31 @@ public class S3DynamicTableSource implements ScanTableSource {
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        final RowType rowType = (RowType) schema.toRowDataType().getLogicalType();
-        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
-        String[] fieldNames = schema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        for (int i = 0; i < fieldNames.length; i++) {
-            FieldConf field = new FieldConf();
-            field.setName(fieldNames[i]);
-            field.setType(rowType.getTypeAt(i).asSummaryString());
+        LogicalType logicalType = schema.toPhysicalRowDataType().getLogicalType();
+        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(logicalType);
+
+        List<Column> columns = schema.getColumns();
+        List<FieldConfig> columnList = new ArrayList<>(columns.size());
+        for (int i = 0; i < columns.size(); i++) {
+            Column column = columns.get(i);
+            FieldConfig field = new FieldConfig();
+            field.setName(column.getName());
+            field.setType(column.getDataType().getLogicalType().asSummaryString());
             field.setIndex(i);
             columnList.add(field);
         }
-        s3Conf.setColumn(columnList);
+        s3Config.setColumn(columnList);
         S3InputFormatBuilder builder = new S3InputFormatBuilder(new S3InputFormat());
-        builder.setRowConverter(new S3RowConverter(rowType, s3Conf));
-        builder.setS3Conf(s3Conf);
+        builder.setRowConverter(
+                new S3RowConverter(InternalTypeInfo.of(logicalType).toRowType(), s3Config));
+        builder.setS3Conf(s3Config);
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, null);
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new S3DynamicTableSource(this.schema, this.s3Conf);
+        return new S3DynamicTableSource(this.schema, this.s3Config);
     }
 
     @Override

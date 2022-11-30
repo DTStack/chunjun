@@ -39,7 +39,7 @@ public class ClickhouseInputFormatBuilder extends JdbcInputFormatBuilder {
     protected void checkFormat() {
         JdbcConfig conf = format.getJdbcConfig();
         StringBuilder sb = new StringBuilder(256);
-     
+
         if (StringUtils.isBlank(conf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }

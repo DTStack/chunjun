@@ -79,8 +79,8 @@ public class Vertica11Dialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, CommonConfig commonConf) {
-        return new Vertica11ColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new Vertica11ColumnConverter(rowType, commonConfig);
     }
 
     public Optional<String> getUpsertStatement(

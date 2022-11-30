@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.kudu.util;
 
-import com.dtstack.chunjun.config.FieldConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduCommonConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduSourceConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.kudu.config.KuduCommonConfig;
+import com.dtstack.chunjun.connector.kudu.config.KuduSourceConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.security.KerberosConfig;
 import com.dtstack.chunjun.security.KerberosUtil;
@@ -51,10 +51,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author tiezhu
- * @since 2021/6/9 星期三
- */
 public class KuduUtil {
     private static final String EXPRESS_REGEX =
             "(?<column>[^\\=|\\s]+)+\\s*(?<op>[\\>|\\<|\\=]+)\\s*(?<value>.*)";
@@ -69,7 +65,7 @@ public class KuduUtil {
      * @param config kudu conf
      * @return kudu sync client
      */
-    public static KuduClient getKuduClient(KuduCommonConf config) {
+    public static KuduClient getKuduClient(KuduCommonConfig config) {
         try {
             KerberosConfig kerberosConfig = config.getKerberos();
             if (kerberosConfig != null && kerberosConfig.isEnableKrb()) {
@@ -86,7 +82,7 @@ public class KuduUtil {
         }
     }
 
-    public static AsyncKuduClient getAsyncKuduClient(KuduCommonConf config) {
+    public static AsyncKuduClient getAsyncKuduClient(KuduCommonConfig config) {
         try {
             KerberosConfig kerberosConfig = config.getKerberos();
             if (kerberosConfig.isEnableKrb()) {
@@ -102,7 +98,7 @@ public class KuduUtil {
         }
     }
 
-    private static AsyncKuduClient getAsyncKuduClientInternal(KuduCommonConf config) {
+    private static AsyncKuduClient getAsyncKuduClientInternal(KuduCommonConfig config) {
         return new AsyncKuduClient.AsyncKuduClientBuilder(
                         Arrays.asList(config.getMasters().split(",")))
                 .workerCount(config.getWorkerCount())
@@ -111,7 +107,7 @@ public class KuduUtil {
                 .build();
     }
 
-    private static KuduClient getKuduClientInternal(KuduCommonConf config) {
+    private static KuduClient getKuduClientInternal(KuduCommonConfig config) {
         return new AsyncKuduClient.AsyncKuduClientBuilder(
                         Arrays.asList(config.getMasters().split(",")))
                 .workerCount(config.getWorkerCount())
@@ -121,13 +117,13 @@ public class KuduUtil {
                 .syncClient();
     }
 
-    public static List<KuduScanToken> getKuduScanToken(KuduSourceConf config) throws IOException {
+    public static List<KuduScanToken> getKuduScanToken(KuduSourceConfig config) throws IOException {
         try (KuduClient client = KuduUtil.getKuduClient(config)) {
             KuduTable kuduTable = client.openTable(config.getTable());
 
             List<String> columnNameList = new ArrayList<>();
 
-            List<FieldConf> columnList = config.getColumn();
+            List<FieldConfig> columnList = config.getColumn();
             columnList.forEach(item -> columnNameList.add(item.getName()));
 
             KuduScanToken.KuduScanTokenBuilder builder =
@@ -157,7 +153,7 @@ public class KuduUtil {
     private static void addPredicates(
             KuduScanToken.KuduScanTokenBuilder builder,
             String filterString,
-            List<FieldConf> columns) {
+            List<FieldConfig> columns) {
         if (StringUtils.isEmpty(filterString)) {
             return;
         }

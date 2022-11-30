@@ -63,11 +63,12 @@ public class FtpDynamicTableSource implements ScanTableSource {
         builder.setFtpConfig(ftpConfig);
         builder.setRowConverter(
                 new FtpRowConverter(
-                        decodingFormat.createRuntimeDecoder(
-                                runtimeProviderContext, dataType)));
+                        decodingFormat.createRuntimeDecoder(runtimeProviderContext, dataType)));
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, ftpConfig.getParallelism());
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
+                false,
+                ftpConfig.getParallelism());
     }
 
     @Override

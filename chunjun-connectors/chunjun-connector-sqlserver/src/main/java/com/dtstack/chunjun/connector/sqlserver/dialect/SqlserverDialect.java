@@ -109,11 +109,11 @@ public class SqlserverDialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, CommonConfig commonConf) {
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
         if (useJtdsDriver) {
-            return new SqlserverJtdsColumnConverter(rowType, commonConf);
+            return new SqlserverJtdsColumnConverter(rowType, commonConfig);
         }
-        return new SqlserverMicroSoftColumnConverter(rowType, commonConf);
+        return new SqlserverMicroSoftColumnConverter(rowType, commonConfig);
     }
 
     @Override

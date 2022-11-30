@@ -72,20 +72,23 @@ import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_TABL
 public class DorisSinkFactory extends SinkFactory {
     private final DorisConfig options;
 
-    public DorisSinkFactory(SyncConfig syncConf) {
-        super(syncConf);
+    public DorisSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
 
-        final OperatorConfig parameter = syncConf.getWriter();
+        final OperatorConfig parameter = syncConfig.getWriter();
 
         Gson gson =
                 new GsonBuilder()
                         .registerTypeAdapter(
-                                ConnectionConfig.class, new ConnectionAdapter("SinkConnectionConfig"))
+                                ConnectionConfig.class,
+                                new ConnectionAdapter("SinkConnectionConfig"))
                         .addDeserializationExclusionStrategy(
                                 new FieldNameExclusionStrategy("column"))
                         .create();
         GsonUtil.setTypeAdapter(gson);
-        options = gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), DorisConfig.class);
+        options =
+                gson.fromJson(
+                        gson.toJson(syncConfig.getWriter().getParameter()), DorisConfig.class);
 
         LoadConfBuilder loadConfBuilder = new LoadConfBuilder();
 
@@ -135,7 +138,7 @@ public class DorisSinkFactory extends SinkFactory {
                                                 DORIS_DESERIALIZE_ARROW_ASYNC_DEFAULT))
                         .build();
 
-        options.setColumn(syncConf.getWriter().getFieldList());
+        options.setColumn(syncConfig.getWriter().getFieldList());
         options.setLoadProperties(properties);
         options.setLoadConf(loadConfig);
         super.initCommonConf(options);

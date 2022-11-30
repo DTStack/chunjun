@@ -28,7 +28,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-/** @author liuliu 2022/3/23 */
 public class HdfsTextInputSplit implements InputSplit {
     private static final long serialVersionUID = 1L;
     int splitNumber;

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hive3.source;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hive3.inputSplit.HdfsTextInputSplit;
 import com.dtstack.chunjun.connector.hive3.util.Hive3Util;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -43,7 +43,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.PrivilegedAction;
 import java.util.List;
 
-/** @author liuliu 2022/3/23 */
 public class HdfsTextInputFormat extends BaseHdfsInputFormat {
 
     @Override
@@ -52,7 +51,7 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
         // 是否在MapReduce中递归遍历Input目录
         hadoopJobConf.set("mapreduce.input.fileinputformat.input.dir.recursive", "true");
         FileInputFormat.setInputPathFilter(hadoopJobConf, HdfsPathFilter.class);
-        FileInputFormat.setInputPaths(hadoopJobConf, hdfsConf.getPath());
+        FileInputFormat.setInputPaths(hadoopJobConf, hdfsConfig.getPath());
         TextInputFormat inputFormat = new TextInputFormat();
         inputFormat.configure(hadoopJobConf);
         org.apache.hadoop.mapred.InputSplit[] splits;
@@ -111,7 +110,7 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
     @Override
     protected RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         try {
-            List<FieldConf> fieldConfList = hdfsConf.getColumn();
+            List<FieldConfig> fieldConfList = hdfsConfig.getColumn();
             String line =
                     new String(
                             ((Text) value).getBytes(),
@@ -119,7 +118,7 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
                             ((Text) value).getLength(),
                             StandardCharsets.UTF_8);
             String[] fields =
-                    StringUtils.splitPreserveAllTokens(line, hdfsConf.getFieldDelimiter());
+                    StringUtils.splitPreserveAllTokens(line, hdfsConfig.getFieldDelimiter());
             GenericRowData genericRowData =
                     new GenericRowData(Math.max(fields.length, fieldConfList.size()));
             if (fieldConfList.size() == 1
@@ -129,7 +128,7 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
                 }
             } else {
                 for (int i = 0; i < fieldConfList.size(); i++) {
-                    FieldConf fieldConf = fieldConfList.get(i);
+                    FieldConfig fieldConf = fieldConfList.get(i);
 
                     Object value = null;
                     if (fieldConf.getValue() != null) {

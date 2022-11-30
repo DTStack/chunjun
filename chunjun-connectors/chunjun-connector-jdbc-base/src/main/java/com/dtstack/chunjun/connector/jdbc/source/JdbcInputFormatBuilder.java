@@ -39,9 +39,9 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
         super(format);
     }
 
-    public void setJdbcConf(JdbcConfig jdbcConf) {
-        super.setConfig(jdbcConf);
-        format.setJdbcConf(jdbcConf);
+    public void setJdbcConf(JdbcConfig jdbcConfig) {
+        super.setConfig(jdbcConfig);
+        format.setJdbcConf(jdbcConfig);
     }
 
     public void setJdbcDialect(JdbcDialect jdbcDialect) {

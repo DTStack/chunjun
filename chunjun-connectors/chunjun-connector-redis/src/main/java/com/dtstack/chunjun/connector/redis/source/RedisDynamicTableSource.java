@@ -18,19 +18,19 @@
 
 package com.dtstack.chunjun.connector.redis.source;
 
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.connector.redis.converter.RedisRowConverter;
 import com.dtstack.chunjun.connector.redis.lookup.RedisAllTableFunction;
 import com.dtstack.chunjun.connector.redis.lookup.RedisLruTableFunction;
 import com.dtstack.chunjun.enums.CacheType;
-import com.dtstack.chunjun.lookup.config.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelTableFunctionProvider;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
@@ -38,27 +38,21 @@ import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.utils.TableSchemaUtils;
+import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.Preconditions;
 
-/**
- * @author chuixue
- * @create 2021-06-21 19:08
- * @description
- */
 public class RedisDynamicTableSource
         implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
-    protected TableSchema physicalSchema;
-    protected final RedisConf redisConf;
-    protected final LookupConf lookupConf;
+    protected ResolvedSchema physicalSchema;
+    protected final RedisConfig redisConfig;
+    protected final LookupConfig lookupConfig;
 
     public RedisDynamicTableSource(
-            TableSchema physicalSchema, RedisConf redisConf, LookupConf lookupConf) {
+            ResolvedSchema physicalSchema, RedisConfig redisConfig, LookupConfig lookupConfig) {
         this.physicalSchema = physicalSchema;
-        this.redisConf = redisConf;
-        this.lookupConf = lookupConf;
+        this.redisConfig = redisConfig;
+        this.lookupConfig = lookupConfig;
     }
 
     @Override
@@ -68,28 +62,30 @@ public class RedisDynamicTableSource
             int[] innerKeyArr = context.getKeys()[i];
             Preconditions.checkArgument(
                     innerKeyArr.length == 1, "redis only support non-nested look up keys");
-            keyNames[i] = physicalSchema.getFieldNames()[innerKeyArr[0]];
+            keyNames[i] = physicalSchema.getColumnNames().get(innerKeyArr[0]);
         }
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+        LogicalType logicalType = physicalSchema.toPhysicalRowDataType().getLogicalType();
+        if (lookupConfig.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
             return ParallelTableFunctionProvider.of(
                     new RedisAllTableFunction(
-                            redisConf,
-                            lookupConf,
-                            physicalSchema.getFieldNames(),
+                            redisConfig,
+                            lookupConfig,
+                            physicalSchema.getColumnNames().toArray(new String[0]),
                             keyNames,
-                            new RedisRowConverter(rowType)),
-                    lookupConf.getParallelism());
+                            new RedisRowConverter(InternalTypeInfo.of(logicalType).toRowType())),
+                    lookupConfig.getParallelism());
         }
         return ParallelAsyncTableFunctionProvider.of(
-                new RedisLruTableFunction(redisConf, lookupConf, new RedisRowConverter(rowType)),
-                lookupConf.getParallelism());
+                new RedisLruTableFunction(
+                        redisConfig,
+                        lookupConfig,
+                        new RedisRowConverter(InternalTypeInfo.of(logicalType).toRowType())),
+                lookupConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new RedisDynamicTableSource(physicalSchema, redisConf, lookupConf);
+        return new RedisDynamicTableSource(physicalSchema, redisConfig, lookupConfig);
     }
 
     @Override
@@ -103,11 +99,6 @@ public class RedisDynamicTableSource
     }
 
     @Override
-    public void applyProjection(int[][] projectedFields) {
-        this.physicalSchema = TableSchemaUtils.projectSchema(physicalSchema, projectedFields);
-    }
-
-    @Override
     public ChangelogMode getChangelogMode() {
         return ChangelogMode.insertOnly();
     }
@@ -115,11 +106,14 @@ public class RedisDynamicTableSource
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
         RedisInputFormatBuilder builder = new RedisInputFormatBuilder();
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
-        builder.setRedisConf(redisConf);
-        builder.setRowConverter(new RedisRowConverter(rowType));
+        LogicalType logicalType = physicalSchema.toPhysicalRowDataType().getLogicalType();
+        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(logicalType);
+        builder.setRedisConf(redisConfig);
+        builder.setRowConverter(
+                new RedisRowConverter(InternalTypeInfo.of(logicalType).toRowType()));
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
+                false,
+                redisConfig.getParallelism());
     }
 }

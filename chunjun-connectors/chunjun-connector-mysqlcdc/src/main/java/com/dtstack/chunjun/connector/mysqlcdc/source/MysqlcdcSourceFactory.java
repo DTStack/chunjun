@@ -18,11 +18,11 @@
 
 package com.dtstack.chunjun.connector.mysqlcdc.source;
 
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
-import com.dtstack.chunjun.connector.jdbc.config.CdcConf;
-import com.dtstack.chunjun.connector.jdbc.config.ConnectionConf;
+import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
+import com.dtstack.chunjun.connector.mysqlcdc.config.MysqlCdcConfig;
 import com.dtstack.chunjun.connector.mysqlcdc.converter.MysqlCdcRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.source.SourceFactory;
@@ -49,19 +49,20 @@ import java.util.List;
 
 public class MysqlcdcSourceFactory extends SourceFactory {
 
-    protected CdcConf cdcConf;
+    protected MysqlCdcConfig cdcConf;
 
-    public MysqlcdcSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
+    public MysqlcdcSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
         Gson gson =
                 new GsonBuilder()
                         .registerTypeAdapter(
-                                ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf"))
+                                ConnectionConfig.class,
+                                new ConnectionAdapter("SourceConnectionConf"))
                         .addDeserializationExclusionStrategy(
                                 new FieldNameExclusionStrategy("column"))
                         .create();
         GsonUtil.setTypeAdapter(gson);
-        cdcConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), getConfClass());
+        cdcConf = gson.fromJson(gson.toJson(syncConfig.getReader().getParameter()), getConfClass());
     }
 
     @Override
@@ -73,9 +74,10 @@ public class MysqlcdcSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
 
         List<DataTypes.Field> dataTypes =
-                new ArrayList<>(syncConf.getReader().getFieldList().size());
+                new ArrayList<>(syncConfig.getReader().getFieldList().size());
 
-        syncConf.getReader()
+        syncConfig
+                .getReader()
                 .getFieldList()
                 .forEach(
                         fieldConf -> {
@@ -112,8 +114,8 @@ public class MysqlcdcSourceFactory extends SourceFactory {
                 ZoneOffset.UTC);
     }
 
-    protected Class<? extends CdcConf> getConfClass() {
-        return CdcConf.class;
+    protected Class<? extends MysqlCdcConfig> getConfClass() {
+        return MysqlCdcConfig.class;
     }
 
     public static final class DemoValueValidator

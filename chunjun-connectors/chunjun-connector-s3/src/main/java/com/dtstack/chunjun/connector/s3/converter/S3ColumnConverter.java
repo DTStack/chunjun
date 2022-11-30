@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.s3.converter;
 
 import com.dtstack.chunjun.config.CommonConfig;
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -43,11 +43,10 @@ import java.util.List;
 public class S3ColumnConverter
         extends AbstractRowConverter<String[], RowData, String[], LogicalType> {
 
-    public S3ColumnConverter(RowType rowType, CommonConfig conf) {
-        super(rowType, conf);
-        super.commonConf = conf;
-        for (int i = 0; i < fieldTypes.length; i++) {
-            LogicalType type = fieldTypes[i];
+    public S3ColumnConverter(RowType rowType, CommonConfig config) {
+        super(rowType, config);
+        super.commonConfig = config;
+        for (LogicalType type : fieldTypes) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(createInternalConverter(type)));
             toExternalConverters.add(
@@ -57,14 +56,14 @@ public class S3ColumnConverter
 
     @Override
     public RowData toInternal(String[] input) {
-        List<FieldConf> fieldConfList = commonConf.getColumn();
+        List<FieldConfig> fieldConfList = commonConfig.getColumn();
         ColumnRowData rowData = new ColumnRowData(fieldConfList.size());
-        for (int i = 0; i < fieldConfList.size(); i++) {
+        for (FieldConfig fieldConfig : fieldConfList) {
             StringColumn stringColumn = null;
-            if (StringUtils.isBlank(fieldConfList.get(i).getValue())) {
-                stringColumn = new StringColumn(input[fieldConfList.get(i).getIndex()]);
+            if (StringUtils.isBlank(fieldConfig.getValue())) {
+                stringColumn = new StringColumn(input[fieldConfig.getIndex()]);
             }
-            rowData.addField(assembleFieldProps(fieldConfList.get(i), stringColumn));
+            rowData.addField(assembleFieldProps(fieldConfig, stringColumn));
         }
         return rowData;
     }
@@ -131,6 +130,6 @@ public class S3ColumnConverter
     @Override
     protected ISerializationConverter<String[]> wrapIntoNullableExternalConverter(
             ISerializationConverter<String[]> ISerializationConverter, LogicalType type) {
-        return (val, index, output) -> ISerializationConverter.serialize(val, index, output);
+        return ISerializationConverter;
     }
 }

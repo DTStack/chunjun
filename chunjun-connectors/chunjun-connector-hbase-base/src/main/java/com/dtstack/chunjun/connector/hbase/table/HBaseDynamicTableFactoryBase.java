@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.hbase.table;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
-import com.dtstack.chunjun.lookup.config.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
@@ -116,12 +116,12 @@ public abstract class HBaseDynamicTableFactoryBase
         validatePrimaryKey(physicalSchema);
         Map<String, String> options = context.getCatalogTable().getOptions();
         HBaseConfig conf = getHbaseConf(config, options);
-        LookupConf lookupConf =
+        LookupConfig lookupConfig =
                 getLookupConf(config, context.getObjectIdentifier().getObjectName());
         HBaseTableSchema hbaseSchema = HBaseTableSchema.fromTableSchema(physicalSchema);
         String nullStringLiteral = helper.getOptions().get(NULL_STRING_LITERAL);
         return new HBaseDynamicTableSource(
-                conf, physicalSchema, lookupConf, hbaseSchema, nullStringLiteral);
+                conf, physicalSchema, lookupConfig, hbaseSchema, nullStringLiteral);
     }
 
     private static void validatePrimaryKey(TableSchema schema) {
@@ -147,8 +147,8 @@ public abstract class HBaseDynamicTableFactoryBase
         }
     }
 
-    private LookupConf getLookupConf(ReadableConfig readableConfig, String tableName) {
-        return LookupConf.build()
+    private LookupConfig getLookupConf(ReadableConfig readableConfig, String tableName) {
+        return LookupConfig.build()
                 .setTableName(tableName)
                 .setPeriod(readableConfig.get(LOOKUP_CACHE_PERIOD))
                 .setCacheSize(readableConfig.get(LOOKUP_CACHE_MAX_ROWS))

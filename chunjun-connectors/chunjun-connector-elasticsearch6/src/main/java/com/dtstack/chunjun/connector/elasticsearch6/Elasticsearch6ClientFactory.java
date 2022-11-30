@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.HOSTS_OPTION;
+import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.HOSTS_OPTION;
 
 public class Elasticsearch6ClientFactory {
 
@@ -48,21 +48,21 @@ public class Elasticsearch6ClientFactory {
     public static final Integer ES_DEFAULT_PORT = 9200;
 
     /**
-     * @param elasticsearchConf
-     *
+     * @param elasticsearchConfig
      * @return
      */
-    public static RestHighLevelClient createClient(Elasticsearch6Config elasticsearchConf) {
-        List<HttpHost> httpAddresses = getHosts(elasticsearchConf.getHosts());
+    public static RestHighLevelClient createClient(Elasticsearch6Config elasticsearchConfig) {
+        List<HttpHost> httpAddresses = getHosts(elasticsearchConfig.getHosts());
         RestClientBuilder restClientBuilder =
                 RestClient.builder(httpAddresses.toArray(new HttpHost[0]));
-        if (elasticsearchConf.getPassword() != null && elasticsearchConf.getUsername() != null) {
+        if (elasticsearchConfig.getPassword() != null
+                && elasticsearchConfig.getUsername() != null) {
             // basic auth
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(
                     AuthScope.ANY,
                     new UsernamePasswordCredentials(
-                            elasticsearchConf.getUsername(), elasticsearchConf.getPassword()));
+                            elasticsearchConfig.getUsername(), elasticsearchConfig.getPassword()));
             restClientBuilder.setHttpClientConfigCallback(
                     httpAsyncClientBuilder ->
                             httpAsyncClientBuilder.setDefaultCredentialsProvider(

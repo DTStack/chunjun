@@ -47,7 +47,8 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, String, FieldConfig> {
+public class FtpColumnConverter
+        extends AbstractRowConverter<RowData, RowData, String, FieldConfig> {
 
     private final FtpConfig ftpConfig;
 

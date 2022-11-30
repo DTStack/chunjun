@@ -82,11 +82,11 @@ public abstract class SinkFactory implements RawTypeConvertible {
     }
 
     /** 初始化CommonConfig */
-    public void initCommonConf(CommonConfig commonConf) {
-        PropertiesUtil.initCommonConf(commonConf, this.syncConfig);
-        commonConf.setCheckFormat(this.syncConfig.getWriter().getBooleanVal("check", true));
+    public void initCommonConf(CommonConfig commonConfig) {
+        PropertiesUtil.initCommonConf(commonConfig, this.syncConfig);
+        commonConfig.setCheckFormat(this.syncConfig.getWriter().getBooleanVal("check", true));
         SpeedConfig speed = this.syncConfig.getSpeed();
-        commonConf.setParallelism(
+        commonConfig.setParallelism(
                 speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
     }
 }

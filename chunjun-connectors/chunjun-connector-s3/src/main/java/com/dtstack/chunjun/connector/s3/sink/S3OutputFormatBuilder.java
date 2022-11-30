@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.s3.sink;
 
-import com.dtstack.chunjun.config.SpeedConf;
-import com.dtstack.chunjun.connector.s3.conf.S3Conf;
+import com.dtstack.chunjun.config.SpeedConfig;
+import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class S3OutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
-    private SpeedConf speedConf;
+    private SpeedConfig speedConfig;
 
     public S3OutputFormatBuilder(S3OutputFormat format) {
         super(format);
@@ -41,7 +41,7 @@ public class S3OutputFormatBuilder extends BaseRichOutputFormatBuilder {
     protected void checkFormat() {
 
         StringBuilder sb = new StringBuilder(256);
-        S3Conf s3Config = (S3Conf) format.getConfig();
+        S3Config s3Config = (S3Config) format.getConfig();
         if (StringUtils.isBlank(s3Config.getBucket())) {
             LOG.info("bucket was not supplied separately.");
             sb.append("bucket was not supplied separately;\n");
@@ -58,27 +58,27 @@ public class S3OutputFormatBuilder extends BaseRichOutputFormatBuilder {
             LOG.info("object was not supplied separately.");
             sb.append("object was not supplied separately;\n");
         }
-        if (speedConf.getChannel() > 1) {
+        if (speedConfig.getChannel() > 1) {
             sb.append(
                     String.format(
                             "S3Writer can not support channel bigger than 1, current channel is [%s]",
-                            speedConf.getChannel()));
+                            speedConfig.getChannel()));
         }
         if (sb.length() > 0) {
             throw new IllegalArgumentException(sb.toString());
         }
     }
 
-    public void setS3Conf(S3Conf conf) {
+    public void setS3Conf(S3Config conf) {
         super.setConfig(conf);
         ((S3OutputFormat) format).setS3Conf(conf);
     }
 
-    public SpeedConf getSpeedConf() {
-        return speedConf;
+    public SpeedConfig getSpeedConf() {
+        return speedConfig;
     }
 
-    public void setSpeedConf(SpeedConf speedConf) {
-        this.speedConf = speedConf;
+    public void setSpeedConf(SpeedConfig speedConfig) {
+        this.speedConfig = speedConfig;
     }
 }

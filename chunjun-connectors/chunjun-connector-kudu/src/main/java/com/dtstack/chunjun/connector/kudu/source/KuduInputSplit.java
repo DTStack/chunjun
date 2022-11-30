@@ -20,10 +20,6 @@ package com.dtstack.chunjun.connector.kudu.source;
 
 import org.apache.flink.core.io.InputSplit;
 
-/**
- * @author tiezhu
- * @since 2021/6/9 星期三
- */
 public class KuduInputSplit implements InputSplit {
     private final byte[] token;
 

@@ -28,7 +28,7 @@ public class SaphanaInputFormat extends JdbcInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) {
-        Properties properties = jdbcConf.getProperties();
+        Properties properties = jdbcConfig.getProperties();
         properties.setProperty("zeroDateTimeBehavior", "convertToNull");
         super.openInternal(inputSplit);
     }

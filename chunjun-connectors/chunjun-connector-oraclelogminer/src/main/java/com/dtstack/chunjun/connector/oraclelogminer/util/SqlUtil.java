@@ -569,36 +569,37 @@ public class SqlUtil {
         if (tables.size() == 1) {
             where += " a.OWNER = ?\n" + " and a.TABLE_NAME = ?";
         } else {
-            where = where + "("
-                    + tables.stream()
-                    .map(
-                            i ->
-                                    String.format(
-                                            "(a.OWNER = '%s' and a.TABLE_NAME = '%s')",
-                                            i.getLeft(), i.getRight()))
-                    .collect(Collectors.joining("OR"))
-                    + ")";
+            where =
+                    where
+                            + "("
+                            + tables.stream()
+                                    .map(
+                                            i ->
+                                                    String.format(
+                                                            "(a.OWNER = '%s' and a.TABLE_NAME = '%s')",
+                                                            i.getLeft(), i.getRight()))
+                                    .collect(Collectors.joining("OR"))
+                            + ")";
         }
         return String.format(SQL_QUERY_TABLE_COLUMN_INFO_TEMPLATE, where);
     }
 
     public static String formatGetTableInfoSql(String schema, String table) {
-        String where = " and "
-                + " a.OWNER = "
-                + "'"
-                + schema
-                + "'"
-                + " and a.TABLE_NAME = "
-                + "'"
-                + table
-                + "'";
+        String where =
+                " and "
+                        + " a.OWNER = "
+                        + "'"
+                        + schema
+                        + "'"
+                        + " and a.TABLE_NAME = "
+                        + "'"
+                        + table
+                        + "'";
         return String.format(SQL_QUERY_TABLE_COLUMN_INFO_TEMPLATE, where);
     }
 
     public static String formatLockTableWithRowShare(String table) {
-        return "lock table "
-                + table
-                + " IN ROW SHARE MODE";
+        return "lock table " + table + " IN ROW SHARE MODE";
     }
 
     public static String queryDataByScn(String tableWithSchema, BigInteger scn) {

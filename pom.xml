@@ -33,7 +33,6 @@
 		<module>chunjun-core</module>
 		<module>chunjun-connectors</module>
 		<module>chunjun-clients</module>
-		<module>chunjun-formats</module>
 		<module>chunjun-docker</module>
 		<module>chunjun-metrics</module>
 		<module>chunjun-dirty</module>

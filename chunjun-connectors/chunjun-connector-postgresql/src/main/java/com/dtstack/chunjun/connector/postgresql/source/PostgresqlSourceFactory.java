@@ -24,9 +24,7 @@ import com.dtstack.chunjun.connector.postgresql.dialect.PostgresqlDialect;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-/**
- * Starting with Postgresql that is for compatible with 1.10 API.
- */
+/** Starting with Postgresql that is for compatible with 1.10 API. */
 public class PostgresqlSourceFactory extends JdbcSourceFactory {
 
     public PostgresqlSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {

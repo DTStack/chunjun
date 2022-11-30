@@ -87,7 +87,9 @@ public class JdbcDynamicTableSource
             keyNames[i] = resolvedSchema.getColumnNames().get(innerKeyArr[0]);
         }
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
-        final RowType rowType = InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType()).toRowType();
+        final RowType rowType =
+                InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType())
+                        .toRowType();
 
         if (lookupConfig.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
             return ParallelTableFunctionProvider.of(
@@ -207,7 +209,8 @@ public class JdbcDynamicTableSource
         builder.setJdbcConf(jdbcConfig);
         builder.setRowConverter(
                 jdbcDialect.getRowConverter(
-                        InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType()).toRowType()));
+                        InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType())
+                                .toRowType()));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
@@ -229,11 +232,7 @@ public class JdbcDynamicTableSource
     @Override
     public DynamicTableSource copy() {
         return new JdbcDynamicTableSource(
-                jdbcConfig,
-                lookupConfig,
-                resolvedSchema,
-                jdbcDialect,
-                builder);
+                jdbcConfig, lookupConfig, resolvedSchema, jdbcDialect, builder);
     }
 
     @Override

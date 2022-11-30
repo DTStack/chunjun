@@ -45,8 +45,8 @@ import java.sql.Timestamp;
 
 public class DmColumnConverter extends JdbcColumnConverter {
 
-    public DmColumnConverter(RowType rowType, CommonConfig commonConf) {
-        super(rowType, commonConf);
+    public DmColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
     }
 
     @Override

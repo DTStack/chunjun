@@ -24,16 +24,7 @@ import org.bson.Document;
 
 import java.io.Serializable;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
 public interface MongoSerializationConverter extends Serializable {
-    /**
-     * @param rowData
-     * @param key
-     * @param document
-     */
+
     void serialize(RowData rowData, int pos, String key, Document document);
 }

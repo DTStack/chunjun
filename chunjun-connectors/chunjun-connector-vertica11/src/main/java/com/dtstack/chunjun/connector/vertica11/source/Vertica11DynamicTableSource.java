@@ -39,8 +39,8 @@ import org.apache.flink.util.Preconditions;
 
 public class Vertica11DynamicTableSource implements LookupTableSource, SupportsProjectionPushDown {
 
-    protected final JdbcConfig jdbcConf;
-    protected final LookupConfig lookupConf;
+    protected final JdbcConfig jdbcConfig;
+    protected final LookupConfig lookupConfig;
     protected final String dialectName;
     protected final JdbcDialect jdbcDialect;
     protected final JdbcInputFormatBuilder builder;
@@ -52,8 +52,8 @@ public class Vertica11DynamicTableSource implements LookupTableSource, SupportsP
             ResolvedSchema resolvedSchema,
             JdbcDialect jdbcDialect,
             JdbcInputFormatBuilder builder) {
-        this.jdbcConf = jdbcConfig;
-        this.lookupConf = lookupConfig;
+        this.jdbcConfig = jdbcConfig;
+        this.lookupConfig = lookupConfig;
         this.resolvedSchema = resolvedSchema;
         this.jdbcDialect = jdbcDialect;
         this.dialectName = jdbcDialect.dialectName();
@@ -71,28 +71,30 @@ public class Vertica11DynamicTableSource implements LookupTableSource, SupportsP
         }
         // Get the type converter through this parameter to convert the fields in the database to
         // the corresponding types
-        final RowType rowType = InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType()).toRowType();
+        final RowType rowType =
+                InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType())
+                        .toRowType();
 
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+        if (lookupConfig.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
             return ParallelTableFunctionProvider.of(
                     new JdbcAllTableFunction(
-                            jdbcConf,
+                            jdbcConfig,
                             jdbcDialect,
-                            lookupConf,
+                            lookupConfig,
                             resolvedSchema.getColumnNames().toArray(new String[0]),
                             keyNames,
                             rowType),
-                    lookupConf.getParallelism());
+                    lookupConfig.getParallelism());
         }
         return ParallelAsyncTableFunctionProvider.of(
                 new Vertica11LruTableFunction(
-                        jdbcConf,
+                        jdbcConfig,
                         jdbcDialect,
-                        lookupConf,
+                        lookupConfig,
                         resolvedSchema.getColumnNames().toArray(new String[0]),
                         keyNames,
                         rowType),
-                lookupConf.getParallelism());
+                lookupConfig.getParallelism());
     }
 
     @Override
@@ -104,7 +106,7 @@ public class Vertica11DynamicTableSource implements LookupTableSource, SupportsP
     @Override
     public DynamicTableSource copy() {
         return new Vertica11DynamicTableSource(
-                jdbcConf, lookupConf, resolvedSchema, jdbcDialect, builder);
+                jdbcConfig, lookupConfig, resolvedSchema, jdbcDialect, builder);
     }
 
     @Override

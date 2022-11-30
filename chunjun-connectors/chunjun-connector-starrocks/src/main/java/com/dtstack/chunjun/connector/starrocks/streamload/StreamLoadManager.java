@@ -224,7 +224,8 @@ public class StreamLoadManager {
     private boolean asyncFlush() throws Exception {
         StarRocksSinkBufferEntity flushData =
                 flushQueue.poll(
-                        starRocksConfig.getLoadConf().getQueuePollTimeoutMs(), TimeUnit.MILLISECONDS);
+                        starRocksConfig.getLoadConf().getQueuePollTimeoutMs(),
+                        TimeUnit.MILLISECONDS);
         if (flushData == null || 0 == flushData.getBatchCount()) {
             return true;
         }

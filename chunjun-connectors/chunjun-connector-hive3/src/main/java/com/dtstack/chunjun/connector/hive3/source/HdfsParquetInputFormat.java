@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hive3.source;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hive3.inputSplit.HdfsParquetInputSplit;
 import com.dtstack.chunjun.connector.hive3.util.Hive3Util;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -56,7 +56,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-/** @author liuliu 2022/3/23 */
 public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
 
     private List<String> currentSplitFilePaths;
@@ -75,9 +74,9 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
     protected InputSplit[] createHdfsSplit(int minNumSplits) {
         initHadoopJobConf();
         Set<String> allFilePaths;
-        HdfsPathFilter pathFilter = new HdfsPathFilter(hdfsConf.getFilterRegex());
+        HdfsPathFilter pathFilter = new HdfsPathFilter(hdfsConfig.getFilterRegex());
         try (FileSystem fs = FileSystem.get(hadoopJobConf)) {
-            allFilePaths = Hive3Util.getAllPartitionPath(hdfsConf.getPath(), fs, pathFilter);
+            allFilePaths = Hive3Util.getAllPartitionPath(hdfsConfig.getPath(), fs, pathFilter);
         } catch (Exception e) {
             throw new ChunJunRuntimeException("failed to get parquet file path", e);
         }
@@ -115,7 +114,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
 
     @Override
     protected RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
-        List<FieldConf> fieldConfList = hdfsConf.getColumn();
+        List<FieldConfig> fieldConfList = hdfsConfig.getColumn();
         GenericRowData genericRowData;
         if (fieldConfList.size() == 1
                 && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())) {
@@ -128,7 +127,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
             genericRowData =
                     new GenericRowData(Math.max(fieldConfList.size(), fullColNames.size()));
             for (int i = 0; i < fieldConfList.size(); i++) {
-                FieldConf fieldConf = fieldConfList.get(i);
+                FieldConfig fieldConf = fieldConfList.get(i);
                 Object obj = null;
                 if (fieldConf.getValue() != null) {
                     obj = fieldConf.getValue();
@@ -340,7 +339,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                         getTypeName(type.asPrimitiveType().getPrimitiveTypeName().getMethod));
             }
 
-            for (FieldConf fieldConf : hdfsConf.getColumn()) {
+            for (FieldConfig fieldConf : hdfsConfig.getColumn()) {
                 String name = fieldConf.getName();
                 if (StringUtils.isNotBlank(name)) {
                     name = name.toUpperCase();

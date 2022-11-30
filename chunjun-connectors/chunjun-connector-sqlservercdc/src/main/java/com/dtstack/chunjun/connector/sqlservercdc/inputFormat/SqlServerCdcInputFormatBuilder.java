@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.sqlservercdc.inputFormat;
 
-import com.dtstack.chunjun.connector.sqlservercdc.conf.SqlServerCdcConf;
+import com.dtstack.chunjun.connector.sqlservercdc.config.SqlServerCdcConfig;
 import com.dtstack.chunjun.connector.sqlservercdc.entity.Lsn;
 import com.dtstack.chunjun.connector.sqlservercdc.entity.SqlServerCdcEnum;
 import com.dtstack.chunjun.connector.sqlservercdc.util.SqlServerCdcUtil;
@@ -54,9 +54,9 @@ public class SqlServerCdcInputFormatBuilder
         super(new SqlServerCdcInputFormat());
     }
 
-    public void setSqlServerCdcConf(SqlServerCdcConf sqlServerCdcConf) {
-        super.setConfig(sqlServerCdcConf);
-        this.format.setSqlServerCdcConf(sqlServerCdcConf);
+    public void setSqlServerCdcConf(SqlServerCdcConfig sqlServerCdcConfig) {
+        super.setConfig(sqlServerCdcConfig);
+        this.format.setSqlServerCdcConf(sqlServerCdcConfig);
     }
 
     public void setRowConverter(AbstractCDCRowConverter rowConverter) {
@@ -73,19 +73,19 @@ public class SqlServerCdcInputFormatBuilder
     protected void checkFormat() {
         StringBuilder sb = new StringBuilder(256);
 
-        if (StringUtils.isBlank(format.sqlserverCdcConf.getUsername())) {
+        if (StringUtils.isBlank(format.sqlserverCdcConfig.getUsername())) {
             sb.append("No username supplied;\n");
         }
-        if (StringUtils.isBlank(format.sqlserverCdcConf.getPassword())) {
+        if (StringUtils.isBlank(format.sqlserverCdcConfig.getPassword())) {
             sb.append("No password supplied;\n");
         }
-        if (StringUtils.isBlank(format.sqlserverCdcConf.getUrl())) {
+        if (StringUtils.isBlank(format.sqlserverCdcConfig.getUrl())) {
             sb.append("No url supplied;\n");
         }
-        if (StringUtils.isBlank(format.sqlserverCdcConf.getDatabaseName())) {
+        if (StringUtils.isBlank(format.sqlserverCdcConfig.getDatabaseName())) {
             sb.append("No databaseName supplied;\n");
         }
-        if (StringUtils.isBlank(format.sqlserverCdcConf.getCat())) {
+        if (StringUtils.isBlank(format.sqlserverCdcConfig.getCat())) {
             sb.append("No cat supplied;\n");
         }
         if (sb.length() > 0) {
@@ -100,7 +100,7 @@ public class SqlServerCdcInputFormatBuilder
                         SqlServerCdcEnum.INSERT.name);
         ArrayList<String> cats =
                 Lists.newArrayList(
-                        format.sqlserverCdcConf.getCat().split(ConstantValue.COMMA_SYMBOL));
+                        format.sqlserverCdcConfig.getCat().split(ConstantValue.COMMA_SYMBOL));
         cats.removeIf(s -> set.contains(s.toLowerCase(Locale.ENGLISH)));
         if (CollectionUtils.isNotEmpty(cats)) {
             sb.append("sqlServer cat not support-> ")
@@ -115,21 +115,21 @@ public class SqlServerCdcInputFormatBuilder
                 RetryUtil.executeWithRetry(
                         () ->
                                 SqlServerCdcUtil.getConnection(
-                                        format.sqlserverCdcConf.getUrl(),
-                                        format.sqlserverCdcConf.getUsername(),
-                                        format.sqlserverCdcConf.getPassword()),
+                                        format.sqlserverCdcConfig.getUrl(),
+                                        format.sqlserverCdcConfig.getUsername(),
+                                        format.sqlserverCdcConfig.getPassword()),
                         SqlServerCdcUtil.RETRY_TIMES,
                         SqlServerCdcUtil.SLEEP_TIME,
                         false)) {
 
             // check database cdc is enable
-            SqlServerCdcUtil.changeDatabase(conn, format.sqlserverCdcConf.getDatabaseName());
+            SqlServerCdcUtil.changeDatabase(conn, format.sqlserverCdcConfig.getDatabaseName());
             if (!SqlServerCdcUtil.checkEnabledCdcDatabase(
-                    conn, format.sqlserverCdcConf.getDatabaseName())) {
-                sb.append(format.sqlserverCdcConf.getDatabaseName())
+                    conn, format.sqlserverCdcConfig.getDatabaseName())) {
+                sb.append(format.sqlserverCdcConfig.getDatabaseName())
                         .append(" is not enable sqlServer CDC;\n")
                         .append("please execute sql for enable databaseCDC：\nUSE ")
-                        .append(format.sqlserverCdcConf.getDatabaseName())
+                        .append(format.sqlserverCdcConfig.getDatabaseName())
                         .append("\nGO\nEXEC sys.sp_cdc_enable_db\nGO\n\n ");
             }
 
@@ -137,7 +137,7 @@ public class SqlServerCdcInputFormatBuilder
                 throw new IllegalArgumentException(sb.toString());
             }
             List<String> formatTables = new ArrayList<>();
-            format.sqlserverCdcConf
+            format.sqlserverCdcConfig
                     .getTableList()
                     .forEach(
                             e -> {
@@ -152,11 +152,11 @@ public class SqlServerCdcInputFormatBuilder
                                     formatTables.add(strings.get(0));
                                 }
                             });
-            format.sqlserverCdcConf.setTableList(formatTables);
+            format.sqlserverCdcConfig.setTableList(formatTables);
             // check table cdc is enable
             Set<String> unEnabledCdcTables =
                     SqlServerCdcUtil.checkUnEnabledCdcTables(
-                            conn, format.sqlserverCdcConf.getTableList());
+                            conn, format.sqlserverCdcConfig.getTableList());
             if (CollectionUtils.isNotEmpty(unEnabledCdcTables)) {
                 String tables = unEnabledCdcTables.toString();
                 sb.append(GsonUtil.GSON.toJson(tables))
@@ -183,10 +183,10 @@ public class SqlServerCdcInputFormatBuilder
 
             // check lsn if over max lsn
             Lsn currentMaxLsn = SqlServerCdcUtil.getMaxLsn(conn);
-            if (StringUtils.isNotBlank(format.sqlserverCdcConf.getLsn())) {
-                if (currentMaxLsn.compareTo(Lsn.valueOf(format.sqlserverCdcConf.getLsn())) < 0) {
+            if (StringUtils.isNotBlank(format.sqlserverCdcConfig.getLsn())) {
+                if (currentMaxLsn.compareTo(Lsn.valueOf(format.sqlserverCdcConfig.getLsn())) < 0) {
                     sb.append("lsn: '")
-                            .append(format.sqlserverCdcConf.getLsn())
+                            .append(format.sqlserverCdcConfig.getLsn())
                             .append("' does not exist;\n");
                 }
             }
@@ -199,9 +199,7 @@ public class SqlServerCdcInputFormatBuilder
             StringBuilder detailsInfo = new StringBuilder(sb.length() + 128);
 
             if (sb.length() > 0) {
-                detailsInfo
-                        .append("sqlserverCDC config not right，details is ")
-                        .append(sb.toString());
+                detailsInfo.append("sqlserverCDC config not right，details is ").append(sb);
             }
 
             detailsInfo

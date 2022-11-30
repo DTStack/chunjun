@@ -33,12 +33,12 @@
  */
 package com.dtstack.chunjun.connector.hbase14.sink;
 
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hbase.sink.HBaseSinkFactoryBase;
 
 public class HBase14SinkFactory extends HBaseSinkFactoryBase {
 
-    public HBase14SinkFactory(SyncConf config) {
+    public HBase14SinkFactory(SyncConfig config) {
         super(config);
     }
 }

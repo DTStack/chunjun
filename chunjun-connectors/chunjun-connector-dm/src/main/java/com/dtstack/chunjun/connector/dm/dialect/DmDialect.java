@@ -178,7 +178,7 @@ public class DmDialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, CommonConfig commonConf) {
-        return new DmColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new DmColumnConverter(rowType, commonConfig);
     }
 }

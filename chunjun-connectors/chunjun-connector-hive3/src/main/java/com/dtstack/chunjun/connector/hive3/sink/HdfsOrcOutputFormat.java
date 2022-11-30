@@ -58,7 +58,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-/** @author liuliu 2022/3/27 */
 public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     private RecordWriter recordWriter;
     private OrcSerde orcSerde;
@@ -108,7 +107,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     protected CompressType getCompressType() {
-        return CompressType.getByTypeAndFileType(hdfsConf.getCompress(), FileType.ORC.name());
+        return CompressType.getByTypeAndFileType(hdfsConfig.getCompress(), FileType.ORC.name());
     }
 
     protected Class getOrcCodecClass(CompressType compressType) {
@@ -151,7 +150,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
      * 导致开启了kerberos的数据源在checkpoint时进行 recordWriter.close() 操作，会出现kerberos认证错误
      */
     private void setFs() throws IllegalAccessException {
-        if (Hive3Util.isOpenKerberos(hdfsConf.getHadoopConfig())) {
+        if (Hive3Util.isOpenKerberos(hdfsConfig.getHadoopConfig())) {
             Field declaredField = ReflectionUtils.getDeclaredField(recordWriter, "options");
             assert declaredField != null;
             declaredField.setAccessible(true);

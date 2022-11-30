@@ -62,7 +62,10 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         String path;
         if (StringUtils.isNotBlank(hdfsConfig.getFileName())) {
             // 兼容平台逻辑
-            path = hdfsConfig.getPath() + ConstantValue.SINGLE_SLASH_SYMBOL + hdfsConfig.getFileName();
+            path =
+                    hdfsConfig.getPath()
+                            + ConstantValue.SINGLE_SLASH_SYMBOL
+                            + hdfsConfig.getFileName();
         } else {
             path = hdfsConfig.getPath();
         }
@@ -101,15 +104,16 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
 
         if (openKerberos) {
             ugi.doAs(
-                    (PrivilegedAction<Object>) () -> {
-                        try {
-                            init(orcSplit);
-                            openOrcReader(inputSplit);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                        return null;
-                    });
+                    (PrivilegedAction<Object>)
+                            () -> {
+                                try {
+                                    init(orcSplit);
+                                    openOrcReader(inputSplit);
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                                return null;
+                            });
         } else {
             init(orcSplit);
             openOrcReader(inputSplit);
@@ -141,10 +145,10 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         OrcFile.ReaderOptions readerOptions = OrcFile.readerOptions(hadoopJobConf);
         readerOptions.filesystem(fs);
 
-        try (org.apache.hadoop.hive.ql.io.orc.Reader reader = OrcFile.createReader(path, readerOptions)) {
+        try (org.apache.hadoop.hive.ql.io.orc.Reader reader =
+                OrcFile.createReader(path, readerOptions)) {
             String typeStruct = reader.getObjectInspector().getTypeName();
             LOG.info("orc typeStruct = {}", typeStruct);
-
 
             if (StringUtils.isEmpty(typeStruct)) {
                 throw new ChunJunRuntimeException("can't retrieve type struct from " + path);
@@ -161,7 +165,6 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
 
             List<String> columnList = parseColumnAndType(typeStruct);
 
-
             fullColNames = new String[columnList.size()];
             String[] fullColTypes = new String[columnList.size()];
 
@@ -173,7 +176,8 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
 
             Properties p = new Properties();
             p.setProperty("columns", StringUtils.join(fullColNames, ConstantValue.COMMA_SYMBOL));
-            p.setProperty("columns.types", StringUtils.join(fullColTypes, ConstantValue.COLON_SYMBOL));
+            p.setProperty(
+                    "columns.types", StringUtils.join(fullColTypes, ConstantValue.COLON_SYMBOL));
 
             OrcSerde orcSerde = new OrcSerde();
             orcSerde.initialize(hadoopJobConf, p);

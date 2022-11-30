@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-
 public class DecimalColumnSerializer extends TypeSerializerSingleton<AbstractBaseColumn> {
 
     private static final long serialVersionUID = 1L;

@@ -40,13 +40,14 @@ public class StarRocksSinkFactory extends SinkFactory {
 
     private final StarRocksConfig starRocksConfig;
 
-    public StarRocksSinkFactory(SyncConfig syncConf) {
-        super(syncConf);
+    public StarRocksSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
         starRocksConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getWriter().getParameter()), StarRocksConfig.class);
+                        JsonUtil.toJson(syncConfig.getWriter().getParameter()),
+                        StarRocksConfig.class);
 
-        int batchSize = syncConf.getWriter().getIntVal("batchSize", 10240);
+        int batchSize = syncConfig.getWriter().getIntVal("batchSize", 10240);
         starRocksConfig.setBatchSize(batchSize);
         super.initCommonConf(starRocksConfig);
     }
@@ -61,7 +62,8 @@ public class StarRocksSinkFactory extends SinkFactory {
         StarRocksOutputFormatBuilder builder =
                 new StarRocksOutputFormatBuilder(new StarRocksOutputFormat());
         builder.setStarRocksConf(starRocksConfig);
-        RowType rowType = TableUtil.createRowType(starRocksConfig.getColumn(), getRawTypeConverter());
+        RowType rowType =
+                TableUtil.createRowType(starRocksConfig.getColumn(), getRawTypeConverter());
         AbstractRowConverter rowConverter;
         if (useAbstractBaseColumn) {
             rowConverter = new StarRocksColumnConverter(rowType, starRocksConfig);

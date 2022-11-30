@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.sql.Date;
 import java.sql.Timestamp;
 
-
 public class SqlDateColumnSerializer extends TypeSerializerSingleton<AbstractBaseColumn> {
 
     private static final long serialVersionUID = 1L;

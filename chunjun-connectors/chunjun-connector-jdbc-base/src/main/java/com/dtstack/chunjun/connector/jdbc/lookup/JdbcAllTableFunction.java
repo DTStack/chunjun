@@ -46,21 +46,21 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(JdbcAllTableFunction.class);
     protected final JdbcDialect jdbcDialect;
-    private final JdbcConfig jdbcConf;
+    private final JdbcConfig jdbcConfig;
     private final String query;
 
     public JdbcAllTableFunction(
-            JdbcConfig jdbcConf,
+            JdbcConfig jdbcConfig,
             JdbcDialect jdbcDialect,
             LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
         super(fieldNames, keyNames, lookupConfig, jdbcDialect.getRowConverter(rowType));
-        this.jdbcConf = jdbcConf;
+        this.jdbcConfig = jdbcConfig;
         this.query =
                 jdbcDialect.getSelectFromStatement(
-                        jdbcConf.getSchema(), jdbcConf.getTable(), fieldNames, new String[] {});
+                        jdbcConfig.getSchema(), jdbcConfig.getTable(), fieldNames, new String[] {});
         this.jdbcDialect = jdbcDialect;
     }
 
@@ -71,7 +71,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
         Connection connection = null;
 
         try {
-            connection = JdbcUtil.getConnection(jdbcConf, jdbcDialect);
+            connection = JdbcUtil.getConnection(jdbcConfig, jdbcDialect);
             queryAndFillData(tmpCache, connection);
         } catch (Exception e) {
             LOG.error("", e);

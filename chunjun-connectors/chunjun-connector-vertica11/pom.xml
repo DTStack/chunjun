@@ -29,7 +29,6 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<properties>
-		<vertx.version>3.9.7</vertx.version>
 		<connector.dir>vertica11</connector.dir>
 	</properties>
 
@@ -42,27 +41,11 @@
 			<artifactId>chunjun-connector-jdbc-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-jdbc-client</artifactId>
-			<version>${vertx.version}</version>
-		</dependency>
 
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-core</artifactId>
-			<version>${vertx.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
 			<version>3.4.5</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.7</version>
 		</dependency>
 
 		<dependency>

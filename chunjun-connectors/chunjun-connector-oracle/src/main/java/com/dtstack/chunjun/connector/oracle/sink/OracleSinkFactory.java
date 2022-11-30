@@ -32,17 +32,18 @@ public class OracleSinkFactory extends JdbcSinkFactory {
     }
 
     @Override
-    protected void rebuildJdbcConf(JdbcConfig jdbcConf) {
-        super.rebuildJdbcConf(jdbcConf);
+    protected void rebuildJdbcConf(JdbcConfig jdbcConfig) {
+        super.rebuildJdbcConf(jdbcConfig);
 
         Properties properties = new Properties();
-        if (jdbcConf.getConnectTimeOut() != 0) {
+        if (jdbcConfig.getConnectTimeOut() != 0) {
             properties.put(
-                    "oracle.jdbc.ReadTimeout", String.valueOf(jdbcConf.getConnectTimeOut() * 1000));
+                    "oracle.jdbc.ReadTimeout",
+                    String.valueOf(jdbcConfig.getConnectTimeOut() * 1000));
             properties.put(
                     "oracle.net.CONNECT_TIMEOUT",
-                    String.valueOf((jdbcConf.getConnectTimeOut()) * 1000));
+                    String.valueOf((jdbcConfig.getConnectTimeOut()) * 1000));
         }
-        JdbcUtil.putExtParam(jdbcConf, properties);
+        JdbcUtil.putExtParam(jdbcConfig, properties);
     }
 }

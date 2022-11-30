@@ -25,17 +25,13 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * sql task currently only supports Microsoft driver **
- */
+/** sql task currently only supports Microsoft driver ** */
 public class SqlserverMicroSoftRawTypeConverter {
     /**
      * Convert the data type in SqlServer to the DataType type in flink
      *
      * @param type
-     *
      * @return
-     *
      * @throws UnsupportedTypeException
      */
     public static DataType apply(String type) throws UnsupportedTypeException {

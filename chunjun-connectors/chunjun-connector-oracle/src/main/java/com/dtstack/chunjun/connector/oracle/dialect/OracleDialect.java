@@ -123,8 +123,8 @@ public class OracleDialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, CommonConfig commonConf) {
-        return new OracleColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new OracleColumnConverter(rowType, commonConfig);
     }
 
     /** build select sql , such as (SELECT ? "A",? "B" FROM DUAL) */

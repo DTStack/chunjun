@@ -35,7 +35,7 @@ public class SqlserverOutputFormat extends JdbcOutputFormat {
         Statement statement = null;
         String sql =
                 ((SqlserverDialect) jdbcDialect)
-                        .getIdentityInsertOnSql(jdbcConf.getSchema(), jdbcConf.getTable());
+                        .getIdentityInsertOnSql(jdbcConfig.getSchema(), jdbcConfig.getTable());
         try {
             statement = dbConn.createStatement();
             statement.execute(sql);

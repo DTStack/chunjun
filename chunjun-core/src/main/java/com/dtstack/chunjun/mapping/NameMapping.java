@@ -52,7 +52,7 @@ public class NameMapping implements Mapping<RowData, RowData>, Serializable {
     private Boolean useDdlConvent;
 
     public NameMapping(
-            MappingConf conf,
+            MappingConfig conf,
             Boolean useDdlConvent,
             DdlConvent sourceDdlConvent,
             DdlConvent sinkDdlConvent) {

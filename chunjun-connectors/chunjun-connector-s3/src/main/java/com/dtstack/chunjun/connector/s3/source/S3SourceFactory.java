@@ -18,10 +18,10 @@
 
 package com.dtstack.chunjun.connector.s3.source;
 
-import com.dtstack.chunjun.config.RestoreConf;
-import com.dtstack.chunjun.config.SpeedConf;
-import com.dtstack.chunjun.config.SyncConf;
-import com.dtstack.chunjun.connector.s3.conf.S3Conf;
+import com.dtstack.chunjun.config.RestoreConfig;
+import com.dtstack.chunjun.config.SpeedConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.connector.s3.converter.S3ColumnConverter;
 import com.dtstack.chunjun.connector.s3.converter.S3RawConverter;
 import com.dtstack.chunjun.connector.s3.converter.S3RowConverter;
@@ -42,19 +42,19 @@ import org.slf4j.LoggerFactory;
 public class S3SourceFactory extends SourceFactory {
     private static final Logger LOG = LoggerFactory.getLogger(S3SourceFactory.class);
 
-    private final S3Conf s3Conf;
-    private final RestoreConf restoreConf;
-    private final SpeedConf speedConf;
+    private final S3Config s3Config;
+    private final RestoreConfig restoreConf;
+    private final SpeedConfig speedConfig;
 
-    public S3SourceFactory(SyncConf config, StreamExecutionEnvironment env) {
+    public S3SourceFactory(SyncConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        s3Conf =
+        s3Config =
                 GsonUtil.GSON.fromJson(
-                        GsonUtil.GSON.toJson(config.getReader().getParameter()), S3Conf.class);
-        s3Conf.setColumn(config.getReader().getFieldList());
+                        GsonUtil.GSON.toJson(config.getReader().getParameter()), S3Config.class);
+        s3Config.setColumn(config.getReader().getFieldList());
         restoreConf = config.getRestore();
-        speedConf = config.getSpeed();
-        super.initCommonConf(s3Conf);
+        speedConfig = config.getSpeed();
+        super.initCommonConf(s3Config);
     }
 
     @Override
@@ -66,16 +66,17 @@ public class S3SourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         S3InputFormatBuilder builder = new S3InputFormatBuilder(new S3InputFormat());
         builder.setRestoreConf(restoreConf);
-        builder.setSpeedConf(speedConf);
-        builder.setS3Conf(s3Conf);
+        builder.setSpeedConf(speedConfig);
+        builder.setS3Conf(s3Config);
 
         AbstractRowConverter rowConverter;
-        final RowType rowType = TableUtil.createRowType(s3Conf.getColumn(), getRawTypeConverter());
+        final RowType rowType =
+                TableUtil.createRowType(s3Config.getColumn(), getRawTypeConverter());
         if (useAbstractBaseColumn) {
-            rowConverter = new S3ColumnConverter(rowType, s3Conf);
+            rowConverter = new S3ColumnConverter(rowType, s3Config);
         } else {
-            checkConstant(s3Conf);
-            rowConverter = new S3RowConverter(rowType, s3Conf);
+            checkConstant(s3Config);
+            rowConverter = new S3RowConverter(rowType, s3Config);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());

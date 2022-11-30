@@ -102,8 +102,8 @@ public interface JdbcDialect extends Serializable {
      * @return a row converter for the database
      */
     default AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, CommonConfig commonConf) {
-        return new JdbcColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new JdbcColumnConverter(rowType, commonConfig);
     }
 
     /**

@@ -38,7 +38,8 @@ public class MappedWriteProcessor extends StarRocksWriteProcessor {
             Stream.of("schema", "table", "type", "opTime", "ts", "scn")
                     .collect(Collectors.toCollection(HashSet::new));
 
-    public MappedWriteProcessor(StreamLoadManager streamLoadManager, StarRocksConfig starRocksConfig) {
+    public MappedWriteProcessor(
+            StreamLoadManager streamLoadManager, StarRocksConfig starRocksConfig) {
         super(streamLoadManager, starRocksConfig);
     }
 

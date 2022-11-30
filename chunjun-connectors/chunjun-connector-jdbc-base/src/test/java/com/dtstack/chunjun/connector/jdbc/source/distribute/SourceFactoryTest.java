@@ -73,8 +73,8 @@ public class SourceFactoryTest {
 
     public static class TestSourceFactory extends DistributedJdbcSourceFactory {
         public TestSourceFactory(
-                SyncConfig syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
-            super(syncConf, env, jdbcDialect);
+                SyncConfig syncConfig, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
+            super(syncConfig, env, jdbcDialect);
         }
     }
 }

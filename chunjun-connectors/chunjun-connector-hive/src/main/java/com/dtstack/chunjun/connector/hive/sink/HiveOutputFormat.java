@@ -253,7 +253,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             String tableName, RowData rowData, Map<String, Object> event) {
         String partitionValue = partitionFormat.format(new Date());
         String partitionPath =
-                String.format(HiveUtil.PARTITION_TEMPLATE, hiveConfig.getPartition(), partitionValue);
+                String.format(
+                        HiveUtil.PARTITION_TEMPLATE, hiveConfig.getPartition(), partitionValue);
         String hiveTablePath = tableName + File.separatorChar + partitionPath;
 
         Pair<String, BaseHdfsOutputFormat> formatPair = outputFormatMap.get(tableName);
@@ -347,7 +348,9 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             TableInfo tableInfo = entry.getValue();
             String tablePath =
                     PathConverterUtil.regexByRules(
-                            event, hiveConfig.getTableName(), hiveConfig.getDistributeTableMapping());
+                            event,
+                            hiveConfig.getTableName(),
+                            hiveConfig.getDistributeTableMapping());
             tableInfo.setTablePath(tablePath);
             checkCreateTable(tablePath, null, event);
         }
@@ -362,14 +365,17 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             String tableName = tablePath;
             if (event != null) {
                 tableName = MapUtils.getString(event, "table");
-                tableName = hiveConfig.getDistributeTableMapping().getOrDefault(tableName, tableName);
+                tableName =
+                        hiveConfig.getDistributeTableMapping().getOrDefault(tableName, tableName);
             } else if (rowData instanceof ColumnRowData) {
                 ColumnRowData columnRowData = (ColumnRowData) rowData;
                 AbstractBaseColumn baseColumn = columnRowData.getField("table");
                 if (baseColumn != null) {
                     tableName = baseColumn.asString();
                     tableName =
-                            hiveConfig.getDistributeTableMapping().getOrDefault(tableName, tableName);
+                            hiveConfig
+                                    .getDistributeTableMapping()
+                                    .getOrDefault(tableName, tableName);
                 }
             }
             tableInfo = hiveConfig.getTableInfos().get(tableName);

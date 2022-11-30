@@ -44,16 +44,16 @@ public class Elasticsearch6AllTableFunction extends AbstractAllTableFunction {
     private static final long serialVersionUID = 2L;
     private static final Logger LOG = LoggerFactory.getLogger(Elasticsearch6LruTableFunction.class);
 
-    private final Elasticsearch6Config elasticsearchConf;
+    private final Elasticsearch6Config elasticsearchConfig;
 
     public Elasticsearch6AllTableFunction(
-            Elasticsearch6Config elasticsearchConf,
+            Elasticsearch6Config elasticsearchConfig,
             LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             AbstractRowConverter rowConverter) {
         super(fieldNames, keyNames, lookupConfig, rowConverter);
-        this.elasticsearchConf = elasticsearchConf;
+        this.elasticsearchConfig = elasticsearchConfig;
     }
 
     @Override
@@ -61,12 +61,12 @@ public class Elasticsearch6AllTableFunction extends AbstractAllTableFunction {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
 
-
         SearchRequest requestBuilder = buildSearchRequest();
 
         SearchResponse searchResponse;
         SearchHit[] searchHits;
-        try (RestHighLevelClient rhlClient = Elasticsearch6ClientFactory.createClient(elasticsearchConf)) {
+        try (RestHighLevelClient rhlClient =
+                Elasticsearch6ClientFactory.createClient(elasticsearchConfig)) {
             searchResponse = rhlClient.search(requestBuilder);
             searchHits = searchResponse.getHits().getHits();
             for (SearchHit searchHit : searchHits) {
@@ -88,16 +88,11 @@ public class Elasticsearch6AllTableFunction extends AbstractAllTableFunction {
         }
     }
 
-    /**
-     * build search request
-     *
-     * @return
-     */
     private SearchRequest buildSearchRequest() {
         SearchSourceBuilder sourceBuilder =
                 Elasticsearch6RequestFactory.createSourceBuilder(fieldsName, null, null);
         sourceBuilder.size(lookupConfig.getFetchSize());
         return Elasticsearch6RequestFactory.createSearchRequest(
-                elasticsearchConf.getIndex(), elasticsearchConf.getType(), null, sourceBuilder);
+                elasticsearchConfig.getIndex(), elasticsearchConfig.getType(), null, sourceBuilder);
     }
 }

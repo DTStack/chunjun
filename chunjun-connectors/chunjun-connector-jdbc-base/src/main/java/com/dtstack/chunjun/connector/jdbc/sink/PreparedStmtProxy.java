@@ -82,7 +82,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
     protected Connection connection;
     protected JdbcDialect jdbcDialect;
-    protected JdbcConfig jdbcConf;
+    protected JdbcConfig jdbcConfig;
 
     /** 是否将框架额外添加的扩展信息写入到数据库,默认不写入* */
     protected boolean writeExtInfo;
@@ -99,19 +99,19 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
             FieldNamedPreparedStatement currentFieldNamedPstmt,
             AbstractRowConverter currentRowConverter,
             Connection connection,
-            JdbcConfig jdbcConf,
+            JdbcConfig jdbcConfig,
             JdbcDialect jdbcDialect) {
         this.currentFieldNamedPstmt = currentFieldNamedPstmt;
         this.currentRowConverter = currentRowConverter;
         this.connection = connection;
-        this.jdbcConf = jdbcConf;
+        this.jdbcConfig = jdbcConfig;
         this.jdbcDialect = jdbcDialect;
         initCache(false);
         this.pstmtCache.put(
-                getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), RowKind.INSERT),
+                getPstmtCacheKey(jdbcConfig.getSchema(), jdbcConfig.getTable(), RowKind.INSERT),
                 DynamicPreparedStmt.buildStmt(
                         jdbcDialect,
-                        jdbcConf.getColumn(),
+                        jdbcConfig.getColumn(),
                         currentRowConverter,
                         currentFieldNamedPstmt));
     }
@@ -169,19 +169,20 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
             currentRowConverter = fieldNamedPreparedStatement.getRowConverter();
         } else {
             String key =
-                    getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), row.getRowKind());
+                    getPstmtCacheKey(
+                            jdbcConfig.getSchema(), jdbcConfig.getTable(), row.getRowKind());
             DynamicPreparedStmt fieldNamedPreparedStatement =
                     pstmtCache.get(
                             key,
                             () -> {
                                 try {
                                     return DynamicPreparedStmt.buildStmt(
-                                            jdbcConf.getSchema(),
-                                            jdbcConf.getTable(),
+                                            jdbcConfig.getSchema(),
+                                            jdbcConfig.getTable(),
                                             row.getRowKind(),
                                             connection,
                                             jdbcDialect,
-                                            jdbcConf.getColumn(),
+                                            jdbcConfig.getColumn(),
                                             currentRowConverter);
                                 } catch (SQLException e) {
                                     LOG.warn("", e);

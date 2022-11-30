@@ -122,7 +122,8 @@ public class StarRocksInputFormat extends BaseRichInputFormat {
         builder.append(" from ")
                 .append(
                         String.format(
-                                "%s.%s", starRocksConfig.getDatabase(), starRocksConfig.getTable()));
+                                "%s.%s",
+                                starRocksConfig.getDatabase(), starRocksConfig.getTable()));
         if (StringUtils.isNotBlank(starRocksConfig.getFilterStatement())) {
             builder.append(" where ").append(starRocksConfig.getFilterStatement());
         }

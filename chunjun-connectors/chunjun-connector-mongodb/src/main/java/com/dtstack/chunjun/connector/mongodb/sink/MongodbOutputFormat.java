@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.mongodb.sink;
 
 import com.dtstack.chunjun.connector.mongodb.MongoClientFactory;
-import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
+import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
@@ -37,16 +37,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
 public class MongodbOutputFormat extends BaseRichOutputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(MongodbOutputFormat.class);
 
-    private final MongoClientConf mongoClientConf;
+    private final MongoClientConfig mongoClientConfig;
     private final String key;
     private final WriteMode writeMode;
 
@@ -54,8 +49,9 @@ public class MongodbOutputFormat extends BaseRichOutputFormat {
     private transient MongoCollection mongoCollection;
     private transient FindOneAndReplaceOptions options;
 
-    public MongodbOutputFormat(MongoClientConf mongoClientConf, String key, WriteMode writeMode) {
-        this.mongoClientConf = mongoClientConf;
+    public MongodbOutputFormat(
+            MongoClientConfig mongoClientConfig, String key, WriteMode writeMode) {
+        this.mongoClientConfig = mongoClientConfig;
         this.key = key;
         this.writeMode = writeMode;
     }
@@ -93,12 +89,12 @@ public class MongodbOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        mongoClient = MongoClientFactory.createClient(mongoClientConf);
+        mongoClient = MongoClientFactory.createClient(mongoClientConfig);
         mongoCollection =
                 MongoClientFactory.createCollection(
                         mongoClient,
-                        mongoClientConf.getDatabase(),
-                        mongoClientConf.getCollection());
+                        mongoClientConfig.getDatabase(),
+                        mongoClientConfig.getCollection());
         options = new FindOneAndReplaceOptions().upsert(true);
     }
 

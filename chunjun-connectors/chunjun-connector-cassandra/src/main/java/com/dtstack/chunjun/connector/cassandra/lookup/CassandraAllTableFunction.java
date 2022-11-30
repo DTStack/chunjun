@@ -54,12 +54,12 @@ public class CassandraAllTableFunction extends AbstractAllTableFunction {
     private transient Session session;
 
     public CassandraAllTableFunction(
-            CassandraLookupConfig lookupConf,
+            CassandraLookupConfig lookupConfig,
             AbstractRowConverter<?, ?, ?, ?> rowConverter,
             String[] fieldNames,
             String[] keyNames) {
-        super(fieldNames, keyNames, lookupConf, rowConverter);
-        this.cassandraLookupConfig = lookupConf;
+        super(fieldNames, keyNames, lookupConfig, rowConverter);
+        this.cassandraLookupConfig = lookupConfig;
     }
 
     @Override
@@ -71,12 +71,12 @@ public class CassandraAllTableFunction extends AbstractAllTableFunction {
     protected void loadData(Object cacheRef) {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
-        CassandraCommonConfig commonConf = cassandraLookupConfig.getCommonConfig();
+        CassandraCommonConfig commonConfig = cassandraLookupConfig.getCommonConfig();
 
-        session = CassandraService.session(commonConf);
+        session = CassandraService.session(commonConfig);
 
-        String keyspaces = commonConf.getKeyspaces();
-        String tableName = commonConf.getTableName();
+        String keyspaces = commonConfig.getKeyspaces();
+        String tableName = commonConfig.getTableName();
 
         List<String> quotedColumnNameList = new ArrayList<>();
         Arrays.stream(fieldsName).forEach(name -> quotedColumnNameList.add(quoteColumn(name)));

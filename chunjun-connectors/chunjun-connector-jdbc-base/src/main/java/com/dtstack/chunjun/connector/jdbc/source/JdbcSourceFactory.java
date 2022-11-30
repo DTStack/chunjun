@@ -157,12 +157,12 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     }
 
     /** set default split strategy if splitStrategy is blank */
-    private void setDefaultSplitStrategy(JdbcConfig jdbcConf) {
-        if (jdbcConf.getSplitStrategy() == null || jdbcConf.getSplitStrategy().equals("")) {
-            if (jdbcConf.isIncrement() && jdbcConf.getParallelism() > 1) {
-                jdbcConf.setSplitStrategy("mod");
+    private void setDefaultSplitStrategy(JdbcConfig jdbcConfig) {
+        if (jdbcConfig.getSplitStrategy() == null || jdbcConfig.getSplitStrategy().equals("")) {
+            if (jdbcConfig.isIncrement() && jdbcConfig.getParallelism() > 1) {
+                jdbcConfig.setSplitStrategy("mod");
             } else {
-                jdbcConf.setSplitStrategy("range");
+                jdbcConfig.setSplitStrategy("range");
             }
         }
     }

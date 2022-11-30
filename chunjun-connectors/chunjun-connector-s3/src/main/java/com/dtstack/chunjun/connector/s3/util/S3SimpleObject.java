@@ -21,14 +21,11 @@ package com.dtstack.chunjun.connector.s3.util;
 import java.io.Serializable;
 import java.util.Objects;
 
-/** @author jier */
 public class S3SimpleObject implements Serializable {
 
     private static final long serialVersionUID = -7199607264925678753L;
 
     private String key;
-
-    public S3SimpleObject() {}
 
     public S3SimpleObject(String key) {
         this.key = key;

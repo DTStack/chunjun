@@ -45,8 +45,8 @@ import java.sql.Timestamp;
 
 public class OracleColumnConverter extends JdbcColumnConverter {
 
-    public OracleColumnConverter(RowType rowType, CommonConfig commonConf) {
-        super(rowType, commonConf);
+    public OracleColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
     }
 
     @Override

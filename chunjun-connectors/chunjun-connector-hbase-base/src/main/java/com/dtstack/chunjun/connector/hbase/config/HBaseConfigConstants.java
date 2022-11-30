@@ -18,9 +18,7 @@
 
 package com.dtstack.chunjun.connector.hbase.config;
 
-/**
- * The class containing Hbase configuration constants
- */
+/** The class containing Hbase configuration constants */
 public class HBaseConfigConstants {
 
     public static final int DEFAULT_SCAN_CACHE_SIZE = 256;

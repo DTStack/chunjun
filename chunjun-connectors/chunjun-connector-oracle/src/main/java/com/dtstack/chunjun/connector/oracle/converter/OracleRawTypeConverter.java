@@ -26,7 +26,6 @@ import org.apache.flink.table.types.AtomicDataType;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 
-import java.sql.SQLException;
 import java.util.Locale;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;

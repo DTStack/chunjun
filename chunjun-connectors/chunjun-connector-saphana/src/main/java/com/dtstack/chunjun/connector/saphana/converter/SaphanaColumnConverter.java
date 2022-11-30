@@ -48,8 +48,8 @@ import java.sql.Timestamp;
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
 public class SaphanaColumnConverter extends JdbcColumnConverter {
 
-    public SaphanaColumnConverter(RowType rowType, CommonConfig commonConf) {
-        super(rowType, commonConf);
+    public SaphanaColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
     }
 
     @Override

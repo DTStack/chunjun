@@ -18,28 +18,29 @@
 
 package com.dtstack.chunjun.connector.redis.table;
 
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.connector.redis.enums.RedisConnectType;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataMode;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataType;
 import com.dtstack.chunjun.connector.redis.sink.RedisDynamicTableSink;
 import com.dtstack.chunjun.connector.redis.source.RedisDynamicTableSource;
-import com.dtstack.chunjun.lookup.config.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
+import org.apache.flink.table.catalog.UniqueConstraint;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.CollectionUtil;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -68,11 +69,6 @@ import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_MAX_RETRIE
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
 import static org.apache.flink.table.factories.FactoryUtil.SINK_PARALLELISM;
 
-/**
- * @author chuixue
- * @create 2021-06-16 15:07
- * @description
- */
 public class RedisDynamicTableFactory
         implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
@@ -86,13 +82,12 @@ public class RedisDynamicTableFactory
 
         helper.validate();
 
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
-        validateTableSchema(physicalSchema);
+        validateTableSchema(resolvedSchema);
         validateConfig(config);
 
-        return new RedisDynamicTableSink(physicalSchema, getRedisConf(config, physicalSchema));
+        return new RedisDynamicTableSink(resolvedSchema, getRedisConfig(config, resolvedSchema));
     }
 
     @Override
@@ -104,12 +99,10 @@ public class RedisDynamicTableFactory
         helper.validate();
         validateConfig(config);
 
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
         return new RedisDynamicTableSource(
-                physicalSchema,
-                getRedisConf(config, physicalSchema),
+                resolvedSchema,
+                getRedisConfig(config, resolvedSchema),
                 getRedisLookupConf(config, context.getObjectIdentifier().getObjectName()));
     }
 
@@ -154,30 +147,33 @@ public class RedisDynamicTableFactory
         return optionalOptions;
     }
 
-    private RedisConf getRedisConf(ReadableConfig config, TableSchema schema) {
-        RedisConf redisConf = new RedisConf();
-        redisConf.setHostPort(config.get(URL));
-        redisConf.setTableName(config.get(TABLENAME));
-        redisConf.setPassword(config.get(PASSWORD));
-        redisConf.setRedisConnectType(RedisConnectType.parse(config.get(REDISTYPE)));
-        redisConf.setMasterName(config.get(MASTERNAME));
-        redisConf.setDatabase(config.get(DATABASE));
-        redisConf.setParallelism(config.get(SINK_PARALLELISM));
-        redisConf.setTimeout(config.get(TIMEOUT));
-        redisConf.setMaxTotal(config.get(MAXTOTAL));
-        redisConf.setMaxIdle(config.get(MAXIDLE));
-        redisConf.setMinIdle(config.get(MINIDLE));
-        redisConf.setExpireTime(config.get(KEYEXPIREDTIME));
-        redisConf.setType(RedisDataType.getDataType(config.get(REDIS_DATA_TYPE)));
-        redisConf.setMode(RedisDataMode.getDataMode(config.get(REDIS_DATA_MODE)));
-        redisConf.setKeyPrefix(config.get(TABLENAME));
-        List<String> keyFields = schema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
-        redisConf.setUpdateKey(keyFields);
-        return redisConf;
+    private RedisConfig getRedisConfig(ReadableConfig config, ResolvedSchema schema) {
+        RedisConfig redisConfig = new RedisConfig();
+        redisConfig.setHostPort(config.get(URL));
+        redisConfig.setTableName(config.get(TABLENAME));
+        redisConfig.setPassword(config.get(PASSWORD));
+        redisConfig.setRedisConnectType(RedisConnectType.parse(config.get(REDISTYPE)));
+        redisConfig.setMasterName(config.get(MASTERNAME));
+        redisConfig.setDatabase(config.get(DATABASE));
+        redisConfig.setParallelism(config.get(SINK_PARALLELISM));
+        redisConfig.setTimeout(config.get(TIMEOUT));
+        redisConfig.setMaxTotal(config.get(MAXTOTAL));
+        redisConfig.setMaxIdle(config.get(MAXIDLE));
+        redisConfig.setMinIdle(config.get(MINIDLE));
+        redisConfig.setExpireTime(config.get(KEYEXPIREDTIME));
+        redisConfig.setType(RedisDataType.getDataType(config.get(REDIS_DATA_TYPE)));
+        redisConfig.setMode(RedisDataMode.getDataMode(config.get(REDIS_DATA_MODE)));
+        redisConfig.setKeyPrefix(config.get(TABLENAME));
+        List<String> keyFields =
+                schema.getPrimaryKey()
+                        .map(UniqueConstraint::getColumns)
+                        .orElse(Collections.emptyList());
+        redisConfig.setUpdateKey(keyFields);
+        return redisConfig;
     }
 
-    private LookupConf getRedisLookupConf(ReadableConfig readableConfig, String tableName) {
-        return LookupConf.build()
+    private LookupConfig getRedisLookupConf(ReadableConfig readableConfig, String tableName) {
+        return LookupConfig.build()
                 .setTableName(tableName)
                 .setPeriod(readableConfig.get(LOOKUP_CACHE_PERIOD))
                 .setCacheSize(readableConfig.get(LOOKUP_CACHE_MAX_ROWS))
@@ -190,9 +186,12 @@ public class RedisDynamicTableFactory
                 .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
     }
 
-    private void validateTableSchema(TableSchema physicalSchema) {
+    private void validateTableSchema(ResolvedSchema physicalSchema) {
         List<String> keyFields =
-                physicalSchema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
+                physicalSchema
+                        .getPrimaryKey()
+                        .map(UniqueConstraint::getColumns)
+                        .orElse(Collections.emptyList());
         Preconditions.checkState(
                 !CollectionUtil.isNullOrEmpty(keyFields),
                 "please declare primary key for redis sink table .");

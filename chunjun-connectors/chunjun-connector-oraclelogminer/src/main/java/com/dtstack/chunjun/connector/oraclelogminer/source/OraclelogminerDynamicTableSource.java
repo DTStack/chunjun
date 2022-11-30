@@ -54,7 +54,9 @@ public class OraclelogminerDynamicTableSource implements ScanTableSource {
         OracleLogMinerInputFormatBuilder builder = new OracleLogMinerInputFormatBuilder();
         builder.setLogMinerConfig(logMinerConfig);
         builder.setRowConverter(
-                new LogMinerRowConverter(InternalTypeInfo.of(schema.toPhysicalRowDataType().getLogicalType()).toRowType()));
+                new LogMinerRowConverter(
+                        InternalTypeInfo.of(schema.toPhysicalRowDataType().getLogicalType())
+                                .toRowType()));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);

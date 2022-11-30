@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.s3.sink;
 
-import com.dtstack.chunjun.config.FieldConf;
-import com.dtstack.chunjun.connector.s3.conf.S3Conf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.connector.s3.util.S3Util;
 import com.dtstack.chunjun.connector.s3.util.WriterUtil;
 import com.dtstack.chunjun.restore.FormatState;
@@ -51,7 +51,7 @@ public class S3OutputFormat extends BaseRichOutputFormat {
 
     private transient AmazonS3 amazonS3;
 
-    private S3Conf s3Conf;
+    private S3Config s3Config;
 
     /** Must start at 1 and cannot be greater than 10,000 */
     private static int currentPartNumber;
@@ -73,13 +73,13 @@ public class S3OutputFormat extends BaseRichOutputFormat {
         checkOutputDir();
         createActionFinishedTag();
         nextBlock();
-        List<FieldConf> column = s3Conf.getColumn();
-        columnNameList = column.stream().map(FieldConf::getName).collect(Collectors.toList());
-        columnTypeList = column.stream().map(FieldConf::getType).collect(Collectors.toList());
+        List<FieldConfig> column = s3Config.getColumn();
+        columnNameList = column.stream().map(FieldConfig::getName).collect(Collectors.toList());
+        columnTypeList = column.stream().map(FieldConfig::getType).collect(Collectors.toList());
     }
 
     private void openSource() {
-        this.amazonS3 = S3Util.getS3Client(s3Conf);
+        this.amazonS3 = S3Util.getS3Client(s3Config);
         this.myPartETags = new ArrayList<>();
         this.currentPartNumber = taskNumber - numTasks + 1;
         beforeWriteRecords();
@@ -95,16 +95,16 @@ public class S3OutputFormat extends BaseRichOutputFormat {
     }
 
     private void checkOutputDir() {
-        if (S3Util.doesObjectExist(amazonS3, s3Conf.getBucket(), s3Conf.getObject())) {
-            if (OVERWRITE_MODE.equalsIgnoreCase(s3Conf.getWriteMode())) {
-                S3Util.deleteObject(amazonS3, s3Conf.getBucket(), s3Conf.getObject());
+        if (S3Util.doesObjectExist(amazonS3, s3Config.getBucket(), s3Config.getObject())) {
+            if (OVERWRITE_MODE.equalsIgnoreCase(s3Config.getWriteMode())) {
+                S3Util.deleteObject(amazonS3, s3Config.getBucket(), s3Config.getObject());
             }
         }
     }
 
     private void nextBlock() {
         sw = new StringWriter();
-        this.writerUtil = new WriterUtil(sw, s3Conf.getFieldDelimiter());
+        this.writerUtil = new WriterUtil(sw, s3Config.getFieldDelimiter());
         this.currentPartNumber = this.currentPartNumber + numTasks;
     }
 
@@ -113,12 +113,12 @@ public class S3OutputFormat extends BaseRichOutputFormat {
         if (!StringUtils.isNotBlank(currentUploadId)) {
             this.currentUploadId =
                     S3Util.initiateMultipartUploadAndGetId(
-                            amazonS3, s3Conf.getBucket(), s3Conf.getObject());
+                            amazonS3, s3Config.getBucket(), s3Config.getObject());
         }
     }
 
     private void beforeWriteRecords() {
-        if (s3Conf.isFirstLineHeader()) {
+        if (s3Config.isFirstLineHeader()) {
             try {
                 RowData rowData =
                         rowConverter.toInternal(
@@ -136,7 +136,7 @@ public class S3OutputFormat extends BaseRichOutputFormat {
         if (sb.length() > MIN_SIZE || willClose) {
             byte[] byteArray;
             try {
-                byteArray = sb.toString().getBytes(s3Conf.getEncoding());
+                byteArray = sb.toString().getBytes(s3Config.getEncoding());
             } catch (UnsupportedEncodingException e) {
                 throw new ChunJunRuntimeException(e);
             }
@@ -144,8 +144,8 @@ public class S3OutputFormat extends BaseRichOutputFormat {
             PartETag partETag =
                     S3Util.uploadPart(
                             amazonS3,
-                            s3Conf.getBucket(),
-                            s3Conf.getObject(),
+                            s3Config.getBucket(),
+                            s3Config.getObject(),
                             this.currentUploadId,
                             this.currentPartNumber,
                             byteArray);
@@ -174,14 +174,14 @@ public class S3OutputFormat extends BaseRichOutputFormat {
                     partETags.stream().map(PartETag::getETag).collect(Collectors.joining(",")));
             S3Util.completeMultipartUpload(
                     amazonS3,
-                    s3Conf.getBucket(),
-                    s3Conf.getObject(),
+                    s3Config.getBucket(),
+                    s3Config.getObject(),
                     this.currentUploadId,
                     partETags);
         } else {
             S3Util.abortMultipartUpload(
-                    amazonS3, s3Conf.getBucket(), s3Conf.getObject(), this.currentUploadId);
-            S3Util.putStringObject(amazonS3, s3Conf.getBucket(), s3Conf.getObject(), "");
+                    amazonS3, s3Config.getBucket(), s3Config.getObject(), this.currentUploadId);
+            S3Util.putStringObject(amazonS3, s3Config.getBucket(), s3Config.getObject(), "");
         }
     }
 
@@ -240,7 +240,7 @@ public class S3OutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    public void setS3Conf(S3Conf s3Conf) {
-        this.s3Conf = s3Conf;
+    public void setS3Conf(S3Config s3Config) {
+        this.s3Config = s3Config;
     }
 }

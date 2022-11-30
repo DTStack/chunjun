@@ -34,9 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 事务管理器 监听的DML语句缓存，在commit/rollback时删除
- */
+/** 事务管理器 监听的DML语句缓存，在commit/rollback时删除 */
 public class TransactionManager {
 
     public static Logger LOG = LoggerFactory.getLogger(TransactionManager.class);
@@ -96,9 +94,7 @@ public class TransactionManager {
         LOG.debug("after clean，current recordCache size = {}", recordCache.size());
     }
 
-    /**
-     * 从缓存的dml语句里找到rollback语句对应的DML语句 如果查找到 需要删除对应的缓存信息
-     */
+    /** 从缓存的dml语句里找到rollback语句对应的DML语句 如果查找到 需要删除对应的缓存信息 */
     public RecordLog queryUndoLogFromCache(String xidUsn, String xidSlt, String xidSqn) {
         String key = xidUsn + xidSlt + xidSqn;
         LinkedList<RecordLog> recordLogs = recordCache.getIfPresent(key);

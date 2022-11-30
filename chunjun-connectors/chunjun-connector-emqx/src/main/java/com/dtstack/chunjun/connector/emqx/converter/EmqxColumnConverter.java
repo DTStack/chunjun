@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.emqx.converter;
 
-import com.dtstack.chunjun.connector.emqx.conf.EmqxConf;
+import com.dtstack.chunjun.connector.emqx.config.EmqxConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.decoder.IDecode;
 import com.dtstack.chunjun.decoder.JsonDecoder;
@@ -44,16 +44,16 @@ public class EmqxColumnConverter
         extends AbstractRowConverter<String, Object, MqttMessage, LogicalType> {
 
     /** emqx msg decode */
-    private IDecode decode;
+    private final IDecode decode;
     /** json Decoder */
-    private JsonDecoder jsonDecoder = new JsonDecoder();
+    private final JsonDecoder jsonDecoder = new JsonDecoder();
     /** emqx Conf */
-    private final EmqxConf emqxConf;
+    private final EmqxConfig emqxConfig;
 
-    public EmqxColumnConverter(EmqxConf emqxConf) {
-        this.emqxConf = emqxConf;
+    public EmqxColumnConverter(EmqxConfig emqxConfig) {
+        this.emqxConfig = emqxConfig;
 
-        if (DEFAULT_CODEC.defaultValue().equals(emqxConf.getCodec())) {
+        if (DEFAULT_CODEC.defaultValue().equals(emqxConfig.getCodec())) {
             this.decode = new JsonDecoder();
         } else {
             this.decode = new TextDecoder();
@@ -73,8 +73,8 @@ public class EmqxColumnConverter
         int arity = rowData.getArity();
         ColumnRowData row = (ColumnRowData) rowData;
 
-        if (emqxConf.getTableFields() != null
-                && emqxConf.getTableFields().size() >= arity
+        if (emqxConfig.getTableFields() != null
+                && emqxConfig.getTableFields().size() >= arity
                 && !(row.getField(0) instanceof MapColumn)) {
             map = new LinkedHashMap<>((arity << 2) / 3);
             for (int i = 0; i < arity; i++) {
@@ -85,7 +85,7 @@ public class EmqxColumnConverter
                 } else {
                     value = org.apache.flink.util.StringUtils.arrayAwareToString(obj);
                 }
-                map.put(emqxConf.getTableFields().get(i), value);
+                map.put(emqxConfig.getTableFields().get(i), value);
             }
         } else if (arity == 1) {
             Object obj = row.getField(0);

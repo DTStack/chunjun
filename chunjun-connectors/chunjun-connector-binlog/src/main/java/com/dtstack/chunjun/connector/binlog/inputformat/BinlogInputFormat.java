@@ -159,7 +159,8 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         LOG.info("binlog config:{}", JsonUtil.toPrintJson(binlogConfig));
 
         binlogEventSink = new BinlogEventSink(this);
-        controller = getController(binlogConfig.username, binlogConfig.getFilter(), binlogEventSink);
+        controller =
+                getController(binlogConfig.username, binlogConfig.getFilter(), binlogEventSink);
 
         // 任务启动前 先初始化表结构
         if (binlogConfig.isInitialTableStructure()) {

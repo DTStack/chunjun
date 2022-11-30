@@ -61,8 +61,8 @@ public class JdbcColumnConverter
         this(rowType, null);
     }
 
-    public JdbcColumnConverter(RowType rowType, CommonConfig commonConf) {
-        super(rowType, commonConf);
+    public JdbcColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(

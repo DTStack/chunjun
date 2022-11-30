@@ -44,8 +44,8 @@ import java.sql.Timestamp;
 
 public class Vertica11ColumnConverter extends JdbcColumnConverter {
 
-    public Vertica11ColumnConverter(RowType rowType, CommonConfig commonConf) {
-        super(rowType, commonConf);
+    public Vertica11ColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
     }
 
     @Override

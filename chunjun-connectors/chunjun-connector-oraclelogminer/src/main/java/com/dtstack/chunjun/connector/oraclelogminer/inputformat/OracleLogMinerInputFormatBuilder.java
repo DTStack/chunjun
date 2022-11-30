@@ -143,16 +143,16 @@ public class OracleLogMinerInputFormatBuilder
 
         ClassUtil.forName(config.getDriverName(), getClass().getClassLoader());
         try (Connection connection =
-                     RetryUtil.executeWithRetry(
-                             () ->
-                                     DriverManager.getConnection(
-                                             config.getJdbcUrl(),
-                                             config.getUsername(),
-                                             config.getPassword()),
-                             LogMinerConnection.RETRY_TIMES,
-                             LogMinerConnection.SLEEP_TIME,
-                             false);
-             Statement statement = connection.createStatement()) {
+                        RetryUtil.executeWithRetry(
+                                () ->
+                                        DriverManager.getConnection(
+                                                config.getJdbcUrl(),
+                                                config.getUsername(),
+                                                config.getPassword()),
+                                LogMinerConnection.RETRY_TIMES,
+                                LogMinerConnection.SLEEP_TIME,
+                                false);
+                Statement statement = connection.createStatement()) {
             statement.setQueryTimeout(config.getQueryTimeout().intValue());
 
             OracleInfo oracleInfo = LogMinerConnection.getOracleInfo(connection);
@@ -296,7 +296,9 @@ public class OracleLogMinerInputFormatBuilder
 
         // 10以下数据源不支持
         if (oracleInfo.getVersion() < 10) {
-            sb.append("we not support ").append(oracleInfo.getVersion()).append(". we only support versions greater than or equal to oracle10 \n");
+            sb.append("we not support ")
+                    .append(oracleInfo.getVersion())
+                    .append(". we only support versions greater than or equal to oracle10 \n");
         }
     }
 
@@ -310,9 +312,15 @@ public class OracleLogMinerInputFormatBuilder
             // 格式是pdb.schema.table 或者schema.table
             if (tables.length != 2 && tables.length != 3) {
                 if (isCdb) {
-                    sb.append("The monitored table ").append(tableWithPdb).append(" does not conform to the specification.，The correct format is pdbName.schema.table \n ");
+                    sb.append("The monitored table ")
+                            .append(tableWithPdb)
+                            .append(
+                                    " does not conform to the specification.，The correct format is pdbName.schema.table \n ");
                 } else {
-                    sb.append("The monitored table ").append(tableWithPdb).append(" does not conform to the specification.，The correct format is schema.table \n ");
+                    sb.append("The monitored table ")
+                            .append(tableWithPdb)
+                            .append(
+                                    " does not conform to the specification.，The correct format is schema.table \n ");
                 }
             }
         }

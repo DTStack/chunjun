@@ -74,12 +74,12 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
     private final String[] keyNames;
 
     public CassandraLruTableFunction(
-            LookupConfig lookupConf,
+            LookupConfig lookupConfig,
             AbstractRowConverter<?, ?, ?, ?> rowConverter,
             String[] fieldNames,
             String[] keyNames) {
-        super(lookupConf, rowConverter);
-        this.cassandraLookupConfig = (CassandraLookupConfig) lookupConf;
+        super(lookupConfig, rowConverter);
+        this.cassandraLookupConfig = (CassandraLookupConfig) lookupConfig;
         this.fieldNames = fieldNames;
         this.keyNames = keyNames;
     }
@@ -100,9 +100,9 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
             return;
         }
 
-        CassandraCommonConfig commonConf = cassandraLookupConfig.getCommonConfig();
-        String keyspaces = commonConf.getKeyspaces();
-        String tableName = commonConf.getTableName();
+        CassandraCommonConfig commonConfig = cassandraLookupConfig.getCommonConfig();
+        String keyspaces = commonConfig.getKeyspaces();
+        String tableName = commonConfig.getTableName();
 
         List<String> quotedColumnNameList = new ArrayList<>();
         Arrays.stream(fieldNames).forEach(name -> quotedColumnNameList.add(quoteColumn(name)));

@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.redis.converter;
 
-import com.dtstack.chunjun.config.FieldConf;
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataMode;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataType;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -46,35 +46,30 @@ import java.util.Objects;
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.REDIS_CRITICAL_TIME;
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.REDIS_KEY_VALUE_SIZE;
 
-/**
- * @author chuixue
- * @create 2021-06-17 14:32
- * @description
- */
 public class RedisColumnConverter extends AbstractRowConverter<Object, Object, Jedis, LogicalType> {
 
     /** redis Conf */
-    private final RedisConf redisConf;
+    private final RedisConfig redisConfig;
     /** SimpleDateFormat */
     private SimpleDateFormat sdf;
 
     /** The index of column can be used as a field when mode is hash and Column is not empty */
     private List<Integer> fieldIndex = new ArrayList<>(2);
 
-    public RedisColumnConverter(RedisConf redisConf) {
-        this.redisConf = redisConf;
-        if (StringUtils.isNotBlank(redisConf.getDateFormat())) {
-            sdf = new SimpleDateFormat(redisConf.getDateFormat());
+    public RedisColumnConverter(RedisConfig redisConfig) {
+        this.redisConfig = redisConfig;
+        if (StringUtils.isNotBlank(redisConfig.getDateFormat())) {
+            sdf = new SimpleDateFormat(redisConfig.getDateFormat());
         }
-        if (redisConf.getType() == RedisDataType.HASH
-                && CollectionUtils.isNotEmpty(redisConf.getColumn())) {
-            fieldIndex = new ArrayList<>(redisConf.getColumn().size());
-            for (int i = 0; i < redisConf.getColumn().size(); i++) {
+        if (redisConfig.getType() == RedisDataType.HASH
+                && CollectionUtils.isNotEmpty(redisConfig.getColumn())) {
+            fieldIndex = new ArrayList<>(redisConfig.getColumn().size());
+            for (int i = 0; i < redisConfig.getColumn().size(); i++) {
                 fieldIndex.add(i);
             }
-            if (!redisConf.isIndexFillHash()
-                    && CollectionUtils.isNotEmpty(redisConf.getKeyIndexes())) {
-                for (int index : redisConf.getKeyIndexes()) {
+            if (!redisConfig.isIndexFillHash()
+                    && CollectionUtils.isNotEmpty(redisConfig.getKeyIndexes())) {
+                for (int index : redisConfig.getKeyIndexes()) {
                     fieldIndex.remove(index);
                 }
             }
@@ -84,10 +79,10 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
     @Override
     public RowData toInternal(Object input) {
         Map<String, String> map = (Map<String, String>) input;
-        List<FieldConf> column = redisConf.getColumn();
+        List<FieldConfig> column = redisConfig.getColumn();
         ColumnRowData rowData = new ColumnRowData(column.size());
-        for (int i = 0; i < column.size(); i++) {
-            StringColumn value = new StringColumn(map.get(column.get(i).getName()));
+        for (FieldConfig fieldConfig : column) {
+            StringColumn value = new StringColumn(map.get(fieldConfig.getName()));
             rowData.addField(value);
         }
         return rowData;
@@ -99,8 +94,8 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
         processTimeFormat(row);
         String key = concatKey(row);
         String[] values = getValues(row);
-        RedisDataType type = redisConf.getType();
-        RedisDataMode mode = redisConf.getMode();
+        RedisDataType type = redisConfig.getType();
+        RedisDataMode mode = redisConfig.getMode();
 
         if (type == RedisDataType.STRING) {
             jedis.set(key, concatValues(row));
@@ -120,11 +115,11 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
             hashWrite(row, key, jedis);
         }
 
-        if (redisConf.getExpireTime() > 0) {
-            if (redisConf.getExpireTime() > REDIS_CRITICAL_TIME.defaultValue()) {
-                jedis.expireAt(key, redisConf.getExpireTime());
+        if (redisConfig.getExpireTime() > 0) {
+            if (redisConfig.getExpireTime() > REDIS_CRITICAL_TIME.defaultValue()) {
+                jedis.expireAt(key, redisConfig.getExpireTime());
             } else {
-                jedis.expire(key, (int) redisConf.getExpireTime());
+                jedis.expire(key, (int) redisConfig.getExpireTime());
             }
         }
         return jedis;
@@ -134,7 +129,7 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
         for (int i = 0; i < row.getArity(); i++) {
             if (row.getField(i) instanceof TimestampColumn
                     || row.getField(i) instanceof SqlDateColumn) {
-                if (StringUtils.isNotBlank(redisConf.getDateFormat())) {
+                if (StringUtils.isNotBlank(redisConfig.getDateFormat())) {
                     row.setField(i, new StringColumn(sdf.format(row.getField(i).asDate())));
                 } else {
                     row.setField(
@@ -147,7 +142,7 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
     }
 
     private List<Object> getFieldAndValue(ColumnRowData row) {
-        if (row.getArity() - redisConf.getKeyIndexes().size()
+        if (row.getArity() - redisConfig.getKeyIndexes().size()
                 != REDIS_KEY_VALUE_SIZE.defaultValue()) {
             throw new IllegalArgumentException(
                     "Each row record can have only one pair of attributes and values except key");
@@ -157,7 +152,7 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
         for (int i = 0; i < row.getArity(); i++) {
             values.add(row.getField(i));
         }
-        for (Integer keyIndex : redisConf.getKeyIndexes()) {
+        for (Integer keyIndex : redisConfig.getKeyIndexes()) {
             values.remove((int) keyIndex);
         }
 
@@ -168,7 +163,7 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
         List<String> values = new ArrayList<>();
 
         for (int i = 0; i < row.getArity(); i++) {
-            if (!redisConf.getKeyIndexes().contains(i)) {
+            if (!redisConfig.getKeyIndexes().contains(i)) {
                 values.add(String.valueOf(row.getField(i)));
             }
         }
@@ -177,11 +172,11 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
     }
 
     private String concatValues(ColumnRowData row) {
-        List<FieldConf> columns = redisConf.getColumn();
+        List<FieldConfig> columns = redisConfig.getColumn();
         Map<String, Object> fieldMap = new HashMap<>();
         int index = 0;
 
-        for (FieldConf fieldConf : columns) {
+        for (FieldConfig fieldConf : columns) {
             if (Objects.nonNull(row.getField(index))) {
                 fieldMap.put(fieldConf.getName(), row.getField(index).getData());
             }
@@ -191,33 +186,33 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
     }
 
     private String concatKey(ColumnRowData row) {
-        if (redisConf.getKeyIndexes().size() == 1) {
-            return String.valueOf(row.getField(redisConf.getKeyIndexes().get(0)));
+        if (redisConfig.getKeyIndexes().size() == 1) {
+            return String.valueOf(row.getField(redisConfig.getKeyIndexes().get(0)));
         } else {
-            List<String> keys = new ArrayList<>(redisConf.getKeyIndexes().size());
-            for (Integer index : redisConf.getKeyIndexes()) {
+            List<String> keys = new ArrayList<>(redisConfig.getKeyIndexes().size());
+            for (Integer index : redisConfig.getKeyIndexes()) {
                 keys.add(String.valueOf(row.getField(index)));
             }
-            return StringUtils.join(keys, redisConf.getKeyFieldDelimiter());
+            return StringUtils.join(keys, redisConfig.getKeyFieldDelimiter());
         }
     }
 
     private String concatHashKey(ColumnRowData row) {
         StringBuilder keyBuilder = new StringBuilder();
-        if (CollectionUtils.isNotEmpty(redisConf.getColumn())) {
-            if (StringUtils.isNotBlank(redisConf.getKeyPrefix())) {
+        if (CollectionUtils.isNotEmpty(redisConfig.getColumn())) {
+            if (StringUtils.isNotBlank(redisConfig.getKeyPrefix())) {
                 keyBuilder
-                        .append(redisConf.getKeyPrefix())
-                        .append(redisConf.getKeyFieldDelimiter());
+                        .append(redisConfig.getKeyPrefix())
+                        .append(redisConfig.getKeyFieldDelimiter());
             }
         }
         return keyBuilder.append(concatKey(row)).toString();
     }
 
     private void hashWrite(ColumnRowData row, String key, Jedis jedis) {
-        if (CollectionUtils.isNotEmpty(redisConf.getColumn())) {
+        if (CollectionUtils.isNotEmpty(redisConfig.getColumn())) {
             for (int index : fieldIndex) {
-                FieldConf fieldConf = redisConf.getColumn().get(index);
+                FieldConfig fieldConf = redisConfig.getColumn().get(index);
                 String field = fieldConf.getName();
                 if (row.getField(index) != null) {
                     jedis.hset(key, field, row.getField(index).asString());

@@ -23,7 +23,6 @@ import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
-import java.sql.SQLException;
 import java.util.Locale;
 
 public class OracleRawTypeConverter {

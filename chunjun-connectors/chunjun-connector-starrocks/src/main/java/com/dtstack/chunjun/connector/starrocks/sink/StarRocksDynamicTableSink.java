@@ -64,7 +64,8 @@ public class StarRocksDynamicTableSink implements DynamicTableSink {
         sinkConfig.setColumn(getFieldConfigFromSchema());
         builder.setRowConverter(
                 new StarRocksRowConverter(
-                        InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType()).toRowType(),
+                        InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType())
+                                .toRowType(),
                         Arrays.asList(resolvedSchema.getColumnNames().toArray(new String[0]))));
         builder.setStarRocksConf(sinkConfig);
 
@@ -89,7 +90,8 @@ public class StarRocksDynamicTableSink implements DynamicTableSink {
                         tableColumn -> {
                             FieldConfig fieldConf = new FieldConfig();
                             fieldConf.setName(tableColumn.getName());
-                            fieldConf.setType(tableColumn.getDataType().getLogicalType().asSummaryString());
+                            fieldConf.setType(
+                                    tableColumn.getDataType().getLogicalType().asSummaryString());
                             return fieldConf;
                         })
                 .collect(Collectors.toList());

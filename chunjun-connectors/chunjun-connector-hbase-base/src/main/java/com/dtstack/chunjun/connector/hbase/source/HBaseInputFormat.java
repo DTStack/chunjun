@@ -42,9 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * The InputFormat Implementation used for HbaseReader
- */
+/** The InputFormat Implementation used for HbaseReader */
 public class HBaseInputFormat extends BaseRichInputFormat {
     protected Map<String, Object> hbaseConfig;
     protected final String tableName;

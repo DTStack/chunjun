@@ -42,6 +42,5 @@ public class DorisHttpOutputFormatBuilder
     }
 
     @Override
-    protected void checkFormat() {
-    }
+    protected void checkFormat() {}
 }

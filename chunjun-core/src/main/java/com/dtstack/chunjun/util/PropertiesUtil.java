@@ -79,20 +79,20 @@ public class PropertiesUtil {
     /**
      * 初始化CommonConfig
      *
-     * @param commonConf
+     * @param commonConfig
      * @param syncConfig
      */
-    public static void initCommonConf(CommonConfig commonConf, SyncConfig syncConfig) {
-        commonConf.setSpeedBytes(syncConfig.getSpeed().getBytes());
-        commonConf.setSavePointPath(syncConfig.getSavePointPath());
+    public static void initCommonConf(CommonConfig commonConfig, SyncConfig syncConfig) {
+        commonConfig.setSpeedBytes(syncConfig.getSpeed().getBytes());
+        commonConfig.setSavePointPath(syncConfig.getSavePointPath());
         if (syncConfig.getMetricPluginConf() != null) {
-            commonConf.setMetricPluginRoot(
+            commonConfig.setMetricPluginRoot(
                     syncConfig.getRemotePluginPath() == null
                             ? syncConfig.getPluginRoot() + File.separator + "metrics"
                             : syncConfig.getRemotePluginPath());
-            commonConf.setMetricPluginName(syncConfig.getMetricPluginConf().getPluginName());
-            commonConf.setMetricProps(syncConfig.getMetricPluginConf().getPluginProp());
-            commonConf.setRowSizeCalculatorType(
+            commonConfig.setMetricPluginName(syncConfig.getMetricPluginConf().getPluginName());
+            commonConfig.setMetricProps(syncConfig.getMetricPluginConf().getPluginProp());
+            commonConfig.setRowSizeCalculatorType(
                     syncConfig.getMetricPluginConf().getRowSizeCalculatorType());
         }
     }

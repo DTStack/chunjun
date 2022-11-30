@@ -67,7 +67,9 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
         String url = dorisConfig.getUrl();
 
-        RowType rowType = InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType();
+        RowType rowType =
+                InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType())
+                        .toRowType();
         BaseRichOutputFormatBuilder<?> builder =
                 StringUtils.isBlank(url)
                         ? httpBuilder(rowType, dorisConfig)
@@ -106,9 +108,9 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
             field.setIndex(index);
             columnList.add(field);
         }
-        jdbcConf.setColumn(columnList);
-        jdbcConf.setMode(
-                (CollectionUtil.isNullOrEmpty(jdbcConf.getUniqueKey()))
+        jdbcConfig.setColumn(columnList);
+        jdbcConfig.setMode(
+                (CollectionUtil.isNullOrEmpty(jdbcConfig.getUniqueKey()))
                         ? EWriteMode.INSERT.name()
                         : EWriteMode.UPDATE.name());
 
@@ -117,7 +119,7 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
 
         builder.setConfig(dorisConfig);
         builder.setJdbcDialect(jdbcDialect);
-        builder.setJdbcConf(jdbcConf);
+        builder.setJdbcConf(jdbcConfig);
         builder.setRowConverter(new DorisJdbcRowConverter(rowType));
         return builder;
     }

@@ -303,7 +303,8 @@ public class StarRocksStreamLoadVisitor implements Serializable {
             httpPut.setHeader("label", label);
             httpPut.setHeader(
                     "Authorization",
-                    getBasicAuthHeader(starRocksConfig.getUsername(), starRocksConfig.getPassword()));
+                    getBasicAuthHeader(
+                            starRocksConfig.getUsername(), starRocksConfig.getPassword()));
             httpPut.setEntity(new ByteArrayEntity(data));
             httpPut.setConfig(RequestConfig.custom().setRedirectsEnabled(true).build());
             try (CloseableHttpResponse resp = httpclient.execute(httpPut)) {

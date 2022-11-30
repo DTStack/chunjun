@@ -29,7 +29,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.function.BiFunction;
 
-
 public class StringColumnSerializerTest extends SerializerTestBase<AbstractBaseColumn> {
 
     @Override

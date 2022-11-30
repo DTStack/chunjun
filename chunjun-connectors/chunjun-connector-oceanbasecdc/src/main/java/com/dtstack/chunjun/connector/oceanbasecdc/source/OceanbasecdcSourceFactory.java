@@ -45,7 +45,8 @@ public class OceanbasecdcSourceFactory extends SourceFactory {
         super(config, env);
         cdcConf =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(config.getReader().getParameter()), OceanBaseCdcConfig.class);
+                        JsonUtil.toJson(config.getReader().getParameter()),
+                        OceanBaseCdcConfig.class);
         cdcConf.setColumn(config.getReader().getFieldList());
         super.initCommonConf(cdcConf);
     }

@@ -375,9 +375,9 @@ public class PluginUtil {
 
         String sourceConventName =
                 RealTimeDataSourceNameUtil.getDataSourceName(config.getReader().getName());
-        if (config.getNameMappingConf() != null
-                && StringUtils.isNotBlank(config.getNameMappingConf().getSourceName())) {
-            sourceConventName = config.getNameMappingConf().getSourceName();
+        if (config.getNameMappingConfig() != null
+                && StringUtils.isNotBlank(config.getNameMappingConfig().getSourceName())) {
+            sourceConventName = config.getNameMappingConfig().getSourceName();
         }
 
         // 实时任务的sourceConventName和config里配置的名字是不一样的 否则就是离线任务

@@ -84,8 +84,8 @@ public class DistributeJdbcInputFormatTest {
     private static DistributedJdbcInputFormat inputFormat;
     private static DistributedJdbcInputSplit inputSplit;
     private static List<DataSourceConfig> dataSourceConfigList;
-    private static SyncConfig syncConf;
-    private static JdbcConfig jdbcConf;
+    private static SyncConfig syncConfig;
+    private static JdbcConfig jdbcConfig;
     private static JdbcDialect jdbcDialect;
     private static Logger LOG;
 
@@ -98,12 +98,12 @@ public class DistributeJdbcInputFormatTest {
 
         inputFormat = mock(DistributedJdbcInputFormat.class);
         inputSplit = mock(DistributedJdbcInputSplit.class);
-        jdbcConf = mock(JdbcConfig.class);
+        jdbcConfig = mock(JdbcConfig.class);
         LOG = mock(Logger.class);
         jdbcDialect = mock(JdbcDialect.class);
 
         setInternalState(inputFormat, "LOG", LOG);
-        setInternalState(inputFormat, "jdbcConf", jdbcConf);
+        setInternalState(inputFormat, "jdbcConfig", jdbcConfig);
         setInternalState(inputFormat, "jdbcDialect", jdbcDialect);
 
         String json = readFile("distribute_sync_test.json");
@@ -116,20 +116,20 @@ public class DistributeJdbcInputFormatTest {
                                 new FieldNameExclusionStrategy("column"))
                         .create();
         GsonUtil.setTypeAdapter(gson);
-        syncConf = SyncConfig.parseJob(json);
-        JdbcConfig jdbcConf =
-                gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), JdbcConfig.class);
-        List<ConnectionConfig> connectionConfigList = jdbcConf.getConnection();
+        syncConfig = SyncConfig.parseJob(json);
+        JdbcConfig jdbcConfig =
+                gson.fromJson(gson.toJson(syncConfig.getReader().getParameter()), JdbcConfig.class);
+        List<ConnectionConfig> connectionConfigList = jdbcConfig.getConnection();
         dataSourceConfigList = new ArrayList<>(connectionConfigList.size());
         for (ConnectionConfig connectionConfig : connectionConfigList) {
             String currentUsername =
                     (StringUtils.isNotBlank(connectionConfig.getUsername()))
                             ? connectionConfig.getUsername()
-                            : jdbcConf.getUsername();
+                            : jdbcConfig.getUsername();
             String currentPassword =
                     (StringUtils.isNotBlank(connectionConfig.getPassword()))
                             ? connectionConfig.getPassword()
-                            : jdbcConf.getPassword();
+                            : jdbcConfig.getPassword();
 
             String schema = connectionConfig.getSchema();
             for (String table : connectionConfig.getTable()) {
@@ -149,11 +149,11 @@ public class DistributeJdbcInputFormatTest {
     public void createInputSplitsInternalTest() {
         when(inputFormat.createInputSplitsInternal(2)).thenCallRealMethod();
 
-        when(jdbcConf.getParallelism()).thenReturn(1);
+        when(jdbcConfig.getParallelism()).thenReturn(1);
         Assert.assertThrows(
                 ChunJunRuntimeException.class, () -> inputFormat.createInputSplitsInternal(2));
 
-        when(jdbcConf.getParallelism()).thenReturn(2);
+        when(jdbcConfig.getParallelism()).thenReturn(2);
         setInternalState(inputFormat, "sourceList", dataSourceConfigList);
         when(RangeSplitUtil.subListBySegment(dataSourceConfigList, 2)).thenCallRealMethod();
         InputSplit[] inputSplitsInternal = inputFormat.createInputSplitsInternal(2);
@@ -165,7 +165,7 @@ public class DistributeJdbcInputFormatTest {
         doCallRealMethod().when(inputFormat).openInternal(inputSplit);
         when(inputSplit.getSourceList()).thenReturn(dataSourceConfigList);
 
-        when(jdbcConf.getColumn()).thenReturn(syncConf.getReader().getFieldList());
+        when(jdbcConfig.getColumn()).thenReturn(syncConfig.getReader().getFieldList());
         setInternalState(inputFormat, "columnTypeList", new ArrayList<>());
         setInternalState(inputFormat, "columnNameList", new ArrayList<>());
         when(ColumnBuildUtil.handleColumnList(anyList(), anyList(), anyList()))
@@ -197,8 +197,8 @@ public class DistributeJdbcInputFormatTest {
                 .thenAnswer(invocation -> connection);
         when(connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY))
                 .thenReturn(statement);
-        when(jdbcConf.getFetchSize()).thenReturn(100);
-        when(jdbcConf.getQueryTimeOut()).thenReturn(100);
+        when(jdbcConfig.getFetchSize()).thenReturn(100);
+        when(jdbcConfig.getQueryTimeOut()).thenReturn(100);
         Method getSplitRangeFromDb =
                 PowerMockito.method(
                         DistributedJdbcInputFormat.class,

@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.kudu.table.lookup;
 
-import com.dtstack.chunjun.connector.kudu.conf.KuduCommonConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduLookupConf;
+import com.dtstack.chunjun.connector.kudu.config.KuduCommonConfig;
+import com.dtstack.chunjun.connector.kudu.config.KuduLookupConf;
 import com.dtstack.chunjun.connector.kudu.util.KuduUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
@@ -42,10 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * @author tiezhu
- * @since 2021/6/16 星期三
- */
 public class KuduAllTableFunction extends AbstractAllTableFunction {
 
     private static final Logger LOG = LoggerFactory.getLogger(KuduAllTableFunction.class);
@@ -111,17 +107,17 @@ public class KuduAllTableFunction extends AbstractAllTableFunction {
     }
 
     private KuduScanner getKuduScannerWithRetry(KuduLookupConf kuduLookupConf) {
-        KuduCommonConf commonConf = kuduLookupConf.getCommonConf();
+        KuduCommonConfig commonConfig = kuduLookupConf.getCommonConf();
         String connInfo =
                 "kuduMasters:"
-                        + commonConf.getMasters()
+                        + commonConfig.getMasters()
                         + ";tableName:"
                         + kuduLookupConf.getTableName();
         for (int i = 0; i < 3; i++) {
             try {
                 if (Objects.isNull(client)) {
                     String tableName = kuduLookupConf.getTableName();
-                    client = KuduUtil.getKuduClient(commonConf);
+                    client = KuduUtil.getKuduClient(commonConfig);
                     if (!client.tableExists(tableName)) {
                         throw new IllegalArgumentException(
                                 "Table Open Failed , please check table exists");

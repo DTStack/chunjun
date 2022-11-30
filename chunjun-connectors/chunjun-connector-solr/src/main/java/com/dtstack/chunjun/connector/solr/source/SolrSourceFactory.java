@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.solr.source;
 
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.solr.SolrConf;
 import com.dtstack.chunjun.connector.solr.SolrConverterFactory;
 import com.dtstack.chunjun.connector.solr.converter.SolrRawTypeConverter;
@@ -43,11 +43,12 @@ public class SolrSourceFactory extends SourceFactory {
 
     private final SolrConf solrConf;
 
-    public SolrSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
+    public SolrSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
         Gson gson = new GsonBuilder().create();
         GsonUtil.setTypeAdapter(gson);
-        solrConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), SolrConf.class);
+        solrConf =
+                gson.fromJson(gson.toJson(syncConfig.getReader().getParameter()), SolrConf.class);
     }
 
     @Override

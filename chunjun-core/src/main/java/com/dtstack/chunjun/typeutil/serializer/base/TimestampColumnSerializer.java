@@ -31,7 +31,6 @@ import org.apache.flink.core.memory.DataOutputView;
 import java.io.IOException;
 import java.sql.Timestamp;
 
-
 public class TimestampColumnSerializer extends TypeSerializerSingleton<AbstractBaseColumn> {
 
     private static final long serialVersionUID = 1L;

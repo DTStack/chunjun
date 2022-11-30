@@ -55,7 +55,8 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
     @Override
     @SuppressWarnings("all")
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
-        final TypeInformation<?> typeInformation = InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType());
+        final TypeInformation<?> typeInformation =
+                InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType());
         List<Column> columns = tableSchema.getColumns();
         List<FieldConfig> columnList = new ArrayList<>(columns.size());
 
@@ -70,18 +71,37 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
                     columnList.add(field);
                 });
         hdfsConfig.setColumn(columnList);
-        HdfsOutputFormatBuilder builder = HdfsOutputFormatBuilder.newBuild(hdfsConfig.getFileType());
+        HdfsOutputFormatBuilder builder =
+                HdfsOutputFormatBuilder.newBuild(hdfsConfig.getFileType());
         builder.setHdfsConf(hdfsConfig);
         AbstractRowConverter rowConverter;
         switch (FileType.getByName(hdfsConfig.getFileType())) {
             case ORC:
-                rowConverter = new HdfsOrcRowConverter(InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType());
+                rowConverter =
+                        new HdfsOrcRowConverter(
+                                InternalTypeInfo.of(
+                                                tableSchema
+                                                        .toPhysicalRowDataType()
+                                                        .getLogicalType())
+                                        .toRowType());
                 break;
             case PARQUET:
-                rowConverter = new HdfsParquetRowConverter(InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType());
+                rowConverter =
+                        new HdfsParquetRowConverter(
+                                InternalTypeInfo.of(
+                                                tableSchema
+                                                        .toPhysicalRowDataType()
+                                                        .getLogicalType())
+                                        .toRowType());
                 break;
             default:
-                rowConverter = new HdfsTextRowConverter((InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType()));
+                rowConverter =
+                        new HdfsTextRowConverter(
+                                (InternalTypeInfo.of(
+                                                tableSchema
+                                                        .toPhysicalRowDataType()
+                                                        .getLogicalType())
+                                        .toRowType()));
         }
         builder.setRowConverter(rowConverter);
         return SinkFunctionProvider.of(

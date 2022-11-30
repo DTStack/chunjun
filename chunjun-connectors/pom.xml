@@ -34,6 +34,7 @@
 
 	<properties>
 		<connector.base.dir>connector</connector.base.dir>
+		<connector.dir>connector</connector.dir>
 	</properties>
 
 	<modules>
@@ -41,10 +42,10 @@
 		<module>chunjun-connector-stream</module>
 
 		<!--MQ-->
-<!--		<module>chunjun-connector-kafka</module>-->
-<!--		<module>chunjun-connector-emqx</module>-->
-<!--		<module>chunjun-connector-rocketmq</module>-->
-<!--		<module>chunjun-connector-rabbitmq</module>-->
+		<!--		<module>chunjun-connector-kafka</module>-->
+		<module>chunjun-connector-emqx</module>
+		<module>chunjun-connector-rocketmq</module>
+		<module>chunjun-connector-rabbitmq</module>
 
 		<!--RDB-->
 		<module>chunjun-connector-jdbc-base</module>
@@ -67,40 +68,39 @@
 
 		<!--File-->
 		<module>chunjun-connector-file</module>
-<!--		<module>chunjun-connector-filesystem</module>-->
+		<!--		<module>chunjun-connector-filesystem</module>-->
 		<module>chunjun-connector-ftp</module>
 		<module>chunjun-connector-hdfs</module>
 		<module>chunjun-connector-hive</module>
-<!--		<module>chunjun-connector-hive3</module>-->
-<!--		<module>chunjun-connector-iceberg</module>-->
-<!--		<module>chunjun-connector-s3</module>-->
+		<module>chunjun-connector-hive3</module>
+		<module>chunjun-connector-iceberg</module>
+		<module>chunjun-connector-s3</module>
 
 		<!--NoSql-->
-<!--		<module>chunjun-connector-hbase-base</module>-->
-<!--		<module>chunjun-connector-hbase-1.4</module>-->
-<!--		<module>chunjun-connector-hbase2</module>-->
-<!--		<module>chunjun-connector-elasticsearch6</module>-->
-<!--		<module>chunjun-connector-elasticsearch7</module>-->
-<!--		<module>chunjun-connector-elasticsearch-base</module>-->
-<!--		<module>chunjun-connector-redis</module>-->
-<!--		<module>chunjun-connector-mongodb</module>-->
-<!--		<module>chunjun-connector-solr</module>-->
-<!--		<module>chunjun-connector-kudu</module>-->
+		<module>chunjun-connector-hbase-base</module>
+		<module>chunjun-connector-hbase-1.4</module>
+		<module>chunjun-connector-hbase2</module>
+		<module>chunjun-connector-elasticsearch6</module>
+		<module>chunjun-connector-elasticsearch7</module>
+		<module>chunjun-connector-elasticsearch-base</module>
+		<module>chunjun-connector-redis</module>
+		<module>chunjun-connector-mongodb</module>
+		<module>chunjun-connector-solr</module>
+		<module>chunjun-connector-kudu</module>
 
 		<!--CDC-->
 		<module>chunjun-connector-binlog</module>
 		<module>chunjun-connector-oceanbasecdc</module>
 		<module>chunjun-connector-oraclelogminer</module>
-<!--		<module>chunjun-connector-sqlservercdc</module>-->
-<!--		<module>chunjun-connector-pgwal</module>-->
-<!--		<module>chunjun-connector-mysqlcdc</module>-->
+		<module>chunjun-connector-sqlservercdc</module>
+		<module>chunjun-connector-mysqlcdc</module>
 
 		<!--Network-->
-<!--		<module>chunjun-connector-http</module>-->
-<!--		<module>chunjun-connector-socket</module>-->
+		<module>chunjun-connector-http</module>
+		<module>chunjun-connector-socket</module>
 
 		<!--Distribute plugin, just for SYNC-->
-<!--		<module>chunjun-connector-mysqld</module>-->
+		<module>chunjun-connector-mysqld</module>
 	</modules>
 
 	<dependencies>

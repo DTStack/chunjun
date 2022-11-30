@@ -18,10 +18,10 @@
 
 package com.dtstack.chunjun.connector.mongodb.table.lookup;
 
-import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
+import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
 import com.dtstack.chunjun.connector.mongodb.converter.MongodbRowConverter;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
-import com.dtstack.chunjun.lookup.config.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
@@ -45,37 +45,32 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * @author Ada Wong
- * @program ChunJun
- * @create 2021/06/21
- */
 public class MongoLruTableFunction extends AbstractLruTableFunction {
 
     private static final Logger LOG = LoggerFactory.getLogger(MongoLruTableFunction.class);
 
-    private final MongoClientConf mongoClientConf;
+    private final MongoClientConfig mongoClientConfig;
     private final String[] keyNames;
     private transient MongoClient mongoClient;
-    private transient MongoCollection collection;
+    private transient MongoCollection<Document> collection;
 
     public MongoLruTableFunction(
-            MongoClientConf mongoClientConf,
-            LookupConf lookupConf,
+            MongoClientConfig mongoClientConfig,
+            LookupConfig lookupConfig,
             RowType rowType,
             String[] keyNames,
             String[] fieldNames) {
-        super(lookupConf, new MongodbRowConverter(rowType, fieldNames));
-        this.mongoClientConf = mongoClientConf;
+        super(lookupConfig, new MongodbRowConverter(rowType, fieldNames));
+        this.mongoClientConfig = mongoClientConfig;
         this.keyNames = keyNames;
     }
 
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-        mongoClient = MongoClients.create(new ConnectionString(mongoClientConf.getUri()));
-        MongoDatabase db = mongoClient.getDatabase(mongoClientConf.getDatabase());
-        collection = db.getCollection(mongoClientConf.getCollection(), Document.class);
+        mongoClient = MongoClients.create(new ConnectionString(mongoClientConfig.getUri()));
+        MongoDatabase db = mongoClient.getDatabase(mongoClientConfig.getDatabase());
+        collection = db.getCollection(mongoClientConfig.getCollection(), Document.class);
     }
 
     @Override
@@ -104,7 +99,7 @@ public class MongoLruTableFunction extends AbstractLruTableFunction {
                 (result, t) -> {
                     if (rowList.size() <= 0) {
                         LOG.warn("Cannot retrieve the data from the database");
-                        future.complete(Collections.EMPTY_LIST);
+                        future.complete(Collections.emptyList());
                     } else {
                         future.complete(rowList);
                     }

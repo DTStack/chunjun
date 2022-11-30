@@ -218,11 +218,11 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
             case VARBINARY:
                 return (IDeserializationConverter<String, byte[]>)
                         val -> val.getBytes(StandardCharsets.UTF_8);
-            //            case ARRAY:
-            //            case MAP:
-            //            case MULTISET:
-            //            case ROW:
-            //            case RAW:
+                //            case ARRAY:
+                //            case MAP:
+                //            case MULTISET:
+                //            case ROW:
+                //            case RAW:
             default:
                 throw new UnsupportedOperationException("Unsupported type: " + type);
         }

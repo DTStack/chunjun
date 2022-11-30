@@ -25,6 +25,7 @@ package com.dtstack.chunjun.connector.sqlservercdc.entity;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 
 public class ChangeTable {
 
@@ -34,7 +35,7 @@ public class ChangeTable {
     private final TableId changeTableId;
     private final Lsn startLsn;
     private Lsn stopLsn;
-    private List<String> columnList;
+    private final List<String> columnList;
     private final int changeTableObjectId;
 
     public ChangeTable(
@@ -83,27 +84,6 @@ public class ChangeTable {
     }
 
     @Override
-    public String toString() {
-        return "ChangeTable{"
-                + "captureInstance='"
-                + captureInstance
-                + '\''
-                + ", sourceTableId="
-                + sourceTableId
-                + ", changeTableId="
-                + changeTableId
-                + ", startLsn="
-                + startLsn
-                + ", stopLsn="
-                + stopLsn
-                + ", columnList="
-                + columnList
-                + ", changeTableObjectId="
-                + changeTableObjectId
-                + '}';
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -131,5 +111,18 @@ public class ChangeTable {
                 stopLsn,
                 columnList,
                 changeTableObjectId);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ChangeTable.class.getSimpleName() + "[", "]")
+                .add("captureInstance='" + captureInstance + "'")
+                .add("sourceTableId=" + sourceTableId)
+                .add("changeTableId=" + changeTableId)
+                .add("startLsn=" + startLsn)
+                .add("stopLsn=" + stopLsn)
+                .add("columnList=" + columnList)
+                .add("changeTableObjectId=" + changeTableObjectId)
+                .toString();
     }
 }

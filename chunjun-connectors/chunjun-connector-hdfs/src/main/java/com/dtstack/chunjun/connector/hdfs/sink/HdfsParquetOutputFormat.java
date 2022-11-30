@@ -71,7 +71,9 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         GroupWriteSupport.setSchema(schema, conf);
         groupFactory = new SimpleGroupFactory(schema);
         List<String> columnNameList =
-                hdfsConfig.getColumn().stream().map(FieldConfig::getName).collect(Collectors.toList());
+                hdfsConfig.getColumn().stream()
+                        .map(FieldConfig::getName)
+                        .collect(Collectors.toList());
         if (rowConverter instanceof HdfsParquetColumnConverter) {
             ((HdfsParquetColumnConverter) rowConverter).setColumnNameList(columnNameList);
             ((HdfsParquetColumnConverter) rowConverter).setDecimalColInfo(decimalColInfo);

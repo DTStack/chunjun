@@ -62,12 +62,12 @@ public class SourceFactoryTest {
         syncConfig.setJob(jobConfig);
         MockSourceFactory sourceFactory =
                 new MockSourceFactory(syncConfig, new DummyStreamExecutionEnvironment());
-        CommonConfig commonConf = new CommonConfig();
-        commonConf.setColumn(reader.getFieldList());
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setColumn(reader.getFieldList());
         IllegalArgumentException thrownA =
                 assertThrows(
                         IllegalArgumentException.class,
-                        () -> sourceFactory.checkConstant(commonConf),
+                        () -> sourceFactory.checkConstant(commonConfig),
                         "Expected checkConstant() to throw, but it didn't");
         assertEquals("in transformer mode : not support '*' in column.", thrownA.getMessage());
     }
@@ -95,12 +95,12 @@ public class SourceFactoryTest {
         syncConfig.setJob(jobConfig);
         MockSourceFactory sourceFactory =
                 new MockSourceFactory(syncConfig, new DummyStreamExecutionEnvironment());
-        CommonConfig commonConf = new CommonConfig();
-        commonConf.setColumn(reader.getFieldList());
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setColumn(reader.getFieldList());
         IllegalArgumentException thrownA =
                 assertThrows(
                         IllegalArgumentException.class,
-                        () -> sourceFactory.checkConstant(commonConf),
+                        () -> sourceFactory.checkConstant(commonConfig),
                         "Expected checkConstant() to throw, but it didn't");
         assertEquals(
                 "in transformer mode : not support default value,you can set value in transformer",
@@ -130,12 +130,12 @@ public class SourceFactoryTest {
         syncConfig.setJob(jobConfig);
         MockSourceFactory sourceFactory =
                 new MockSourceFactory(syncConfig, new DummyStreamExecutionEnvironment());
-        CommonConfig commonConf = new CommonConfig();
-        commonConf.setColumn(reader.getFieldList());
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setColumn(reader.getFieldList());
         IllegalArgumentException thrownA =
                 assertThrows(
                         IllegalArgumentException.class,
-                        () -> sourceFactory.checkConstant(commonConf),
+                        () -> sourceFactory.checkConstant(commonConfig),
                         "Expected checkConstant() to throw, but it didn't");
         assertEquals(
                 "in transformer mode : not support default format,you can set format in transformer",
@@ -164,7 +164,7 @@ public class SourceFactoryTest {
         jobConfig.setContent(new LinkedList<>(ImmutableList.of(contentConfig)));
         syncConfig.setJob(jobConfig);
         /*MockSourceFactory sourceFactory =
-        new MockSourceFactory(syncConf, new DummyStreamExecutionEnvironment());
+        new MockSourceFactory(syncConfig, new DummyStreamExecutionEnvironment());
         sourceFactory.createInput()*/
     }
 

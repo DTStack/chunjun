@@ -18,7 +18,7 @@
 package com.dtstack.chunjun.config;
 
 import com.dtstack.chunjun.cdc.CdcConfig;
-import com.dtstack.chunjun.mapping.MappingConf;
+import com.dtstack.chunjun.mapping.MappingConfig;
 
 import java.io.Serializable;
 import java.util.LinkedList;
@@ -42,7 +42,7 @@ public class JobConfig implements Serializable {
         return content.get(0).getRestoration();
     }
 
-    public MappingConf getNameMapping() {
+    public MappingConfig getNameMapping() {
         return content.get(0).getNameMapping();
     }
 

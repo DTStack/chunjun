@@ -36,53 +36,20 @@ import java.util.stream.Collectors;
 
 public class Elasticsearch6RequestFactory {
 
-    /**
-     * create Elasticsearch UpdateRequest.
-     *
-     * @param index
-     * @param docType
-     * @param key
-     * @return
-     */
     public static UpdateRequest createUpdateRequest(
             String index, String docType, String key, Map<String, Object> dataMap) {
         return new UpdateRequest(index, docType, key).doc(dataMap).upsert(dataMap);
     }
 
-    /**
-     * create Elasticsearch IndexRequest.
-     *
-     * @param index
-     * @param docType
-     * @param dataMap
-     * @return
-     */
     public static IndexRequest createIndexRequest(
             String index, String docType, Map<String, Object> dataMap) {
         return new IndexRequest(index, docType).source(dataMap);
     }
 
-    /**
-     * create Elasticsearch DeleteRequest.
-     *
-     * @param index
-     * @param docType
-     * @param key
-     * @return
-     */
     public static DeleteRequest createDeleteRequest(String index, String docType, String key) {
         return new DeleteRequest(index, docType, key);
     }
 
-    /**
-     * build search request
-     *
-     * @param index
-     * @param docType
-     * @param scroll
-     * @param searchSourceBuilder
-     * @return
-     */
     public static SearchRequest createSearchRequest(
             String index, String docType, Scroll scroll, SearchSourceBuilder searchSourceBuilder) {
         SearchRequest searchRequest = new SearchRequest(index);

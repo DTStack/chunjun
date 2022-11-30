@@ -40,14 +40,14 @@ public class CassandraSourceFactory extends SourceFactory {
 
     private final CassandraSourceConfig sourceConf;
 
-    public CassandraSourceFactory(SyncConfig syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
+    public CassandraSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
 
         sourceConf =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getReader().getParameter()),
+                        JsonUtil.toJson(syncConfig.getReader().getParameter()),
                         CassandraSourceConfig.class);
-        sourceConf.setColumn(syncConf.getReader().getFieldList());
+        sourceConf.setColumn(syncConfig.getReader().getFieldList());
         super.initCommonConf(sourceConf);
     }
 

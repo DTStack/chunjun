@@ -94,7 +94,6 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void writeSingleRecordToFile(RowData rowData) throws WriteRecordException {
         if (stream == null) {
             nextBlock();
@@ -105,10 +104,10 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
         } catch (Exception e) {
             throw new WriteRecordException("can't parse rowData", e, -1, rowData);
         }
-        String line = String.join(hdfsConf.getFieldDelimiter(), result);
+        String line = String.join(hdfsConfig.getFieldDelimiter(), result);
 
         try {
-            byte[] bytes = line.getBytes(hdfsConf.getEncoding());
+            byte[] bytes = line.getBytes(hdfsConfig.getEncoding());
             this.stream.write(bytes);
             this.stream.write(NEWLINE);
             rowsOfCurrentBlock++;
@@ -140,6 +139,6 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public CompressType getCompressType() {
-        return CompressType.getByTypeAndFileType(hdfsConf.getCompress(), FileType.TEXT.name());
+        return CompressType.getByTypeAndFileType(hdfsConfig.getCompress(), FileType.TEXT.name());
     }
 }

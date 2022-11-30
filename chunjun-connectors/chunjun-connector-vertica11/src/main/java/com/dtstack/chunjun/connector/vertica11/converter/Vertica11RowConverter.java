@@ -83,7 +83,6 @@ public class Vertica11RowConverter extends JdbcRowConverter {
      * Convert external database type to flink internal type.
      *
      * @param type
-     *
      * @return
      */
     @Override
@@ -122,8 +121,8 @@ public class Vertica11RowConverter extends JdbcRowConverter {
                         val ->
                                 (int)
                                         ((Time.valueOf(String.valueOf(val)))
-                                                .toLocalTime()
-                                                .toNanoOfDay()
+                                                        .toLocalTime()
+                                                        .toNanoOfDay()
                                                 / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
@@ -144,7 +143,6 @@ public class Vertica11RowConverter extends JdbcRowConverter {
      * Convert data types inside flink to external database system types.
      *
      * @param type
-     *
      * @return
      */
     @Override

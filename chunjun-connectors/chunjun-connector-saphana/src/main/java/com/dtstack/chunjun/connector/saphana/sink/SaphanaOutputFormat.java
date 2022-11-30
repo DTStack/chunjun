@@ -26,7 +26,7 @@ public class SaphanaOutputFormat extends JdbcOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
-        Properties properties = jdbcConf.getProperties();
+        Properties properties = jdbcConfig.getProperties();
         properties.setProperty("zeroDateTimeBehavior", "convertToNull");
         super.openInternal(taskNumber, numTasks);
     }

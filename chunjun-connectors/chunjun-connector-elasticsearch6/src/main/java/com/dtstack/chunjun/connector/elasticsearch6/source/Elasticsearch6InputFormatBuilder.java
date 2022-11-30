@@ -23,12 +23,6 @@ import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import com.google.common.base.Preconditions;
 
-/**
- * @description:
- * @program: ChunJun
- * @author: lany
- * @create: 2021/06/18 12:00
- */
 public class Elasticsearch6InputFormatBuilder
         extends BaseRichInputFormatBuilder<Elasticsearch6InputFormat> {
 

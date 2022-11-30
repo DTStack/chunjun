@@ -53,7 +53,7 @@ public class DynamicPreparedStmt {
     protected List<String> columnTypeList = new ArrayList<>();
 
     protected transient FieldNamedPreparedStatement fieldNamedPreparedStatement;
-    protected JdbcConfig jdbcConf;
+    protected JdbcConfig jdbcConfig;
     private boolean writeExtInfo;
     private JdbcDialect jdbcDialect;
     private AbstractRowConverter<?, ?, ?, ?> rowConverter;
@@ -163,7 +163,7 @@ public class DynamicPreparedStmt {
         RowType rowType =
                 TableUtil.createRowType(
                         columnNameList, columnTypeList, jdbcDialect.getRawTypeConverter());
-        rowConverter = jdbcDialect.getColumnConverter(rowType, jdbcConf);
+        rowConverter = jdbcDialect.getColumnConverter(rowType, jdbcConfig);
     }
 
     public void getColumnMeta(String schema, String table, Connection dbConn) {

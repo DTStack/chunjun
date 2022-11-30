@@ -27,11 +27,10 @@ import com.dtstack.chunjun.util.ColumnTypeUtil;
 import com.dtstack.chunjun.util.FileSystemUtil;
 import com.dtstack.chunjun.util.PluginUtil;
 
-import org.apache.commons.collections.CollectionUtils;
-
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.api.common.functions.RuntimeContext;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -132,7 +131,9 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void openSource() {
-        conf = FileSystemUtil.getConfiguration(hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS());
+        conf =
+                FileSystemUtil.getConfiguration(
+                        hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS());
         RuntimeContext runtimeContext = null;
         try {
             runtimeContext = getRuntimeContext();
@@ -148,7 +149,9 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         try {
             fs =
                     FileSystemUtil.getFileSystem(
-                            hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS(), distributedCache);
+                            hdfsConfig.getHadoopConfig(),
+                            hdfsConfig.getDefaultFS(),
+                            distributedCache);
         } catch (Exception e) {
             throw new ChunJunRuntimeException("can't init fileSystem", e);
         }

@@ -53,7 +53,7 @@ public class SourceFactoryTest {
     private static StreamExecutionEnvironment env;
     private static String json;
 
-    private static SyncConfig syncConf;
+    private static SyncConfig syncConfig;
 
     @Before
     public void setup() throws IOException {
@@ -61,10 +61,10 @@ public class SourceFactoryTest {
 
         env = mock(StreamExecutionEnvironment.class);
         json = readFile("sync_test.json");
-        syncConf = SyncConfig.parseJob(json);
+        syncConfig = SyncConfig.parseJob(json);
         sourceFactory =
                 new TestSourceFactory(
-                        syncConf,
+                        syncConfig,
                         env,
                         new JdbcDialect() {
                             @Override
@@ -89,7 +89,8 @@ public class SourceFactoryTest {
 
         List<String> name = new ArrayList<>();
         List<String> type = new ArrayList<>();
-        syncConf.getReader()
+        syncConfig
+                .getReader()
                 .getFieldList()
                 .forEach(
                         field -> {
@@ -112,8 +113,8 @@ public class SourceFactoryTest {
 
     public static class TestSourceFactory extends JdbcSourceFactory {
         public TestSourceFactory(
-                SyncConfig syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
-            super(syncConf, env, jdbcDialect);
+                SyncConfig syncConfig, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
+            super(syncConfig, env, jdbcDialect);
         }
     }
 }

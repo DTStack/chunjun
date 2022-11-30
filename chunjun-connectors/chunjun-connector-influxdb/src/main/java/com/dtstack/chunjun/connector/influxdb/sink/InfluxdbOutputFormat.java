@@ -28,12 +28,11 @@ import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.TableUtil;
 
-import okhttp3.OkHttpClient;
-
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.StringUtils;
 
+import okhttp3.OkHttpClient;
 import org.influxdb.BatchOptions;
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.BatchPoints;
@@ -43,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;

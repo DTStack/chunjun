@@ -48,7 +48,9 @@ public class StarRocksDynamicTableSource
     private final ResolvedSchema tableSchema;
 
     public StarRocksDynamicTableSource(
-            StarRocksConfig starRocksConfig, LookupConfig lookupConfig, ResolvedSchema tableSchema) {
+            StarRocksConfig starRocksConfig,
+            LookupConfig lookupConfig,
+            ResolvedSchema tableSchema) {
         this.starRocksConfig = starRocksConfig;
         this.lookupConfig = lookupConfig;
         this.tableSchema = tableSchema;
@@ -71,7 +73,11 @@ public class StarRocksDynamicTableSource
                             lookupConfig,
                             keyIndexes,
                             new StarRocksRowConverter(
-                                    InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType(),
+                                    InternalTypeInfo.of(
+                                                    tableSchema
+                                                            .toPhysicalRowDataType()
+                                                            .getLogicalType())
+                                            .toRowType(),
                                     tableSchema.getColumnNames())),
                     lookupConfig.getParallelism());
         }
@@ -81,7 +87,11 @@ public class StarRocksDynamicTableSource
                         lookupConfig,
                         keyIndexes,
                         new StarRocksRowConverter(
-                                InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType(),
+                                InternalTypeInfo.of(
+                                                tableSchema
+                                                        .toPhysicalRowDataType()
+                                                        .getLogicalType())
+                                        .toRowType(),
                                 tableSchema.getColumnNames())),
                 lookupConfig.getParallelism());
     }
@@ -105,9 +115,11 @@ public class StarRocksDynamicTableSource
         }
         starRocksConfig.setColumn(fieldConfList);
         builder.setStarRocksConf(starRocksConfig);
-        builder.setRowConverter(new StarRocksRowConverter(
-                InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType(),
-                tableSchema.getColumnNames()));
+        builder.setRowConverter(
+                new StarRocksRowConverter(
+                        InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType())
+                                .toRowType(),
+                        tableSchema.getColumnNames()));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(

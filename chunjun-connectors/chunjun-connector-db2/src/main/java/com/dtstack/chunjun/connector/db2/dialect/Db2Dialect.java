@@ -75,14 +75,14 @@ public class Db2Dialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-    getRowConverter(RowType rowType) {
+            getRowConverter(RowType rowType) {
         return new Db2RowConverter(rowType);
     }
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-    getColumnConverter(RowType rowType, CommonConfig commonConf) {
-        return new Db2ColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new Db2ColumnConverter(rowType, commonConfig);
     }
 
     @Override
@@ -149,12 +149,12 @@ public class Db2Dialect implements JdbcDialect {
         return allReplace
                 ? "T1." + quoteIdentifier(col) + " = T2." + quoteIdentifier(col)
                 : "T1."
-                + quoteIdentifier(col)
-                + " =NVL(T2."
-                + quoteIdentifier(col)
-                + ",T1."
-                + quoteIdentifier(col)
-                + ")";
+                        + quoteIdentifier(col)
+                        + " =NVL(T2."
+                        + quoteIdentifier(col)
+                        + ",T1."
+                        + quoteIdentifier(col)
+                        + ")";
     }
 
     public String buildDualQueryStatement(String[] column) {

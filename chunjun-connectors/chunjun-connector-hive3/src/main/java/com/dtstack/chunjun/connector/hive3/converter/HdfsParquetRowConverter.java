@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.hive3.converter;
 
-import com.dtstack.chunjun.config.FieldConf;
-import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hive3.util.Hive3Util;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -52,19 +52,18 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** @author liuliu 2022/3/23 */
 public class HdfsParquetRowConverter
         extends AbstractRowConverter<RowData, RowData, Group, LogicalType> {
 
-    HdfsConf hdfsConf;
+    HdfsConfig hdfsConfig;
     private final List<String> columnNameList;
 
-    public HdfsParquetRowConverter(RowType rowType, HdfsConf hdfsConf) {
-        super(rowType, hdfsConf);
-        this.hdfsConf = hdfsConf;
-        List<FieldConf> fieldConfList = hdfsConf.getColumn();
+    public HdfsParquetRowConverter(RowType rowType, HdfsConfig hdfsConfig) {
+        super(rowType, hdfsConfig);
+        this.hdfsConfig = hdfsConfig;
+        List<FieldConfig> fieldConfList = hdfsConfig.getColumn();
         columnNameList =
-                fieldConfList.stream().map(FieldConf::getName).collect(Collectors.toList());
+                fieldConfList.stream().map(FieldConfig::getName).collect(Collectors.toList());
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
@@ -88,7 +87,6 @@ public class HdfsParquetRowConverter
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public RowData toInternal(RowData input) throws Exception {
         ColumnRowData row = new ColumnRowData(input.getArity());
         if (input instanceof GenericRowData) {
@@ -110,10 +108,9 @@ public class HdfsParquetRowConverter
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Group toExternal(RowData rowData, Group group) throws Exception {
-        for (int index = 0; index < hdfsConf.getFullColumnName().size(); index++) {
-            int columnIndex = hdfsConf.getFullColumnIndexes()[index];
+        for (int index = 0; index < hdfsConfig.getFullColumnName().size(); index++) {
+            int columnIndex = hdfsConfig.getFullColumnIndexes()[index];
             toExternalConverters.get(columnIndex).serialize(rowData, columnIndex, group);
         }
         return group;

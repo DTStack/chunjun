@@ -69,8 +69,7 @@ public class HiveDbUtil {
             Pattern.compile(
                     "(?i)jdbc:hive2://(?<host>[^:]+):(?<port>\\d+)/(?<db>[^;]+)(?<param>[\\?;#].*)*");
 
-    private HiveDbUtil() {
-    }
+    private HiveDbUtil() {}
 
     public static Connection getConnection(
             ConnectionInfo connectionInfo, DistributedCache distributedCache) {
@@ -84,10 +83,7 @@ public class HiveDbUtil {
     private static Connection getConnectionWithRetry(ConnectionInfo connectionInfo) {
         try {
             return RetryUtil.executeWithRetry(
-                    () -> HiveDbUtil.connect(connectionInfo),
-                    1,
-                    1000L,
-                    false);
+                    () -> HiveDbUtil.connect(connectionInfo), 1, 1000L, false);
         } catch (Exception e1) {
             throw new RuntimeException(
                     String.format(

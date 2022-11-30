@@ -18,14 +18,14 @@
 
 package com.dtstack.chunjun.connector.hbase.table;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
 import com.dtstack.chunjun.enums.CacheType;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
-import com.dtstack.chunjun.lookup.config.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
@@ -41,7 +41,6 @@ import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushD
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,18 +51,18 @@ public abstract class BaseHBaseDynamicTableSource
     protected HBaseTableSchema hbaseSchema;
 
     protected final HBaseConfig hBaseConfig;
-    protected final LookupConf lookupConf;
+    protected final LookupConfig lookupConfig;
 
     public BaseHBaseDynamicTableSource(
             TableSchema tableSchema,
             HBaseTableSchema hbaseSchema,
             HBaseConfig hBaseConfig,
-            LookupConf lookupConf) {
+            LookupConfig lookupConfig) {
         this.tableSchema = tableSchema;
         this.hbaseSchema = hbaseSchema;
         this.hBaseConfig = hBaseConfig;
         this.hbaseSchema.setTableName(hBaseConfig.getTable());
-        this.lookupConf = lookupConf;
+        this.lookupConfig = lookupConfig;
     }
 
     @Override
@@ -72,9 +71,9 @@ public abstract class BaseHBaseDynamicTableSource
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
         String[] fieldNames = tableSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
+        List<FieldConfig> columnList = new ArrayList<>(fieldNames.length);
         for (int i = 0; i < fieldNames.length; i++) {
-            FieldConf field = new FieldConf();
+            FieldConfig field = new FieldConfig();
             field.setName(fieldNames[i]);
             field.setType(rowType.getTypeAt(i).asSummaryString());
             field.setIndex(i);
@@ -96,12 +95,12 @@ public abstract class BaseHBaseDynamicTableSource
             HBaseConfigUtils.fillKerberosConfig(hBaseConfig.getHbaseConfig());
         }
         hbaseSchema.setTableName(hBaseConfig.getTable());
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
+        if (lookupConfig.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
             return ParallelAsyncTableFunctionProvider.of(
-                    getAbstractLruTableFunction(), lookupConf.getParallelism());
+                    getAbstractLruTableFunction(), lookupConfig.getParallelism());
         }
         return ParallelTableFunctionProvider.of(
-                getAbstractAllTableFunction(), lookupConf.getParallelism());
+                getAbstractAllTableFunction(), lookupConfig.getParallelism());
     }
 
     @Override
@@ -112,14 +111,6 @@ public abstract class BaseHBaseDynamicTableSource
     @Override
     public boolean supportsNestedProjection() {
         return false;
-    }
-
-    @Override
-    public void applyProjection(int[][] projectedFields) {
-        TableSchema projectSchema =
-                TableSchemaUtils.projectSchema(
-                        hbaseSchema.convertsToTableSchema(), projectedFields);
-        this.hbaseSchema = HBaseTableSchema.fromTableSchema(projectSchema);
     }
 
     protected abstract BaseRichInputFormatBuilder<?> getBaseRichInputFormatBuilder();

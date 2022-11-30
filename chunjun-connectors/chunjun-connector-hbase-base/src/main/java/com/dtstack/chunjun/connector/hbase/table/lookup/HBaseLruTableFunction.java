@@ -28,7 +28,7 @@ import com.dtstack.chunjun.factory.ChunJunThreadFactory;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
 import com.dtstack.chunjun.lookup.cache.CacheMissVal;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.config.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
@@ -69,11 +69,11 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
     private final HBaseConfig hBaseConfig;
 
     public HBaseLruTableFunction(
-            LookupConf lookupConf,
+            LookupConfig lookupConfig,
             HBaseTableSchema hbaseTableSchema,
             HBaseConfig hBaseConfig,
             AbstractRowConverter rowConverter) {
-        super(lookupConf, rowConverter);
+        super(lookupConfig, rowConverter);
         this.hBaseConfig = hBaseConfig;
         this.hbaseTableSchema = hbaseTableSchema;
     }

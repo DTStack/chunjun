@@ -31,7 +31,7 @@ import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.dirty.DirtyConf;
 import com.dtstack.chunjun.dirty.consumer.DirtyDataCollector;
 import com.dtstack.chunjun.enums.OperatorType;
-import com.dtstack.chunjun.mapping.MappingConf;
+import com.dtstack.chunjun.mapping.MappingConfig;
 import com.dtstack.chunjun.metrics.CustomReporter;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.source.SourceFactory;
@@ -92,15 +92,15 @@ public class DataSyncFactoryUtil {
     }
 
     public static CustomReporter discoverMetric(
-            CommonConfig commonConf,
+            CommonConfig commonConfig,
             RuntimeContext context,
             boolean makeTaskFailedWhenReportFailed) {
         try {
-            String pluginName = commonConf.getMetricPluginName();
+            String pluginName = commonConfig.getMetricPluginName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.metric);
             MetricParam metricParam =
                     new MetricParam(
-                            context, makeTaskFailedWhenReportFailed, commonConf.getMetricProps());
+                            context, makeTaskFailedWhenReportFailed, commonConfig.getMetricProps());
 
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             Class<?> clazz = classLoader.loadClass(pluginClassName);
@@ -192,7 +192,7 @@ public class DataSyncFactoryUtil {
     }
 
     public static DdlConvent discoverDdlConventHandler(
-            MappingConf mappingConf, String pluginName, SyncConfig syncConfig) {
+            MappingConfig mappingConfig, String pluginName, SyncConfig syncConfig) {
         try {
 
             String cachePluginClassName =
@@ -206,8 +206,8 @@ public class DataSyncFactoryUtil {
                     cacheList,
                     cl -> {
                         Class<?> clazz = cl.loadClass(cachePluginClassName);
-                        Constructor<?> constructor = clazz.getConstructor(MappingConf.class);
-                        return (DdlConvent) constructor.newInstance(mappingConf);
+                        Constructor<?> constructor = clazz.getConstructor(MappingConfig.class);
+                        return (DdlConvent) constructor.newInstance(mappingConfig);
                     });
         } catch (Exception e) {
             throw new NoRestartException("Load ddlConvent failed!", e);

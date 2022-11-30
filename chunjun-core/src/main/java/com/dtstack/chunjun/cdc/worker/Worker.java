@@ -30,9 +30,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 
-/**
- * 下发数据队列中的dml数据，在遇到ddl数据之后，将数据队列的状态置为"block"
- */
+/** 下发数据队列中的dml数据，在遇到ddl数据之后，将数据队列的状态置为"block" */
 public class Worker implements Callable<Integer> {
 
     private static final Object LOCK = new Object();

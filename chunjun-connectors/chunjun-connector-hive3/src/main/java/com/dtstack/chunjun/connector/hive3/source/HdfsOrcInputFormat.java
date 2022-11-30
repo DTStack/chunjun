@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hive3.source;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hive3.inputSplit.HdfsOrcInputSplit;
 import com.dtstack.chunjun.connector.hive3.util.Hive3Util;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** @author liuliu 2022/3/23 */
 public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
     protected transient FileSystem fs;
 
@@ -70,7 +69,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
     protected InputSplit[] createHdfsSplit(int minNumSplits) throws IOException {
         initHadoopJobConf();
         // 非事务表创建分片
-        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(hadoopJobConf, hdfsConf.getPath());
+        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(hadoopJobConf, hdfsConfig.getPath());
         org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(
                 hadoopJobConf, HdfsPathFilter.class);
 
@@ -127,7 +126,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
     @Override
     protected RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         try {
-            List<FieldConf> fieldConfList = hdfsConf.getColumn();
+            List<FieldConfig> fieldConfList = hdfsConfig.getColumn();
             GenericRowData genericRowData =
                     new GenericRowData(Math.max(fieldConfList.size(), fullColNames.length));
             if (fieldConfList.size() == 1
@@ -142,7 +141,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
                 }
             } else {
                 for (int i = 0; i < fieldConfList.size(); i++) {
-                    FieldConf fieldConf = fieldConfList.get(i);
+                    FieldConfig fieldConf = fieldConfList.get(i);
                     Object val = null;
                     if (fieldConf.getValue() != null) {
                         val = fieldConf.getValue();

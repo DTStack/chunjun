@@ -42,7 +42,10 @@ public class BinlogDynamicTableSource implements ScanTableSource {
     private final TimestampFormat timestampFormat;
 
     public BinlogDynamicTableSource(
-            ResolvedSchema schema, BinlogConfig binlogConfig, TimestampFormat timestampFormat, DataType dataType) {
+            ResolvedSchema schema,
+            BinlogConfig binlogConfig,
+            TimestampFormat timestampFormat,
+            DataType dataType) {
         this.schema = schema;
         this.binlogConfig = binlogConfig;
         this.timestampFormat = timestampFormat;

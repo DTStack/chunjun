@@ -32,9 +32,9 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder<JdbcOut
         super(format);
     }
 
-    public void setJdbcConf(JdbcConfig jdbcConf) {
-        super.setConfig(jdbcConf);
-        format.setJdbcConf(jdbcConf);
+    public void setJdbcConf(JdbcConfig jdbcConfig) {
+        super.setConfig(jdbcConfig);
+        format.setJdbcConf(jdbcConfig);
     }
 
     public void setJdbcDialect(JdbcDialect JdbcDialect) {
@@ -56,13 +56,13 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder<JdbcOut
 
     @Override
     protected void checkFormat() {
-        JdbcConfig jdbcConf = format.getJdbcConfig();
+        JdbcConfig jdbcConfig = format.getJdbcConfig();
         StringBuilder sb = new StringBuilder(256);
-        if (StringUtils.isBlank(jdbcConf.getUsername())) {
+        if (StringUtils.isBlank(jdbcConfig.getUsername())) {
             sb.append("No username supplied;\n");
         }
 
-        if (StringUtils.isBlank(jdbcConf.getJdbcUrl())) {
+        if (StringUtils.isBlank(jdbcConfig.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }
         if (sb.length() > 0) {

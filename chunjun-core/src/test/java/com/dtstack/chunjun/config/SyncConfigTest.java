@@ -39,7 +39,7 @@ class SyncConfigTest {
         syncConfig.setSyncJarList(Collections.singletonList("syncJarList"));
 
         String expected =
-                "SyncConf{job=null, pluginRoot='pluginRoot', remotePluginPath='remotePluginPath', savePointPath='savePointPath', syncJarList=syncJarList}";
+                "SyncConfig{job=null, pluginRoot='pluginRoot', remotePluginPath='remotePluginPath', savePointPath='savePointPath', syncJarList=syncJarList}";
         assertEquals(expected, syncConfig.toString());
     }
 

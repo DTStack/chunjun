@@ -25,9 +25,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Abstract specification for all the InputFormatBuilder implementation
- */
+/** Abstract specification for all the InputFormatBuilder implementation */
 public abstract class BaseRichInputFormatBuilder<T extends BaseRichInputFormat> {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());

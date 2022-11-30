@@ -165,13 +165,13 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         }
     }
 
-    protected void rebuildJdbcConf(JdbcConfig jdbcConf) {
+    protected void rebuildJdbcConf(JdbcConfig jdbcConfig) {
         // updateKey has Deprecated，please use uniqueKey
-        if (MapUtils.isNotEmpty(jdbcConf.getUpdateKey())
-                && CollectionUtils.isEmpty(jdbcConf.getUniqueKey())) {
-            for (Map.Entry<String, List<String>> entry : jdbcConf.getUpdateKey().entrySet()) {
+        if (MapUtils.isNotEmpty(jdbcConfig.getUpdateKey())
+                && CollectionUtils.isEmpty(jdbcConfig.getUniqueKey())) {
+            for (Map.Entry<String, List<String>> entry : jdbcConfig.getUpdateKey().entrySet()) {
                 if (CollectionUtils.isNotEmpty(entry.getValue())) {
-                    jdbcConf.setUniqueKey(entry.getValue());
+                    jdbcConfig.setUniqueKey(entry.getValue());
                     break;
                 }
             }

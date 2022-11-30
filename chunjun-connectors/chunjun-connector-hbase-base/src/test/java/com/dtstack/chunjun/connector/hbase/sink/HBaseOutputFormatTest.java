@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hbase.sink;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseColumnConverter;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseRawTypeConverter;
@@ -116,81 +116,81 @@ public class HBaseOutputFormatTest {
         admin = mock(Admin.class);
 
         Map<String, Object> confMap = Maps.newHashMap();
-        List<FieldConf> columnList = Lists.newArrayList();
+        List<FieldConfig> columnList = Lists.newArrayList();
         HBaseConfig conf = new HBaseConfig();
         rowData = new ColumnRowData(RowKind.INSERT, 14);
 
-        FieldConf id = new FieldConf();
+        FieldConfig id = new FieldConfig();
         id.setName("stu:id");
         id.setType("int");
         rowData.addField(new BigDecimalColumn(1));
 
-        FieldConf decimal_val = new FieldConf();
+        FieldConfig decimal_val = new FieldConfig();
         decimal_val.setName("msg:decimal_val");
         decimal_val.setType("decimal(38, 18)");
         rowData.addField(new BigDecimalColumn(3.3));
 
-        FieldConf float_val = new FieldConf();
+        FieldConfig float_val = new FieldConfig();
         float_val.setName("msg:float_val");
         float_val.setType("float");
         rowData.addField(new BigDecimalColumn(3.33));
 
-        FieldConf smallint_val = new FieldConf();
+        FieldConfig smallint_val = new FieldConfig();
         smallint_val.setName("msg:smallint_val");
         smallint_val.setType("smallint");
         rowData.addField(new BigDecimalColumn(3));
 
-        FieldConf bigint_val = new FieldConf();
+        FieldConfig bigint_val = new FieldConfig();
         bigint_val.setName("msg:bigint_val");
         bigint_val.setType("bigint");
         rowData.addField(new BigDecimalColumn(1));
 
-        FieldConf boolean_val = new FieldConf();
+        FieldConfig boolean_val = new FieldConfig();
         boolean_val.setName("msg:boolean_val");
         boolean_val.setType("boolean");
         rowData.addField(new BooleanColumn(false));
 
-        FieldConf tinyint_val = new FieldConf();
+        FieldConfig tinyint_val = new FieldConfig();
         tinyint_val.setName("msg:tinyint_val");
         tinyint_val.setType("tinyint");
         rowData.addField(new BigDecimalColumn(1));
 
-        FieldConf date_val = new FieldConf();
+        FieldConfig date_val = new FieldConfig();
         date_val.setName("msg:date_val");
         date_val.setType("date");
         rowData.addField(new SqlDateColumn(Date.valueOf("2022-08-26")));
 
-        FieldConf time_val = new FieldConf();
+        FieldConfig time_val = new FieldConfig();
         time_val.setName("msg:time_val");
         time_val.setType("time");
         rowData.addField(new TimeColumn(Time.valueOf("11:06:14")));
 
-        FieldConf timestamp_val = new FieldConf();
+        FieldConfig timestamp_val = new FieldConfig();
         timestamp_val.setName("msg:timestamp_val");
         timestamp_val.setType("timestamp(3)");
         rowData.addField(new TimestampColumn(System.currentTimeMillis()));
 
-        FieldConf datetime_val = new FieldConf();
+        FieldConfig datetime_val = new FieldConfig();
         datetime_val.setName("msg:datetime_val");
         datetime_val.setType("datetime");
         rowData.addField(new TimestampColumn(System.currentTimeMillis()));
 
-        FieldConf bytes_val = new FieldConf();
+        FieldConfig bytes_val = new FieldConfig();
         bytes_val.setName("msg:bytes_val");
         bytes_val.setType("bytes");
         rowData.addField(new BytesColumn("test".getBytes(StandardCharsets.UTF_8)));
 
-        FieldConf varchar_val = new FieldConf();
+        FieldConfig varchar_val = new FieldConfig();
         varchar_val.setName("msg:varchar_val");
         varchar_val.setType("varchar(255)");
         rowData.addField(new StringColumn("test"));
 
-        FieldConf double_val = new FieldConf();
+        FieldConfig double_val = new FieldConfig();
         double_val.setName("msg:double_val");
         double_val.setType("double");
         rowData.addField(new BigDecimalColumn(3.33));
 
-        FieldConf val_1 = new FieldConf();
+        FieldConfig val_1 = new FieldConfig();
         val_1.setName("val_1");
         val_1.setType("string");
         val_1.setValue("val_1");

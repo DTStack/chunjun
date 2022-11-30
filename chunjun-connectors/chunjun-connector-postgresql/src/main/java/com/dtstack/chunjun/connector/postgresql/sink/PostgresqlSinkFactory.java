@@ -24,9 +24,7 @@ import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.chunjun.connector.postgresql.dialect.PostgresqlDialect;
 
-/**
- * Starting with Postgresql that is for compatible with 1.10 API.
- */
+/** Starting with Postgresql that is for compatible with 1.10 API. */
 public class PostgresqlSinkFactory extends JdbcSinkFactory {
 
     public PostgresqlSinkFactory(SyncConfig syncConfig) {

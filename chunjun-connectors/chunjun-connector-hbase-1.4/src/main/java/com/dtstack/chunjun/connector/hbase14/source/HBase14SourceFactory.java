@@ -34,14 +34,14 @@
 
 package com.dtstack.chunjun.connector.hbase14.source;
 
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hbase.source.HBaseSourceFactoryBase;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 public final class HBase14SourceFactory extends HBaseSourceFactoryBase {
 
-    public HBase14SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
+    public HBase14SourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
     }
 }

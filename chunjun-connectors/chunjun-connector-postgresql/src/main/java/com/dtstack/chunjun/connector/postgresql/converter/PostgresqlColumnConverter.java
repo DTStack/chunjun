@@ -82,8 +82,8 @@ public class PostgresqlColumnConverter extends JdbcColumnConverter {
     private transient BaseConnection connection;
     private static final Map<String, Integer> arrayType = new HashMap<>();
 
-    public PostgresqlColumnConverter(RowType rowType, CommonConfig commonConf) {
-        super(rowType, commonConf);
+    public PostgresqlColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
     }
 
     static {

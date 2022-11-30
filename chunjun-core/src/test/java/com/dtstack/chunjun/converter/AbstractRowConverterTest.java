@@ -119,10 +119,10 @@ class AbstractRowConverterTest {
     @Test
     @DisplayName("Should set the commonconf when the commonconf is not null")
     void setCommonConfWhenCommonConfIsNotNull() {
-        CommonConfig commonConf = new CommonConfig();
-        rowConverter.setCommonConfig(commonConf);
+        CommonConfig commonConfig = new CommonConfig();
+        rowConverter.setCommonConfig(commonConfig);
 
-        assertEquals(commonConf, rowConverter.getCommonConfig());
+        assertEquals(commonConfig, rowConverter.getCommonConfig());
     }
 
     @Test

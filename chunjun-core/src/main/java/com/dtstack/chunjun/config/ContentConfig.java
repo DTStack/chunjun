@@ -18,7 +18,7 @@
 package com.dtstack.chunjun.config;
 
 import com.dtstack.chunjun.cdc.CdcConfig;
-import com.dtstack.chunjun.mapping.MappingConf;
+import com.dtstack.chunjun.mapping.MappingConfig;
 
 import java.io.Serializable;
 import java.util.StringJoiner;
@@ -29,7 +29,7 @@ public class ContentConfig implements Serializable {
     private OperatorConfig reader;
     private OperatorConfig writer;
     private TransformerConfig transformer;
-    private MappingConf nameMapping;
+    private MappingConfig nameMapping;
     /** cdc restore conf */
     private CdcConfig restoration = new CdcConfig();
 
@@ -57,11 +57,11 @@ public class ContentConfig implements Serializable {
         this.transformer = transformer;
     }
 
-    public MappingConf getNameMapping() {
+    public MappingConfig getNameMapping() {
         return nameMapping;
     }
 
-    public void setNameMapping(MappingConf nameMapping) {
+    public void setNameMapping(MappingConfig nameMapping) {
         this.nameMapping = nameMapping;
     }
 

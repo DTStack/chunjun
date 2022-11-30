@@ -26,8 +26,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.commons.lang3.StringUtils;
 
 public class OceanbaseSourceFactory extends JdbcSourceFactory {
-    public OceanbaseSourceFactory(SyncConfig syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, new OceanbaseDialect());
+    public OceanbaseSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env, new OceanbaseDialect());
         if (jdbcConfig.isPolling()
                 && StringUtils.isEmpty(jdbcConfig.getStartLocation())
                 && jdbcConfig.getFetchSize() == 0) {

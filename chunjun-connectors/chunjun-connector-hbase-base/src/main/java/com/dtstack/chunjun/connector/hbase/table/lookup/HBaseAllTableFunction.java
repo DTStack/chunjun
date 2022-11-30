@@ -24,7 +24,7 @@ import com.dtstack.chunjun.connector.hbase.converter.HBaseSerde;
 import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
 import com.dtstack.chunjun.connector.hbase.util.HBaseHelper;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.config.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.security.KerberosUtil;
 
 import org.apache.flink.table.data.RowData;
@@ -62,8 +62,8 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
     private final HBaseConfig hBaseConfig;
 
     public HBaseAllTableFunction(
-            LookupConf lookupConf, HBaseTableSchema hbaseTableSchema, HBaseConfig hBaseConfig) {
-        super(null, null, lookupConf, null);
+            LookupConfig lookupConfig, HBaseTableSchema hbaseTableSchema, HBaseConfig hBaseConfig) {
+        super(null, null, lookupConfig, null);
         this.hbaseTableSchema = hbaseTableSchema;
         this.hBaseConfig = hBaseConfig;
         this.nullStringLiteral = hBaseConfig.getNullStringLiteral();
@@ -154,7 +154,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
         loadData(newCache);
         cacheRef.set(newCache);
         LOG.info(
-                "----- " + lookupConf.getTableName() + ": all cacheRef reload end:{}",
+                "----- " + lookupConfig.getTableName() + ": all cacheRef reload end:{}",
                 LocalDateTime.now());
     }
 

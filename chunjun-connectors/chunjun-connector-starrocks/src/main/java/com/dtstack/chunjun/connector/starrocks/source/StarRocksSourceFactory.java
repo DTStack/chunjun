@@ -49,7 +49,8 @@ public class StarRocksSourceFactory extends SourceFactory {
         super(syncConfig, env);
         starRocksConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConfig.getReader().getParameter()), StarRocksConfig.class);
+                        JsonUtil.toJson(syncConfig.getReader().getParameter()),
+                        StarRocksConfig.class);
         List<FieldConfig> fieldList = syncConfig.getReader().getFieldList();
         List<String> fieldNameList = new ArrayList<>();
         List<DataType> dataTypeList = new ArrayList<>();
@@ -76,7 +77,8 @@ public class StarRocksSourceFactory extends SourceFactory {
         StarRocksInputFormatBuilder inputFormatBuilder =
                 new StarRocksInputFormatBuilder(new StarRocksInputFormat());
         inputFormatBuilder.setStarRocksConf(starRocksConfig);
-        RowType rowType = TableUtil.createRowType(starRocksConfig.getColumn(), getRawTypeConverter());
+        RowType rowType =
+                TableUtil.createRowType(starRocksConfig.getColumn(), getRawTypeConverter());
         AbstractRowConverter rowConverter;
         if (useAbstractBaseColumn) {
             rowConverter = new StarRocksColumnConverter(rowType, starRocksConfig);

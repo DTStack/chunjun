@@ -31,10 +31,9 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.FileSystemUtil;
 import com.dtstack.chunjun.util.ReflectionUtils;
 
-import com.google.common.collect.Maps;
-
 import org.apache.flink.table.data.RowData;
 
+import com.google.common.collect.Maps;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.orc.OrcFile;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
@@ -130,7 +129,8 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
         for (int i = 0; i < hdfsConfig.getFullColumnName().size(); ++i) {
             int j = 0;
             for (; j < hdfsConfig.getColumn().size(); ++j) {
-                if (hdfsConfig.getFullColumnName()
+                if (hdfsConfig
+                        .getFullColumnName()
                         .get(i)
                         .equalsIgnoreCase(hdfsConfig.getColumn().get(j).getName())) {
                     colIndices[i] = j;
@@ -160,7 +160,8 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
         try {
             String currentBlockTmpPath = tmpPath + getHdfsPathChar() + currentFileName;
             recordWriter =
-                    outputFormat.getRecordWriter(null, jobConfig, currentBlockTmpPath, Reporter.NULL);
+                    outputFormat.getRecordWriter(
+                            null, jobConfig, currentBlockTmpPath, Reporter.NULL);
             currentFileIndex++;
 
             setFs();

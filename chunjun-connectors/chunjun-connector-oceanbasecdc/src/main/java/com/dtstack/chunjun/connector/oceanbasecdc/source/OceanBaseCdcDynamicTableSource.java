@@ -59,13 +59,15 @@ public class OceanBaseCdcDynamicTableSource implements ScanTableSource {
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(schema.toPhysicalRowDataType().getLogicalType());
+        TypeInformation<RowData> typeInformation =
+                InternalTypeInfo.of(schema.toPhysicalRowDataType().getLogicalType());
 
         OceanBaseCdcInputFormatBuilder builder = new OceanBaseCdcInputFormatBuilder();
         builder.setOceanBaseCdcConf(cdcConf);
         builder.setRowConverter(
                 new OceanBaseCdcRowConverter(
-                        InternalTypeInfo.of(schema.toPhysicalRowDataType().getLogicalType()).toRowType(),
+                        InternalTypeInfo.of(schema.toPhysicalRowDataType().getLogicalType())
+                                .toRowType(),
                         this.timestampFormat));
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);

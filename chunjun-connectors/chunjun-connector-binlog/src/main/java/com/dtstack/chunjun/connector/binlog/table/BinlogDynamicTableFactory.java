@@ -102,7 +102,6 @@ public class BinlogDynamicTableFactory implements DynamicTableSourceFactory {
      * 初始化BinlogConfig
      *
      * @param config BinlogConfig
-     *
      * @return binlog config
      */
     private BinlogConfig getBinlogConf(ReadableConfig config) {

@@ -31,9 +31,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-/**
- * This class is user for speed control
- */
+/** This class is user for speed control */
 @SuppressWarnings("all")
 public class ByteRateLimiter {
 

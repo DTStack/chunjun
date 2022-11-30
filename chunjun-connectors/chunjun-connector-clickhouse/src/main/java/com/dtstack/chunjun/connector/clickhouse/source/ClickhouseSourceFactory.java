@@ -34,8 +34,8 @@ import java.sql.SQLException;
 
 public class ClickhouseSourceFactory extends JdbcSourceFactory {
 
-    public ClickhouseSourceFactory(SyncConfig syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, new ClickhouseDialect());
+    public ClickhouseSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env, new ClickhouseDialect());
         // 避免result.next阻塞
         if (jdbcConfig.isPolling()
                 && StringUtils.isEmpty(jdbcConfig.getStartLocation())

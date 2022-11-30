@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hive3.converter;
 
-import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
+import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -44,11 +44,10 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.List;
 
-/** @author liuliu 2022/3/23 */
 public class HdfsOrcRowConverter
         extends AbstractRowConverter<RowData, RowData, List<Object>, LogicalType> {
-    public HdfsOrcRowConverter(RowType rowType, HdfsConf hdfsConf) {
-        super(rowType, hdfsConf);
+    public HdfsOrcRowConverter(RowType rowType, HdfsConfig hdfsConfig) {
+        super(rowType, hdfsConfig);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(

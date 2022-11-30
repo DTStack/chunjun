@@ -26,9 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
-/**
- * The Builder class of HbaseOutputFormatBuilder
- */
+/** The Builder class of HbaseOutputFormatBuilder */
 public class HBaseOutputFormatBuilder extends BaseRichOutputFormatBuilder<HBaseOutputFormat> {
 
     public HBaseOutputFormatBuilder() {

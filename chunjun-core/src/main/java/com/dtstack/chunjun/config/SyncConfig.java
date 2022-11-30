@@ -18,7 +18,7 @@
 package com.dtstack.chunjun.config;
 
 import com.dtstack.chunjun.cdc.CdcConfig;
-import com.dtstack.chunjun.mapping.MappingConf;
+import com.dtstack.chunjun.mapping.MappingConfig;
 import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.util.Preconditions;
@@ -223,7 +223,7 @@ public class SyncConfig implements Serializable {
         this.syncJarList = syncJarList;
     }
 
-    public MappingConf getNameMappingConf() {
+    public MappingConfig getNameMappingConfig() {
         return job.getNameMapping();
     }
 

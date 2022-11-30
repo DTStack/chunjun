@@ -66,9 +66,7 @@ public class BinlogUtil {
      * 校验是否开启binlog
      *
      * @param conn
-     *
      * @return
-     *
      * @throws SQLException
      */
     public static boolean checkEnabledBinlog(Connection conn) throws SQLException {
@@ -95,9 +93,7 @@ public class BinlogUtil {
      * 校验binlog的format格式
      *
      * @param conn
-     *
      * @return
-     *
      * @throws SQLException
      */
     public static boolean checkBinlogFormat(Connection conn) throws SQLException {
@@ -123,7 +119,6 @@ public class BinlogUtil {
      * 效验用户的权限
      *
      * @param conn
-     *
      * @return
      */
     public static boolean checkUserPrivilege(Connection conn) {
@@ -145,9 +140,7 @@ public class BinlogUtil {
      * @param database database名称
      * @param filter 过滤字符串
      * @param tables 表名
-     *
      * @return 没有权限的表
-     *
      * @throws SQLException
      */
     public static List<String> checkTablesPrivilege(
@@ -182,8 +175,8 @@ public class BinlogUtil {
             // Schema不为空且用户没有指定tables 就获取一张表判断权限
             if (StringUtils.isNotBlank(schema) && CollectionUtils.isEmpty(tables)) {
                 try (ResultSet resultSet =
-                             statement.executeQuery(
-                                     String.format(QUERY_SCHEMA_TABLE_TEMPLATE, schema))) {
+                        statement.executeQuery(
+                                String.format(QUERY_SCHEMA_TABLE_TEMPLATE, schema))) {
                     if (resultSet.next()) {
                         String tableName = resultSet.getString(1);
                         if (StringUtils.isNotBlank(tableName)) {
@@ -221,7 +214,6 @@ public class BinlogUtil {
      * 从JDBC URL中获取database名称
      *
      * @param jdbcUrl
-     *
      * @return
      */
     public static String getDataBaseByUrl(String jdbcUrl) {
@@ -236,7 +228,6 @@ public class BinlogUtil {
      *
      * @param schemaName
      * @param tableName
-     *
      * @return
      */
     public static String formatTableName(String schemaName, String tableName) {
@@ -252,13 +243,11 @@ public class BinlogUtil {
         }
     }
 
-
     /**
      * 根据用户输入的表名以.作为切分键切分database和表名，按database分组并以map形式返回
      *
      * @param tableNameList 用户输入的表名
      * @param defaultDatabase 默认database（url中的schema）
-     *
      * @return
      */
     public static Map<String, List<String>> getDatabaseTableMap(
@@ -284,14 +273,11 @@ public class BinlogUtil {
         return db_tables;
     }
 
-
     /**
      * 判断filter是否合法
      *
      * @param filter 过滤器
-     *
      * @return SchemaRegex+TableRegex
-     *
      * @throws ChunJunException filter未明确指定shcema，目前设计必须指定schema
      */
     public static String[] checkAndAnalyzeFilter(String filter) throws ChunJunException {

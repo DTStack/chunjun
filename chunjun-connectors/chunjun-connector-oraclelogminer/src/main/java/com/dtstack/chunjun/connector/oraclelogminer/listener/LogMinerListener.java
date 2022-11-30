@@ -299,9 +299,9 @@ public class LogMinerListener implements Runnable {
             schemas.forEach(
                     i -> {
                         try (final ResultSet rs =
-                                     connection
-                                             .getMetaData()
-                                             .getTables(null, i, null, new String[]{"TABLE"})) {
+                                connection
+                                        .getMetaData()
+                                        .getTables(null, i, null, new String[] {"TABLE"})) {
                             while (rs.next()) {
 
                                 final String schemaName = rs.getString(2);
@@ -556,7 +556,8 @@ public class LogMinerListener implements Runnable {
         List<ColumnInfo> columnInfos = new ArrayList<>();
 
         try (Statement stmt = conn.createStatement();
-             ResultSet resultSet = stmt.executeQuery(SqlUtil.formatGetTableInfoSql(schema, tbn))) {
+                ResultSet resultSet =
+                        stmt.executeQuery(SqlUtil.formatGetTableInfoSql(schema, tbn))) {
 
             while (resultSet.next()) {
                 String columnName = resultSet.getString(3);

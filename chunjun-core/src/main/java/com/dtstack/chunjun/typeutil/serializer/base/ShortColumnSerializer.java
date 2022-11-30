@@ -31,7 +31,6 @@ import org.apache.flink.core.memory.DataOutputView;
 import java.io.IOException;
 import java.math.BigDecimal;
 
-
 public class ShortColumnSerializer extends TypeSerializerSingleton<AbstractBaseColumn> {
 
     private static final long serialVersionUID = 1L;

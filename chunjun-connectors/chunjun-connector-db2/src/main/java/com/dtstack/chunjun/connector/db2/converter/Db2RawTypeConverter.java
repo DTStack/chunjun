@@ -28,7 +28,6 @@ public class Db2RawTypeConverter {
 
     /**
      * @param type db2 type
-     *
      * @return flink type
      */
     public static DataType apply(String type) {

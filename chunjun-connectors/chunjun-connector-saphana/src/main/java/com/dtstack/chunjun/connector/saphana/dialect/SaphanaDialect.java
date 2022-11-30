@@ -110,8 +110,8 @@ public class SaphanaDialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, CommonConfig commonConf) {
-        return new SaphanaColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new SaphanaColumnConverter(rowType, commonConfig);
     }
 
     @Override

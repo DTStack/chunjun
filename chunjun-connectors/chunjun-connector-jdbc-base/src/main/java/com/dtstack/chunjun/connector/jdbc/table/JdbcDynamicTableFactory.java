@@ -149,30 +149,30 @@ public abstract class JdbcDynamicTableFactory
 
     protected JdbcConfig getSinkConnectionConf(
             ReadableConfig readableConfig, ResolvedSchema schema) {
-        JdbcConfig jdbcConf = new JdbcConfig();
+        JdbcConfig jdbcConfig = new JdbcConfig();
         SinkConnectionConfig conf = new SinkConnectionConfig();
-        jdbcConf.setConnection(Collections.singletonList(conf));
+        jdbcConfig.setConnection(Collections.singletonList(conf));
 
         conf.setJdbcUrl(readableConfig.get(URL));
         conf.setTable(Collections.singletonList(readableConfig.get(TABLE_NAME)));
         conf.setSchema(readableConfig.get(SCHEMA));
         conf.setAllReplace(readableConfig.get(SINK_ALL_REPLACE));
 
-        jdbcConf.setUsername(readableConfig.get(USERNAME));
-        jdbcConf.setPassword(readableConfig.get(PASSWORD));
+        jdbcConfig.setUsername(readableConfig.get(USERNAME));
+        jdbcConfig.setPassword(readableConfig.get(PASSWORD));
 
-        jdbcConf.setAllReplace(conf.getAllReplace());
-        jdbcConf.setBatchSize(readableConfig.get(SINK_BUFFER_FLUSH_MAX_ROWS));
-        jdbcConf.setFlushIntervalMills(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
-        jdbcConf.setParallelism(readableConfig.get(SINK_PARALLELISM));
-        jdbcConf.setSemantic(readableConfig.get(SINK_SEMANTIC));
+        jdbcConfig.setAllReplace(conf.getAllReplace());
+        jdbcConfig.setBatchSize(readableConfig.get(SINK_BUFFER_FLUSH_MAX_ROWS));
+        jdbcConfig.setFlushIntervalMills(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
+        jdbcConfig.setParallelism(readableConfig.get(SINK_PARALLELISM));
+        jdbcConfig.setSemantic(readableConfig.get(SINK_SEMANTIC));
 
         List<String> keyFields = new ArrayList<>();
         schema.getPrimaryKey().ifPresent(item -> keyFields.add(item.getName()));
 
-        jdbcConf.setUniqueKey(keyFields);
-        resetTableInfo(jdbcConf);
-        return jdbcConf;
+        jdbcConfig.setUniqueKey(keyFields);
+        resetTableInfo(jdbcConfig);
+        return jdbcConfig;
     }
 
     protected LookupConfig getJdbcLookupConf(
@@ -193,54 +193,54 @@ public abstract class JdbcDynamicTableFactory
     }
 
     protected JdbcConfig getSourceConnectionConf(ReadableConfig readableConfig) {
-        JdbcConfig jdbcConf = new JdbcConfig();
+        JdbcConfig jdbcConfig = new JdbcConfig();
         SourceConnectionConfig conf = new SourceConnectionConfig();
-        jdbcConf.setConnection(Collections.singletonList(conf));
+        jdbcConfig.setConnection(Collections.singletonList(conf));
 
         conf.setJdbcUrl(Collections.singletonList(readableConfig.get(URL)));
         conf.setTable(Collections.singletonList(readableConfig.get(TABLE_NAME)));
         conf.setSchema(readableConfig.get(SCHEMA));
 
-        jdbcConf.setJdbcUrl(readableConfig.get(URL));
-        jdbcConf.setUsername(readableConfig.get(USERNAME));
-        jdbcConf.setPassword(readableConfig.get(PASSWORD));
+        jdbcConfig.setJdbcUrl(readableConfig.get(URL));
+        jdbcConfig.setUsername(readableConfig.get(USERNAME));
+        jdbcConfig.setPassword(readableConfig.get(PASSWORD));
 
-        jdbcConf.setParallelism(readableConfig.get(SCAN_PARALLELISM));
-        jdbcConf.setFetchSize(
+        jdbcConfig.setParallelism(readableConfig.get(SCAN_PARALLELISM));
+        jdbcConfig.setFetchSize(
                 readableConfig.get(SCAN_FETCH_SIZE) == 0
                         ? getDefaultFetchSize()
                         : readableConfig.get(SCAN_FETCH_SIZE));
-        jdbcConf.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
+        jdbcConfig.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
 
-        jdbcConf.setSplitPk(readableConfig.get(SCAN_PARTITION_COLUMN));
-        jdbcConf.setSplitStrategy(readableConfig.get(SCAN_PARTITION_STRATEGY));
+        jdbcConfig.setSplitPk(readableConfig.get(SCAN_PARTITION_COLUMN));
+        jdbcConfig.setSplitStrategy(readableConfig.get(SCAN_PARTITION_STRATEGY));
 
         String increColumn = readableConfig.get(SCAN_INCREMENT_COLUMN);
         if (StringUtils.isNotBlank(increColumn)) {
-            jdbcConf.setIncrement(true);
-            jdbcConf.setIncreColumn(increColumn);
-            jdbcConf.setIncreColumnType(readableConfig.get(SCAN_INCREMENT_COLUMN_TYPE));
+            jdbcConfig.setIncrement(true);
+            jdbcConfig.setIncreColumn(increColumn);
+            jdbcConfig.setIncreColumnType(readableConfig.get(SCAN_INCREMENT_COLUMN_TYPE));
         }
 
-        jdbcConf.setOrderByColumn(readableConfig.get(SCAN_ORDER_BY_COLUMN));
+        jdbcConfig.setOrderByColumn(readableConfig.get(SCAN_ORDER_BY_COLUMN));
 
-        jdbcConf.setStartLocation(readableConfig.get(SCAN_START_LOCATION));
+        jdbcConfig.setStartLocation(readableConfig.get(SCAN_START_LOCATION));
 
-        jdbcConf.setRestoreColumn(readableConfig.get(SCAN_RESTORE_COLUMNNAME));
-        jdbcConf.setRestoreColumnType(readableConfig.get(SCAN_RESTORE_COLUMNTYPE));
+        jdbcConfig.setRestoreColumn(readableConfig.get(SCAN_RESTORE_COLUMNNAME));
+        jdbcConfig.setRestoreColumnType(readableConfig.get(SCAN_RESTORE_COLUMNTYPE));
 
         Optional<Integer> pollingInterval = readableConfig.getOptional(SCAN_POLLING_INTERVAL);
         if (pollingInterval.isPresent() && pollingInterval.get() > 0) {
-            jdbcConf.setPolling(true);
-            jdbcConf.setPollingInterval(pollingInterval.get());
-            jdbcConf.setFetchSize(
+            jdbcConfig.setPolling(true);
+            jdbcConfig.setPollingInterval(pollingInterval.get());
+            jdbcConfig.setFetchSize(
                     readableConfig.get(SCAN_FETCH_SIZE) == 0
                             ? SCAN_DEFAULT_FETCH_SIZE.defaultValue()
                             : readableConfig.get(SCAN_FETCH_SIZE));
         }
 
-        resetTableInfo(jdbcConf);
-        return jdbcConf;
+        resetTableInfo(jdbcConfig);
+        return jdbcConfig;
     }
 
     @Override
@@ -295,7 +295,7 @@ public abstract class JdbcDynamicTableFactory
         final Optional<JdbcDialect> dialect = Optional.of(getDialect());
         checkState(dialect.get().canHandle(jdbcUrl), "Cannot handle such jdbc url: " + jdbcUrl);
 
-        checkAllOrNone(config, new ConfigOption[]{USERNAME});
+        checkAllOrNone(config, new ConfigOption[] {USERNAME});
 
         if (config.getOptional(SCAN_POLLING_INTERVAL).isPresent()
                 && config.getOptional(SCAN_POLLING_INTERVAL).get() > 0) {
@@ -304,7 +304,7 @@ public abstract class JdbcDynamicTableFactory
                     "scan.increment.column can not null or empty in polling-interval mode.");
         }
 
-        checkAllOrNone(config, new ConfigOption[]{LOOKUP_CACHE_MAX_ROWS, LOOKUP_CACHE_TTL});
+        checkAllOrNone(config, new ConfigOption[] {LOOKUP_CACHE_MAX_ROWS, LOOKUP_CACHE_TTL});
 
         if (config.get(LOOKUP_MAX_RETRIES) < 0) {
             throw new IllegalArgumentException(
@@ -402,9 +402,9 @@ public abstract class JdbcDynamicTableFactory
     }
 
     /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段* */
-    protected void resetTableInfo(JdbcConfig jdbcConf) {
-        if (StringUtils.isBlank(jdbcConf.getSchema())) {
-            JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
+    protected void resetTableInfo(JdbcConfig jdbcConfig) {
+        if (StringUtils.isBlank(jdbcConfig.getSchema())) {
+            JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\\"", "\\\"");
         }
     }
 }

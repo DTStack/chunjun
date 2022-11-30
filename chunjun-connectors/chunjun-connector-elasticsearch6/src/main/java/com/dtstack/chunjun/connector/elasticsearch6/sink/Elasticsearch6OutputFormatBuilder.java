@@ -23,12 +23,6 @@ import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import com.google.common.base.Preconditions;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/18 11:59
- */
 public class Elasticsearch6OutputFormatBuilder
         extends BaseRichOutputFormatBuilder<Elasticsearch6OutputFormat> {
 

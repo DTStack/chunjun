@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.emqx.sink;
 
-import com.dtstack.chunjun.connector.emqx.conf.EmqxConf;
+import com.dtstack.chunjun.connector.emqx.config.EmqxConfig;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,18 +29,18 @@ public class EmqxOutputFormatBuilder extends BaseRichOutputFormatBuilder<EmqxOut
         super(new EmqxOutputFormat());
     }
 
-    public void setEmqxConf(EmqxConf emqxConf) {
-        super.setConfig(emqxConf);
-        format.setEmqxConf(emqxConf);
+    public void setEmqxConf(EmqxConfig emqxConfig) {
+        super.setConfig(emqxConfig);
+        format.setEmqxConf(emqxConfig);
     }
 
     @Override
     protected void checkFormat() {
-        EmqxConf emqxConf = format.getEmqxConf();
-        if (StringUtils.isBlank(emqxConf.getBroker())) {
+        EmqxConfig emqxConfig = format.getEmqxConf();
+        if (StringUtils.isBlank(emqxConfig.getBroker())) {
             throw new IllegalArgumentException("emqx broker cannot be blank");
         }
-        if (StringUtils.isBlank(emqxConf.getTopic())) {
+        if (StringUtils.isBlank(emqxConfig.getTopic())) {
             throw new IllegalArgumentException("emqx topic cannot be blank");
         }
     }

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.iceberg.source;
 
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.iceberg.conf.IcebergReaderConf;
 import com.dtstack.chunjun.connector.iceberg.converter.IcebergColumnConverter;
 import com.dtstack.chunjun.connector.iceberg.converter.IcebergRawTypeConverter;
@@ -41,7 +41,7 @@ public class IcebergSourceFactory extends SourceFactory {
 
     private final IcebergReaderConf icebergConf;
 
-    public IcebergSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
+    public IcebergSourceFactory(SyncConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         icebergConf =
                 GsonUtil.GSON.fromJson(

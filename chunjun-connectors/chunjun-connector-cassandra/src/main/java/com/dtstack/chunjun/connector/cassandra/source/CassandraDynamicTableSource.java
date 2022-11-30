@@ -116,7 +116,8 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
 
     @Override
     public DynamicTableSource copy() {
-        return new CassandraDynamicTableSource(sourceConf, cassandraLookupConfig, tableSchema, dataType);
+        return new CassandraDynamicTableSource(
+                sourceConf, cassandraLookupConfig, tableSchema, dataType);
     }
 
     @Override

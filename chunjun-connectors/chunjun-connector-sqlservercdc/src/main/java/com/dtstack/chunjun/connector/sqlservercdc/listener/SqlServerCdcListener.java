@@ -51,30 +51,29 @@ import java.util.Set;
 public class SqlServerCdcListener implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(SqlServerCdcListener.class);
 
-    private SqlServerCdcInputFormat format;
+    private final SqlServerCdcInputFormat format;
     private TxLogPosition logPosition;
-    private ChangeTable[] tablesSlot;
+    private final ChangeTable[] tablesSlot;
     private Connection conn;
-    private List<String> tableList;
-    private Set<Integer> cat;
-    private Duration pollInterval;
-    private SnowflakeIdWorker idWorker;
-    private AbstractCDCRowConverter rowConverter;
+    private final Set<Integer> cat;
+    private final Duration pollInterval;
+    private final SnowflakeIdWorker idWorker;
+    private final AbstractCDCRowConverter rowConverter;
 
     public SqlServerCdcListener(SqlServerCdcInputFormat format) throws SQLException {
         this.format = format;
         this.conn = format.getConn();
         this.logPosition = format.getLogPosition();
-        this.tableList = format.sqlserverCdcConf.getTableList();
+        List<String> tableList = format.sqlserverCdcConfig.getTableList();
         this.cat = new HashSet<>();
-        for (String type : format.sqlserverCdcConf.getCat().split(ConstantValue.COMMA_SYMBOL)) {
+        for (String type : format.sqlserverCdcConfig.getCat().split(ConstantValue.COMMA_SYMBOL)) {
             cat.addAll(SqlServerCdcEnum.transform(type));
         }
         this.tablesSlot =
                 SqlServerCdcUtil.getCdcTablesToQuery(
-                        conn, format.sqlserverCdcConf.getDatabaseName(), tableList);
+                        conn, format.sqlserverCdcConfig.getDatabaseName(), tableList);
         this.pollInterval =
-                Duration.of(format.sqlserverCdcConf.getPollInterval(), ChronoUnit.MILLIS);
+                Duration.of(format.sqlserverCdcConfig.getPollInterval(), ChronoUnit.MILLIS);
         idWorker = new SnowflakeIdWorker(1, 1);
         this.rowConverter = format.getRowConverter();
     }
@@ -93,7 +92,7 @@ public class SqlServerCdcListener implements Runnable {
                     LOG.warn(
                             "No maximum LSN recorded in the database; please ensure that the SQL Server Agent is running");
                     metronome.pause();
-                    if (format.sqlserverCdcConf.isAutoResetConnection()) {
+                    if (format.sqlserverCdcConfig.isAutoResetConnection()) {
                         resetConnection();
                     }
                     continue;
@@ -102,7 +101,7 @@ public class SqlServerCdcListener implements Runnable {
                 // There is no change in the database
                 if (currentMaxLsn.equals(logPosition.getCommitLsn())) {
                     metronome.pause();
-                    if (format.sqlserverCdcConf.isAutoResetConnection()) {
+                    if (format.sqlserverCdcConfig.isAutoResetConnection()) {
                         resetConnection();
                     }
                     continue;
@@ -113,7 +112,7 @@ public class SqlServerCdcListener implements Runnable {
 
                 LOG.debug("currentMaxLsn = {}", logPosition);
                 logPosition = TxLogPosition.valueOf(currentMaxLsn);
-                if (!format.sqlserverCdcConf.isAutoCommit()) {
+                if (!format.sqlserverCdcConfig.isAutoCommit()) {
                     conn.rollback();
                 }
             } catch (Exception e) {
@@ -290,10 +289,10 @@ public class SqlServerCdcListener implements Runnable {
         }
         Connection connection =
                 SqlServerCdcUtil.getConnection(
-                        format.sqlserverCdcConf.getUrl(),
-                        format.sqlserverCdcConf.getUsername(),
-                        format.sqlserverCdcConf.getPassword());
-        connection.setAutoCommit(format.sqlserverCdcConf.isAutoCommit());
+                        format.sqlserverCdcConfig.getUrl(),
+                        format.sqlserverCdcConfig.getUsername(),
+                        format.sqlserverCdcConfig.getPassword());
+        connection.setAutoCommit(format.sqlserverCdcConfig.isAutoCommit());
         conn = connection;
     }
 }

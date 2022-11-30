@@ -96,10 +96,10 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         HdfsPathFilter pathFilter = new HdfsPathFilter(hdfsConfig.getFilterRegex());
 
         try (FileSystem fs =
-                     FileSystemUtil.getFileSystem(
-                             hdfsConfig.getHadoopConfig(),
-                             hdfsConfig.getDefaultFS(),
-                             PluginUtil.createDistributedCacheFromContextClassLoader())) {
+                FileSystemUtil.getFileSystem(
+                        hdfsConfig.getHadoopConfig(),
+                        hdfsConfig.getDefaultFS(),
+                        PluginUtil.createDistributedCacheFromContextClassLoader())) {
             allFilePaths = getAllPartitionPath(hdfsConfig.getPath(), fs, pathFilter);
         } catch (Exception e) {
             throw new ChunJunRuntimeException(e);
@@ -301,40 +301,43 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                 case "boolean":
                     data = currentLine.getBoolean(index, 0);
                     break;
-                case "timestamp": {
-                    long time = getTimestampMillis(currentLine.getInt96(index, 0));
-                    data = new Timestamp(time);
-                    break;
-                }
-                case "decimal": {
-                    DecimalMetadata dm = ((PrimitiveType) colSchemaType).getDecimalMetadata();
-                    String primitiveTypeName =
-                            currentLine
-                                    .getType()
-                                    .getType(index)
-                                    .asPrimitiveType()
-                                    .getPrimitiveTypeName()
-                                    .name();
-                    if (ColumnType.INT32.name().equals(primitiveTypeName)) {
-                        int intVal = currentLine.getInteger(index, 0);
-                        data = longToDecimalStr(intVal, dm.getScale());
-                    } else if (ColumnType.INT64.name().equals(primitiveTypeName)) {
-                        long longVal = currentLine.getLong(index, 0);
-                        data = longToDecimalStr(longVal, dm.getScale());
-                    } else {
-                        Binary binary = currentLine.getBinary(index, 0);
-                        data = binaryToDecimalStr(binary, dm.getScale());
+                case "timestamp":
+                    {
+                        long time = getTimestampMillis(currentLine.getInt96(index, 0));
+                        data = new Timestamp(time);
+                        break;
                     }
-                    break;
-                }
-                case "date": {
-                    String val = currentLine.getValueToString(index, 0);
-                    data =
-                            new Timestamp(Integer.parseInt(val) * MILLIS_IN_DAY)
-                                    .toString()
-                                    .substring(0, 10);
-                    break;
-                }
+                case "decimal":
+                    {
+                        DecimalMetadata dm = ((PrimitiveType) colSchemaType).getDecimalMetadata();
+                        String primitiveTypeName =
+                                currentLine
+                                        .getType()
+                                        .getType(index)
+                                        .asPrimitiveType()
+                                        .getPrimitiveTypeName()
+                                        .name();
+                        if (ColumnType.INT32.name().equals(primitiveTypeName)) {
+                            int intVal = currentLine.getInteger(index, 0);
+                            data = longToDecimalStr(intVal, dm.getScale());
+                        } else if (ColumnType.INT64.name().equals(primitiveTypeName)) {
+                            long longVal = currentLine.getLong(index, 0);
+                            data = longToDecimalStr(longVal, dm.getScale());
+                        } else {
+                            Binary binary = currentLine.getBinary(index, 0);
+                            data = binaryToDecimalStr(binary, dm.getScale());
+                        }
+                        break;
+                    }
+                case "date":
+                    {
+                        String val = currentLine.getValueToString(index, 0);
+                        data =
+                                new Timestamp(Integer.parseInt(val) * MILLIS_IN_DAY)
+                                        .toString()
+                                        .substring(0, 10);
+                        break;
+                    }
                 default:
                     data = currentLine.getValueToString(index, 0);
                     break;

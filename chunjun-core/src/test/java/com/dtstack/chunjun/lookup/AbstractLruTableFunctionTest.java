@@ -21,8 +21,8 @@ package com.dtstack.chunjun.lookup;
 import com.dtstack.chunjun.enums.CacheType;
 import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.config.LookupConfigFactory;
 import com.dtstack.chunjun.lookup.config.LookupConfig;
+import com.dtstack.chunjun.lookup.config.LookupConfigFactory;
 import com.dtstack.chunjun.source.format.MockInputFormat;
 import com.dtstack.chunjun.source.format.MockRowConverter;
 

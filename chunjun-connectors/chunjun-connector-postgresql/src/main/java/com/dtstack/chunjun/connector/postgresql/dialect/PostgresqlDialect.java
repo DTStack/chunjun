@@ -64,8 +64,8 @@ public class PostgresqlDialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, CommonConfig commonConf) {
-        return new PostgresqlColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new PostgresqlColumnConverter(rowType, commonConfig);
     }
 
     @Override

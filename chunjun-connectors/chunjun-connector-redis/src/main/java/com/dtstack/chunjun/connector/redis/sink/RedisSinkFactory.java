@@ -18,10 +18,10 @@
 
 package com.dtstack.chunjun.connector.redis.sink;
 
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.redis.adapter.RedisDataModeAdapter;
 import com.dtstack.chunjun.connector.redis.adapter.RedisDataTypeAdapter;
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.connector.redis.converter.RedisColumnConverter;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataMode;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataType;
@@ -36,27 +36,23 @@ import org.apache.flink.table.data.RowData;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-/**
- * @author chuixue
- * @create 2021-06-16 15:14
- * @description
- */
 public class RedisSinkFactory extends SinkFactory {
 
-    private final RedisConf redisConf;
+    private final RedisConfig redisConfig;
 
-    public RedisSinkFactory(SyncConf syncConf) {
-        super(syncConf);
+    public RedisSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
         Gson gson =
                 new GsonBuilder()
                         .registerTypeAdapter(RedisDataMode.class, new RedisDataModeAdapter())
                         .registerTypeAdapter(RedisDataType.class, new RedisDataTypeAdapter())
                         .create();
         GsonUtil.setTypeAdapter(gson);
-        redisConf =
-                gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), RedisConf.class);
-        redisConf.setColumn(syncConf.getWriter().getFieldList());
-        super.initCommonConf(redisConf);
+        redisConfig =
+                gson.fromJson(
+                        gson.toJson(syncConfig.getWriter().getParameter()), RedisConfig.class);
+        redisConfig.setColumn(syncConfig.getWriter().getFieldList());
+        super.initCommonConf(redisConfig);
     }
 
     @Override
@@ -70,8 +66,8 @@ public class RedisSinkFactory extends SinkFactory {
             throw new UnsupportedOperationException("redis not support transform");
         }
         RedisOutputFormatBuilder builder = new RedisOutputFormatBuilder();
-        builder.setRedisConf(redisConf);
-        builder.setRowConverter(new RedisColumnConverter(redisConf), useAbstractBaseColumn);
+        builder.setRedisConf(redisConfig);
+        builder.setRowConverter(new RedisColumnConverter(redisConfig), useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());
     }
 }

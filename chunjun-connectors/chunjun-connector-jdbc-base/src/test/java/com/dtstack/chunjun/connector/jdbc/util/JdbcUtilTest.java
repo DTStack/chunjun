@@ -36,14 +36,14 @@ import java.util.Objects;
 /** @author dujie */
 public class JdbcUtilTest {
 
-    private JdbcConfig jdbcConf;
+    private JdbcConfig jdbcConfig;
     private SourceConnectionConfig sourceConnectionConf;
 
     @Before
     public void setup() {
-        jdbcConf = new JdbcConfig();
+        jdbcConfig = new JdbcConfig();
         sourceConnectionConf = new SourceConnectionConfig();
-        jdbcConf.setConnection(Collections.singletonList(sourceConnectionConf));
+        jdbcConfig.setConnection(Collections.singletonList(sourceConnectionConf));
     }
 
     @Test
@@ -52,10 +52,10 @@ public class JdbcUtilTest {
         String table = "\"table\"";
         sourceConnectionConf.setTable(
                 Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
-        JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
+        JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\\"", "\\\"");
 
-        Assert.assertEquals("schema", jdbcConf.getSchema());
-        Assert.assertEquals("table", jdbcConf.getTable());
+        Assert.assertEquals("schema", jdbcConfig.getSchema());
+        Assert.assertEquals("table", jdbcConfig.getTable());
     }
 
     @Test
@@ -64,10 +64,10 @@ public class JdbcUtilTest {
         String table = "table";
         sourceConnectionConf.setTable(
                 Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
-        JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
+        JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\\"", "\\\"");
 
-        Assert.assertEquals("schema", jdbcConf.getSchema());
-        Assert.assertEquals("table", jdbcConf.getTable());
+        Assert.assertEquals("schema", jdbcConfig.getSchema());
+        Assert.assertEquals("table", jdbcConfig.getTable());
     }
 
     @Test
@@ -77,10 +77,10 @@ public class JdbcUtilTest {
 
         sourceConnectionConf.setTable(
                 Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
-        JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+        JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\[", "\\]");
 
-        Assert.assertEquals("schema", jdbcConf.getSchema());
-        Assert.assertEquals("table", jdbcConf.getTable());
+        Assert.assertEquals("schema", jdbcConfig.getSchema());
+        Assert.assertEquals("table", jdbcConfig.getTable());
     }
 
     @Test
@@ -90,10 +90,10 @@ public class JdbcUtilTest {
 
         sourceConnectionConf.setTable(
                 Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
-        JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+        JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\[", "\\]");
 
-        Assert.assertEquals("[schema", jdbcConf.getSchema());
-        Assert.assertEquals("table", jdbcConf.getTable());
+        Assert.assertEquals("[schema", jdbcConfig.getSchema());
+        Assert.assertEquals("table", jdbcConfig.getTable());
     }
 
     @Test
@@ -103,10 +103,10 @@ public class JdbcUtilTest {
 
         sourceConnectionConf.setTable(
                 Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
-        JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+        JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\[", "\\]");
 
-        Assert.assertEquals("[sche.ma]", jdbcConf.getSchema());
-        Assert.assertEquals("table", jdbcConf.getTable());
+        Assert.assertEquals("[sche.ma]", jdbcConfig.getSchema());
+        Assert.assertEquals("table", jdbcConfig.getTable());
     }
 
     public static String readFile(String fileName) throws IOException {

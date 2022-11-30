@@ -83,16 +83,16 @@ public abstract class SourceFactory implements RawTypeConvertible {
     /**
      * 同步任务使用transform。不支持*、不支持常量、不支持format、必须是flinksql支持的类型 常量和format都可以在transform中做。
      *
-     * @param commonConf
+     * @param commonConfig
      */
-    protected void checkConstant(CommonConfig commonConf) {
-        List<FieldConfig> fieldList = commonConf.getColumn();
+    protected void checkConstant(CommonConfig commonConfig) {
+        List<FieldConfig> fieldList = commonConfig.getColumn();
         if (fieldList.size() == 1
                 && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldList.get(0).getName())) {
             com.google.common.base.Preconditions.checkArgument(
                     false, "in transformer mode : not support '*' in column.");
         }
-        commonConf.getColumn().stream()
+        commonConfig.getColumn().stream()
                 .forEach(
                         x -> {
                             if (StringUtils.isNotBlank(x.getValue())) {
@@ -128,11 +128,11 @@ public abstract class SourceFactory implements RawTypeConvertible {
     }
 
     /** 初始化CommonConfig */
-    public void initCommonConf(CommonConfig commonConf) {
-        PropertiesUtil.initCommonConf(commonConf, this.syncConfig);
-        commonConf.setCheckFormat(this.syncConfig.getReader().getBooleanVal("check", true));
+    public void initCommonConf(CommonConfig commonConfig) {
+        PropertiesUtil.initCommonConf(commonConfig, this.syncConfig);
+        commonConfig.setCheckFormat(this.syncConfig.getReader().getBooleanVal("check", true));
         SpeedConfig speed = this.syncConfig.getSpeed();
-        commonConf.setParallelism(
+        commonConfig.setParallelism(
                 speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
     }
 

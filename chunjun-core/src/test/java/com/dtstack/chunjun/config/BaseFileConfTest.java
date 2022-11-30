@@ -39,7 +39,7 @@ public class BaseFileConfTest {
         baseFileConf.setNextCheckRows(5000L);
 
         String expected =
-                "BaseFileConf{"
+                "BaseFileConfig{"
                         + "path='"
                         + "path"
                         + '\''

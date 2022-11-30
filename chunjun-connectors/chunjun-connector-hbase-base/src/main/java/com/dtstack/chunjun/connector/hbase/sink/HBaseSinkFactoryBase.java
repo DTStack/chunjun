@@ -53,8 +53,8 @@ public class HBaseSinkFactoryBase extends SinkFactory {
                 GsonUtil.GSON.fromJson(
                         GsonUtil.GSON.toJson(config.getWriter().getParameter()), HBaseConfig.class);
         super.initCommonConf(hBaseConfig);
-        hBaseConfig.setColumn(SyncConfig.getWriter().getFieldList());
-        hBaseConfig.setColumnMetaInfos(SyncConfig.getReader().getFieldList());
+        hBaseConfig.setColumn(syncConfig.getWriter().getFieldList());
+        hBaseConfig.setColumnMetaInfos(syncConfig.getReader().getFieldList());
 
         if (config.getWriter().getParameter().get("rowkeyColumn") != null) {
             String rowkeyColumn =
@@ -86,7 +86,7 @@ public class HBaseSinkFactoryBase extends SinkFactory {
         builder.setHbaseConfig(hBaseConfig.getHbaseConfig());
         builder.setTableName(hBaseConfig.getTable());
         builder.setWriteBufferSize(hBaseConfig.getWriteBufferSize());
-        // if use transform, use HBaseFlatRowConverter
+        // if you use transform, use HBaseFlatRowConverter
         final RowType rowType =
                 TableUtil.createRowType(hBaseConfig.getColumn(), getRawTypeConverter());
         AbstractRowConverter<?, ?, ?, ?> rowConverter =

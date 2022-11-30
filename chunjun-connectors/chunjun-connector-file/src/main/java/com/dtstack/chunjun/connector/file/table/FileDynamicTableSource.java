@@ -60,8 +60,7 @@ public class FileDynamicTableSource implements ScanTableSource {
 
         DataType dataType = schema.toPhysicalRowDataType();
 
-        TypeInformation<RowData> typeInformation =
-                InternalTypeInfo.of(dataType.getLogicalType());
+        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(dataType.getLogicalType());
 
         FileInputFormatBuilder builder = new FileInputFormatBuilder();
         builder.setFileConf(fileConfig);
@@ -70,7 +69,9 @@ public class FileDynamicTableSource implements ScanTableSource {
                         decodingFormat.createRuntimeDecoder(runtimeProviderContext, dataType)));
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), true, fileConfig.getParallelism());
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
+                true,
+                fileConfig.getParallelism());
     }
 
     @Override

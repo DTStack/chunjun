@@ -40,11 +40,11 @@ public class BinlogInputFormatBuilderTest {
 
     @Test
     public void finishTest() {
-        CommonConfig commonConf = new CommonConfig();
-        commonConf.setCheckFormat(true);
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setCheckFormat(true);
         BinlogConfig binlogConfig = new BinlogConfig();
         binlogConfig.setUpdrdb(true);
-        Whitebox.setInternalState(inputFormat, "config", commonConf);
+        Whitebox.setInternalState(inputFormat, "config", commonConfig);
         Whitebox.setInternalState(inputFormat, "binlogConf", binlogConfig);
         Whitebox.setInternalState(builder, "format", inputFormat);
         when(builder.finish()).thenCallRealMethod();

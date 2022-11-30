@@ -96,7 +96,10 @@ public class HBaseFlatRowConverter
         this.commonConfig = hBaseConfig;
 
         nullMode = hBaseConfig.getNullMode();
-        encoding = StringUtils.isEmpty(hBaseConfig.getEncoding()) ? "utf-8" : hBaseConfig.getEncoding();
+        encoding =
+                StringUtils.isEmpty(hBaseConfig.getEncoding())
+                        ? "utf-8"
+                        : hBaseConfig.getEncoding();
 
         for (int i = 0; i < hBaseConfig.getColumn().size(); i++) {
             toExternalConverters.add(

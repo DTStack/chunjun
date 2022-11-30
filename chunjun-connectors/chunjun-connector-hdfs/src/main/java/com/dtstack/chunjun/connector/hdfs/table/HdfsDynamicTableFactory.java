@@ -117,10 +117,9 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
     }
 
     /**
-     * initialize HdfsConf
+     * initialize HdfsConfig
      *
      * @param config
-     *
      * @return
      */
     private HdfsConfig getHdfsConfig(ReadableConfig config) {

@@ -81,13 +81,6 @@ public class JdbcUtil {
     private static final String ALL_TABLE = "*";
     public static int NANOS_PART_LENGTH = 9;
 
-    /**
-     * 获取JDBC连接
-     *
-     * @param jdbcConfig
-     * @param jdbcDialect
-     * @return
-     */
     public static Connection getConnection(JdbcConfig jdbcConfig, JdbcDialect jdbcDialect) {
         TelnetUtil.telnet(jdbcConfig.getJdbcUrl());
         ClassUtil.forName(
@@ -433,51 +426,51 @@ public class JdbcUtil {
     /**
      * Add additional parameters to jdbc properties，for MySQL
      *
-     * @param jdbcConf jdbc datasource configuration
+     * @param jdbcConfig jdbc datasource configuration
      * @return
      */
-    public static void putExtParam(JdbcConfig jdbcConf) {
-        Properties properties = jdbcConf.getProperties();
+    public static void putExtParam(JdbcConfig jdbcConfig) {
+        Properties properties = jdbcConfig.getProperties();
         if (properties == null) {
             properties = new Properties();
         }
         properties.putIfAbsent("useCursorFetch", "true");
         properties.putIfAbsent("rewriteBatchedStatements", "true");
-        jdbcConf.setProperties(properties);
+        jdbcConfig.setProperties(properties);
     }
 
     /**
      * Add additional parameters to jdbc properties，
      *
-     * @param jdbcConf jdbc datasource configuration
+     * @param jdbcConfig jdbc datasource configuration
      * @param extraProperties default customConfiguration
      * @return
      */
-    public static void putExtParam(JdbcConfig jdbcConf, Properties extraProperties) {
-        Properties properties = jdbcConf.getProperties();
+    public static void putExtParam(JdbcConfig jdbcConfig, Properties extraProperties) {
+        Properties properties = jdbcConfig.getProperties();
         if (properties == null) {
             properties = new Properties();
         }
         Properties finalProperties = properties;
         extraProperties.forEach(finalProperties::putIfAbsent);
 
-        jdbcConf.setProperties(finalProperties);
+        jdbcConfig.setProperties(finalProperties);
     }
 
     /**
      * 获取数据库的LogicalType
      *
-     * @param jdbcConf 连接信息
+     * @param jdbcConfig 连接信息
      * @param jdbcDialect 方言
      * @param converter 数据库数据类型到flink内部类型的映射
      * @return
      */
     public static LogicalType getLogicalTypeFromJdbcMetaData(
-            JdbcConfig jdbcConf, JdbcDialect jdbcDialect, RawTypeConverter converter) {
-        try (Connection conn = JdbcUtil.getConnection(jdbcConf, jdbcDialect)) {
+            JdbcConfig jdbcConfig, JdbcDialect jdbcDialect, RawTypeConverter converter) {
+        try (Connection conn = JdbcUtil.getConnection(jdbcConfig, jdbcDialect)) {
             Pair<List<String>, List<String>> pair =
                     JdbcUtil.getTableMetaData(
-                            null, jdbcConf.getSchema(), jdbcConf.getTable(), conn);
+                            null, jdbcConfig.getSchema(), jdbcConfig.getTable(), conn);
             List<String> rawFieldNames = pair.getLeft();
             List<String> rawFieldTypes = pair.getRight();
             return TableUtil.createRowType(rawFieldNames, rawFieldTypes, converter);
@@ -488,20 +481,20 @@ public class JdbcUtil {
 
     /** 解析schema.table 或者 "schema"."table"等格式的表名 获取对应的schema以及table * */
     public static void resetSchemaAndTable(
-            JdbcConfig jdbcConf, String leftQuote, String rightQuote) {
+            JdbcConfig jdbcConfig, String leftQuote, String rightQuote) {
         String pattern =
                 String.format(
                         "(?i)(%s(?<schema>(.*))%s\\.%s(?<table>(.*))%s)",
                         leftQuote, rightQuote, leftQuote, rightQuote);
         Pattern p = Pattern.compile(pattern);
-        Matcher matcher = p.matcher(jdbcConf.getTable());
+        Matcher matcher = p.matcher(jdbcConfig.getTable());
         String schema = null;
         String table = null;
         if (matcher.find()) {
             schema = matcher.group("schema");
             table = matcher.group("table");
         } else {
-            String[] split = jdbcConf.getTable().split("\\.");
+            String[] split = jdbcConfig.getTable().split("\\.");
             if (split.length == 2) {
                 schema = split[0];
                 table = split[1];
@@ -511,15 +504,15 @@ public class JdbcUtil {
         if (StringUtils.isNotBlank(schema)) {
             LOG.info(
                     "before reset table info, schema: {}, table: {}",
-                    jdbcConf.getSchema(),
-                    jdbcConf.getTable());
+                    jdbcConfig.getSchema(),
+                    jdbcConfig.getTable());
 
-            jdbcConf.setSchema(schema);
-            jdbcConf.setTable(table);
+            jdbcConfig.setSchema(schema);
+            jdbcConfig.setTable(table);
             LOG.info(
                     "after reset table info,schema: {},table: {}",
-                    jdbcConf.getSchema(),
-                    jdbcConf.getTable());
+                    jdbcConfig.getSchema(),
+                    jdbcConfig.getTable());
         }
     }
 
@@ -542,13 +535,13 @@ public class JdbcUtil {
     }
 
     public static Pair<List<String>, List<String>> buildColumnWithMeta(
-            JdbcConfig jdbcConf,
+            JdbcConfig jdbcConfig,
             Pair<List<String>, List<String>> tableMetaData,
             String constantType) {
         List<String> metaColumnName = tableMetaData.getLeft();
         List<String> metaColumnType = tableMetaData.getRight();
 
-        List<FieldConfig> column = jdbcConf.getColumn();
+        List<FieldConfig> column = jdbcConfig.getColumn();
         int size = metaColumnName.size();
         List<String> columnNameList = new ArrayList<>(size);
         List<String> columnTypeList = new ArrayList<>(size);
@@ -563,12 +556,12 @@ public class JdbcUtil {
                 fieldConfig.setIndex(i);
                 metaColumn.add(fieldConfig);
             }
-            jdbcConf.setColumn(metaColumn);
+            jdbcConfig.setColumn(metaColumn);
             return Pair.of(columnNameList, columnTypeList);
         } else {
             return checkAndModifyColumnWithMeta(
-                    jdbcConf.getTable(),
-                    jdbcConf.getColumn(),
+                    jdbcConfig.getTable(),
+                    jdbcConfig.getColumn(),
                     metaColumnName,
                     metaColumnType,
                     constantType);

@@ -17,22 +17,22 @@
 
 package com.dtstack.chunjun.connector.rocketmq.source;
 
-import com.dtstack.chunjun.connector.rocketmq.conf.RocketMQConf;
+import com.dtstack.chunjun.connector.rocketmq.config.RocketMQConfig;
 import com.dtstack.chunjun.connector.rocketmq.converter.RocketMQRowConverter;
 import com.dtstack.chunjun.connector.rocketmq.source.deserialization.KeyValueDeserializationSchema;
 import com.dtstack.chunjun.connector.rocketmq.source.deserialization.RowKeyValueDeserializationSchema;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.connector.source.abilities.SupportsReadingMetadata;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.descriptors.DescriptorProperties;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.DataType;
-import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.LogicalType;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,21 +41,16 @@ import java.util.Map;
 /** Defines the scan table source of RocketMQ. */
 public class RocketMQScanTableSource implements ScanTableSource, SupportsReadingMetadata {
 
-    private final DescriptorProperties properties;
-    private final TableSchema schema;
-    private final RocketMQConf rocketMQConf;
+    private final ResolvedSchema schema;
+    private final RocketMQConfig rocketMQConfig;
     private AbstractRowConverter converter;
     private List<String> metadataKeys;
-    private Integer parallelism;
+    private final Integer parallelism;
 
     public RocketMQScanTableSource(
-            DescriptorProperties properties,
-            TableSchema schema,
-            RocketMQConf rocketMQConf,
-            Integer parallelism) {
-        this.properties = properties;
+            ResolvedSchema schema, RocketMQConfig rocketMQConfig, Integer parallelism) {
         this.schema = schema;
-        this.rocketMQConf = rocketMQConf;
+        this.rocketMQConfig = rocketMQConfig;
         this.parallelism = parallelism;
         this.metadataKeys = Collections.emptyList();
     }
@@ -67,15 +62,18 @@ public class RocketMQScanTableSource implements ScanTableSource, SupportsReading
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext scanContext) {
+        LogicalType logicalType = schema.toPhysicalRowDataType().getLogicalType();
 
-        final RowType rowType = (RowType) schema.toRowDataType().getLogicalType();
-
-        String[] fieldNames = schema.getFieldNames();
-        converter = new RocketMQRowConverter(rowType, rocketMQConf.getEncoding(), fieldNames);
+        String[] fieldNames = schema.getColumnNames().toArray(new String[0]);
+        converter =
+                new RocketMQRowConverter(
+                        InternalTypeInfo.of(logicalType).toRowType(),
+                        rocketMQConfig.getEncoding(),
+                        fieldNames);
 
         return ParallelSourceFunctionProvider.of(
                 new com.dtstack.chunjun.connector.rocketmq.source.RocketMQSourceFunction<>(
-                        createKeyValueDeserializationSchema(), rocketMQConf),
+                        createKeyValueDeserializationSchema(), rocketMQConfig),
                 isBounded(),
                 parallelism);
     }
@@ -93,7 +91,7 @@ public class RocketMQScanTableSource implements ScanTableSource, SupportsReading
     @Override
     public DynamicTableSource copy() {
         RocketMQScanTableSource tableSource =
-                new RocketMQScanTableSource(properties, schema, rocketMQConf, parallelism);
+                new RocketMQScanTableSource(schema, rocketMQConfig, parallelism);
         tableSource.metadataKeys = metadataKeys;
         return tableSource;
     }
@@ -104,12 +102,11 @@ public class RocketMQScanTableSource implements ScanTableSource, SupportsReading
     }
 
     private boolean isBounded() {
-        return rocketMQConf.getEndTimeMs() != Long.MAX_VALUE;
+        return rocketMQConfig.getEndTimeMs() != Long.MAX_VALUE;
     }
 
     private KeyValueDeserializationSchema<RowData> createKeyValueDeserializationSchema() {
         return new RowKeyValueDeserializationSchema.Builder()
-                .setProperties(properties.asMap())
                 .setTableSchema(schema)
                 .setConverter(converter)
                 .build();

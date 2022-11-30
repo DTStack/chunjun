@@ -67,11 +67,11 @@ public class SqlserverDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** table字段有可能是[schema].[table]格式 需要转换为对应的schema 和 table 字段* */
     @Override
-    protected void resetTableInfo(JdbcConfig jdbcConf) {
-        if (jdbcConf.getTable().startsWith("[")
-                && jdbcConf.getTable().endsWith("]")
-                && StringUtils.isBlank(jdbcConf.getSchema())) {
-            JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+    protected void resetTableInfo(JdbcConfig jdbcConfig) {
+        if (jdbcConfig.getTable().startsWith("[")
+                && jdbcConfig.getTable().endsWith("]")
+                && StringUtils.isBlank(jdbcConfig.getSchema())) {
+            JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\[", "\\]");
         }
     }
 }

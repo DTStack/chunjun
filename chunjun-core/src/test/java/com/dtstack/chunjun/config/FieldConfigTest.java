@@ -59,7 +59,7 @@ public class FieldConfigTest {
         fieldConfig.setLength(1);
 
         String expected =
-                "FieldConf{"
+                "FieldConfig{"
                         + "name='"
                         + "name"
                         + '\''
@@ -91,7 +91,7 @@ public class FieldConfigTest {
         assertEquals(expected, fieldConfig.toString());
     }
 
-    /** Should return a FieldConf object when the map is not empty */
+    /** Should return a FieldConfig object when the map is not empty */
     @Test
     public void getFieldWhenMapIsNotEmptyThenReturnFieldConfObject() {
         Map<String, Object> map = new HashMap<>();
@@ -122,7 +122,7 @@ public class FieldConfigTest {
         assertEquals(fieldConfig.getLength(), Integer.valueOf(1));
     }
 
-    /** Should return a FieldConf object when the map is empty */
+    /** Should return a FieldConfig object when the map is empty */
     @Test
     public void getFieldWhenMapIsEmptyThenReturnFieldConfObject() {
         Map<String, Object> map = new HashMap<>();

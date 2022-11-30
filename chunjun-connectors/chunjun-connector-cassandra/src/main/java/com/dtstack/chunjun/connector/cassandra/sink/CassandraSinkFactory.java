@@ -39,13 +39,13 @@ public class CassandraSinkFactory extends SinkFactory {
 
     private final CassandraSinkConfig sinkConfig;
 
-    public CassandraSinkFactory(SyncConfig syncConf) {
-        super(syncConf);
+    public CassandraSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
         sinkConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getWriter().getParameter()),
+                        JsonUtil.toJson(syncConfig.getWriter().getParameter()),
                         CassandraSinkConfig.class);
-        sinkConfig.setColumn(syncConf.getWriter().getFieldList());
+        sinkConfig.setColumn(syncConfig.getWriter().getFieldList());
         super.initCommonConf(sinkConfig);
     }
 

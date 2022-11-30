@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.http.table;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.http.common.HttpRestConfig;
 import com.dtstack.chunjun.connector.http.common.HttpWriterConfig;
 import com.dtstack.chunjun.connector.http.common.MetaParam;
@@ -119,7 +119,7 @@ public class HttpDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         httpWriterConfig.setColumn(
                 gson.fromJson(
                         config.get(HttpOptions.COLUMN),
-                        new TypeToken<List<FieldConf>>() {}.getType()));
+                        new TypeToken<List<FieldConfig>>() {}.getType()));
         httpWriterConfig.setDelay(config.get(HttpOptions.DELAY));
         return httpWriterConfig;
     }
@@ -152,7 +152,7 @@ public class HttpDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         httpRestConfig.setColumn(
                 gson.fromJson(
                         config.get(HttpOptions.COLUMN),
-                        new TypeToken<List<FieldConf>>() {}.getType()));
+                        new TypeToken<List<FieldConfig>>() {}.getType()));
         return httpRestConfig;
     }
 }

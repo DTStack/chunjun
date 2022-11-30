@@ -59,7 +59,7 @@ import static com.dtstack.chunjun.connector.ftp.conf.ConfigConstants.FTP_COUNTER
 public class FtpInputFormat extends BaseRichInputFormat {
 
     public static char[] REGEX_CHARS =
-            new char[]{'*', '?', '+', '|', '(', ')', '{', '}', '[', ']', '\\', '$', '^'};
+            new char[] {'*', '?', '+', '|', '(', ')', '{', '}', '[', ']', '\\', '$', '^'};
 
     protected FtpConfig ftpConfig;
 

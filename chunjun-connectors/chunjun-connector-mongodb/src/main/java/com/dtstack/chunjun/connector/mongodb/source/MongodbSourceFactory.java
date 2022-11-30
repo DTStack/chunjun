@@ -18,10 +18,10 @@
 
 package com.dtstack.chunjun.connector.mongodb.source;
 
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.mongodb.converter.MongodbRawTypeConverter;
 import com.dtstack.chunjun.connector.mongodb.datasync.MongoConverterFactory;
-import com.dtstack.chunjun.connector.mongodb.datasync.MongodbDataSyncConf;
+import com.dtstack.chunjun.connector.mongodb.datasync.MongodbDataSyncConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.source.SourceFactory;
@@ -34,23 +34,18 @@ import org.apache.flink.table.data.RowData;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
 public class MongodbSourceFactory extends SourceFactory {
 
-    private final MongodbDataSyncConf mongodbDataSyncConf;
+    private final MongodbDataSyncConfig mongodbDataSyncConfig;
 
-    public MongodbSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
+    public MongodbSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
         Gson gson = new GsonBuilder().create();
         GsonUtil.setTypeAdapter(gson);
-        mongodbDataSyncConf =
+        mongodbDataSyncConfig =
                 gson.fromJson(
-                        gson.toJson(syncConf.getReader().getParameter()),
-                        MongodbDataSyncConf.class);
+                        gson.toJson(syncConfig.getReader().getParameter()),
+                        MongodbDataSyncConfig.class);
     }
 
     @Override
@@ -60,9 +55,10 @@ public class MongodbSourceFactory extends SourceFactory {
 
     @Override
     public DataStream<RowData> createSource() {
-        MongodbInputFormatBuilder builder = MongodbInputFormatBuilder.newBuild(mongodbDataSyncConf);
+        MongodbInputFormatBuilder builder =
+                MongodbInputFormatBuilder.newBuild(mongodbDataSyncConfig);
         MongoConverterFactory mongoConverterFactory =
-                new MongoConverterFactory(mongodbDataSyncConf);
+                new MongoConverterFactory(mongodbDataSyncConfig);
         AbstractRowConverter converter;
         if (useAbstractBaseColumn) {
             converter = mongoConverterFactory.createColumnConverter();
@@ -70,7 +66,7 @@ public class MongodbSourceFactory extends SourceFactory {
             converter = mongoConverterFactory.createRowConverter();
         }
         builder.setRowConverter(converter, useAbstractBaseColumn);
-        builder.setConfig(mongodbDataSyncConf);
+        builder.setConfig(mongodbDataSyncConfig);
         return createInput(builder.finish());
     }
 }

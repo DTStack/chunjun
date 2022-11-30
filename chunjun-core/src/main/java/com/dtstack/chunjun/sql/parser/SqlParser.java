@@ -39,7 +39,7 @@ public class SqlParser {
 
     /**
      * flink support sql syntax CREATE TABLE sls_stream() with (); CREATE (TABLE|SCALA) FUNCTION
-     * fcnName WITH  insert into tb1 select * from tb2;
+     * fcnName WITH insert into tb1 select * from tb2;
      *
      * @param
      */

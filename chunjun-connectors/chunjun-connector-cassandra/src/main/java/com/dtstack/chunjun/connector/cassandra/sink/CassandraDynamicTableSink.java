@@ -48,7 +48,8 @@ public class CassandraDynamicTableSink implements DynamicTableSink {
 
     private final DataType dataType;
 
-    public CassandraDynamicTableSink(CassandraSinkConfig sinkConf, ResolvedSchema tableSchema, DataType dataType) {
+    public CassandraDynamicTableSink(
+            CassandraSinkConfig sinkConf, ResolvedSchema tableSchema, DataType dataType) {
         this.sinkConf = sinkConf;
         this.tableSchema = tableSchema;
         this.dataType = dataType;

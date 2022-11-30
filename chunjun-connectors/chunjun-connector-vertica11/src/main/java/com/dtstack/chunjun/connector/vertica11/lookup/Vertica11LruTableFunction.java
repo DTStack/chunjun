@@ -24,9 +24,9 @@ import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.lookup.JdbcLruTableFunction;
 import com.dtstack.chunjun.lookup.config.LookupConfig;
 
-import io.vertx.core.json.JsonObject;
-
 import org.apache.flink.table.types.logical.RowType;
+
+import io.vertx.core.json.JsonObject;
 
 import java.util.Map;
 

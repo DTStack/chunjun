@@ -135,11 +135,7 @@ public class ColumnInfo {
             sb.append("constraint")
                     .append(" ")
                     .append("flinkx_pk")
-                    .append(UUID.randomUUID()
-                            .toString()
-                            .trim()
-                            .replace("-", "")
-                            .substring(0, 12))
+                    .append(UUID.randomUUID().toString().trim().replace("-", "").substring(0, 12))
                     .append(" primary key");
         }
 

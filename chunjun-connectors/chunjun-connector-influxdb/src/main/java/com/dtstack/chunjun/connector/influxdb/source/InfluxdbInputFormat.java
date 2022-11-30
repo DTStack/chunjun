@@ -101,7 +101,8 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
                 new InfluxdbColumnConverter(
                         rowType, config, columnNameList, config.getFormat(), precision));
 
-        InfluxdbQuerySqlBuilder queryInfluxQLBuilder = new InfluxdbQuerySqlBuilder(config, columnNameList);
+        InfluxdbQuerySqlBuilder queryInfluxQLBuilder =
+                new InfluxdbQuerySqlBuilder(config, columnNameList);
         this.queryTemplate = queryInfluxQLBuilder.buildSql();
         String querySql = buildQuerySql(inputSplit);
         LOG.info("subTask[{}] querySql = {}.", indexOfSubTask, querySql);

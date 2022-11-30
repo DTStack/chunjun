@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.config;
 
 import com.dtstack.chunjun.cdc.CdcConfig;
-import com.dtstack.chunjun.mapping.MappingConf;
+import com.dtstack.chunjun.mapping.MappingConfig;
 
 import org.junit.Test;
 
@@ -92,15 +92,15 @@ public class JobConfigTest {
         identifierMappings.put("dujie.*", "test_${dataBaseName}.${tableName}");
         LinkedHashMap<String, String> columnTypeMappings = new LinkedHashMap<>();
         columnTypeMappings.put("int", "varchar(255)");
-        MappingConf nameMappingConf = new MappingConf(identifierMappings, columnTypeMappings);
+        MappingConfig nameMappingConfig = new MappingConfig(identifierMappings, columnTypeMappings);
         JobConfig jobConfig = new JobConfig();
         ContentConfig contentConfig = new ContentConfig();
-        contentConfig.setNameMapping(nameMappingConf);
+        contentConfig.setNameMapping(nameMappingConfig);
         LinkedList<ContentConfig> content = new LinkedList<>();
         content.add(contentConfig);
         jobConfig.setContent(content);
 
-        assertEquals(nameMappingConf, jobConfig.getNameMapping());
+        assertEquals(nameMappingConfig, jobConfig.getNameMapping());
     }
 
     /** Should return the setting */

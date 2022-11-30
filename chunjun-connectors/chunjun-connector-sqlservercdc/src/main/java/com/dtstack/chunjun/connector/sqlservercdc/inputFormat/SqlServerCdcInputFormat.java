@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.sqlservercdc.inputFormat;
 
-import com.dtstack.chunjun.connector.sqlservercdc.conf.SqlServerCdcConf;
+import com.dtstack.chunjun.connector.sqlservercdc.config.SqlServerCdcConfig;
 import com.dtstack.chunjun.connector.sqlservercdc.entity.Lsn;
 import com.dtstack.chunjun.connector.sqlservercdc.entity.TxLogPosition;
 import com.dtstack.chunjun.connector.sqlservercdc.listener.SqlServerCdcListener;
@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 import static com.dtstack.chunjun.connector.sqlservercdc.util.SqlServerCdcUtil.DRIVER;
 
 public class SqlServerCdcInputFormat extends BaseRichInputFormat {
-    public SqlServerCdcConf sqlserverCdcConf;
+    public SqlServerCdcConfig sqlserverCdcConfig;
 
     private Connection conn;
     private TxLogPosition logPosition;
@@ -87,14 +87,14 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
             ClassUtil.forName(DRIVER, getClass().getClassLoader());
             conn =
                     SqlServerCdcUtil.getConnection(
-                            sqlserverCdcConf.getUrl(),
-                            sqlserverCdcConf.getUsername(),
-                            sqlserverCdcConf.getPassword());
-            conn.setAutoCommit(sqlserverCdcConf.isAutoCommit());
-            SqlServerCdcUtil.changeDatabase(conn, sqlserverCdcConf.getDatabaseName());
+                            sqlserverCdcConfig.getUrl(),
+                            sqlserverCdcConfig.getUsername(),
+                            sqlserverCdcConfig.getPassword());
+            conn.setAutoCommit(sqlserverCdcConfig.isAutoCommit());
+            SqlServerCdcUtil.changeDatabase(conn, sqlserverCdcConfig.getDatabaseName());
 
-            if (StringUtils.isNotBlank(sqlserverCdcConf.getLsn())) {
-                logPosition = TxLogPosition.valueOf(Lsn.valueOf(sqlserverCdcConf.getLsn()));
+            if (StringUtils.isNotBlank(sqlserverCdcConfig.getLsn())) {
+                logPosition = TxLogPosition.valueOf(Lsn.valueOf(sqlserverCdcConfig.getLsn()));
             } else if (formatState != null && formatState.getState() != null) {
                 logPosition = (TxLogPosition) formatState.getState();
             } else {
@@ -183,7 +183,7 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
         return queue;
     }
 
-    public void setSqlServerCdcConf(SqlServerCdcConf sqlserverCdcConf) {
-        this.sqlserverCdcConf = sqlserverCdcConf;
+    public void setSqlServerCdcConf(SqlServerCdcConfig sqlserverCdcConfig) {
+        this.sqlserverCdcConfig = sqlserverCdcConfig;
     }
 }

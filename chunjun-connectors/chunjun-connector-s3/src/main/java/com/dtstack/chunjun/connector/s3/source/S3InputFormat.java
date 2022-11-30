@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.s3.source;
 
-import com.dtstack.chunjun.config.RestoreConf;
-import com.dtstack.chunjun.connector.s3.conf.S3Conf;
+import com.dtstack.chunjun.config.RestoreConfig;
+import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.connector.s3.util.ReaderUtil;
 import com.dtstack.chunjun.connector.s3.util.S3SimpleObject;
 import com.dtstack.chunjun.connector.s3.util.S3Util;
@@ -52,14 +52,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-/** @author jier */
 public class S3InputFormat extends BaseRichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(S3InputFormat.class);
 
     private static final long serialVersionUID = -3217513386563100062L;
 
-    private S3Conf s3Conf;
+    private S3Config s3Config;
     private Iterator<String> splits;
 
     private transient AmazonS3 amazonS3;
@@ -69,7 +68,7 @@ public class S3InputFormat extends BaseRichInputFormat {
 
     private transient ReaderUtil readerUtil = null;
 
-    private RestoreConf restoreConf;
+    private RestoreConfig restoreConf;
 
     @Override
     public void openInputFormat() throws IOException {
@@ -78,7 +77,7 @@ public class S3InputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit split) {
-        amazonS3 = S3Util.getS3Client(s3Conf);
+        amazonS3 = S3Util.getS3Client(s3Config);
         S3InputSplit inputSplit = (S3InputSplit) split;
         List<String> splitsList = inputSplit.getSplits();
         LinkedList<String> result = new LinkedList<>();
@@ -117,9 +116,9 @@ public class S3InputFormat extends BaseRichInputFormat {
         if (objects.isEmpty()) {
             throw new ChunJunRuntimeException(
                     "No objects found in bucket: "
-                            + s3Conf.getBucket()
+                            + s3Config.getBucket()
                             + "，objects: "
-                            + s3Conf.getObjects());
+                            + s3Config.getObjects());
         }
         LOG.info("read file {}", GsonUtil.GSON.toJson(objects));
         List<String> keys = new ArrayList<>();
@@ -174,7 +173,7 @@ public class S3InputFormat extends BaseRichInputFormat {
                 // If there is a new file, read the new file
                 currentObject = splits.next();
                 GetObjectRequest rangeObjectRequest =
-                        new GetObjectRequest(s3Conf.getBucket(), currentObject);
+                        new GetObjectRequest(s3Config.getBucket(), currentObject);
                 LOG.info("Current read file {}", currentObject);
                 if (restoreConf.isRestore()
                         && offsetMap.containsKey(currentObject)
@@ -188,10 +187,10 @@ public class S3InputFormat extends BaseRichInputFormat {
                     S3ObjectInputStream s3is = o.getObjectContent();
                     readerUtil =
                             new ReaderUtil(
-                                    new InputStreamReader(s3is, s3Conf.getEncoding()),
-                                    s3Conf.getFieldDelimiter(),
+                                    new InputStreamReader(s3is, s3Config.getEncoding()),
+                                    s3Config.getFieldDelimiter(),
                                     offset,
-                                    s3Conf.isSafetySwitch());
+                                    s3Config.isSafetySwitch());
                     offsetMap.put(currentObject, offset);
                 } else {
                     // The resumable upload is not enabled or the resumable upload is enabled but
@@ -200,11 +199,11 @@ public class S3InputFormat extends BaseRichInputFormat {
                     S3ObjectInputStream s3is = o.getObjectContent();
                     readerUtil =
                             new ReaderUtil(
-                                    new InputStreamReader(s3is, s3Conf.getEncoding()),
-                                    s3Conf.getFieldDelimiter(),
+                                    new InputStreamReader(s3is, s3Config.getEncoding()),
+                                    s3Config.getFieldDelimiter(),
                                     0L,
-                                    s3Conf.isSafetySwitch());
-                    if (s3Conf.isFirstLineHeader()) {
+                                    s3Config.isSafetySwitch());
+                    if (s3Config.isFirstLineHeader()) {
                         readerUtil.readHeaders();
                     }
                     if (restoreConf.isRestore()) {
@@ -241,23 +240,23 @@ public class S3InputFormat extends BaseRichInputFormat {
     }
 
     public List<S3SimpleObject> resolveObjects() {
-        String bucket = s3Conf.getBucket();
+        String bucket = s3Config.getBucket();
         Set<S3SimpleObject> resolved = new HashSet<>();
-        AmazonS3 amazonS3 = S3Util.getS3Client(s3Conf);
-        for (String key : s3Conf.getObjects()) {
+        AmazonS3 amazonS3 = S3Util.getS3Client(s3Config);
+        for (String key : s3Config.getObjects()) {
             if (StringUtils.isNotBlank(key)) {
                 if (key.endsWith(".*")) {
                     // End with .*, indicating that the object is prefixed
                     String prefix = key.substring(0, key.indexOf(".*"));
                     List<String> subObjects;
-                    if (s3Conf.isUseV2()) {
+                    if (s3Config.isUseV2()) {
                         subObjects =
                                 S3Util.listObjectsKeyByPrefix(
-                                        amazonS3, bucket, prefix, s3Conf.getFetchSize());
+                                        amazonS3, bucket, prefix, s3Config.getFetchSize());
                     } else {
                         subObjects =
                                 S3Util.listObjectsByv1(
-                                        amazonS3, bucket, prefix, s3Conf.getFetchSize());
+                                        amazonS3, bucket, prefix, s3Config.getFetchSize());
                     }
                     for (String subObject : subObjects) {
                         S3SimpleObject s3SimpleObject = S3Util.getS3SimpleObject(subObject);
@@ -279,19 +278,19 @@ public class S3InputFormat extends BaseRichInputFormat {
         return distinct;
     }
 
-    public S3Conf getS3Conf() {
-        return s3Conf;
+    public S3Config getS3Conf() {
+        return s3Config;
     }
 
-    public void setS3Conf(S3Conf s3Conf) {
-        this.s3Conf = s3Conf;
+    public void setS3Conf(S3Config s3Config) {
+        this.s3Config = s3Config;
     }
 
-    public RestoreConf getRestoreConf() {
+    public RestoreConfig getRestoreConf() {
         return restoreConf;
     }
 
-    public void setRestoreConf(RestoreConf restoreConf) {
+    public void setRestoreConf(RestoreConfig restoreConf) {
         this.restoreConf = restoreConf;
     }
 }

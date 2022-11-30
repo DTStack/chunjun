@@ -18,32 +18,31 @@
 
 package com.dtstack.chunjun.connector.redis.source;
 
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
-/** @Author OT @Date 2022/7/26 */
 public class RedisInputFormatBuilder extends BaseRichInputFormatBuilder<RedisInputFormat> {
     public RedisInputFormatBuilder() {
         super(new RedisInputFormat());
     }
 
-    public void setRedisConf(RedisConf redisConf) {
-        super.setConfig(redisConf);
-        format.setRedisConf(redisConf);
+    public void setRedisConf(RedisConfig redisConfig) {
+        super.setConfig(redisConfig);
+        format.setRedisConf(redisConfig);
     }
 
     @Override
     protected void checkFormat() {
-        RedisConf redisConf = format.getRedisConf();
+        RedisConfig redisConfig = format.getRedisConf();
         StringBuilder sb = new StringBuilder(1024);
-        if (redisConf.getHostPort() == null) {
+        if (redisConfig.getHostPort() == null) {
             sb.append("No host and port supplied\n");
         }
-        if (!redisConf.getType().toString().equals(("HASH"))) {
+        if (!redisConfig.getType().toString().equals(("HASH"))) {
             sb.append("Currently only supported hash\n");
         }
 
-        if (redisConf.getKeyPrefix() == null) {
+        if (redisConfig.getKeyPrefix() == null) {
             sb.append("No key prefix supplied\n");
         }
         if (sb.length() > 0) {

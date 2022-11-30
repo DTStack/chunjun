@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-/** @Author OT @Date 2022/7/27 */
 public class RedisUtil {
     public static Set<String> getRedisKeys(
             RedisConnectType redisType, JedisCommands jedis, String keyPattern) {

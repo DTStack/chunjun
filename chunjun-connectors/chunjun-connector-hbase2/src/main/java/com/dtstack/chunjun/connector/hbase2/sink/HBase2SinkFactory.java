@@ -18,12 +18,12 @@
 
 package com.dtstack.chunjun.connector.hbase2.sink;
 
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hbase.sink.HBaseSinkFactoryBase;
 
 public class HBase2SinkFactory extends HBaseSinkFactoryBase {
 
-    public HBase2SinkFactory(SyncConf config) {
+    public HBase2SinkFactory(SyncConfig config) {
         super(config);
     }
 }

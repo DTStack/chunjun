@@ -20,10 +20,10 @@ package com.dtstack.chunjun.connector.elasticsearch7.table.lookup;
 
 import com.dtstack.chunjun.connector.elasticsearch7.Elasticsearch7ClientFactory;
 import com.dtstack.chunjun.connector.elasticsearch7.Elasticsearch7RequestFactory;
-import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConf;
+import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.config.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.flink.table.data.GenericRowData;
@@ -42,28 +42,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/27 13:26
- */
 public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
 
     private static final long serialVersionUID = 2L;
-    private final ElasticsearchConf elasticsearchConf;
+    private final ElasticsearchConfig elasticsearchConfig;
     Logger LOG = LoggerFactory.getLogger(ElasticsearchAllTableFunction.class);
     private transient RestHighLevelClient rhlClient;
-    private static String SORT_COLUMN = "_id";
+    private static final String SORT_COLUMN = "_id";
 
     public ElasticsearchAllTableFunction(
-            ElasticsearchConf elasticsearchConf,
-            LookupConf lookupConf,
+            ElasticsearchConfig elasticsearchConfig,
+            LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             AbstractRowConverter rowConverter) {
-        super(fieldNames, keyNames, lookupConf, rowConverter);
-        this.elasticsearchConf = elasticsearchConf;
+        super(fieldNames, keyNames, lookupConfig, rowConverter);
+        this.elasticsearchConfig = elasticsearchConfig;
     }
 
     @Override
@@ -71,7 +65,7 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
 
-        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConf, null);
+        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConfig, null);
         SearchRequest requestBuilder = buildSearchRequest(null);
         SearchResponse searchResponse;
         SearchHit[] searchHits;
@@ -104,20 +98,15 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
         }
     }
 
-    /**
-     * build search request
-     *
-     * @return
-     */
     private SearchRequest buildSearchRequest(Object[] searchAfter) {
         SearchSourceBuilder sourceBuilder =
                 Elasticsearch7RequestFactory.createSourceBuilder(fieldsName, null, null);
-        sourceBuilder.size(lookupConf.getFetchSize()).sort(SORT_COLUMN);
+        sourceBuilder.size(lookupConfig.getFetchSize()).sort(SORT_COLUMN);
         if (searchAfter != null) {
             sourceBuilder.searchAfter(searchAfter);
         }
         return Elasticsearch7RequestFactory.createSearchRequest(
-                elasticsearchConf.getIndex(), null, sourceBuilder);
+                elasticsearchConfig.getIndex(), null, sourceBuilder);
     }
 
     @Override

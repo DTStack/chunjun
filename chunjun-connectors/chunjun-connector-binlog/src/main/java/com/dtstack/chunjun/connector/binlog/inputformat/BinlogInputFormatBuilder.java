@@ -145,11 +145,11 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogI
         properties.put("connectTimeout", String.valueOf(binlogConfig.getConnectTimeOut()));
 
         try (Connection conn =
-                     RetryUtil.executeWithRetry(
-                             () -> DriverManager.getConnection(binlogConfig.getJdbcUrl(), properties),
-                             BinlogUtil.RETRY_TIMES,
-                             BinlogUtil.SLEEP_TIME,
-                             false)) {
+                RetryUtil.executeWithRetry(
+                        () -> DriverManager.getConnection(binlogConfig.getJdbcUrl(), properties),
+                        BinlogUtil.RETRY_TIMES,
+                        BinlogUtil.SLEEP_TIME,
+                        false)) {
 
             // 校验用户权限
             if (!BinlogUtil.checkUserPrivilege(conn)) {

@@ -38,7 +38,6 @@ import com.dtstack.chunjun.typeutil.serializer.base.TimestampColumnSerializer;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.table.types.logical.LogicalType;
 
-
 public class AbstractColumnSerializerUtil {
 
     /**

@@ -21,6 +21,7 @@ package com.dtstack.chunjun.lookup.config;
 import com.dtstack.chunjun.enums.CacheType;
 
 import java.io.Serializable;
+import java.util.StringJoiner;
 
 public class LookupConfig implements Serializable {
     /** 表名 */
@@ -140,29 +141,17 @@ public class LookupConfig implements Serializable {
 
     @Override
     public String toString() {
-        return "LookupConf{"
-                + "tableName='"
-                + tableName
-                + '\''
-                + ", period="
-                + period
-                + ", cacheSize="
-                + cacheSize
-                + ", cacheTtl="
-                + cacheTtl
-                + ", cache='"
-                + cache
-                + '\''
-                + ", maxRetryTimes="
-                + maxRetryTimes
-                + ", errorLimit="
-                + errorLimit
-                + ", fetchSize="
-                + fetchSize
-                + ", asyncTimeout="
-                + asyncTimeout
-                + ", parallelism="
-                + parallelism
-                + '}';
+        return new StringJoiner(", ", LookupConfig.class.getSimpleName() + "[", "]")
+                .add("tableName='" + tableName + "'")
+                .add("period=" + period)
+                .add("cacheSize=" + cacheSize)
+                .add("cacheTtl=" + cacheTtl)
+                .add("cache='" + cache + "'")
+                .add("maxRetryTimes=" + maxRetryTimes)
+                .add("errorLimit=" + errorLimit)
+                .add("fetchSize=" + fetchSize)
+                .add("asyncTimeout=" + asyncTimeout)
+                .add("parallelism=" + parallelism)
+                .toString();
     }
 }

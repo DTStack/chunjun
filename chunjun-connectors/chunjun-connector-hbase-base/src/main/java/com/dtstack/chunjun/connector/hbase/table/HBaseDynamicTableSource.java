@@ -27,7 +27,7 @@ import com.dtstack.chunjun.connector.hbase.util.ScanBuilder;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
-import com.dtstack.chunjun.lookup.config.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import org.apache.flink.table.api.TableSchema;
@@ -37,20 +37,20 @@ public class HBaseDynamicTableSource extends BaseHBaseDynamicTableSource {
 
     private final HBaseConfig hBaseConfig;
     private final TableSchema tableSchema;
-    private final LookupConf lookupConf;
+    private final LookupConfig lookupConfig;
     private final HBaseTableSchema hbaseSchema;
     protected final String nullStringLiteral;
 
     public HBaseDynamicTableSource(
             HBaseConfig conf,
             TableSchema tableSchema,
-            LookupConf lookupConf,
+            LookupConfig lookupConfig,
             HBaseTableSchema hbaseSchema,
             String nullStringLiteral) {
-        super(tableSchema, hbaseSchema, conf, lookupConf);
+        super(tableSchema, hbaseSchema, conf, lookupConfig);
         this.hBaseConfig = conf;
         this.tableSchema = tableSchema;
-        this.lookupConf = lookupConf;
+        this.lookupConfig = lookupConfig;
         this.hbaseSchema = hbaseSchema;
         this.hbaseSchema.setTableName(hBaseConfig.getTable());
         this.nullStringLiteral = nullStringLiteral;
@@ -59,7 +59,7 @@ public class HBaseDynamicTableSource extends BaseHBaseDynamicTableSource {
     @Override
     public DynamicTableSource copy() {
         return new HBaseDynamicTableSource(
-                this.hBaseConfig, tableSchema, lookupConf, hbaseSchema, nullStringLiteral);
+                this.hBaseConfig, tableSchema, lookupConfig, hbaseSchema, nullStringLiteral);
     }
 
     @Override
@@ -84,11 +84,11 @@ public class HBaseDynamicTableSource extends BaseHBaseDynamicTableSource {
     @Override
     protected AbstractLruTableFunction getAbstractLruTableFunction() {
         AbstractRowConverter rowConverter = new HBaseRowConverter(hbaseSchema, nullStringLiteral);
-        return new HBaseLruTableFunction(lookupConf, hbaseSchema, hBaseConfig, rowConverter);
+        return new HBaseLruTableFunction(lookupConfig, hbaseSchema, hBaseConfig, rowConverter);
     }
 
     @Override
     protected AbstractAllTableFunction getAbstractAllTableFunction() {
-        return new HBaseAllTableFunction(lookupConf, hbaseSchema, hBaseConfig);
+        return new HBaseAllTableFunction(lookupConfig, hbaseSchema, hBaseConfig);
     }
 }

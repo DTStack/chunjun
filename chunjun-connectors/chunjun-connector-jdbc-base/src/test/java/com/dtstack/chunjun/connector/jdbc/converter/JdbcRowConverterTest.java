@@ -53,7 +53,7 @@ public class JdbcRowConverterTest {
     @BeforeClass
     public static void setup() throws IOException {
         String json = readFile("sync_test.json");
-        SyncConfig syncConf = SyncConfig.parseJob(json);
+        SyncConfig syncConfig = SyncConfig.parseJob(json);
         Gson gson =
                 new GsonBuilder()
                         .registerTypeAdapter(
@@ -63,12 +63,12 @@ public class JdbcRowConverterTest {
                                 new FieldNameExclusionStrategy("column"))
                         .create();
         GsonUtil.setTypeAdapter(gson);
-        JdbcConfig jdbcConf =
-                gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), JdbcConfig.class);
-        jdbcConf.setColumn(syncConf.getReader().getFieldList());
+        JdbcConfig jdbcConfig =
+                gson.fromJson(gson.toJson(syncConfig.getReader().getParameter()), JdbcConfig.class);
+        jdbcConfig.setColumn(syncConfig.getReader().getFieldList());
 
         RowType rowType =
-                TableUtil.createRowType(jdbcConf.getColumn(), JdbcRawTypeConverterTest::apply);
+                TableUtil.createRowType(jdbcConfig.getColumn(), JdbcRawTypeConverterTest::apply);
         converter = new JdbcRowConverter(rowType);
     }
 

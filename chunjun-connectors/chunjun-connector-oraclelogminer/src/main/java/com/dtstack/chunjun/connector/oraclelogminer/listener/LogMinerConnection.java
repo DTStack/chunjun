@@ -130,7 +130,8 @@ public class LogMinerConnection {
 
     private Exception exception;
 
-    public LogMinerConnection(LogMinerConfig logMinerConfig, TransactionManager transactionManager) {
+    public LogMinerConnection(
+            LogMinerConfig logMinerConfig, TransactionManager transactionManager) {
         this.logMinerConfig = logMinerConfig;
         this.transactionManager = transactionManager;
     }

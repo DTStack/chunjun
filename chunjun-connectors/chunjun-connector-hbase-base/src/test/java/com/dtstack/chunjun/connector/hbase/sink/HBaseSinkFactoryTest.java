@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.hbase.sink;
 
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.util.HBaseTestUtil;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -54,7 +54,7 @@ public class HBaseSinkFactoryTest {
     @Test
     public void testGetRawTypeConverter() throws IOException {
         String job = HBaseTestUtil.readFile("stream_hbase.json");
-        SyncConf conf = SyncConf.parseJob(job);
+        SyncConfig conf = SyncConfig.parseJob(job);
         HBaseSinkFactoryBase sinkFactory = new TestSinkFactory(conf);
         RawTypeConverter converter = sinkFactory.getRawTypeConverter();
 
@@ -68,13 +68,13 @@ public class HBaseSinkFactoryTest {
     @Test
     public void testCreateSink() throws IOException {
         String job = HBaseTestUtil.readFile("stream_hbase.json");
-        HBaseSinkFactoryBase sinkFactory = new TestSinkFactory(SyncConf.parseJob(job));
+        HBaseSinkFactoryBase sinkFactory = new TestSinkFactory(SyncConfig.parseJob(job));
         when(dataStream.addSink(any())).thenReturn(dataStreamSink);
         sinkFactory.createSink(dataStream);
     }
 
     public static final class TestSinkFactory extends HBaseSinkFactoryBase {
-        public TestSinkFactory(SyncConf config) {
+        public TestSinkFactory(SyncConfig config) {
             super(config);
         }
     }

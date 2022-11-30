@@ -98,7 +98,8 @@ public class StarRocksAllTableFunction extends AbstractAllTableFunction {
 
         cacheRef.set(newCache);
         LOG.info(
-                "----- " + lookupConfig.getTableName() + ": all cacheRef reload end:{}", LocalDateTime.now());
+                "----- " + lookupConfig.getTableName() + ": all cacheRef reload end:{}",
+                LocalDateTime.now());
     }
 
     @Override

@@ -55,8 +55,8 @@ import java.util.TimeZone;
 
 public class SqlserverJtdsColumnConverter extends JdbcColumnConverter {
 
-    public SqlserverJtdsColumnConverter(RowType rowType, CommonConfig commonConf) {
-        super(rowType, commonConf);
+    public SqlserverJtdsColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
     }
 
     @Override

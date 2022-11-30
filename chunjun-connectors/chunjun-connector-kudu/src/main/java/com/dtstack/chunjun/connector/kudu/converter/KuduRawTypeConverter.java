@@ -25,10 +25,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * @author tiezhu
- * @since 2021/6/19 星期六
- */
 public class KuduRawTypeConverter {
 
     /**

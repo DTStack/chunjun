@@ -45,15 +45,14 @@ import java.sql.Timestamp;
 
 public class Db2ColumnConverter extends JdbcColumnConverter {
 
-    public Db2ColumnConverter(RowType rowType, CommonConfig commonConf) {
-        super(rowType, commonConf);
+    public Db2ColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        super(rowType, commonConfig);
     }
 
     /**
      * override reason: blob in db2 need use getBytes.
      *
      * @param type
-     *
      * @return
      */
     @Override

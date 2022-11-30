@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.iceberg.sink;
 
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.iceberg.conf.IcebergWriterConf;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.sink.SinkFactory;
@@ -41,7 +41,7 @@ public class IcebergSinkFactory extends SinkFactory {
 
     private final IcebergWriterConf writerConf;
 
-    public IcebergSinkFactory(SyncConf config) {
+    public IcebergSinkFactory(SyncConfig config) {
         super(config);
         writerConf =
                 GsonUtil.GSON.fromJson(

@@ -45,7 +45,8 @@ public class HdfsSinkFactory extends SinkFactory {
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
-        HdfsOutputFormatBuilder builder = HdfsOutputFormatBuilder.newBuild(hdfsConfig.getFileType());
+        HdfsOutputFormatBuilder builder =
+                HdfsOutputFormatBuilder.newBuild(hdfsConfig.getFileType());
         builder.setHdfsConf(hdfsConfig);
         AbstractRowConverter rowConverter =
                 HdfsUtil.createRowConverter(

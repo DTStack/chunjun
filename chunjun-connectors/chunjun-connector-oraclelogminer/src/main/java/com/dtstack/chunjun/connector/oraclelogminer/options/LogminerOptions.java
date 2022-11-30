@@ -121,7 +121,6 @@ public class LogminerOptions {
                     .withDescription(
                             "Oracle LogMiner cache expire time  and  default value is 20 minutes");
 
-
     public static final ConfigOption<String> TIMESTAMP_FORMAT =
             ConfigOptions.key("timestamp-format.standard")
                     .stringType()

@@ -18,12 +18,12 @@
 
 package com.dtstack.chunjun.connector.redis.lookup;
 
-import com.dtstack.chunjun.connector.redis.conf.RedisConf;
+import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.connector.redis.connection.RedisSyncClient;
 import com.dtstack.chunjun.connector.redis.util.RedisUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.config.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.GenericRowData;
 
@@ -40,32 +40,27 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * @author chuixue
- * @create 2021-06-16 15:17
- * @description
- */
 public class RedisAllTableFunction extends AbstractAllTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(RedisAllTableFunction.class);
-    private final RedisConf redisConf;
+    private final RedisConfig redisConfig;
     private transient RedisSyncClient redisSyncClient;
 
     public RedisAllTableFunction(
-            RedisConf redisConf,
-            LookupConf lookupConf,
+            RedisConfig redisConfig,
+            LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             AbstractRowConverter rowConverter) {
-        super(fieldNames, keyNames, lookupConf, rowConverter);
-        this.redisConf = redisConf;
+        super(fieldNames, keyNames, lookupConfig, rowConverter);
+        this.redisConfig = redisConfig;
     }
 
     @Override
     public void eval(Object... keys) {
         String keyPattern =
-                redisConf.getTableName()
+                redisConfig.getTableName()
                         + "_"
                         + Arrays.stream(keys).map(String::valueOf).collect(Collectors.joining("_"));
         List<Map<String, Object>> cacheList =
@@ -82,17 +77,17 @@ public class RedisAllTableFunction extends AbstractAllTableFunction {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
         if (redisSyncClient == null) {
-            redisSyncClient = new RedisSyncClient(redisConf);
+            redisSyncClient = new RedisSyncClient(redisConfig);
         }
         JedisCommands jedis = redisSyncClient.getJedis();
-        StringBuilder keyPattern = new StringBuilder(redisConf.getTableName());
+        StringBuilder keyPattern = new StringBuilder(redisConfig.getTableName());
         for (int i = 0; i < keyNames.length; i++) {
             keyPattern.append("_").append("*");
         }
 
         Set<String> keys =
                 RedisUtil.getRedisKeys(
-                        redisConf.getRedisConnectType(), jedis, keyPattern.toString());
+                        redisConfig.getRedisConnectType(), jedis, keyPattern.toString());
         if (CollectionUtils.isEmpty(keys)) {
             return;
         }

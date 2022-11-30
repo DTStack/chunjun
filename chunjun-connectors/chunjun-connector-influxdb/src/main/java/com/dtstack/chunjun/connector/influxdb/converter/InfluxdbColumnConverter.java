@@ -60,11 +60,11 @@ public class InfluxdbColumnConverter
 
     public InfluxdbColumnConverter(
             RowType rowType,
-            CommonConfig commonConf,
+            CommonConfig commonConfig,
             List<String> fieldNameList,
             String format,
             TimeUnit precision) {
-        super(rowType, commonConf);
+        super(rowType, commonConfig);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
@@ -74,19 +74,19 @@ public class InfluxdbColumnConverter
                             createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
         this.format = format;
-        this.fieldConfList = commonConf.getColumn();
+        this.fieldConfList = commonConfig.getColumn();
         this.fieldNameList = fieldNameList;
         this.precision = precision;
     }
 
     public InfluxdbColumnConverter(
             RowType rowType,
-            CommonConfig commonConf,
+            CommonConfig commonConfig,
             List<String> fieldNameList,
             List<String> tags,
             String timestamp,
             TimeUnit precision) {
-        super(rowType, commonConf);
+        super(rowType, commonConfig);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
@@ -95,7 +95,7 @@ public class InfluxdbColumnConverter
                     wrapIntoNullableExternalConverter(
                             createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
-        this.fieldConfList = commonConf.getColumn();
+        this.fieldConfList = commonConfig.getColumn();
         this.fieldNameList = fieldNameList;
         this.tags = tags;
         this.timestamp = timestamp;
@@ -144,9 +144,7 @@ public class InfluxdbColumnConverter
      * @param input input value.
      * @param fieldName field name of input.
      * @param index index of converter.
-     *
      * @return column
-     *
      * @throws Exception the exception from converter.
      */
     private AbstractBaseColumn setValue(Map<String, Object> input, String fieldName, int index)

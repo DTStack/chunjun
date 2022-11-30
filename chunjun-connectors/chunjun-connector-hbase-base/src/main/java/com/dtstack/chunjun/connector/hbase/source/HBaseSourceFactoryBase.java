@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.hbase.source;
 
-import com.dtstack.chunjun.config.FieldConf;
-import com.dtstack.chunjun.config.OperatorConf;
-import com.dtstack.chunjun.config.SyncConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.OperatorConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseColumnConverter;
@@ -58,16 +58,16 @@ public class HBaseSourceFactoryBase extends SourceFactory {
 
     protected final HBaseConfig hBaseConfig;
 
-    public HBaseSourceFactoryBase(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
-        OperatorConf reader = syncConf.getReader();
+    public HBaseSourceFactoryBase(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
+        OperatorConfig reader = syncConfig.getReader();
         hBaseConfig =
                 GsonUtil.GSON.fromJson(
                         GsonUtil.GSON.toJson(reader.getParameter()), HBaseConfig.class);
         super.initCommonConf(hBaseConfig);
         hBaseConfig.setColumnMetaInfos(reader.getFieldList());
         Map<String, Object> range =
-                (Map<String, Object>) syncConf.getReader().getParameter().get("range");
+                (Map<String, Object>) syncConfig.getReader().getParameter().get("range");
         if (range != null) {
             if (range.get("startRowkey") != null
                     && StringUtils.isNotBlank(range.get("startRowkey").toString())) {
@@ -103,9 +103,8 @@ public class HBaseSourceFactoryBase extends SourceFactory {
     }
 
     @Override
-    @SuppressWarnings("all")
     public DataStream<RowData> createSource() {
-        List<FieldConf> fieldConfList = hBaseConfig.getColumnMetaInfos();
+        List<FieldConfig> fieldConfList = hBaseConfig.getColumnMetaInfos();
 
         AbstractRowConverter rowConverter;
         ScanBuilder scanBuilder;
@@ -117,7 +116,7 @@ public class HBaseSourceFactoryBase extends SourceFactory {
         } else {
             String nullStringLiteral = hBaseConfig.getNullStringLiteral();
             Set<String> columnSet = new LinkedHashSet<>();
-            for (FieldConf fieldConf : fieldConfList) {
+            for (FieldConfig fieldConf : fieldConfList) {
                 String fieldName = fieldConf.getName();
                 if ("rowkey".equalsIgnoreCase(fieldName)) {
                     columnSet.add(fieldName);
@@ -129,9 +128,7 @@ public class HBaseSourceFactoryBase extends SourceFactory {
             this.typeInformation = buildType(columnSet);
             HBaseTableSchema hBaseTableSchema =
                     buildHBaseTableSchema(hBaseConfig.getTable(), fieldConfList);
-            syncConf.getReader().setFieldNameList(new ArrayList<>(columnSet));
-            final RowType rowType =
-                    TableUtil.createRowType(hBaseConfig.getColumn(), getRawTypeConverter());
+            syncConfig.getReader().setFieldNameList(new ArrayList<>(columnSet));
             rowConverter = new HBaseRowConverter(hBaseTableSchema, nullStringLiteral);
             scanBuilder = ScanBuilder.forSql(hBaseTableSchema);
         }
@@ -163,7 +160,7 @@ public class HBaseSourceFactoryBase extends SourceFactory {
         }
 
         TableSchema.Builder builder = TableSchema.builder();
-        for (FieldConf fieldConf : fieldList) {
+        for (FieldConfig fieldConf : fieldList) {
             String fieldName = fieldConf.getName();
             if ("rowkey".equalsIgnoreCase(fieldConf.getName())) {
                 DataType dataType = this.getRawTypeConverter().apply(fieldConf.getType());
@@ -195,11 +192,11 @@ public class HBaseSourceFactoryBase extends SourceFactory {
         return TableUtil.getTypeInformation(dataTypes, tableSchema.getFieldNames());
     }
 
-    HBaseTableSchema buildHBaseTableSchema(String tableName, List<FieldConf> fieldConfList) {
+    HBaseTableSchema buildHBaseTableSchema(String tableName, List<FieldConfig> fieldConfList) {
         HBaseTableSchema hbaseSchema = new HBaseTableSchema();
         hbaseSchema.setTableName(tableName);
         RawTypeConverter rawTypeConverter = getRawTypeConverter();
-        for (FieldConf fieldConf : fieldConfList) {
+        for (FieldConfig fieldConf : fieldConfList) {
             String fieldName = fieldConf.getName();
             DataType dataType = rawTypeConverter.apply(fieldConf.getType());
             if ("rowkey".equalsIgnoreCase(fieldName)) {

@@ -76,7 +76,8 @@ public class FileInputBufferedReader {
             String filePath = pathIterator.next();
             String encoding = fileConfig.getEncoding();
             InputStreamReader isr =
-                    new InputStreamReader(Files.newInputStream(new File(filePath).toPath()), encoding);
+                    new InputStreamReader(
+                            Files.newInputStream(new File(filePath).toPath()), encoding);
             lr = new LineNumberReader(isr);
         } else {
             lr = null;

@@ -46,11 +46,13 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
         try {
             dbConn = getConnection();
             querySQL = buildQuerySql(jdbcInputSplit);
-            jdbcConf.setQuerySql(querySQL);
+            jdbcConfig.setQuerySql(querySQL);
             executeQuery(jdbcInputSplit.getStartLocation());
             // 增量任务
             needUpdateEndLocation =
-                    jdbcConf.isIncrement() && !jdbcConf.isPolling() && !jdbcConf.isUseMaxFunc();
+                    jdbcConfig.isIncrement()
+                            && !jdbcConfig.isPolling()
+                            && !jdbcConfig.isUseMaxFunc();
         } catch (SQLException se) {
             String expMsg = se.getMessage();
             expMsg = querySQL == null ? expMsg : expMsg + "\n querySQL: " + querySQL;
@@ -61,6 +63,6 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
     @Override
     protected Connection getConnection() throws SQLException {
         return ClickhouseUtil.getConnection(
-                jdbcConf.getJdbcUrl(), jdbcConf.getUsername(), jdbcConf.getPassword());
+                jdbcConfig.getJdbcUrl(), jdbcConfig.getUsername(), jdbcConfig.getPassword());
     }
 }

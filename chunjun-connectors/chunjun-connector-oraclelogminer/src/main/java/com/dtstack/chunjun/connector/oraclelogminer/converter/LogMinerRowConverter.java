@@ -72,8 +72,7 @@ public class LogMinerRowConverter extends AbstractCDCRowConverter<EventRow, Logi
 
         List<EventRowData> afterRowDataList = eventRow.getAfterColumnList();
         Map<Object, Object> afterMap = Maps.newHashMapWithExpectedSize(afterRowDataList.size());
-        afterRowDataList.forEach(
-                x -> afterMap.put(x.getName(), x.getData()));
+        afterRowDataList.forEach(x -> afterMap.put(x.getName(), x.getData()));
 
         switch (eventType) {
             case "INSERT":

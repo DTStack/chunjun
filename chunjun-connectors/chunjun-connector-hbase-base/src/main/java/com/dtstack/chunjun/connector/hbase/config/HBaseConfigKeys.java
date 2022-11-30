@@ -17,9 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hbase.config;
 
-/**
- * This class defines configuration keys for HbaseReader and HbaseWriter
- */
+/** This class defines configuration keys for HbaseReader and HbaseWriter */
 public class HBaseConfigKeys {
 
     public static final String KEY_SCAN_CACHE_SIZE = "scanCacheSize";

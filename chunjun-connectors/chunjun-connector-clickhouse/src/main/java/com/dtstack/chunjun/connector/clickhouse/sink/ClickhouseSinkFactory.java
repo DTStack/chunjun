@@ -30,8 +30,8 @@ import java.sql.SQLException;
 
 public class ClickhouseSinkFactory extends JdbcSinkFactory {
 
-    public ClickhouseSinkFactory(SyncConfig syncConf) {
-        super(syncConf, new ClickhouseDialect());
+    public ClickhouseSinkFactory(SyncConfig syncConfig) {
+        super(syncConfig, new ClickhouseDialect());
     }
 
     @Override

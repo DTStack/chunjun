@@ -18,9 +18,7 @@
 
 package com.dtstack.chunjun.throwable;
 
-/**
- * The Exception describing errors when read a record
- */
+/** The Exception describing errors when read a record */
 public class ReadRecordException extends Exception {
 
     private final int colIndex;

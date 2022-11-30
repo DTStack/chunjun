@@ -52,11 +52,11 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) {
-        if (minNumSplits != jdbcConf.getParallelism()) {
+        if (minNumSplits != jdbcConfig.getParallelism()) {
             throw new ChunJunRuntimeException(
                     String.format(
-                            "numTaskVertices is [%s], but parallelism in jdbcConf is [%s]",
-                            minNumSplits, jdbcConf.getParallelism()));
+                            "numTaskVertices is [%s], but parallelism in jdbcConfig is [%s]",
+                            minNumSplits, jdbcConfig.getParallelism()));
         }
         DistributedJdbcInputSplit[] inputSplits = new DistributedJdbcInputSplit[minNumSplits];
         List<List<DataSourceConfig>> subList =
@@ -68,8 +68,8 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
                             i,
                             minNumSplits,
                             subList.get(i),
-                            jdbcConf.getSplitStrategy(),
-                            jdbcConf.isPolling());
+                            jdbcConfig.getSplitStrategy(),
+                            jdbcConfig.isPolling());
             inputSplits[i] = split;
         }
 
@@ -111,11 +111,11 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
         dbConn.setAutoCommit(false);
         statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
 
-        statement.setFetchSize(jdbcConf.getFetchSize());
-        statement.setQueryTimeout(jdbcConf.getQueryTimeOut());
+        statement.setFetchSize(jdbcConfig.getFetchSize());
+        statement.setQueryTimeout(jdbcConfig.getQueryTimeOut());
 
         String querySql = buildQuerySql(inputSplit);
-        jdbcConf.setQuerySql(querySql);
+        jdbcConfig.setQuerySql(querySql);
         resultSet = statement.executeQuery(querySql);
         hasNext = resultSet.next();
 
@@ -134,12 +134,12 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
     @Override
     protected Connection getConnection() throws SQLException {
         DataSourceConfig currentSource = sourceList.get(sourceIndex);
-        jdbcConf.setJdbcUrl(currentSource.getJdbcUrl());
-        jdbcConf.setUsername(currentSource.getUserName());
-        jdbcConf.setPassword(currentSource.getPassword());
-        jdbcConf.setTable(currentSource.getTable());
-        jdbcConf.setSchema(currentSource.getSchema());
-        return JdbcUtil.getConnection(jdbcConf, this.jdbcDialect);
+        jdbcConfig.setJdbcUrl(currentSource.getJdbcUrl());
+        jdbcConfig.setUsername(currentSource.getUserName());
+        jdbcConfig.setPassword(currentSource.getPassword());
+        jdbcConfig.setTable(currentSource.getTable());
+        jdbcConfig.setSchema(currentSource.getSchema());
+        return JdbcUtil.getConnection(jdbcConfig, this.jdbcDialect);
     }
 
     public void setSourceList(List<DataSourceConfig> sourceList) {

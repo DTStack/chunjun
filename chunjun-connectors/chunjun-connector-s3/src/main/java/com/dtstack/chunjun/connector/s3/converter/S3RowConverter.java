@@ -129,7 +129,7 @@ public class S3RowConverter extends AbstractRowConverter<String[], RowData, Stri
 
     @Override
     protected ISerializationConverter<String[]> wrapIntoNullableExternalConverter(
-            ISerializationConverter<String[]> ISerializationConverter, LogicalType type) {
-        return (val, index, output) -> ISerializationConverter.serialize(val, index, output);
+            ISerializationConverter<String[]> converter, LogicalType type) {
+        return converter;
     }
 }

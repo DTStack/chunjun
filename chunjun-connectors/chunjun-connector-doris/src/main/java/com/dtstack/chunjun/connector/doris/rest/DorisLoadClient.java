@@ -76,7 +76,6 @@ public class DorisLoadClient implements Serializable {
      * Each time a RowData is processed, a Carrier is obtained and then returned.
      *
      * @param value RowData
-     *
      * @return Carrier
      */
     public void process(RowData value, List<String> columns, AbstractRowConverter converter)
@@ -206,7 +205,6 @@ public class DorisLoadClient implements Serializable {
      * flush data to doris BE.
      *
      * @param carrier data carrier
-     *
      * @throws WriteRecordException
      */
     public void flush(final Carrier carrier) throws WriteRecordException {

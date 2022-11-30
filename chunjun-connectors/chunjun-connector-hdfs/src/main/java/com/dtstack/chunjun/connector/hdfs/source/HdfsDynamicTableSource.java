@@ -58,7 +58,8 @@ public class HdfsDynamicTableSource implements ScanTableSource {
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType());
+        TypeInformation<RowData> typeInformation =
+                InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType());
         List<Column> columns = tableSchema.getColumns();
         List<FieldConfig> columnList = new ArrayList<>(columns.size());
         for (int i = 0; i < columns.size(); i++) {
@@ -79,13 +80,31 @@ public class HdfsDynamicTableSource implements ScanTableSource {
         AbstractRowConverter rowConverter;
         switch (FileType.getByName(hdfsConfig.getFileType())) {
             case ORC:
-                rowConverter = new HdfsOrcRowConverter(InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType());
+                rowConverter =
+                        new HdfsOrcRowConverter(
+                                InternalTypeInfo.of(
+                                                tableSchema
+                                                        .toPhysicalRowDataType()
+                                                        .getLogicalType())
+                                        .toRowType());
                 break;
             case PARQUET:
-                rowConverter = new HdfsParquetRowConverter(InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType());
+                rowConverter =
+                        new HdfsParquetRowConverter(
+                                InternalTypeInfo.of(
+                                                tableSchema
+                                                        .toPhysicalRowDataType()
+                                                        .getLogicalType())
+                                        .toRowType());
                 break;
             default:
-                rowConverter = new HdfsTextRowConverter(InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType()).toRowType());
+                rowConverter =
+                        new HdfsTextRowConverter(
+                                InternalTypeInfo.of(
+                                                tableSchema
+                                                        .toPhysicalRowDataType()
+                                                        .getLogicalType())
+                                        .toRowType());
         }
         builder.setRowConverter(rowConverter);
         return ParallelSourceFunctionProvider.of(

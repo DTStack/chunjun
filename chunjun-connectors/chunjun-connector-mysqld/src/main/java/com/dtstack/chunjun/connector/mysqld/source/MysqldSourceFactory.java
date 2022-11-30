@@ -17,9 +17,9 @@
  */
 package com.dtstack.chunjun.connector.mysqld.source;
 
-import com.dtstack.chunjun.config.SyncConf;
-import com.dtstack.chunjun.connector.jdbc.config.ConnectionConf;
-import com.dtstack.chunjun.connector.jdbc.config.DataSourceConf;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
+import com.dtstack.chunjun.connector.jdbc.config.DataSourceConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.distribute.DistributedJdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.distribute.DistributedJdbcInputFormatBuilder;
@@ -57,9 +57,9 @@ public class MysqldSourceFactory extends DistributedJdbcSourceFactory {
     // 默认是Mysql流式拉取
     private static final int DEFAULT_FETCH_SIZE = Integer.MIN_VALUE;
 
-    public MysqldSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, new MysqlDialect());
-        JdbcUtil.putExtParam(jdbcConf);
+    public MysqldSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env, new MysqlDialect());
+        JdbcUtil.putExtParam(jdbcConfig);
     }
 
     @Override
@@ -71,19 +71,18 @@ public class MysqldSourceFactory extends DistributedJdbcSourceFactory {
     protected JdbcInputFormatBuilder getBuilder() {
         DistributedJdbcInputFormatBuilder builder =
                 new DistributedJdbcInputFormatBuilder(new DistributedJdbcInputFormat());
-        List<ConnectionConf> connectionConfList = jdbcConf.getConnection();
-        List<DataSourceConf> dataSourceConfList = new ArrayList<>(connectionConfList.size());
+        List<ConnectionConfig> connectionConfList = jdbcConfig.getConnection();
+        List<DataSourceConfig> dataSourceConfList = new ArrayList<>(connectionConfList.size());
         try {
-            /** 可以是多个 connection、多个 database、多个 table， 或者 正则匹配的 database、table */
-            for (ConnectionConf connectionConf : connectionConfList) {
+            for (ConnectionConfig connectionConf : connectionConfList) {
                 String currentUsername =
                         (StringUtils.isNotBlank(connectionConf.getUsername()))
                                 ? connectionConf.getUsername()
-                                : jdbcConf.getUsername();
+                                : jdbcConfig.getUsername();
                 String currentPassword =
                         (StringUtils.isNotBlank(connectionConf.getPassword()))
                                 ? connectionConf.getPassword()
-                                : jdbcConf.getPassword();
+                                : jdbcConfig.getPassword();
                 String jdbcUrl = connectionConf.obtainJdbcUrl();
                 Connection connection =
                         MySqlDataSource.getDataSource(jdbcUrl, currentUsername, currentPassword)
@@ -106,7 +105,7 @@ public class MysqldSourceFactory extends DistributedJdbcSourceFactory {
         return builder;
     }
 
-    public List<DataSourceConf> allTables(
+    public List<DataSourceConfig> allTables(
             Connection connection,
             String currSchema,
             String url,
@@ -115,7 +114,7 @@ public class MysqldSourceFactory extends DistributedJdbcSourceFactory {
             String currTable)
             throws SQLException {
         Map<String, List<String>> tables = new HashMap<>();
-        List<DataSourceConf> dataSourceConfList = new ArrayList<>();
+        List<DataSourceConfig> dataSourceConfList = new ArrayList<>();
 
         Pattern schema = Pattern.compile(currSchema);
         Pattern table = Pattern.compile(currTable);
@@ -147,7 +146,7 @@ public class MysqldSourceFactory extends DistributedJdbcSourceFactory {
 
         for (String key : tables.keySet()) {
             for (String mTable : tables.get(key)) {
-                DataSourceConf dataSourceConf = new DataSourceConf();
+                DataSourceConfig dataSourceConf = new DataSourceConfig();
                 dataSourceConf.setJdbcUrl(url);
                 dataSourceConf.setUserName(user);
                 dataSourceConf.setPassword(pass);

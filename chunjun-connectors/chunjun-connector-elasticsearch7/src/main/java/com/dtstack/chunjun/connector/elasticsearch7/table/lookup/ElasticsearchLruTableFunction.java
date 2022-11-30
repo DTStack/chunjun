@@ -20,13 +20,13 @@ package com.dtstack.chunjun.connector.elasticsearch7.table.lookup;
 
 import com.dtstack.chunjun.connector.elasticsearch7.Elasticsearch7ClientFactory;
 import com.dtstack.chunjun.connector.elasticsearch7.Elasticsearch7RequestFactory;
-import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConf;
+import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
 import com.dtstack.chunjun.lookup.cache.CacheMissVal;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.config.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
@@ -47,29 +47,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/27 13:26
- */
 public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
 
     private static final long serialVersionUID = 2L;
     private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchLruTableFunction.class);
     private final String[] fieldNames;
     private final String[] keyNames;
-    private final ElasticsearchConf elasticsearchConf;
+    private final ElasticsearchConfig elasticsearchConfig;
     private RestHighLevelClient rhlClient;
 
     public ElasticsearchLruTableFunction(
-            ElasticsearchConf elasticsearchConf,
-            LookupConf lookupConf,
+            ElasticsearchConfig elasticsearchConfig,
+            LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             AbstractRowConverter rowConverter) {
-        super(lookupConf, rowConverter);
-        this.elasticsearchConf = elasticsearchConf;
+        super(lookupConfig, rowConverter);
+        this.elasticsearchConfig = elasticsearchConfig;
         this.keyNames = keyNames;
         this.fieldNames = fieldNames;
     }
@@ -77,12 +71,11 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConf, null);
+        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConfig, null);
     }
 
     @Override
-    public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys)
-            throws Exception {
+    public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys) {
         String cacheKey = buildCacheKey(keys);
         SearchRequest searchRequest = buildSearchRequest(keys);
         rhlClient.searchAsync(
@@ -132,18 +125,12 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
                 });
     }
 
-    /**
-     * build search request
-     *
-     * @param keys
-     * @return
-     */
     private SearchRequest buildSearchRequest(Object... keys) {
         SearchSourceBuilder sourceBuilder =
                 Elasticsearch7RequestFactory.createSourceBuilder(fieldNames, keyNames, keys);
-        sourceBuilder.size(lookupConf.getFetchSize());
+        sourceBuilder.size(lookupConfig.getFetchSize());
         return Elasticsearch7RequestFactory.createSearchRequest(
-                elasticsearchConf.getIndex(), null, sourceBuilder);
+                elasticsearchConfig.getIndex(), null, sourceBuilder);
     }
 
     @Override

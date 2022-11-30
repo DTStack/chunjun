@@ -30,8 +30,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public class SqlserverSourceFactory extends JdbcSourceFactory {
 
-    public SqlserverSourceFactory(SyncConfig syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, null);
+    public SqlserverSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env, null);
         super.jdbcDialect =
                 new SqlserverDialect(
                         jdbcConfig.isWithNoLock(),

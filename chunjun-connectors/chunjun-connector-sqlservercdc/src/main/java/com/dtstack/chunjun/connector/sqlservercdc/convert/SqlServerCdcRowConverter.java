@@ -19,11 +19,10 @@ package com.dtstack.chunjun.connector.sqlservercdc.convert;
 
 import com.dtstack.chunjun.connector.sqlservercdc.entity.ChangeTable;
 import com.dtstack.chunjun.connector.sqlservercdc.entity.SqlServerCdcEventRow;
+import com.dtstack.chunjun.connector.sqlservercdc.format.TimestampFormat;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 
-import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
-import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.RowData;
@@ -33,6 +32,8 @@ import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
+
+import com.google.common.collect.Maps;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -50,7 +51,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 
 public class SqlServerCdcRowConverter
         extends AbstractCDCRowConverter<SqlServerCdcEventRow, LogicalType> {
@@ -120,7 +120,7 @@ public class SqlServerCdcRowConverter
                 return (IDeserializationConverter<Boolean, Boolean>) Boolean::valueOf;
             case TINYINT:
             case SMALLINT:
-                return (IDeserializationConverter<Short, Byte>) val -> val.byteValue();
+                return (IDeserializationConverter<Short, Byte>) Short::byteValue;
             case INTEGER:
                 return (IDeserializationConverter<Integer, Integer>) Integer::valueOf;
             case INTERVAL_YEAR_MONTH:
@@ -167,9 +167,9 @@ public class SqlServerCdcRowConverter
                                             .toInstant(ZoneOffset.UTC));
                         };
             case DOUBLE:
-                return (IDeserializationConverter<Double, Double>) val -> Double.valueOf(val);
+                return (IDeserializationConverter<Double, Double>) Double::valueOf;
             case FLOAT:
-                return (IDeserializationConverter<Float, Float>) val -> Float.valueOf(val);
+                return (IDeserializationConverter<Float, Float>) Float::valueOf;
             case CHAR:
             case VARCHAR:
                 return (IDeserializationConverter<String, StringData>) StringData::fromString;
@@ -184,11 +184,6 @@ public class SqlServerCdcRowConverter
             case VARBINARY:
                 return (IDeserializationConverter<String, byte[]>)
                         val -> val.getBytes(StandardCharsets.UTF_8);
-                //            case ARRAY:
-                //            case MAP:
-                //            case MULTISET:
-                //            case ROW:
-                //            case RAW:
             default:
                 throw new UnsupportedOperationException("Unsupported type: " + type);
         }

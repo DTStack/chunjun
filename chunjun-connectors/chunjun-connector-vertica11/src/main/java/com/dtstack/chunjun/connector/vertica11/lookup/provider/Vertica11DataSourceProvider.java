@@ -26,7 +26,6 @@ import io.vertx.ext.jdbc.spi.DataSourceProvider;
 
 import javax.sql.DataSource;
 
-import java.sql.SQLException;
 import java.util.Map;
 
 public class Vertica11DataSourceProvider implements DataSourceProvider {

@@ -88,7 +88,6 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
      * 初始化LogMinerConf
      *
      * @param config LogMinerConf
-     *
      * @return
      */
     private LogMinerConfig getLogMinerConf(ReadableConfig config) {
@@ -113,7 +112,8 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
 
         logMinerConfig.setTransactionCacheNumSize(
                 config.get(LogminerOptions.TRANSACTION_CACHE_NUM_SIZE));
-        logMinerConfig.setTransactionExpireTime(config.get(LogminerOptions.TRANSACTION_EXPIRE_TIME));
+        logMinerConfig.setTransactionExpireTime(
+                config.get(LogminerOptions.TRANSACTION_EXPIRE_TIME));
 
         logMinerConfig.setPavingData(true);
         logMinerConfig.setSplit(true);

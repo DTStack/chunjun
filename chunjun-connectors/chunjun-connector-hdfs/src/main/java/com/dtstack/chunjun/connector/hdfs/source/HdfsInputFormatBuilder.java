@@ -44,6 +44,5 @@ public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder<BaseHdfsI
     }
 
     @Override
-    protected void checkFormat() {
-    }
+    protected void checkFormat() {}
 }

@@ -44,11 +44,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
 public final class MongodbRowConverter
         extends AbstractRowConverter<Document, Document, Document, LogicalType> {
 
@@ -71,7 +66,7 @@ public final class MongodbRowConverter
         }
     }
 
-    protected MongoDeserializationConverter wrapIntoNullableInternalConverter(
+    private MongoDeserializationConverter wrapIntoNullableInternalConverter(
             MongoDeserializationConverter deserializationConverter) {
         return val -> {
             if (val == null) {
@@ -82,7 +77,7 @@ public final class MongodbRowConverter
         };
     }
 
-    protected MongoSerializationConverter wrapIntoNullableMongodbExternalConverter(
+    private MongoSerializationConverter wrapIntoNullableMongodbExternalConverter(
             MongoSerializationConverter serializationConverter, LogicalType type) {
         return (val, index, key, document) -> {
             if (val == null
@@ -181,7 +176,7 @@ public final class MongodbRowConverter
         }
     }
 
-    protected MongoSerializationConverter createMongodbExternalConverter(LogicalType type) {
+    private MongoSerializationConverter createMongodbExternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
             case BOOLEAN:
                 return (val, index, key, document) -> document.append(key, val.getBoolean(index));

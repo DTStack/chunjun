@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hbase.source;
 
-import com.dtstack.chunjun.config.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hbase.config.HBaseConfigConstants;
 import com.dtstack.chunjun.connector.hbase.util.ScanBuilder;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
@@ -30,9 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * The builder of HbaseInputFormat
- */
+/** The builder of HbaseInputFormat */
 public class HBaseInputFormatBuilder extends BaseRichInputFormatBuilder<HBaseInputFormat> {
 
     public static HBaseInputFormatBuilder newBuild(String tableName, ScanBuilder scanBuilder) {
@@ -100,19 +98,21 @@ public class HBaseInputFormatBuilder extends BaseRichInputFormatBuilder<HBaseInp
         }
     }
 
-    public void setColumnMetaInfos(List<FieldConf> columMetaInfos) {
+    public void setColumnMetaInfos(List<FieldConfig> columMetaInfos) {
         if (columMetaInfos != null && !columMetaInfos.isEmpty()) {
             List<String> nameList =
-                    columMetaInfos.stream().map(FieldConf::getName).collect(Collectors.toList());
+                    columMetaInfos.stream().map(FieldConfig::getName).collect(Collectors.toList());
             setColumnNames(nameList);
             List<String> typeList =
-                    columMetaInfos.stream().map(FieldConf::getType).collect(Collectors.toList());
+                    columMetaInfos.stream().map(FieldConfig::getType).collect(Collectors.toList());
             setColumnTypes(typeList);
             List<String> valueList =
-                    columMetaInfos.stream().map(FieldConf::getValue).collect(Collectors.toList());
+                    columMetaInfos.stream().map(FieldConfig::getValue).collect(Collectors.toList());
             setColumnValues(valueList);
             List<String> formatList =
-                    columMetaInfos.stream().map(FieldConf::getFormat).collect(Collectors.toList());
+                    columMetaInfos.stream()
+                            .map(FieldConfig::getFormat)
+                            .collect(Collectors.toList());
             setColumnFormats(formatList);
         }
     }

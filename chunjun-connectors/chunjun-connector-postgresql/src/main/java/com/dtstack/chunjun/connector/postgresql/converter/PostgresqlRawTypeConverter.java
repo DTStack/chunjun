@@ -29,12 +29,9 @@ import org.apache.flink.table.types.logical.VarCharType;
 
 import java.util.Locale;
 
-
 public class PostgresqlRawTypeConverter {
 
-    /**
-     * inspired by Postgresql doc. https://www.postgresql.org/docs/current/datatype.html
-     */
+    /** inspired by Postgresql doc. https://www.postgresql.org/docs/current/datatype.html */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
                 // Numeric Types
