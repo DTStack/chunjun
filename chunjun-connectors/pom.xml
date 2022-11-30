@@ -101,6 +101,9 @@
 
 		<!--Distribute plugin, just for SYNC-->
 		<module>chunjun-connector-mysqld</module>
+
+		<!-- nebula -->
+		<module>chunjun-connector-nebula</module>
 	</modules>
 
 
