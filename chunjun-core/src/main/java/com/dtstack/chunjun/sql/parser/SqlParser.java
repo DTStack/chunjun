@@ -19,9 +19,9 @@
 package com.dtstack.chunjun.sql.parser;
 
 import com.dtstack.chunjun.throwable.ChunJunSqlParseException;
-import com.dtstack.chunjun.util.DtStringUtil;
 import com.dtstack.chunjun.util.PwdUtil;
 import com.dtstack.chunjun.util.Splitter;
+import com.dtstack.chunjun.util.StringUtil;
 
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
@@ -50,7 +50,7 @@ public class SqlParser {
             throw new IllegalArgumentException("SQL must be not empty!");
         }
 
-        sql = DtStringUtil.dealSqlComment(sql);
+        sql = StringUtil.dealSqlComment(sql);
         StatementSet statement = tableEnvironment.createStatementSet();
         Splitter splitter = new Splitter(SQL_DELIMITER);
         List<String> stmts = splitter.splitEscaped(sql);

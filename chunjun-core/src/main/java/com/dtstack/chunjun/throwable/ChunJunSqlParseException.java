@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.throwable;
 
-import static com.dtstack.chunjun.util.DtStringUtil.addLineNumber;
+import static com.dtstack.chunjun.util.StringUtil.addLineNumber;
 
 public class ChunJunSqlParseException extends ChunJunRuntimeException {
 

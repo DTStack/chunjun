@@ -39,11 +39,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * @company: www.dtstack.com
- * @author: toutian
- * @create: 2019/10/14
- */
 public class ClassLoaderManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClassLoaderManager.class);
