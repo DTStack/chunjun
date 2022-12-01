@@ -22,7 +22,7 @@ import com.dtstack.chunjun.enums.ECacheContentType;
 
 public class CacheMissVal {
 
-    private static CacheObj missObj = CacheObj.buildCacheObj(ECacheContentType.MissVal, null);
+    private static final CacheObj missObj = CacheObj.buildCacheObj(ECacheContentType.MissVal, null);
 
     public static CacheObj getMissKeyObj() {
         return missObj;

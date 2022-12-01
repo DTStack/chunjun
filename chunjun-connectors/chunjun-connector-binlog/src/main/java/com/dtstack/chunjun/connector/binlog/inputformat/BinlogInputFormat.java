@@ -172,7 +172,8 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     protected MysqlEventParser getController(
             String username, String filter, BinlogEventSink binlogEventSink) {
         MysqlEventParser controller = new MysqlEventParser();
-        controller.setConnectionCharset(Charset.forName(binlogConfig.getConnectionCharset()));
+        controller.setConnectionCharset(
+                Charset.forName(binlogConfig.getConnectionCharset()).name());
         controller.setSlaveId(binlogConfig.getSlaveId());
         controller.setDetectingEnable(binlogConfig.isDetectingEnable());
         controller.setDetectingSQL(binlogConfig.getDetectingSQL());

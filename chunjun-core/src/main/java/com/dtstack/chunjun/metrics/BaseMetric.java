@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.metrics;
 
 import com.dtstack.chunjun.constants.Metrics;
-import com.dtstack.chunjun.util.SysUtil;
+import com.dtstack.chunjun.util.ThreadUtil;
 
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -82,7 +82,7 @@ public class BaseMetric {
         try {
             Thread.sleep(DELAY_PERIOD_MILL);
         } catch (InterruptedException e) {
-            SysUtil.sleep(DELAY_PERIOD_MILL);
+            ThreadUtil.sleepMilliseconds(DELAY_PERIOD_MILL);
             LOG.warn("Task thread is interrupted");
         }
     }

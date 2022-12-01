@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 
 public class PluginInfoUtil {
 
@@ -29,8 +28,7 @@ public class PluginInfoUtil {
     private static final String CORE_JAR_NAME_PREFIX = "chunjun";
 
     public static String getCoreJarPath(String pluginRoot) throws FileNotFoundException {
-        String coreJarPath = pluginRoot + File.separator + getCoreJarName(pluginRoot);
-        return coreJarPath;
+        return pluginRoot + File.separator + getCoreJarName(pluginRoot);
     }
 
     public static String getCoreJarName(String pluginRoot) throws FileNotFoundException {
@@ -39,13 +37,9 @@ public class PluginInfoUtil {
         if (pluginDir.exists() && pluginDir.isDirectory()) {
             File[] jarFiles =
                     pluginDir.listFiles(
-                            new FilenameFilter() {
-                                @Override
-                                public boolean accept(File dir, String name) {
-                                    return name.toLowerCase().startsWith(CORE_JAR_NAME_PREFIX)
-                                            && name.toLowerCase().endsWith(".jar");
-                                }
-                            });
+                            (dir, name) ->
+                                    name.toLowerCase().startsWith(CORE_JAR_NAME_PREFIX)
+                                            && name.toLowerCase().endsWith(".jar"));
 
             if (jarFiles != null && jarFiles.length > 0) {
                 coreJarFileName = jarFiles[0].getName();
