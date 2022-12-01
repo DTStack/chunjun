@@ -24,9 +24,12 @@ public enum DecodeEnum {
     JSON("json"),
 
     /** text format */
-    TEXT("text");
+    TEXT("text"),
 
-    private String name;
+    VALUE("value"),
+    ;
+
+    private final String name;
 
     DecodeEnum(String name) {
         this.name = name;

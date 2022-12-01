@@ -29,9 +29,15 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.api.config.TableConfigOptions;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 public class EnvFactory {
 
@@ -44,6 +50,7 @@ public class EnvFactory {
     public static StreamExecutionEnvironment createStreamExecutionEnvironment(Options options) {
         Configuration flinkConf = new Configuration();
         Configuration cfg = Configuration.fromMap(PropertiesUtil.confToMap(options.getConfProp()));
+        registerPluginIntoEnv(cfg, Lists.newArrayList());
         if (StringUtils.isNotEmpty(options.getFlinkConfDir())) {
             flinkConf = GlobalConfiguration.loadConfiguration(options.getFlinkConfDir());
         }
@@ -57,6 +64,32 @@ public class EnvFactory {
         env.getConfig().disableClosureCleaner();
         env.getConfig().setGlobalJobParameters(cfg);
         return env;
+    }
+
+    public static List<URL> parsePluginPath(Options options) {
+        List<URL> pluginPaths = Lists.newArrayList();
+
+        String distDir = options.getChunjunDistDir();
+
+        return pluginPaths;
+    }
+
+    public static void registerPluginIntoEnv(Configuration configuration, List<URL> pluginPaths) {
+        List<String> jars = configuration.get(PipelineOptions.JARS);
+        if (CollectionUtils.isEmpty(jars)) {
+            jars = Lists.newArrayList();
+        }
+        jars.addAll(pluginPaths.stream().map(URL::toString).collect(Collectors.toList()));
+        configuration.set(
+                PipelineOptions.JARS, jars.stream().distinct().collect(Collectors.toList()));
+        List<String> classpath = configuration.get(PipelineOptions.CLASSPATHS);
+        if (classpath == null) {
+            classpath = new ArrayList<>();
+        }
+        classpath.addAll(pluginPaths.stream().map(URL::toString).collect(Collectors.toList()));
+        configuration.set(
+                PipelineOptions.CLASSPATHS,
+                classpath.stream().distinct().collect(Collectors.toList()));
     }
 
     public static StreamTableEnvironment createStreamTableEnvironment(

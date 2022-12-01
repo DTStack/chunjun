@@ -115,14 +115,14 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
     private void processFailResponse(BulkResponse response) {
         BulkItemResponse[] itemResponses = response.getItems();
         WriteRecordException exception;
-        for (int i = 0; i < itemResponses.length; i++) {
-            if (itemResponses[i].isFailed()) {
-                if (dirtyDataManager != null) {
+        for (BulkItemResponse itemResponds : itemResponses) {
+            if (itemResponds.isFailed()) {
+                if (dirtyManager != null) {
                     exception =
                             new WriteRecordException(
-                                    itemResponses[i].getFailureMessage(),
-                                    itemResponses[i].getFailure().getCause());
-                    dirtyDataManager.writeData(rows.get(i), exception);
+                                    itemResponds.getFailureMessage(),
+                                    itemResponds.getFailure().getCause());
+                    dirtyManager.collect(response, exception, null);
                 }
 
                 if (errCounter != null) {
