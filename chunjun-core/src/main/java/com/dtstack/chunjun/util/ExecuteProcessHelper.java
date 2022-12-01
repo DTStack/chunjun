@@ -36,10 +36,7 @@ import java.io.File;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
-
-import static com.dtstack.chunjun.constants.ConfigConstant.SAMPLE_INTERVAL_COUNT;
 
 public class ExecuteProcessHelper {
 
@@ -62,11 +59,6 @@ public class ExecuteProcessHelper {
                     || StringUtils.equalsIgnoreCase(deployMode, ClusterMode.local.name());
         }
         return true;
-    }
-
-    private static void setSamplingIntervalCount(Properties properties) {
-        SampleUtils.setSamplingIntervalCount(
-                Integer.parseInt(properties.getProperty(SAMPLE_INTERVAL_COUNT, "0")));
     }
 
     public static List<URL> getExternalJarUrls(String addJarListStr) throws java.io.IOException {

@@ -46,12 +46,12 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         try {
-            @SuppressWarnings("unchecked")
             RowData row =
                     (RowData)
                             rowConverter.toExternal(
                                     rowData,
                                     new GenericRowData(rowData.getRowKind(), rowData.getArity()));
+            row.setRowKind(rowData.getRowKind());
             if (streamConfig.getPrint()) {
                 TablePrintUtil.printTable(row, getFieldNames(rowData));
             }

@@ -23,13 +23,13 @@ import com.google.common.cache.CacheBuilder;
 
 import java.util.concurrent.TimeUnit;
 
-public class LRUSideCache extends AbstractSideCache {
+public class LRUCache extends AbstractSideCache {
 
     protected transient Cache<String, CacheObj> cache;
-    private Long cacheSize;
-    private Long timeOut;
+    private final Long cacheSize;
+    private final Long timeOut;
 
-    public LRUSideCache(Long cacheSize, Long timeOut) {
+    public LRUCache(Long cacheSize, Long timeOut) {
         this.cacheSize = cacheSize;
         this.timeOut = timeOut;
     }

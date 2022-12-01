@@ -143,205 +143,197 @@
 		</dependency>
 
 		<!--MQ-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-kafka</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--			<exclusions>-->
-<!--				<exclusion>-->
-<!--					<artifactId>snappy-java</artifactId>-->
-<!--					<groupId>org.xerial.snappy</groupId>-->
-<!--				</exclusion>-->
-<!--				<exclusion>-->
-<!--					<groupId>org.apache.flink</groupId>-->
-<!--					<artifactId>flink-avro-confluent-registry</artifactId>-->
-<!--				</exclusion>-->
-<!--			</exclusions>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-emqx</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-rabbitmq</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-
-		<!--RDB-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-mysql</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-mysqlcdc</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-mysqld</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-oracle</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-sqlserver</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-db2</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-postgresql</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-greenplum</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-dm</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-clickhouse</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-saphana</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-		<!--<dependency>-->
-		<!--	<groupId>com.dtstack.chunjun</groupId>-->
-		<!--	<artifactId>chunjun-connector-inceptor</artifactId>-->
-		<!--	<version>${project.version}</version>-->
-		<!--</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-oceanbase</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
 		<!--		<dependency>-->
 		<!--			<groupId>com.dtstack.chunjun</groupId>-->
-		<!--			<artifactId>chunjun-connector-oceanbasecdc</artifactId>-->
+		<!--			<artifactId>chunjun-connector-kafka</artifactId>-->
 		<!--			<version>${project.version}</version>-->
+		<!--			<exclusions>-->
+		<!--				<exclusion>-->
+		<!--					<artifactId>snappy-java</artifactId>-->
+		<!--					<groupId>org.xerial.snappy</groupId>-->
+		<!--				</exclusion>-->
+		<!--				<exclusion>-->
+		<!--					<groupId>org.apache.flink</groupId>-->
+		<!--					<artifactId>flink-avro-confluent-registry</artifactId>-->
+		<!--				</exclusion>-->
+		<!--			</exclusions>-->
 		<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-sybase</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-emqx</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-rabbitmq</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-vertica11</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
+		<!--		RDB-->
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-mysql</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-mysqlcdc</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-mysqld</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-oracle</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-sqlserver</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-db2</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-postgresql</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-greenplum</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-dm</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-clickhouse</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-saphana</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-<!--		&lt;!&ndash;File&ndash;&gt;-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-file</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-ftp</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-		<!--		<dependency>-->
-		<!--			<groupId>com.dtstack.chunjun</groupId>-->
-		<!--			<artifactId>chunjun-connector-hdfs</artifactId>-->
-		<!--			<version>${project.version}</version>-->
-		<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-hive</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-s3</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-oceanbase</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-oceanbasecdc</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-sybase</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-<!--		&lt;!&ndash;NoSql&ndash;&gt;-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-hbase-1.4</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-		<!--		<dependency>-->
-		<!--			<groupId>com.dtstack.chunjun</groupId>-->
-		<!--			<artifactId>chunjun-connector-elasticsearch5</artifactId>-->
-		<!--			<version>${project.version}</version>-->
-		<!--		</dependency>-->
-		<!--		<dependency>-->
-		<!--			<groupId>com.dtstack.chunjun</groupId>-->
-		<!--			<artifactId>chunjun-connector-elasticsearch6</artifactId>-->
-		<!--			<version>${project.version}</version>-->
-		<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-elasticsearch7</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-redis</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-mongodb</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-solr</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-kudu</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-doris</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-		<!--		<dependency>-->
-		<!--			<groupId>com.dtstack.chunjun</groupId>-->
-		<!--			<artifactId>chunjun-connector-starrocks</artifactId>-->
-		<!--			<version>${project.version}</version>-->
-		<!--		</dependency>-->
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-vertica11</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-		<!--CDC-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-binlog</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.chunjun</groupId>-->
-<!--			<artifactId>chunjun-connector-oraclelogminer</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
+		<!--File-->
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-file</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-ftp</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-hdfs</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-hive</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-s3</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!--NoSql-->
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-hbase-1.4</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-elasticsearch6</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-elasticsearch7</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-redis</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-mongodb</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-solr</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-kudu</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-doris</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-starrocks</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!--		CDC-->
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-binlog</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-oraclelogminer</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!--Network-->
 

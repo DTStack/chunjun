@@ -58,8 +58,8 @@ public class ColumnTypeUtil {
     }
 
     public static class DecimalInfo {
-        private int precision;
-        private int scale;
+        private final int precision;
+        private final int scale;
 
         public DecimalInfo(int precision, int scale) {
             this.precision = precision;

@@ -35,7 +35,6 @@ import com.dtstack.chunjun.metrics.AccumulatorCollector;
 import com.dtstack.chunjun.metrics.BaseMetric;
 import com.dtstack.chunjun.metrics.RowSizeCalculator;
 import com.dtstack.chunjun.restore.FormatState;
-import com.dtstack.chunjun.sink.DirtyDataManager;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.NoRestartException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
@@ -136,8 +135,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     protected AbstractRowConverter rowConverter;
     /** 是否需要初始化脏数据和累加器，目前只有hive插件该参数设置为false */
     protected boolean initAccumulatorAndDirty = true;
-    /** 脏数据管理器 */
-    protected DirtyDataManager dirtyDataManager;
     /** 输出指标组 */
     protected transient BaseMetric outputMetric;
     /** cp和flush互斥条件 */
@@ -343,15 +340,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
         if (outputMetric != null) {
             outputMetric.waitForReportMetrics();
-        }
-
-        if (dirtyDataManager != null) {
-            try {
-                dirtyDataManager.close();
-            } catch (Exception e) {
-                LOG.error(
-                        "dirtyDataManager.close() Exception:{}", ExceptionUtil.getErrorMessage(e));
-            }
         }
 
         if (accumulatorCollector != null) {
@@ -685,10 +673,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     public void setFormatId(String formatId) {
         this.formatId = formatId;
-    }
-
-    public void setDirtyDataManager(DirtyDataManager dirtyDataManager) {
-        this.dirtyDataManager = dirtyDataManager;
     }
 
     public CommonConfig getConfig() {

@@ -32,7 +32,7 @@
 	<name>ChunJun : Connectors : Binlog</name>
 
 	<properties>
-		<canal.version>1.1.4</canal.version>
+		<canal.version>1.1.6</canal.version>
 		<connector.dir>binlog</connector.dir>
 	</properties>
 

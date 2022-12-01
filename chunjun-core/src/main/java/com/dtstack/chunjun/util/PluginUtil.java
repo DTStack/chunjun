@@ -229,7 +229,7 @@ public class PluginUtil {
                         DIRTY_PACKAGE_STR
                                 + pluginName
                                 + "."
-                                + DtStringUtil.captureFirstLetter(pluginName)
+                                + StringUtil.captureFirstLetter(pluginName)
                                 + DIRTY_CLASS_SUFFIX;
                 break;
             case ddl:
@@ -237,7 +237,7 @@ public class PluginUtil {
                         RESTORE_PACKAGE_STR
                                 + pluginName
                                 + "."
-                                + DtStringUtil.captureFirstLetter(pluginName)
+                                + StringUtil.captureFirstLetter(pluginName)
                                 + DDL_HANDLER_CLASS_SUFFIX;
                 break;
 
@@ -246,7 +246,7 @@ public class PluginUtil {
                         RESTORE_PACKAGE_STR
                                 + pluginName
                                 + "."
-                                + DtStringUtil.captureFirstLetter(pluginName)
+                                + StringUtil.captureFirstLetter(pluginName)
                                 + CACHE_HANDLER_CLASS_SUFFIX;
                 break;
 
@@ -255,7 +255,7 @@ public class PluginUtil {
                         RESTORE_DDL_CONVENT
                                 + pluginName
                                 + "."
-                                + DtStringUtil.captureFirstLetter(pluginName)
+                                + StringUtil.captureFirstLetter(pluginName)
                                 + DDL_CONVENT_CLASS_SUFFIX;
                 break;
 

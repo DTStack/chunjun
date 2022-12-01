@@ -24,9 +24,8 @@ import com.dtstack.chunjun.enums.CacheType;
 import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.lookup.cache.AbstractSideCache;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.cache.LRUSideCache;
+import com.dtstack.chunjun.lookup.cache.LRUCache;
 import com.dtstack.chunjun.lookup.config.LookupConfig;
-import com.dtstack.chunjun.util.ReflectionUtils;
 
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -45,7 +44,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -97,7 +95,7 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
         }
 
         if (CacheType.LRU.name().equalsIgnoreCase(lookupConfig.getCache())) {
-            sideCache = new LRUSideCache(lookupConfig.getCacheSize(), lookupConfig.getCacheTtl());
+            sideCache = new LRUCache(lookupConfig.getCacheSize(), lookupConfig.getCacheTtl());
         } else {
             throw new RuntimeException(
                     "not support side cache with type:" + lookupConfig.getCache());
@@ -186,7 +184,7 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
                                             "Async function call timedOutNum beyond limit. %s",
                                             lookupConfig.getErrorLimit()))));
         } else {
-            future.complete(Collections.EMPTY_LIST);
+            future.complete(Collections.emptyList());
         }
     }
 
@@ -294,7 +292,7 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
      * @return
      */
     public String buildCacheKey(Object... keys) {
-        return Arrays.stream(keys).map(e -> String.valueOf(e)).collect(Collectors.joining("_"));
+        return Arrays.stream(keys).map(String::valueOf).collect(Collectors.joining("_"));
     }
 
     private ProcessingTimeService getProcessingTimeService() {
@@ -337,17 +335,6 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
                 lookupConfig.getAsyncTimeout() + processingTimeService.getCurrentProcessingTime();
         return processingTimeService.registerTimer(
                 timeoutTimestamp, timestamp -> timeout(future, keys));
-    }
-
-    protected void registerTimerAndAddToHandler(
-            CompletableFuture<Collection<RowData>> future, Object... keys)
-            throws InvocationTargetException, IllegalAccessException {
-        ScheduledFuture<?> timeFuture = registerTimer(future, keys);
-        // resultFuture 是ResultHandler 的实例
-        Method setTimeoutTimer =
-                ReflectionUtils.getDeclaredMethod(future, "setTimeoutTimer", ScheduledFuture.class);
-        setTimeoutTimer.setAccessible(true);
-        setTimeoutTimer.invoke(future, timeFuture);
     }
 
     /**
