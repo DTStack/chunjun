@@ -85,7 +85,7 @@
 		<flink.surefire.baseArgLine>-XX:+UseG1GC -Xms256m</flink.surefire.baseArgLine>
 		<test.unit.pattern>**/*Test.*</test.unit.pattern>
 
-		<spotless.version>2.13.0</spotless.version>
+		<spotless.version>2.28.0</spotless.version>
 	</properties>
 
 	<licenses>

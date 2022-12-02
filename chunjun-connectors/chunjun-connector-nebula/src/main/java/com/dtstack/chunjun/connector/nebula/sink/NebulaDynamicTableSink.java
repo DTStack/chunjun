@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.sink;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +16,9 @@ package com.dtstack.chunjun.connector.nebula.sink;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.sink;
+
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.converter.NebulaRowConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
@@ -29,23 +30,20 @@ import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/14 3:48 下午
- */
 public class NebulaDynamicTableSink implements DynamicTableSink {
 
     protected final ResolvedSchema tableSchema;
 
-    protected final NebulaConf nebulaConf;
+    protected final NebulaConfig nebulaConfig;
 
     protected final NebulaOutputFormatBuilder builder;
 
     public NebulaDynamicTableSink(
-            ResolvedSchema tableSchema, NebulaConf nebulaConf, NebulaOutputFormatBuilder builder) {
+            ResolvedSchema tableSchema,
+            NebulaConfig nebulaConfig,
+            NebulaOutputFormatBuilder builder) {
         this.tableSchema = tableSchema;
-        this.nebulaConf = nebulaConf;
+        this.nebulaConfig = nebulaConfig;
         this.builder = builder;
     }
 
@@ -62,15 +60,15 @@ public class NebulaDynamicTableSink implements DynamicTableSink {
         final RowType rowType =
                 InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType())
                         .toRowType();
-        builder.setNebulaConfig(nebulaConf);
+        builder.setNebulaConfig(nebulaConfig);
         builder.setRowConverter(new NebulaRowConverter(rowType));
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction(builder.finish()), nebulaConf.getWriteTasks());
+                new DtOutputFormatSinkFunction<>(builder.finish()), nebulaConfig.getWriteTasks());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new NebulaDynamicTableSink(tableSchema, nebulaConf, builder);
+        return new NebulaDynamicTableSink(tableSchema, nebulaConfig, builder);
     }
 
     @Override

@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.lookup;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,9 +16,11 @@ package com.dtstack.chunjun.connector.nebula.lookup;
  * limitations under the License.
  */
 
+package com.dtstack.chunjun.connector.nebula.lookup;
+
 import com.dtstack.chunjun.connector.nebula.client.NebulaClientFactory;
 import com.dtstack.chunjun.connector.nebula.client.NebulaStorageClient;
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.row.NebulaTableRow;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
@@ -35,34 +36,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/10 4:58 下午
- */
 public class NebulaAllTableFunction extends AbstractAllTableFunction {
 
     private static final long serialVersionUID = 1L;
 
     private final Logger LOG = LoggerFactory.getLogger(NebulaAllTableFunction.class);
 
-    private final NebulaConf nebulaConf;
+    private final NebulaConfig nebulaConfig;
 
     private NebulaStorageClient client;
 
     public NebulaAllTableFunction(
-            NebulaConf nebulaConf,
+            NebulaConfig nebulaConfig,
             String[] fieldNames,
             String[] keyNames,
             LookupConfig lookupConf,
             AbstractRowConverter rowConverter) {
         super(fieldNames, keyNames, lookupConf, rowConverter);
-        this.nebulaConf = nebulaConf;
+        this.nebulaConfig = nebulaConfig;
     }
 
     @Override
     public void open(FunctionContext context) throws Exception {
-        client = NebulaClientFactory.createNebulaStorageClient(nebulaConf);
+        client = NebulaClientFactory.createNebulaStorageClient(nebulaConfig);
         client.init();
     }
 
@@ -70,7 +66,7 @@ public class NebulaAllTableFunction extends AbstractAllTableFunction {
     protected void loadData(Object cacheRef) {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
-        NebulaTableRow nebulaTableRow = null;
+        NebulaTableRow nebulaTableRow;
         try {
             nebulaTableRow = client.fetchAllData();
             while (nebulaTableRow.hasNext()) {
@@ -84,13 +80,12 @@ public class NebulaAllTableFunction extends AbstractAllTableFunction {
                 buildCache(row, tmpCache);
             }
         } catch (Exception e) {
-            LOG.error("fatch data from nebula error: {}", e.getMessage(), e);
+            LOG.error("fetch data from nebula error: {}", e.getMessage(), e);
         }
     }
 
     @Override
-    public void close() throws Exception {
-
+    public void close() {
         if (client != null) {
             client.close();
         }

@@ -17,61 +17,41 @@
  */
 
 package com.dtstack.chunjun.connector.nebula.source;
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @author: gaoasi
- * @create: 2022/09/22
- */
 public class NebulaInputFormatBuilder extends BaseRichInputFormatBuilder<NebulaInputFormat> {
 
     public NebulaInputFormatBuilder(NebulaInputFormat inputFormat) {
         super(inputFormat);
     }
 
-    public void setNebulaConf(NebulaConf nebulaConf) {
-        super.setConfig(nebulaConf);
-        format.setNebulaConf(nebulaConf);
+    public void setNebulaConf(NebulaConfig nebulaConfig) {
+        super.setConfig(nebulaConfig);
+        format.setNebulaConf(nebulaConfig);
     }
 
     @Override
     protected void checkFormat() {
-        NebulaConf nebulaConf = format.getNebulaConf();
-        if (StringUtils.isBlank(nebulaConf.getSpace())) {
+        NebulaConfig nebulaConfig = format.getNebulaConf();
+        if (StringUtils.isBlank(nebulaConfig.getSpace())) {
             throw new IllegalArgumentException("need graph space name");
         }
-        if ((nebulaConf.getStorageAddresses() == null || nebulaConf.getStorageAddresses().isEmpty())
-                && (nebulaConf.getGraphdAddresses() == null
-                        || nebulaConf.getGraphdAddresses().isEmpty())) {
+        if ((nebulaConfig.getStorageAddresses() == null
+                        || nebulaConfig.getStorageAddresses().isEmpty())
+                && (nebulaConfig.getGraphdAddresses() == null
+                        || nebulaConfig.getGraphdAddresses().isEmpty())) {
             throw new IllegalArgumentException("need graph server host:port");
         }
 
-        if (StringUtils.isBlank(nebulaConf.getEntityName())) {
+        if (StringUtils.isBlank(nebulaConfig.getEntityName())) {
             throw new IllegalArgumentException("need graph schema name");
         }
 
-        if (nebulaConf.getSchemaType() == null) {
+        if (nebulaConfig.getSchemaType() == null) {
             throw new IllegalArgumentException("need graph schema type!");
         }
     }

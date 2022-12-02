@@ -17,27 +17,11 @@
  */
 
 package com.dtstack.chunjun.connector.nebula.sink;
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
 import com.dtstack.chunjun.connector.nebula.client.NebulaClientFactory;
 import com.dtstack.chunjun.connector.nebula.client.NebulaSession;
 import com.dtstack.chunjun.connector.nebula.client.NebulaStorageClient;
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.row.NebulaRows;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -53,21 +37,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author: gaoasi
- * @create: 2022/09/22
- */
 public class NebulaOutputFormat extends BaseRichOutputFormat {
 
-    private NebulaConf nebulaConf;
+    private NebulaConfig nebulaConfig;
 
     private NebulaSession session;
     private NebulaStorageClient storageClient;
 
     @Override
     public void initializeGlobal(int parallelism) {
-        session = NebulaClientFactory.createNebulaSession(nebulaConf);
-        storageClient = NebulaClientFactory.createNebulaStorageClient(nebulaConf);
+        session = NebulaClientFactory.createNebulaSession(nebulaConfig);
+        storageClient = NebulaClientFactory.createNebulaStorageClient(nebulaConfig);
         try {
             session.init();
             storageClient.init();
@@ -96,8 +76,8 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        session = NebulaClientFactory.createNebulaSession(nebulaConf);
-        storageClient = NebulaClientFactory.createNebulaStorageClient(nebulaConf);
+        session = NebulaClientFactory.createNebulaSession(nebulaConfig);
+        storageClient = NebulaClientFactory.createNebulaStorageClient(nebulaConfig);
         try {
             session.init();
             storageClient.init();
@@ -107,7 +87,7 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void closeInternal() throws IOException {
+    protected void closeInternal() {
         if (session != null) {
             session.close();
         }
@@ -123,13 +103,13 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
      * @throws Exception
      */
     private void flush(List<RowData> rows) throws Exception {
-        String statements = null;
-        NebulaRows nebulaRows = new NebulaRows(nebulaConf);
+        String statements;
+        NebulaRows nebulaRows = new NebulaRows(nebulaConfig);
         for (RowData row : rows) {
             nebulaRows = (NebulaRows) rowConverter.toExternal(row, nebulaRows);
         }
-        String useSpace = String.format("use %s;", nebulaConf.getSpace());
-        switch (nebulaConf.getMode()) {
+        String useSpace = String.format("use %s;", nebulaConfig.getSpace());
+        switch (nebulaConfig.getMode()) {
             case UPSERT:
                 statements = useSpace + nebulaRows.getUpsertStatement();
                 break;
@@ -146,13 +126,11 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
             if (!res.isSucceeded()) {
                 LOG.warn("write failed!");
                 for (RowData row : rows) {
-                    if (dirtyDataManager != null) {
-                        WriteRecordException exception =
-                                new WriteRecordException(
-                                        res.getErrorMessage(),
-                                        new ChunJunRuntimeException(res.getErrorMessage()));
-                        dirtyDataManager.writeData(row, exception);
-                    }
+                    WriteRecordException exception =
+                            new WriteRecordException(
+                                    res.getErrorMessage(),
+                                    new ChunJunRuntimeException(res.getErrorMessage()));
+                    dirtyManager.collect(row, exception, null);
                 }
                 if (errCounter != null) {
                     errCounter.add(rows.size());
@@ -162,10 +140,8 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
             LOG.error("write failed!");
             WriteRecordException exception;
             for (RowData row : rows) {
-                if (dirtyDataManager != null) {
-                    exception = new WriteRecordException(e.getMessage(), e);
-                    dirtyDataManager.writeData(row, exception);
-                }
+                exception = new WriteRecordException(e.getMessage(), e);
+                dirtyManager.collect(row, exception, null);
             }
 
             if (errCounter != null) {
@@ -174,12 +150,12 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    public NebulaConf getNebulaConf() {
-        return nebulaConf;
+    public NebulaConfig getNebulaConf() {
+        return nebulaConfig;
     }
 
-    public void setNebulaConf(NebulaConf nebulaConf) {
-        this.nebulaConf = nebulaConf;
+    public void setNebulaConf(NebulaConfig nebulaConfig) {
+        this.nebulaConfig = nebulaConfig;
     }
 
     /**
@@ -188,10 +164,10 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
      * @throws IOErrorException
      */
     private void check() throws IOErrorException, InterruptedException {
-        Boolean spaceExist = storageClient.isSpaceExist(nebulaConf.getSpace());
+        Boolean spaceExist = storageClient.isSpaceExist(nebulaConfig.getSpace());
         if (!spaceExist) {
             LOG.info("space dose not exist,create space");
-            ResultSet res = session.createSpace(nebulaConf.getSpace());
+            ResultSet res = session.createSpace(nebulaConfig.getSpace());
             if (!res.isSucceeded()) {
                 throw new ChunJunRuntimeException("create space failed: " + res.getErrorMessage());
             }
@@ -199,10 +175,11 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
             Thread.sleep(1000 * 5L);
         }
         Boolean schemaExist =
-                storageClient.isSchemaExist(nebulaConf.getSpace(), nebulaConf.getEntityName());
+                storageClient.isSchemaExist(nebulaConfig.getSpace(), nebulaConfig.getEntityName());
         if (!schemaExist) {
             LOG.info("tag/edge dose not exist,create tag/edge");
-            ResultSet res = session.createSchema(nebulaConf.getSpace(), nebulaConf.getEntityName());
+            ResultSet res =
+                    session.createSchema(nebulaConfig.getSpace(), nebulaConfig.getEntityName());
             if (!res.isSucceeded()) {
                 throw new ChunJunRuntimeException(
                         "create tag/edge failed: " + res.getErrorMessage());

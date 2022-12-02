@@ -32,7 +32,7 @@
 
     <properties>
 		<!-- TODO before this version,the class <HostAddress.class> did not implements Serializable, change the version in some future-->
-        <nebula.version>3.0-SNAPSHOT</nebula.version>
+        <nebula.version>3.3.0</nebula.version>
 		<connector.dir>nebula</connector.dir>
     </properties>
 

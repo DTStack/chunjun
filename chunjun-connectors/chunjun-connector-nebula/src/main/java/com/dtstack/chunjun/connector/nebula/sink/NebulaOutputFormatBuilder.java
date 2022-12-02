@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.sink;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,58 +16,55 @@ package com.dtstack.chunjun.connector.nebula.sink;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.sink;
+
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @author: gaoasi
- * @create: 2022/09/22
- */
-public class NebulaOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    private NebulaOutputFormat outputFormat;
+public class NebulaOutputFormatBuilder extends BaseRichOutputFormatBuilder<NebulaOutputFormat> {
 
     public NebulaOutputFormatBuilder(NebulaOutputFormat outputFormat) {
         super(outputFormat);
-        this.outputFormat = outputFormat;
+        this.format = outputFormat;
     }
 
-    public void setNebulaConfig(NebulaConf nebulaConf) {
-        super.setConfig(nebulaConf);
-        this.outputFormat.setNebulaConf(nebulaConf);
+    public void setNebulaConfig(NebulaConfig nebulaConfig) {
+        super.setConfig(nebulaConfig);
+        this.format.setNebulaConf(nebulaConfig);
     }
 
     @Override
     public void setRowConverter(AbstractRowConverter rowConverter) {
-        this.outputFormat.setRowConverter(rowConverter);
+        this.format.setRowConverter(rowConverter);
     }
 
     @Override
     protected void checkFormat() {
-        NebulaConf nebulaConf = outputFormat.getNebulaConf();
-        if (StringUtils.isBlank(nebulaConf.getSpace())) {
+        NebulaConfig nebulaConfig = format.getNebulaConf();
+        if (StringUtils.isBlank(nebulaConfig.getSpace())) {
             throw new IllegalArgumentException("need graph space name");
         }
-        if (nebulaConf.getGraphdAddresses() == null || nebulaConf.getGraphdAddresses().isEmpty()) {
+        if (nebulaConfig.getGraphdAddresses() == null
+                || nebulaConfig.getGraphdAddresses().isEmpty()) {
             throw new IllegalArgumentException("need graph server host:port");
         }
 
-        if (StringUtils.isBlank(nebulaConf.getEntityName())) {
+        if (StringUtils.isBlank(nebulaConfig.getEntityName())) {
             throw new IllegalArgumentException("need graph schema name");
         }
 
-        if (nebulaConf.getSchemaType() == null) {
+        if (nebulaConfig.getSchemaType() == null) {
             throw new IllegalArgumentException("need graph schema type!");
         }
 
-        if (nebulaConf.getUsername() == null) {
+        if (nebulaConfig.getUsername() == null) {
             throw new IllegalArgumentException("need username!");
         }
 
-        if (nebulaConf.getPassword() == null) {
+        if (nebulaConfig.getPassword() == null) {
             throw new IllegalArgumentException("need password!");
         }
     }

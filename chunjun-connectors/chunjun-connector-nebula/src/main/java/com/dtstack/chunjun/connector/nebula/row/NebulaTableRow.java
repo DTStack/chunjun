@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.row;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +16,9 @@ package com.dtstack.chunjun.connector.nebula.row;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.row;
+
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
@@ -33,16 +34,11 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/4 4:47 下午
- */
 public class NebulaTableRow implements Serializable {
 
-    private ScanResultIterator scanResult;
+    private final ScanResultIterator scanResult;
 
-    private NebulaConf nebulaConf;
+    private final NebulaConfig nebulaConfig;
 
     private Boolean hasNextScan;
 
@@ -50,8 +46,8 @@ public class NebulaTableRow implements Serializable {
 
     private Iterator<EdgeTableRow> edgeTableRow;
 
-    public NebulaTableRow(ScanResultIterator scanResult, NebulaConf conf) {
-        this.nebulaConf = conf;
+    public NebulaTableRow(ScanResultIterator scanResult, NebulaConfig conf) {
+        this.nebulaConfig = conf;
         this.scanResult = scanResult;
         hasNextScan = hasNextScan();
         if (hasNextScan) {
@@ -65,7 +61,7 @@ public class NebulaTableRow implements Serializable {
 
     public void scanNext() {
         try {
-            switch (nebulaConf.getSchemaType()) {
+            switch (nebulaConfig.getSchemaType()) {
                 case TAG:
                 case VERTEX:
                     vertexTableRow =
@@ -90,7 +86,7 @@ public class NebulaTableRow implements Serializable {
 
     public Boolean hasNext() {
         Boolean has;
-        switch (nebulaConf.getSchemaType()) {
+        switch (nebulaConfig.getSchemaType()) {
             case TAG:
             case VERTEX:
                 has = vertexTableRow.hasNext();
@@ -100,7 +96,8 @@ public class NebulaTableRow implements Serializable {
                 has = edgeTableRow.hasNext();
                 break;
             default:
-                throw new IllegalStateException("Unexpected value: " + nebulaConf.getSchemaType());
+                throw new IllegalStateException(
+                        "Unexpected value: " + nebulaConfig.getSchemaType());
         }
         if (!has) {
             if (hasNextScan()) {
@@ -112,7 +109,7 @@ public class NebulaTableRow implements Serializable {
     }
 
     public BaseTableRow next() {
-        switch (nebulaConf.getSchemaType()) {
+        switch (nebulaConfig.getSchemaType()) {
             case TAG:
             case VERTEX:
                 return vertexTableRow.next();
@@ -120,7 +117,8 @@ public class NebulaTableRow implements Serializable {
             case EDGE_TYPE:
                 return edgeTableRow.next();
             default:
-                throw new IllegalStateException("Unexpected value: " + nebulaConf.getSchemaType());
+                throw new IllegalStateException(
+                        "Unexpected value: " + nebulaConfig.getSchemaType());
         }
     }
 

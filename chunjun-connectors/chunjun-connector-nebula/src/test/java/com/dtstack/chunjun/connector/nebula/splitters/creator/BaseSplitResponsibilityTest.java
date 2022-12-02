@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.splitters.creator;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,8 +16,9 @@ package com.dtstack.chunjun.connector.nebula.splitters.creator;
  * limitations under the License.
  */
 
+package com.dtstack.chunjun.connector.nebula.splitters.creator;
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.splitters.NebulaInputSplitter;
 
 import org.junit.Before;
@@ -27,78 +27,74 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/7 5:40 下午
- */
 public class BaseSplitResponsibilityTest {
 
     private int minNumSplits;
     private int partNum;
     private NebulaInputSplitter[] nebulaInputSplitters;
     private List<Integer> spaceParts;
-    private NebulaConf nebulaConf;
+    private NebulaConfig nebulaConfig;
 
     @Before
-    public void initConf(){
-        nebulaConf = new NebulaConf();
-        nebulaConf.setStart(100L);
-        nebulaConf.setEnd(200L);
-        nebulaConf.setInterval(10L);
+    public void initConf() {
+        nebulaConfig = new NebulaConfig();
+        nebulaConfig.setStart(100L);
+        nebulaConfig.setEnd(200L);
+        nebulaConfig.setInterval(10L);
     }
 
-
-
-    public void eq(){
+    public void eq() {
         minNumSplits = 3;
         partNum = 3;
-        spaceParts = Arrays.asList(1,2,3);
+        spaceParts = Arrays.asList(1, 2, 3);
         nebulaInputSplitters = new NebulaInputSplitter[minNumSplits];
     }
 
-    public void gt(){
+    public void gt() {
         minNumSplits = 5;
         partNum = 3;
-        spaceParts = Arrays.asList(1,2,3);
+        spaceParts = Arrays.asList(1, 2, 3);
         nebulaInputSplitters = new NebulaInputSplitter[minNumSplits];
     }
 
-    public void lt(){
+    public void lt() {
         minNumSplits = 3;
         partNum = 7;
-        spaceParts = Arrays.asList(1,2,3,4,5,6,7);
+        spaceParts = Arrays.asList(1, 2, 3, 4, 5, 6, 7);
         nebulaInputSplitters = new NebulaInputSplitter[minNumSplits];
     }
 
     @Test
-    public void testEqualSplitCreate(){
+    public void testEqualSplitCreate() {
         eq();
         BaseSplitResponsibility baseSplitResponsibility = new BaseSplitResponsibility(true);
-        System.out.println(nebulaConf.getInterval());
-        System.out.println(nebulaConf.getStart());
-        System.out.println(nebulaConf.getEnd());
-        baseSplitResponsibility.createSplit(minNumSplits,partNum,nebulaInputSplitters,spaceParts,nebulaConf);
+        System.out.println(nebulaConfig.getInterval());
+        System.out.println(nebulaConfig.getStart());
+        System.out.println(nebulaConfig.getEnd());
+        baseSplitResponsibility.createSplit(
+                minNumSplits, partNum, nebulaInputSplitters, spaceParts, nebulaConfig);
         print();
     }
 
     @Test
-    public void testGTSplitCreate(){
+    public void testGTSplitCreate() {
         gt();
         BaseSplitResponsibility baseSplitResponsibility = new BaseSplitResponsibility(true);
-        baseSplitResponsibility.createSplit(minNumSplits,partNum,nebulaInputSplitters,spaceParts,nebulaConf);
+        baseSplitResponsibility.createSplit(
+                minNumSplits, partNum, nebulaInputSplitters, spaceParts, nebulaConfig);
         print();
     }
 
     @Test
-    public void testLTSplitCreate(){
+    public void testLTSplitCreate() {
         lt();
         BaseSplitResponsibility baseSplitResponsibility = new BaseSplitResponsibility(true);
-        baseSplitResponsibility.createSplit(minNumSplits,partNum,nebulaInputSplitters,spaceParts,nebulaConf);
+        baseSplitResponsibility.createSplit(
+                minNumSplits, partNum, nebulaInputSplitters, spaceParts, nebulaConfig);
         print();
     }
 
-    public void print(){
+    public void print() {
         for (NebulaInputSplitter nebulaInputSplitter : nebulaInputSplitters) {
             System.out.println(nebulaInputSplitter.toString());
         }

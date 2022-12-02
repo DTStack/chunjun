@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.splitters.creator;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,16 +16,13 @@ package com.dtstack.chunjun.connector.nebula.splitters.creator;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.splitters.creator;
+
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.splitters.NebulaInputSplitter;
 
 import java.util.List;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/3 5:28 下午
- */
 public class SplitNumGTPartNumSplitCtreator extends BaseSplitResponsibility {
 
     public SplitNumGTPartNumSplitCtreator(Boolean init) {
@@ -39,16 +35,17 @@ public class SplitNumGTPartNumSplitCtreator extends BaseSplitResponsibility {
             int partNum,
             NebulaInputSplitter[] nebulaInputSplitters,
             List<Integer> spaceParts,
-            NebulaConf nebulaConf) {
+            NebulaConfig nebulaConfig) {
         if (minNumSplits > partNum) {
             int times =
                     minNumSplits % partNum > 0
                             ? minNumSplits / partNum + 1
                             : minNumSplits / partNum;
-            long totalInterval = nebulaConf.getEnd() - nebulaConf.getStart();
+            long totalInterval = nebulaConfig.getEnd() - nebulaConfig.getStart();
             long interval = totalInterval / times;
-            long start = nebulaConf.getStart();
+            long start = nebulaConfig.getStart();
             for (int i = 0; i < minNumSplits; i++) {
+                long endInterval = start + (i / partNum + 1) * interval;
                 nebulaInputSplitters[i] =
                         new NebulaInputSplitter(
                                 i,
@@ -56,15 +53,15 @@ public class SplitNumGTPartNumSplitCtreator extends BaseSplitResponsibility {
                                 start + i / partNum * interval,
                                 minNumSplits % partNum > 0
                                         ? (i + 1) / partNum == times - 1
-                                                ? nebulaConf.getEnd()
+                                                ? nebulaConfig.getEnd()
                                                 : (i + 1) % partNum > minNumSplits % partNum
                                                                 && (i + 1) / partNum == times - 2
-                                                        ? nebulaConf.getEnd()
-                                                        : start + (i / partNum + 1) * interval
+                                                        ? nebulaConfig.getEnd()
+                                                        : endInterval
                                         : i / partNum == times - 1
-                                                ? nebulaConf.getEnd()
-                                                : start + (i / partNum + 1) * interval,
-                                nebulaConf.getInterval());
+                                                ? nebulaConfig.getEnd()
+                                                : endInterval,
+                                nebulaConfig.getInterval());
                 nebulaInputSplitters[i].parts.push(spaceParts.get(i % partNum));
             }
         }

@@ -17,26 +17,10 @@
  */
 
 package com.dtstack.chunjun.connector.nebula.source;
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
 import com.dtstack.chunjun.connector.nebula.client.NebulaClientFactory;
 import com.dtstack.chunjun.connector.nebula.client.NebulaStorageClient;
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.row.NebulaTableRow;
 import com.dtstack.chunjun.connector.nebula.splitters.NebulaInputSplitter;
 import com.dtstack.chunjun.connector.nebula.splitters.creator.BaseSplitResponsibility;
@@ -55,14 +39,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author: gaoasi
- * @create: 2022/09/22
- */
 public class NebulaInputFormat extends BaseRichInputFormat {
     private final Logger LOG = LoggerFactory.getLogger(NebulaInputFormat.class);
     public static final long serialVersionUID = 1L;
-    protected NebulaConf nebulaConf;
+    protected NebulaConfig nebulaConfig;
     protected NebulaTableRow nebulaTableRow;
     protected NebulaInputSplitter currentInputSplit;
     private NebulaStorageClient storageClient;
@@ -74,13 +54,13 @@ public class NebulaInputFormat extends BaseRichInputFormat {
 
     protected Integer currentNebulaPart;
 
-    public NebulaConf getNebulaConf() {
-        return nebulaConf;
+    public NebulaConfig getNebulaConf() {
+        return nebulaConfig;
     }
 
-    public void setNebulaConf(NebulaConf nebulaConf) {
-        this.nebulaConf = nebulaConf;
-        storageClient = NebulaClientFactory.createNebulaStorageClient(nebulaConf);
+    public void setNebulaConf(NebulaConfig nebulaConfig) {
+        this.nebulaConfig = nebulaConfig;
+        storageClient = NebulaClientFactory.createNebulaStorageClient(nebulaConfig);
     }
 
     @Override
@@ -91,13 +71,13 @@ public class NebulaInputFormat extends BaseRichInputFormat {
                 new ArrayList<>(
                         storageClient
                                 .getMetaManager()
-                                .getPartsAlloc(nebulaConf.getSpace())
+                                .getPartsAlloc(nebulaConfig.getSpace())
                                 .keySet());
         LOG.debug("space parts collections is " + spaceParts);
         NebulaInputSplitter[] inputSplits = new NebulaInputSplitter[minNumSplits];
         BaseSplitResponsibility baseSplitResponsibility = new BaseSplitResponsibility(true);
         baseSplitResponsibility.createSplit(
-                minNumSplits, spaceParts.size(), inputSplits, spaceParts, nebulaConf);
+                minNumSplits, spaceParts.size(), inputSplits, spaceParts, nebulaConfig);
 
         LOG.debug("inputSplits are " + inputSplits);
         closeInternal();

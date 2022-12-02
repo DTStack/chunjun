@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.utils;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,36 +16,22 @@ package com.dtstack.chunjun.connector.nebula.utils;
  * limitations under the License.
  */
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/14 2:29 下午
- */
-public enum WriteMode {
+package com.dtstack.chunjun.connector.nebula.config;
 
-    /** INSERT write mode */
-    INSERT("insert"),
+public enum NebulaSSLParam {
+    SELF_SIGNED_SSL_PARAM("self"),
+    CA_SIGNED_SSL_PARAM("cas");
+    private String type;
 
-    /** UPDATE write mode */
-    UPDATE("update"),
-
-    /** DELETE write mode */
-    DELETE("delete"),
-
-    /** upsert write mode */
-    UPSERT("upsert");
-
-    private String mode;
-
-    public String getMode() {
-        return mode;
+    public String getType() {
+        return type;
     }
 
-    public void setMode(String mode) {
-        this.mode = mode;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    WriteMode(String mode) {
-        this.mode = mode;
+    NebulaSSLParam(String type) {
+        this.type = type;
     }
 }
