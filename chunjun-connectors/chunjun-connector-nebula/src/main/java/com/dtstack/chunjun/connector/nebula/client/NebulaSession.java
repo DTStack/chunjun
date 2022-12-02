@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.client;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +16,9 @@ package com.dtstack.chunjun.connector.nebula.client;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.client;
+
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.utils.GraphUtil;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
@@ -38,23 +39,18 @@ import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.CREATE_E
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.CREATE_VERTEX;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.NEBULA_PROP;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/10 4:44 下午
- */
 public class NebulaSession implements Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(NebulaSession.class);
 
-    private NebulaConf nebulaConf;
+    private final NebulaConfig nebulaConfig;
 
     private NebulaPool pool;
 
     private Session session;
 
-    public NebulaSession(NebulaConf nebulaConf) {
-        this.nebulaConf = nebulaConf;
+    public NebulaSession(NebulaConfig nebulaConfig) {
+        this.nebulaConfig = nebulaConfig;
     }
 
     /**
@@ -66,22 +62,24 @@ public class NebulaSession implements Serializable {
     public void init() throws Exception {
         pool = new NebulaPool();
         NebulaPoolConfig nebulaPoolConfig = new NebulaPoolConfig();
-        nebulaPoolConfig.setTimeout(nebulaConf.getTimeout());
-        nebulaPoolConfig.setIntervalIdle(nebulaConf.getIntervalIdle());
-        nebulaPoolConfig.setMaxConnSize(nebulaConf.getMaxConnsSize());
-        nebulaPoolConfig.setMinConnSize(nebulaConf.getMinConnsSize());
-        nebulaPoolConfig.setWaitTime(nebulaConf.getWaitTime());
-        nebulaPoolConfig.setIdleTime(nebulaConf.getIdleTime());
-        nebulaPoolConfig.setEnableSsl(nebulaConf.getEnableSSL());
-        nebulaPoolConfig.setSslParam(GraphUtil.getSslParam(nebulaConf));
+        nebulaPoolConfig.setTimeout(nebulaConfig.getTimeout());
+        nebulaPoolConfig.setIntervalIdle(nebulaConfig.getIntervalIdle());
+        nebulaPoolConfig.setMaxConnSize(nebulaConfig.getMaxConnsSize());
+        nebulaPoolConfig.setMinConnSize(nebulaConfig.getMinConnsSize());
+        nebulaPoolConfig.setWaitTime(nebulaConfig.getWaitTime());
+        nebulaPoolConfig.setIdleTime(nebulaConfig.getIdleTime());
+        nebulaPoolConfig.setEnableSsl(nebulaConfig.getEnableSSL());
+        nebulaPoolConfig.setSslParam(GraphUtil.getSslParam(nebulaConfig));
 
-        boolean init = pool.init(nebulaConf.getGraphdAddresses(), nebulaPoolConfig);
+        boolean init = pool.init(nebulaConfig.getGraphdAddresses(), nebulaPoolConfig);
         if (!init) {
             throw new Exception("inited nebula pool failed");
         }
         session =
                 pool.getSession(
-                        nebulaConf.getUsername(), nebulaConf.getPassword(), nebulaConf.getReconn());
+                        nebulaConfig.getUsername(),
+                        nebulaConfig.getPassword(),
+                        nebulaConfig.getReconn());
         if (!session.ping()) {
             throw new Exception("inited nebula session failed");
         }
@@ -108,9 +106,9 @@ public class NebulaSession implements Serializable {
         if (!session.ping()) {
             session =
                     pool.getSession(
-                            nebulaConf.getUsername(),
-                            nebulaConf.getPassword(),
-                            nebulaConf.getReconn());
+                            nebulaConfig.getUsername(),
+                            nebulaConfig.getPassword(),
+                            nebulaConfig.getReconn());
         }
         return session;
     }
@@ -130,7 +128,7 @@ public class NebulaSession implements Serializable {
         String statement =
                 String.format(
                         "CREATE SPACE IF NOT EXISTS `%s` (vid_type=%s);",
-                        space, nebulaConf.getVidType());
+                        space, nebulaConfig.getVidType());
         LOG.debug("ngql is : {}", statement);
         ResultSet resultSet = session.execute(statement);
         return resultSet;
@@ -141,7 +139,7 @@ public class NebulaSession implements Serializable {
         String prop =
                 String.join(
                         ",",
-                        nebulaConf.getFields().stream()
+                        nebulaConfig.getFields().stream()
                                 .map(
                                         fieldConf ->
                                                 String.format(
@@ -149,7 +147,7 @@ public class NebulaSession implements Serializable {
                                                         fieldConf.getName(),
                                                         convertToNebulaType(fieldConf.getType())))
                                 .collect(Collectors.toList()));
-        switch (nebulaConf.getSchemaType()) {
+        switch (nebulaConfig.getSchemaType()) {
             case TAG:
             case VERTEX:
                 statement = String.format(CREATE_VERTEX, schemaName, prop);
@@ -160,7 +158,7 @@ public class NebulaSession implements Serializable {
                 break;
             default:
                 throw new UnsupportedTypeException(
-                        "unsupport schema type: " + nebulaConf.getSchemaType());
+                        "unsupport schema type: " + nebulaConfig.getSchemaType());
         }
         LOG.debug("ngql is : {}", statement);
         ResultSet resultSet = session.execute(String.format("use %s;%s;", space, statement));
@@ -198,7 +196,7 @@ public class NebulaSession implements Serializable {
             case "timestamp_with_local_time_zone":
                 return "datetime";
             case "string":
-                return String.format("FIXED_STRING(%d)", nebulaConf.getStringLength());
+                return String.format("FIXED_STRING(%d)", nebulaConfig.getStringLength());
             default:
                 throw new UnsupportedTypeException(
                         "nebula do not support data type: " + type.toLowerCase(Locale.ROOT));

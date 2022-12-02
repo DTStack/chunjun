@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.source;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +16,9 @@ package com.dtstack.chunjun.connector.nebula.source;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.source;
+
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.converter.NebulaRowConverter;
 import com.dtstack.chunjun.connector.nebula.lookup.NebulaAllTableFunction;
 import com.dtstack.chunjun.connector.nebula.lookup.NebulaLruTableFunction;
@@ -40,15 +41,10 @@ import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Preconditions;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/7 3:59 下午
- */
 public class NebulaDynamicTableSource
         implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
-    protected NebulaConf nebulaConf;
+    protected NebulaConfig nebulaConfig;
 
     protected ResolvedSchema resolvedSchema;
 
@@ -57,11 +53,11 @@ public class NebulaDynamicTableSource
     protected LookupConfig lookupConf;
 
     public NebulaDynamicTableSource(
-            NebulaConf nebulaConf,
+            NebulaConfig nebulaConfig,
             LookupConfig lookupConf,
             ResolvedSchema resolvedSchema,
             NebulaInputFormatBuilder builder) {
-        this.nebulaConf = nebulaConf;
+        this.nebulaConfig = nebulaConfig;
         this.builder = builder;
         this.resolvedSchema = resolvedSchema;
         this.lookupConf = lookupConf;
@@ -83,7 +79,7 @@ public class NebulaDynamicTableSource
         if (CacheType.LRU.toString().equalsIgnoreCase(lookupConf.getCache())) {
             return ParallelAsyncTableFunctionProvider.of(
                     new NebulaLruTableFunction(
-                            nebulaConf,
+                            nebulaConfig,
                             lookupConf,
                             resolvedSchema.getColumnNames().toArray(new String[0]),
                             keyNames,
@@ -92,7 +88,7 @@ public class NebulaDynamicTableSource
         }
         return ParallelTableFunctionProvider.of(
                 new NebulaAllTableFunction(
-                        nebulaConf,
+                        nebulaConfig,
                         resolvedSchema.getColumnNames().toArray(new String[0]),
                         keyNames,
                         lookupConf,
@@ -111,17 +107,17 @@ public class NebulaDynamicTableSource
                 InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType())
                         .toRowType();
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
-        builder.setNebulaConf(nebulaConf);
+        builder.setNebulaConf(nebulaConfig);
         builder.setRowConverter(new NebulaRowConverter(rowType));
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
                 false,
-                nebulaConf.getReadTasks());
+                nebulaConfig.getReadTasks());
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new NebulaDynamicTableSource(nebulaConf, lookupConf, resolvedSchema, builder);
+        return new NebulaDynamicTableSource(nebulaConfig, lookupConf, resolvedSchema, builder);
     }
 
     @Override

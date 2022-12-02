@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.client;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,20 +16,17 @@ package com.dtstack.chunjun.connector.nebula.client;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.client;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/10 3:42 下午
- */
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
+
 public class NebulaClientFactory {
 
-    public static NebulaStorageClient createNebulaStorageClient(NebulaConf nebulaConf) {
-        return new NebulaStorageClient(nebulaConf);
+    public static NebulaStorageClient createNebulaStorageClient(NebulaConfig nebulaConfig) {
+        return new NebulaStorageClient(nebulaConfig);
     }
 
-    public static NebulaSession createNebulaSession(NebulaConf nebulaConf) {
-        return new NebulaSession(nebulaConf);
+    public static NebulaSession createNebulaSession(NebulaConfig nebulaConfig) {
+        return new NebulaSession(nebulaConfig);
     }
 }

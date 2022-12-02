@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.splitters.creator;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,19 +16,16 @@ package com.dtstack.chunjun.connector.nebula.splitters.creator;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.splitters.creator;
+
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.splitters.NebulaInputSplitter;
 
 import java.util.List;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/3 5:28 下午
- */
-public class SplitNumLTPartNumSplitCtreator extends BaseSplitResponsibility {
+public class SplitNumLTPartNumSplitCreator extends BaseSplitResponsibility {
 
-    public SplitNumLTPartNumSplitCtreator(Boolean init) {
+    public SplitNumLTPartNumSplitCreator(Boolean init) {
         super(init);
     }
 
@@ -39,7 +35,7 @@ public class SplitNumLTPartNumSplitCtreator extends BaseSplitResponsibility {
             int partNum,
             NebulaInputSplitter[] nebulaInputSplitters,
             List<Integer> spaceParts,
-            NebulaConf nebulaConf) {
+            NebulaConfig nebulaConfig) {
         if (minNumSplits < partNum) {
             for (int i = 0; i < partNum; i++) {
                 if (i >= minNumSplits) {
@@ -50,9 +46,9 @@ public class SplitNumLTPartNumSplitCtreator extends BaseSplitResponsibility {
                         new NebulaInputSplitter(
                                 i,
                                 minNumSplits,
-                                nebulaConf.getStart(),
-                                nebulaConf.getEnd(),
-                                nebulaConf.getInterval());
+                                nebulaConfig.getStart(),
+                                nebulaConfig.getEnd(),
+                                nebulaConfig.getInterval());
                 nebulaInputSplitters[i % minNumSplits].parts.push(spaceParts.get(i));
             }
         }

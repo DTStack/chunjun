@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.client;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +16,9 @@ package com.dtstack.chunjun.connector.nebula.client;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.client;
+
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.row.NebulaTableRow;
 import com.dtstack.chunjun.connector.nebula.splitters.NebulaInputSplitter;
 import com.dtstack.chunjun.connector.nebula.utils.GraphUtil;
@@ -40,23 +41,18 @@ import java.util.List;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.RANK;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.VID;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/10 3:45 下午
- */
 public class NebulaStorageClient implements Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(NebulaStorageClient.class);
 
-    private NebulaConf nebulaConf;
+    private final NebulaConfig nebulaConfig;
 
     private StorageClient client;
 
     private MetaManager metaManager;
 
-    public NebulaStorageClient(NebulaConf nebulaConf) {
-        this.nebulaConf = nebulaConf;
+    public NebulaStorageClient(NebulaConfig nebulaConfig) {
+        this.nebulaConfig = nebulaConfig;
     }
 
     public void init() throws IOException {
@@ -71,22 +67,22 @@ public class NebulaStorageClient implements Serializable {
 
     private void initMetaManagerAndClient()
             throws ClientServerIncompatibleException, UnknownHostException {
-        boolean enableSSL = nebulaConf.getEnableSSL();
-        SSLParam sslParam = GraphUtil.getSslParam(nebulaConf);
+        boolean enableSSL = nebulaConfig.getEnableSSL();
+        SSLParam sslParam = GraphUtil.getSslParam(nebulaConfig);
         metaManager =
                 new MetaManager(
-                        nebulaConf.getStorageAddresses(),
-                        nebulaConf.getTimeout(),
-                        nebulaConf.getConnectionRetry(),
-                        nebulaConf.getExecutionRetry(),
+                        nebulaConfig.getStorageAddresses(),
+                        nebulaConfig.getTimeout(),
+                        nebulaConfig.getConnectionRetry(),
+                        nebulaConfig.getExecutionRetry(),
                         enableSSL,
                         sslParam);
         client =
                 new StorageClient(
-                        nebulaConf.getStorageAddresses(),
-                        nebulaConf.getTimeout(),
-                        nebulaConf.getConnectionRetry(),
-                        nebulaConf.getExecutionRetry(),
+                        nebulaConfig.getStorageAddresses(),
+                        nebulaConfig.getTimeout(),
+                        nebulaConfig.getConnectionRetry(),
+                        nebulaConfig.getExecutionRetry(),
                         enableSSL,
                         sslParam);
     }
@@ -99,30 +95,30 @@ public class NebulaStorageClient implements Serializable {
     public NebulaTableRow fetchRangeData(
             Integer part, Long scanStart, NebulaInputSplitter inputSplitter) throws Exception {
         ScanResultIterator scanResultIterator = null;
-        List<String> columnNames = nebulaConf.getColumnNames();
+        List<String> columnNames = nebulaConfig.getColumnNames();
         long ScanEnd =
                 (scanStart + inputSplitter.getInterval()) < inputSplitter.getScanEnd()
                         ? scanStart + inputSplitter.getInterval()
                         : inputSplitter.getScanEnd();
         //        LOG.debug("part is {},scanStart is {}, ScanEnd is {} ", part, scanStart, ScanEnd);
-        switch (nebulaConf.getSchemaType()) {
+        switch (nebulaConfig.getSchemaType()) {
             case VERTEX:
             case TAG:
                 List<String> var1 = columnNames.subList(1, columnNames.size());
                 scanResultIterator =
                         client.scanVertex(
-                                nebulaConf.getSpace(),
+                                nebulaConfig.getSpace(),
                                 part,
-                                nebulaConf.getEntityName(),
+                                nebulaConfig.getEntityName(),
                                 var1,
-                                nebulaConf.getFetchSize(),
+                                nebulaConfig.getFetchSize(),
                                 scanStart,
                                 (scanStart + inputSplitter.getInterval())
                                                 < inputSplitter.getScanEnd()
                                         ? scanStart + inputSplitter.getInterval()
                                         : inputSplitter.getScanEnd(),
-                                nebulaConf.getDefaultAllowPartSuccess(),
-                                nebulaConf.getDefaultAllowReadFollower());
+                                nebulaConfig.getDefaultAllowPartSuccess(),
+                                nebulaConfig.getDefaultAllowReadFollower());
                 break;
             case EDGE:
             case EDGE_TYPE:
@@ -132,21 +128,21 @@ public class NebulaStorageClient implements Serializable {
                                 : columnNames.subList(2, columnNames.size());
                 scanResultIterator =
                         client.scanEdge(
-                                nebulaConf.getSpace(),
+                                nebulaConfig.getSpace(),
                                 part,
-                                nebulaConf.getEntityName(),
+                                nebulaConfig.getEntityName(),
                                 var2,
-                                nebulaConf.getFetchSize(),
+                                nebulaConfig.getFetchSize(),
                                 scanStart,
                                 (scanStart + inputSplitter.getInterval())
                                                 < inputSplitter.getScanEnd()
                                         ? scanStart + inputSplitter.getInterval()
                                         : inputSplitter.getScanEnd(),
-                                nebulaConf.getDefaultAllowPartSuccess(),
-                                nebulaConf.getDefaultAllowReadFollower());
+                                nebulaConfig.getDefaultAllowPartSuccess(),
+                                nebulaConfig.getDefaultAllowReadFollower());
                 break;
         }
-        return new NebulaTableRow(scanResultIterator, nebulaConf);
+        return new NebulaTableRow(scanResultIterator, nebulaConfig);
     }
 
     /**
@@ -156,22 +152,22 @@ public class NebulaStorageClient implements Serializable {
      */
     public NebulaTableRow fetchAllData() throws Exception {
         ScanResultIterator scanResultIterator = null;
-        List<String> columnNames = nebulaConf.getColumnNames();
-        switch (nebulaConf.getSchemaType()) {
+        List<String> columnNames = nebulaConfig.getColumnNames();
+        switch (nebulaConfig.getSchemaType()) {
             case VERTEX:
             case TAG:
                 List<String> var1 = columnNames.subList(1, columnNames.size());
                 columnNames.remove(VID);
                 scanResultIterator =
                         client.scanVertex(
-                                nebulaConf.getSpace(),
-                                nebulaConf.getEntityName(),
+                                nebulaConfig.getSpace(),
+                                nebulaConfig.getEntityName(),
                                 var1,
-                                nebulaConf.getFetchSize(),
+                                nebulaConfig.getFetchSize(),
                                 Long.MIN_VALUE,
                                 Long.MAX_VALUE,
-                                nebulaConf.getDefaultAllowPartSuccess(),
-                                nebulaConf.getDefaultAllowReadFollower());
+                                nebulaConfig.getDefaultAllowPartSuccess(),
+                                nebulaConfig.getDefaultAllowReadFollower());
                 break;
             case EDGE:
             case EDGE_TYPE:
@@ -181,21 +177,21 @@ public class NebulaStorageClient implements Serializable {
                                 : columnNames.subList(2, columnNames.size());
                 scanResultIterator =
                         client.scanEdge(
-                                nebulaConf.getSpace(),
-                                nebulaConf.getEntityName(),
+                                nebulaConfig.getSpace(),
+                                nebulaConfig.getEntityName(),
                                 var2,
-                                nebulaConf.getFetchSize(),
+                                nebulaConfig.getFetchSize(),
                                 Long.MIN_VALUE,
                                 Long.MAX_VALUE,
-                                nebulaConf.getDefaultAllowPartSuccess(),
-                                nebulaConf.getDefaultAllowReadFollower());
+                                nebulaConfig.getDefaultAllowPartSuccess(),
+                                nebulaConfig.getDefaultAllowReadFollower());
                 break;
         }
-        return new NebulaTableRow(scanResultIterator, nebulaConf);
+        return new NebulaTableRow(scanResultIterator, nebulaConfig);
     }
 
     public Boolean isSchemaExist(String space, String schemaName) {
-        switch (nebulaConf.getSchemaType()) {
+        switch (nebulaConfig.getSchemaType()) {
             case VERTEX:
             case TAG:
                 try {

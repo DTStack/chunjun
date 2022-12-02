@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.table;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,9 +16,11 @@ package com.dtstack.chunjun.connector.nebula.table;
  * limitations under the License.
  */
 
+package com.dtstack.chunjun.connector.nebula.table;
+
 import com.dtstack.chunjun.config.FieldConfig;
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
-import com.dtstack.chunjun.connector.nebula.conf.NebulaSSLParam;
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
+import com.dtstack.chunjun.connector.nebula.config.NebulaSSLParam;
 import com.dtstack.chunjun.connector.nebula.sink.NebulaDynamicTableSink;
 import com.dtstack.chunjun.connector.nebula.sink.NebulaOutputFormat;
 import com.dtstack.chunjun.connector.nebula.sink.NebulaOutputFormatBuilder;
@@ -27,8 +28,8 @@ import com.dtstack.chunjun.connector.nebula.source.NebulaDynamicTableSource;
 import com.dtstack.chunjun.connector.nebula.source.NebulaInputFormat;
 import com.dtstack.chunjun.connector.nebula.source.NebulaInputFormatBuilder;
 import com.dtstack.chunjun.connector.nebula.utils.NebulaSchemaFamily;
-import com.dtstack.chunjun.connector.nebula.utils.WriteMode;
 import com.dtstack.chunjun.lookup.config.LookupConfig;
+import com.dtstack.chunjun.sink.WriteMode;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -52,40 +53,40 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.BULK_SIZE;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.CACRT_FILE_PATH;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.CLIENT_CONNECT_TIMEOUT_OPTION;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.CONNECTION_RETRY;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.CRT_FILE_PATH;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.DEFAULT_ALLOW_PART_SUCCESS;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.DEFAULT_ALLOW_READ_FOLLOWER;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.ENABLE_SSL;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.END_TIME;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.EXECUTION_RETRY;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.FETCH_INTERVAL;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.FETCH_SIZE;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.FIX_STRING_LEN;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.GRAPHD_ADDRESSES;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.IDLE_TIME;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.INTERVAL_IDLE;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.IS_NEBULA_RECONECT;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.KEY_FILE_PATH;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.MAX_CONNS_SIZE;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.MIN_CONNS_SIZE;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.PASSWORD;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.READ_TASKS;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.SCHEMA_NAME;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.SCHEMA_TYPE;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.SPACE;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.SSL_PARAM_TYPE;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.SSL_PASSWORD;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.START_TIME;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.STORAGE_ADDRESSES;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.USERNAME;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.VID_TYPE;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.WAIT_IDLE_TIME;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.WRITE_MODE;
-import static com.dtstack.chunjun.connector.nebula.conf.NebulaOptions.WRITE_TASKS;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.BULK_SIZE;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.CACRT_FILE_PATH;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.CLIENT_CONNECT_TIMEOUT_OPTION;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.CONNECTION_RETRY;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.CRT_FILE_PATH;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.DEFAULT_ALLOW_PART_SUCCESS;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.DEFAULT_ALLOW_READ_FOLLOWER;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.ENABLE_SSL;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.END_TIME;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.EXECUTION_RETRY;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.FETCH_INTERVAL;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.FETCH_SIZE;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.FIX_STRING_LEN;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.GRAPHD_ADDRESSES;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.IDLE_TIME;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.INTERVAL_IDLE;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.IS_NEBULA_RECONECT;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.KEY_FILE_PATH;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.MAX_CONNS_SIZE;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.MIN_CONNS_SIZE;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.PASSWORD;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.READ_TASKS;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.SCHEMA_NAME;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.SCHEMA_TYPE;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.SPACE;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.SSL_PARAM_TYPE;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.SSL_PASSWORD;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.START_TIME;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.STORAGE_ADDRESSES;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.USERNAME;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.VID_TYPE;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.WAIT_IDLE_TIME;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.WRITE_MODE;
+import static com.dtstack.chunjun.connector.nebula.config.NebulaOptions.WRITE_TASKS;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.CAS;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.DELIMITERS;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.EDGE;
@@ -106,11 +107,6 @@ import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/10/31 5:31 下午
- */
 public class NebulaDynamicTableFactory
         implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
@@ -119,7 +115,7 @@ public class NebulaDynamicTableFactory
 
     @Override
     public DynamicTableSink createDynamicTableSink(Context context) {
-        Tuple3<ResolvedSchema, NebulaConf, ReadableConfig> tuple3 = commonParse(context);
+        Tuple3<ResolvedSchema, NebulaConfig, ReadableConfig> tuple3 = commonParse(context);
         String[] fieldNames = tuple3.f0.getColumnNames().toArray(new String[0]);
         List<FieldConfig> columnList = new ArrayList<>(fieldNames.length);
         for (int i = 0; i < fieldNames.length; i++) {
@@ -139,7 +135,7 @@ public class NebulaDynamicTableFactory
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
-        Tuple3<ResolvedSchema, NebulaConf, ReadableConfig> tuple3 = commonParse(context);
+        Tuple3<ResolvedSchema, NebulaConfig, ReadableConfig> tuple3 = commonParse(context);
         return new NebulaDynamicTableSource(
                 tuple3.f1,
                 getLookupConf(tuple3.f2, context.getObjectIdentifier().getObjectName()),
@@ -147,15 +143,15 @@ public class NebulaDynamicTableFactory
                 getInputFormatBuilder());
     }
 
-    private Tuple3<ResolvedSchema, NebulaConf, ReadableConfig> commonParse(Context context) {
+    private Tuple3<ResolvedSchema, NebulaConfig, ReadableConfig> commonParse(Context context) {
         final FactoryUtil.TableFactoryHelper helper =
                 FactoryUtil.createTableFactoryHelper(this, context);
         final ReadableConfig config = helper.getOptions();
         ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
         String[] fieldNames = resolvedSchema.getColumnNames().toArray(new String[0]);
-        NebulaConf nebulaConf = parseNebulaConfig(config);
-        nebulaConf.setColumnNames(Arrays.asList(fieldNames));
-        return new Tuple3<>(resolvedSchema, nebulaConf, config);
+        NebulaConfig nebulaConfig = parseNebulaConfig(config);
+        nebulaConfig.setColumnNames(Arrays.asList(fieldNames));
+        return new Tuple3<>(resolvedSchema, nebulaConfig, config);
     }
 
     private LookupConfig getLookupConf(ReadableConfig config, String tableName) {
@@ -172,79 +168,79 @@ public class NebulaDynamicTableFactory
                 .setParallelism(config.get(LOOKUP_PARALLELISM));
     }
 
-    private NebulaConf parseNebulaConfig(ReadableConfig config) {
-        NebulaConf nebulaConf = new NebulaConf();
-        nebulaConf.setStart(config.get(START_TIME));
-        nebulaConf.setEnd(config.get(END_TIME));
-        nebulaConf.setInterval(config.get(FETCH_INTERVAL));
-        nebulaConf.setReadTasks(config.get(READ_TASKS));
-        nebulaConf.setWriteTasks(config.get(WRITE_TASKS));
-        nebulaConf.setDefaultAllowPartSuccess(config.get(DEFAULT_ALLOW_PART_SUCCESS));
-        nebulaConf.setDefaultAllowReadFollower(config.get(DEFAULT_ALLOW_READ_FOLLOWER));
-        nebulaConf.setFetchSize(config.get(FETCH_SIZE));
-        nebulaConf.setCaCrtFilePath(config.get(CACRT_FILE_PATH));
-        nebulaConf.setCrtFilePath(config.get(CRT_FILE_PATH));
-        nebulaConf.setEnableSSL(config.get(ENABLE_SSL));
-        nebulaConf.setConnectionRetry(config.get(CONNECTION_RETRY));
-        nebulaConf.setEntityName(config.get(SCHEMA_NAME));
-        nebulaConf.setExecutionRetry(config.get(EXECUTION_RETRY));
-        nebulaConf.setKeyFilePath(config.get(KEY_FILE_PATH));
-        nebulaConf.setPassword(config.get(PASSWORD));
-        nebulaConf.setReconn(config.get(IS_NEBULA_RECONECT));
+    private NebulaConfig parseNebulaConfig(ReadableConfig config) {
+        NebulaConfig nebulaConfig = new NebulaConfig();
+        nebulaConfig.setStart(config.get(START_TIME));
+        nebulaConfig.setEnd(config.get(END_TIME));
+        nebulaConfig.setInterval(config.get(FETCH_INTERVAL));
+        nebulaConfig.setReadTasks(config.get(READ_TASKS));
+        nebulaConfig.setWriteTasks(config.get(WRITE_TASKS));
+        nebulaConfig.setDefaultAllowPartSuccess(config.get(DEFAULT_ALLOW_PART_SUCCESS));
+        nebulaConfig.setDefaultAllowReadFollower(config.get(DEFAULT_ALLOW_READ_FOLLOWER));
+        nebulaConfig.setFetchSize(config.get(FETCH_SIZE));
+        nebulaConfig.setCaCrtFilePath(config.get(CACRT_FILE_PATH));
+        nebulaConfig.setCrtFilePath(config.get(CRT_FILE_PATH));
+        nebulaConfig.setEnableSSL(config.get(ENABLE_SSL));
+        nebulaConfig.setConnectionRetry(config.get(CONNECTION_RETRY));
+        nebulaConfig.setEntityName(config.get(SCHEMA_NAME));
+        nebulaConfig.setExecutionRetry(config.get(EXECUTION_RETRY));
+        nebulaConfig.setKeyFilePath(config.get(KEY_FILE_PATH));
+        nebulaConfig.setPassword(config.get(PASSWORD));
+        nebulaConfig.setReconn(config.get(IS_NEBULA_RECONECT));
         String s = config.get(SCHEMA_TYPE);
         switch (s) {
             case TAG:
             case VERTEX:
-                nebulaConf.setSchemaType(NebulaSchemaFamily.VERTEX);
+                nebulaConfig.setSchemaType(NebulaSchemaFamily.VERTEX);
                 break;
             case EDGE:
             case EDGE_TYPE:
-                nebulaConf.setSchemaType(NebulaSchemaFamily.EDGE);
+                nebulaConfig.setSchemaType(NebulaSchemaFamily.EDGE);
                 break;
             default:
                 throw new UnsupportedTypeException("unsupported nebula schema type!");
         }
-        nebulaConf.setStorageAddresses(parseAddress(config, STORAGE_ADDRESSES));
-        nebulaConf.setGraphdAddresses(parseAddress(config, GRAPHD_ADDRESSES));
-        nebulaConf.setSpace(config.get(SPACE));
-        nebulaConf.setVidType(config.get(VID_TYPE));
+        nebulaConfig.setStorageAddresses(parseAddress(config, STORAGE_ADDRESSES));
+        nebulaConfig.setGraphdAddresses(parseAddress(config, GRAPHD_ADDRESSES));
+        nebulaConfig.setSpace(config.get(SPACE));
+        nebulaConfig.setVidType(config.get(VID_TYPE));
 
         String sslParamType = config.get(SSL_PARAM_TYPE);
         if (StringUtils.isNotBlank(sslParamType)) {
             switch (sslParamType) {
                 case SELF:
-                    nebulaConf.setSslParamType(NebulaSSLParam.SELF_SIGNED_SSL_PARAM);
+                    nebulaConfig.setSslParamType(NebulaSSLParam.SELF_SIGNED_SSL_PARAM);
                     break;
                 case CAS:
-                    nebulaConf.setSslParamType(NebulaSSLParam.CA_SIGNED_SSL_PARAM);
+                    nebulaConfig.setSslParamType(NebulaSSLParam.CA_SIGNED_SSL_PARAM);
                     break;
                 default:
                     throw new UnsupportedTypeException("unsupport ssl param Type!");
             }
         }
-        nebulaConf.setSslPassword(config.get(SSL_PASSWORD));
-        nebulaConf.setTimeout(config.get(CLIENT_CONNECT_TIMEOUT_OPTION));
-        nebulaConf.setUsername(config.get(USERNAME));
-        nebulaConf.setMaxConnsSize(config.get(MAX_CONNS_SIZE));
-        nebulaConf.setMinConnsSize(config.get(MIN_CONNS_SIZE));
-        nebulaConf.setIdleTime(config.get(IDLE_TIME));
-        nebulaConf.setIntervalIdle(config.get(INTERVAL_IDLE));
-        nebulaConf.setWaitTime(config.get(WAIT_IDLE_TIME));
-        nebulaConf.setStringLength(config.get(FIX_STRING_LEN));
-        nebulaConf.setBatchSize(config.get(BULK_SIZE));
+        nebulaConfig.setSslPassword(config.get(SSL_PASSWORD));
+        nebulaConfig.setTimeout(config.get(CLIENT_CONNECT_TIMEOUT_OPTION));
+        nebulaConfig.setUsername(config.get(USERNAME));
+        nebulaConfig.setMaxConnsSize(config.get(MAX_CONNS_SIZE));
+        nebulaConfig.setMinConnsSize(config.get(MIN_CONNS_SIZE));
+        nebulaConfig.setIdleTime(config.get(IDLE_TIME));
+        nebulaConfig.setIntervalIdle(config.get(INTERVAL_IDLE));
+        nebulaConfig.setWaitTime(config.get(WAIT_IDLE_TIME));
+        nebulaConfig.setStringLength(config.get(FIX_STRING_LEN));
+        nebulaConfig.setBatchSize(config.get(BULK_SIZE));
         String mode = config.get(WRITE_MODE);
         switch (mode) {
             case INSERT:
-                nebulaConf.setMode(WriteMode.INSERT);
+                nebulaConfig.setMode(WriteMode.INSERT);
                 break;
             case UPSERT:
-                nebulaConf.setMode(WriteMode.UPSERT);
+                nebulaConfig.setMode(WriteMode.UPSERT);
                 break;
             default:
                 throw new UnsupportedTypeException("unsupport write mode: " + mode);
         }
 
-        return nebulaConf;
+        return nebulaConfig;
     }
 
     private List<HostAddress> parseAddress(ReadableConfig config, ConfigOption<String> var1) {

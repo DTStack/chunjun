@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.lookup;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,9 +16,11 @@ package com.dtstack.chunjun.connector.nebula.lookup;
  * limitations under the License.
  */
 
+package com.dtstack.chunjun.connector.nebula.lookup;
+
 import com.dtstack.chunjun.connector.nebula.client.NebulaClientFactory;
 import com.dtstack.chunjun.connector.nebula.client.NebulaSession;
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.lookup.ngql.LookupNGQLBuilder;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.enums.ECacheContentType;
@@ -49,16 +50,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/8 4:34 下午
- */
 public class NebulaLruTableFunction extends AbstractLruTableFunction {
     private static final Logger LOG = LoggerFactory.getLogger(NebulaLruTableFunction.class);
     private static final long serialVersionUID = 1L;
 
-    private final NebulaConf nebulaConf;
+    private final NebulaConfig nebulaConfig;
 
     private final String[] keyNames;
 
@@ -69,40 +65,36 @@ public class NebulaLruTableFunction extends AbstractLruTableFunction {
     private transient ThreadPoolExecutor executor;
 
     public NebulaLruTableFunction(
-            NebulaConf nebulaConf,
+            NebulaConfig nebulaConfig,
             LookupConfig lookupConf,
             String[] fieldNames,
             String[] keyNames,
             AbstractRowConverter rowConverter) {
         super(lookupConf, rowConverter);
         this.fieldNames = fieldNames;
-        this.nebulaConf = nebulaConf;
+        this.nebulaConfig = nebulaConfig;
         this.keyNames = keyNames;
     }
 
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-        nebulaSession = NebulaClientFactory.createNebulaSession(nebulaConf);
+        nebulaSession = NebulaClientFactory.createNebulaSession(nebulaConfig);
         nebulaSession.init();
         executor =
                 new ThreadPoolExecutor(
-                        nebulaConf.getMaxConnsSize(),
-                        nebulaConf.getMaxConnsSize(),
+                        nebulaConfig.getMaxConnsSize(),
+                        nebulaConfig.getMaxConnsSize(),
                         0,
                         TimeUnit.MILLISECONDS,
-                        new LinkedBlockingQueue<>(2 * nebulaConf.getMaxConnsSize()),
+                        new LinkedBlockingQueue<>(2 * nebulaConfig.getMaxConnsSize()),
                         new ChunJunThreadFactory("nebulaAsyncExec"),
                         new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     @Override
-    public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys)
-            throws Exception {
-        executor.execute(
-                () -> {
-                    queryData(future, keys);
-                });
+    public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys) {
+        executor.execute(() -> queryData(future, keys));
     }
 
     private void queryData(CompletableFuture<Collection<RowData>> future, Object... keys) {
@@ -113,7 +105,7 @@ public class NebulaLruTableFunction extends AbstractLruTableFunction {
         String ngql =
                 new LookupNGQLBuilder()
                         .setFieldNames(fieldNames)
-                        .setNebulaConf(nebulaConf)
+                        .setNebulaConf(nebulaConfig)
                         .setFiterFieldNames(keyNames)
                         .build();
 

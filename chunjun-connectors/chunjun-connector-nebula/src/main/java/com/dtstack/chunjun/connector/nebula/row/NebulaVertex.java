@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.row;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,12 +16,15 @@ package com.dtstack.chunjun.connector.nebula.row;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.row;
+
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.utils.NebulaSchemaFamily;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPDATE_VALUE_TEMPLATE;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPDATE_VERTEX_TEMPLATE;
@@ -30,28 +32,22 @@ import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPSERT_V
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPSERT_VERTEX_TEMPLATE;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.VERTEX_VALUE_TEMPLATE;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/11 2:23 下午
- */
 public class NebulaVertex implements Serializable {
 
     private String vid;
 
     private List<String> propValues;
 
-    private NebulaConf nebulaConf;
+    private final NebulaConfig nebulaConfig;
 
-    private List<String> propNames;
+    private final List<String> propNames;
 
-    public NebulaVertex(List<String> values, NebulaConf nebulaConf) {
+    public NebulaVertex(List<String> values, NebulaConfig nebulaConfig) {
         this.vid = values.get(0);
         this.propValues = values.subList(1, values.size());
-        this.nebulaConf = nebulaConf;
-        List<String> columnNames = nebulaConf.getColumnNames();
-        List<String> val = columnNames.subList(1, columnNames.size());
-        this.propNames = val;
+        this.nebulaConfig = nebulaConfig;
+        List<String> columnNames = nebulaConfig.getColumnNames();
+        this.propNames = columnNames.subList(1, columnNames.size());
     }
 
     public String getPropValuesString() {
@@ -88,7 +84,7 @@ public class NebulaVertex implements Serializable {
         return String.format(
                 UPDATE_VERTEX_TEMPLATE,
                 NebulaSchemaFamily.VERTEX.getType(),
-                nebulaConf.getEntityName(),
+                nebulaConfig.getEntityName(),
                 vid,
                 updatePropsString);
     }
@@ -103,13 +99,18 @@ public class NebulaVertex implements Serializable {
         return String.format(
                 UPSERT_VERTEX_TEMPLATE,
                 NebulaSchemaFamily.VERTEX.getType(),
-                nebulaConf.getEntityName(),
+                nebulaConfig.getEntityName(),
                 vid,
                 updatePropsString);
     }
 
     @Override
     public String toString() {
-        return "NebulaVertex{" + "vid='" + vid + '\'' + ", propValues=" + propValues + '}';
+        return new StringJoiner(", ", NebulaVertex.class.getSimpleName() + "[", "]")
+                .add("vid='" + vid + "'")
+                .add("propValues=" + propValues)
+                .add("nebulaConfig=" + nebulaConfig)
+                .add("propNames=" + propNames)
+                .toString();
     }
 }
