@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.row;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,12 +16,15 @@ package com.dtstack.chunjun.connector.nebula.row;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.row;
+
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.utils.NebulaSchemaFamily;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.EDGE_ENDPOINT_TEMPLATE;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.EDGE_ENDPOINT_WITHOUT_RANK_TEMPLATE;
@@ -36,11 +38,6 @@ import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPSERT_E
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPSERT_EDGE_WITHOUT_RANK_TEMPLATE;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPSERT_VALUE_TEMPLATE;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/11 2:23 下午
- */
 public class NebulaEdge implements Serializable {
 
     private String srcId;
@@ -53,23 +50,23 @@ public class NebulaEdge implements Serializable {
 
     private List<String> propValues;
 
-    private List<String> propNames;
+    private final List<String> propNames;
 
-    private NebulaConf nebulaConf;
+    private final NebulaConfig nebulaConfig;
 
-    public NebulaEdge(List<String> values, NebulaConf nebulaConf) {
+    public NebulaEdge(List<String> values, NebulaConfig nebulaConfig) {
         this.srcId = values.get(0);
         this.dstId = values.get(1);
-        this.nebulaConf = nebulaConf;
+        this.nebulaConfig = nebulaConfig;
 
-        if (nebulaConf.getColumnNames().contains(RANK)) {
+        if (nebulaConfig.getColumnNames().contains(RANK)) {
             this.rank = Long.parseLong(values.get(2));
             rankExist = true;
-            this.propNames = nebulaConf.getColumnNames().subList(3, values.size());
+            this.propNames = nebulaConfig.getColumnNames().subList(3, values.size());
             this.propValues = values.subList(3, values.size());
             return;
         }
-        this.propNames = nebulaConf.getColumnNames().subList(2, values.size());
+        this.propNames = nebulaConfig.getColumnNames().subList(2, values.size());
         this.propValues = values.subList(2, values.size());
     }
 
@@ -129,7 +126,7 @@ public class NebulaEdge implements Serializable {
             return String.format(
                     UPDATE_EDGE_TEMPLATE,
                     NebulaSchemaFamily.EDGE.getType(),
-                    nebulaConf.getEntityName(),
+                    nebulaConfig.getEntityName(),
                     srcId,
                     dstId,
                     rank,
@@ -138,7 +135,7 @@ public class NebulaEdge implements Serializable {
         return String.format(
                 UPDATE_EDGE_WITHOUT_RANK_TEMPLATE,
                 NebulaSchemaFamily.EDGE.getType(),
-                nebulaConf.getEntityName(),
+                nebulaConfig.getEntityName(),
                 srcId,
                 dstId,
                 updatePropsString);
@@ -155,7 +152,7 @@ public class NebulaEdge implements Serializable {
             return String.format(
                     UPSERT_EDGE_TEMPLATE,
                     NebulaSchemaFamily.EDGE.getType(),
-                    nebulaConf.getEntityName(),
+                    nebulaConfig.getEntityName(),
                     srcId,
                     dstId,
                     rank,
@@ -164,7 +161,7 @@ public class NebulaEdge implements Serializable {
         return String.format(
                 UPSERT_EDGE_WITHOUT_RANK_TEMPLATE,
                 NebulaSchemaFamily.EDGE.getType(),
-                nebulaConf.getEntityName(),
+                nebulaConfig.getEntityName(),
                 srcId,
                 dstId,
                 updatePropsString);
@@ -179,18 +176,14 @@ public class NebulaEdge implements Serializable {
 
     @Override
     public String toString() {
-        return "NebulaEdge{"
-                + "srcId='"
-                + srcId
-                + '\''
-                + ", dstId='"
-                + dstId
-                + '\''
-                + ", rank='"
-                + rank
-                + '\''
-                + ", propValues="
-                + propValues
-                + '}';
+        return new StringJoiner(", ", NebulaEdge.class.getSimpleName() + "[", "]")
+                .add("srcId='" + srcId + "'")
+                .add("dstId='" + dstId + "'")
+                .add("rank=" + rank)
+                .add("rankExist=" + rankExist)
+                .add("propValues=" + propValues)
+                .add("propNames=" + propNames)
+                .add("nebulaConfig=" + nebulaConfig)
+                .toString();
     }
 }

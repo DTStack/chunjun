@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.conf;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,14 +16,11 @@ package com.dtstack.chunjun.connector.nebula.conf;
  * limitations under the License.
  */
 
+package com.dtstack.chunjun.connector.nebula.config;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/3 3:16 下午
- */
 public class NebulaOptions {
 
     public static final ConfigOption<Integer> CLIENT_CONNECT_TIMEOUT_OPTION =

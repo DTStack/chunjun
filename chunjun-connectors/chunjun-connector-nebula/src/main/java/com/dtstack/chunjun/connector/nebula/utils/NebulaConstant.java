@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.utils;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,11 +16,8 @@ package com.dtstack.chunjun.connector.nebula.utils;
  * limitations under the License.
  */
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/11 10:04 上午
- */
+package com.dtstack.chunjun.connector.nebula.utils;
+
 public class NebulaConstant {
 
     // template for insert statement

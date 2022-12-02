@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.row;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,42 +16,40 @@ package com.dtstack.chunjun.connector.nebula.row;
  * limitations under the License.
  */
 
+package com.dtstack.chunjun.connector.nebula.row;
+
 import com.dtstack.chunjun.config.FieldConfig;
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.utils.NebulaSchemaFamily;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.BATCH_INSERT_TEMPLATE;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.DELETE_EDGE_TEMPLATE;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.DELETE_VERTEX_TEMPLATE;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/11 2:22 下午
- */
 public class NebulaRows implements Serializable {
 
-    private Boolean isVertex;
+    private final Boolean isVertex;
 
-    private List<NebulaVertex> nebulaVertices;
+    private final List<NebulaVertex> nebulaVertices;
 
-    private List<NebulaEdge> nebulaEdges;
+    private final List<NebulaEdge> nebulaEdges;
 
-    private NebulaConf nebulaConf;
+    private final NebulaConfig nebulaConfig;
 
     private List<String> values;
 
-    public NebulaRows(NebulaConf nebulaConf) {
+    public NebulaRows(NebulaConfig nebulaConfig) {
         this.nebulaVertices = new ArrayList<>();
         this.nebulaEdges = new ArrayList<>();
         this.values = new ArrayList<>();
-        this.nebulaConf = nebulaConf;
-        switch (nebulaConf.getSchemaType()) {
+        this.nebulaConfig = nebulaConfig;
+        switch (nebulaConfig.getSchemaType()) {
             case TAG:
             case VERTEX:
                 this.isVertex = true;
@@ -78,11 +75,11 @@ public class NebulaRows implements Serializable {
     }
 
     public void addVertex(List<String> values) {
-        nebulaVertices.add(new NebulaVertex(values, nebulaConf));
+        nebulaVertices.add(new NebulaVertex(values, nebulaConfig));
     }
 
     public void addEdge(List<String> values) {
-        nebulaEdges.add(new NebulaEdge(values, nebulaConf));
+        nebulaEdges.add(new NebulaEdge(values, nebulaConfig));
     }
 
     public String getInsertStatement() {
@@ -90,8 +87,8 @@ public class NebulaRows implements Serializable {
             return String.format(
                             BATCH_INSERT_TEMPLATE,
                             NebulaSchemaFamily.VERTEX.getType(),
-                            nebulaConf.getEntityName(),
-                            nebulaConf.getFields().stream()
+                            nebulaConfig.getEntityName(),
+                            nebulaConfig.getFields().stream()
                                     .map(FieldConfig::getName)
                                     .collect(Collectors.joining(",")),
                             nebulaVertices.stream()
@@ -102,8 +99,8 @@ public class NebulaRows implements Serializable {
         return String.format(
                         BATCH_INSERT_TEMPLATE,
                         NebulaSchemaFamily.EDGE.getType(),
-                        nebulaConf.getEntityName(),
-                        nebulaConf.getFields().stream()
+                        nebulaConfig.getEntityName(),
+                        nebulaConfig.getFields().stream()
                                 .map(FieldConfig::getName)
                                 .collect(Collectors.joining(",")),
                         nebulaEdges.stream()
@@ -136,7 +133,7 @@ public class NebulaRows implements Serializable {
         }
         return String.format(
                         DELETE_EDGE_TEMPLATE,
-                        nebulaConf.getEntityName(),
+                        nebulaConfig.getEntityName(),
                         nebulaEdges.stream()
                                 .map(NebulaEdge::getDeleteStatementString)
                                 .collect(Collectors.joining(",")))
@@ -158,15 +155,12 @@ public class NebulaRows implements Serializable {
 
     @Override
     public String toString() {
-        return "NebulaRows{"
-                + "isVertex="
-                + isVertex
-                + ", nebulaVertices="
-                + nebulaVertices
-                + ", nebulaEdges="
-                + nebulaEdges
-                + ", values="
-                + values
-                + '}';
+        return new StringJoiner(", ", NebulaRows.class.getSimpleName() + "[", "]")
+                .add("isVertex=" + isVertex)
+                .add("nebulaVertices=" + nebulaVertices)
+                .add("nebulaEdges=" + nebulaEdges)
+                .add("nebulaConfig=" + nebulaConfig)
+                .add("values=" + values)
+                .toString();
     }
 }

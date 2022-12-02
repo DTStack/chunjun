@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.splitters;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,16 +16,13 @@ package com.dtstack.chunjun.connector.nebula.splitters;
  * limitations under the License.
  */
 
+package com.dtstack.chunjun.connector.nebula.splitters;
+
 import org.apache.flink.core.io.GenericInputSplit;
 
-import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.StringJoiner;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/10/31 6:21 下午
- */
 public class NebulaInputSplitter extends GenericInputSplit {
 
     public LinkedList<Integer> parts = new LinkedList<>();
@@ -80,15 +76,11 @@ public class NebulaInputSplitter extends GenericInputSplit {
 
     @Override
     public String toString() {
-        return "NebulaInputSplitter{"
-                + "parts="
-                + Arrays.toString(parts.toArray())
-                + ", interval="
-                + interval
-                + ", scanStart="
-                + scanStart
-                + ", scanEnd="
-                + scanEnd
-                + '}';
+        return new StringJoiner(", ", NebulaInputSplitter.class.getSimpleName() + "[", "]")
+                .add("parts=" + parts)
+                .add("interval=" + interval)
+                .add("scanStart=" + scanStart)
+                .add("scanEnd=" + scanEnd)
+                .toString();
     }
 }

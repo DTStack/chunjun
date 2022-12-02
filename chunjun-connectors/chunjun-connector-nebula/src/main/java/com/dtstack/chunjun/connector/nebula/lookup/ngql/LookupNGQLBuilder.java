@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.lookup.ngql;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +16,9 @@ package com.dtstack.chunjun.connector.nebula.lookup.ngql;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.lookup.ngql;
+
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.DSTID;
@@ -25,11 +26,6 @@ import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.RANK;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.SRCID;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.VID;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/9 4:40 下午
- */
 public class LookupNGQLBuilder {
 
     /** 返回的字段 */
@@ -37,10 +33,10 @@ public class LookupNGQLBuilder {
     /** 过滤的字段 */
     private String[] fiterFieldNames;
     /** nebula 配置对象 */
-    private NebulaConf nebulaConf;
+    private NebulaConfig nebulaConfig;
 
-    public LookupNGQLBuilder setNebulaConf(NebulaConf nebulaConf) {
-        this.nebulaConf = nebulaConf;
+    public LookupNGQLBuilder setNebulaConf(NebulaConfig nebulaConfig) {
+        this.nebulaConfig = nebulaConfig;
         return this;
     }
 
@@ -56,7 +52,7 @@ public class LookupNGQLBuilder {
 
     public String buildVertexNgql() {
         StringBuilder builder = new StringBuilder();
-        builder.append("match (v:").append(nebulaConf.getEntityName()).append(") ");
+        builder.append("match (v:").append(nebulaConfig.getEntityName()).append(") ");
         if (fiterFieldNames.length > 0) {
             builder.append("where ");
             for (String fiterFieldName : fiterFieldNames) {
@@ -64,7 +60,7 @@ public class LookupNGQLBuilder {
                     builder.append("id(v) == $").append(fiterFieldName).append(" and");
                 } else {
                     builder.append(" v.")
-                            .append(nebulaConf.getEntityName())
+                            .append(nebulaConfig.getEntityName())
                             .append(".")
                             .append(fiterFieldName)
                             .append("==")
@@ -83,7 +79,7 @@ public class LookupNGQLBuilder {
                     continue;
                 }
                 builder.append("v.")
-                        .append(nebulaConf.getEntityName())
+                        .append(nebulaConfig.getEntityName())
                         .append(".")
                         .append(fieldName)
                         .append(",");
@@ -96,7 +92,7 @@ public class LookupNGQLBuilder {
     public String buildEdgeNgql() {
         StringBuilder builder = new StringBuilder();
         StringBuilder where = new StringBuilder(" where ");
-        builder.append("match (f) - [e:").append(nebulaConf.getEntityName());
+        builder.append("match (f) - [e:").append(nebulaConfig.getEntityName());
         if (fiterFieldNames.length > 0) {
 
             for (String fiterFieldName : fiterFieldNames) {
@@ -162,7 +158,7 @@ public class LookupNGQLBuilder {
 
     public String build() {
 
-        switch (nebulaConf.getSchemaType()) {
+        switch (nebulaConfig.getSchemaType()) {
             case TAG:
             case VERTEX:
                 return buildVertexNgql();
@@ -170,7 +166,7 @@ public class LookupNGQLBuilder {
             case EDGE_TYPE:
                 return buildEdgeNgql();
             default:
-                throw new UnsupportedTypeException("unsupport schema type,check");
+                throw new UnsupportedTypeException("unsupported schema type,check");
         }
     }
 }

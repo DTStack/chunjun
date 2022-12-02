@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.conf;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,16 +16,19 @@ package com.dtstack.chunjun.connector.nebula.conf;
  * limitations under the License.
  */
 
+package com.dtstack.chunjun.connector.nebula.config;
+
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.nebula.utils.NebulaSchemaFamily;
-import com.dtstack.chunjun.connector.nebula.utils.WriteMode;
+import com.dtstack.chunjun.sink.WriteMode;
 
 import com.google.common.collect.Lists;
 import com.vesoft.nebula.client.graph.data.HostAddress;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.DSTID;
@@ -34,12 +36,7 @@ import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.RANK;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.SRCID;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.VID;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/10/31 6:20 下午
- */
-public class NebulaConf extends CommonConfig implements Serializable {
+public class NebulaConfig extends CommonConfig implements Serializable {
     private static final long serialVersionUID = 1L;
     /** nebula password */
     private String password;
@@ -410,11 +407,9 @@ public class NebulaConf extends CommonConfig implements Serializable {
         if (fields == null) {
             return null;
         }
-        List<FieldConfig> var1 =
-                fields.stream()
-                        .filter(fieldConf -> !var.contains(fieldConf.getName()))
-                        .collect(Collectors.toList());
-        return var1;
+        return fields.stream()
+                .filter(fieldConf -> !var.contains(fieldConf.getName()))
+                .collect(Collectors.toList());
     }
 
     public void setFields(List<FieldConfig> fields) {
@@ -439,87 +434,44 @@ public class NebulaConf extends CommonConfig implements Serializable {
 
     @Override
     public String toString() {
-        return "NebulaConf{"
-                + "password='"
-                + password
-                + '\''
-                + ", timeout="
-                + timeout
-                + ", username='"
-                + username
-                + '\''
-                + ", reconn="
-                + reconn
-                + ", entityName='"
-                + entityName
-                + '\''
-                + ", pk='"
-                + pk
-                + '\''
-                + ", fetchSize="
-                + fetchSize
-                + ", bulkSize="
-                + bulkSize
-                + ", space='"
-                + space
-                + '\''
-                + ", schemaType="
-                + schemaType
-                + ", enableSSL="
-                + enableSSL
-                + ", sslParamType="
-                + sslParamType
-                + ", caCrtFilePath='"
-                + caCrtFilePath
-                + '\''
-                + ", crtFilePath='"
-                + crtFilePath
-                + '\''
-                + ", keyFilePath='"
-                + keyFilePath
-                + '\''
-                + ", sslPassword='"
-                + sslPassword
-                + '\''
-                + ", connectionRetry="
-                + connectionRetry
-                + ", executionRetry="
-                + executionRetry
-                + ", readTasks="
-                + readTasks
-                + ", writeTasks="
-                + writeTasks
-                + ", interval="
-                + interval
-                + ", start="
-                + start
-                + ", end="
-                + end
-                + ", columnNames="
-                + columnNames
-                + ", fields="
-                + fields
-                + ", defaultAllowPartSuccess="
-                + defaultAllowPartSuccess
-                + ", defaultAllowReadFollower="
-                + defaultAllowReadFollower
-                + ", minConnsSize="
-                + minConnsSize
-                + ", maxConnsSize="
-                + maxConnsSize
-                + ", idleTime="
-                + idleTime
-                + ", intervalIdle="
-                + intervalIdle
-                + ", waitTime="
-                + waitTime
-                + ", mode="
-                + mode
-                + ", stringLength="
-                + stringLength
-                + ", vidType='"
-                + vidType
-                + '\''
-                + '}';
+        return new StringJoiner(", ", NebulaConfig.class.getSimpleName() + "[", "]")
+                .add("password='" + password + "'")
+                .add("storageAddresses=" + storageAddresses)
+                .add("graphdAddresses=" + graphdAddresses)
+                .add("timeout=" + timeout)
+                .add("username='" + username + "'")
+                .add("reconn=" + reconn)
+                .add("entityName='" + entityName + "'")
+                .add("pk='" + pk + "'")
+                .add("fetchSize=" + fetchSize)
+                .add("bulkSize=" + bulkSize)
+                .add("space='" + space + "'")
+                .add("schemaType=" + schemaType)
+                .add("enableSSL=" + enableSSL)
+                .add("sslParamType=" + sslParamType)
+                .add("caCrtFilePath='" + caCrtFilePath + "'")
+                .add("crtFilePath='" + crtFilePath + "'")
+                .add("keyFilePath='" + keyFilePath + "'")
+                .add("sslPassword='" + sslPassword + "'")
+                .add("connectionRetry=" + connectionRetry)
+                .add("executionRetry=" + executionRetry)
+                .add("readTasks=" + readTasks)
+                .add("writeTasks=" + writeTasks)
+                .add("interval=" + interval)
+                .add("start=" + start)
+                .add("end=" + end)
+                .add("columnNames=" + columnNames)
+                .add("fields=" + fields)
+                .add("defaultAllowPartSuccess=" + defaultAllowPartSuccess)
+                .add("defaultAllowReadFollower=" + defaultAllowReadFollower)
+                .add("minConnsSize=" + minConnsSize)
+                .add("maxConnsSize=" + maxConnsSize)
+                .add("idleTime=" + idleTime)
+                .add("intervalIdle=" + intervalIdle)
+                .add("waitTime=" + waitTime)
+                .add("mode=" + mode)
+                .add("stringLength=" + stringLength)
+                .add("vidType='" + vidType + "'")
+                .toString();
     }
 }

@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.converter;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,6 +15,8 @@ package com.dtstack.chunjun.connector.nebula.converter;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package com.dtstack.chunjun.connector.nebula.converter;
 
 import com.dtstack.chunjun.connector.nebula.row.NebulaRows;
 import com.dtstack.chunjun.connector.nebula.row.NebulaTableRow;
@@ -44,22 +45,17 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-/**
- * @author: gaoasi
- * @create: 2022/09/22
- */
 public class NebulaRowConverter
         extends AbstractRowConverter<BaseTableRow, BaseTableRow, NebulaRows, RowType.RowField> {
 
     public NebulaRowConverter(RowType rowType) {
         super(rowType);
         List<RowType.RowField> fields = rowType.getFields();
-        for (int i = 0; i < fields.size(); i++) {
+        for (RowType.RowField field : fields) {
             toInternalConverters.add(
-                    wrapIntoNullableInternalConverter(createInternalConverter(fields.get(i))));
+                    wrapIntoNullableInternalConverter(createInternalConverter(field)));
             toExternalConverters.add(
-                    wrapIntoNullableExternalConverter(
-                            createExternalConverter(fields.get(i)), fields.get(i)));
+                    wrapIntoNullableExternalConverter(createExternalConverter(field), field));
         }
     }
 

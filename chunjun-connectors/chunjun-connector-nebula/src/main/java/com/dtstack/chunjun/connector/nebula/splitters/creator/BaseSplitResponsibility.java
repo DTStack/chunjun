@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.splitters.creator;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,26 +16,23 @@ package com.dtstack.chunjun.connector.nebula.splitters.creator;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.splitters.creator;
+
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.splitters.NebulaInputSplitter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/3 5:18 下午
- */
 public class BaseSplitResponsibility {
 
-    private List<BaseSplitResponsibility> splitResponsibilities = new ArrayList<>();
+    private final List<BaseSplitResponsibility> splitResponsibilities = new ArrayList<>();
 
     public BaseSplitResponsibility(Boolean init) {
         if (init) {
             splitResponsibilities.add(new EqualSplitCreator(false));
             splitResponsibilities.add(new SplitNumGTPartNumSplitCtreator(false));
-            splitResponsibilities.add(new SplitNumLTPartNumSplitCtreator(false));
+            splitResponsibilities.add(new SplitNumLTPartNumSplitCreator(false));
         }
     }
 
@@ -45,10 +41,10 @@ public class BaseSplitResponsibility {
             int partNum,
             NebulaInputSplitter[] nebulaInputSplitters,
             List<Integer> spaceParts,
-            NebulaConf nebulaConf) {
+            NebulaConfig nebulaConfig) {
         for (BaseSplitResponsibility splitResponsibility : splitResponsibilities) {
             splitResponsibility.createSplit(
-                    minNumSplits, partNum, nebulaInputSplitters, spaceParts, nebulaConf);
+                    minNumSplits, partNum, nebulaInputSplitters, spaceParts, nebulaConfig);
         }
     }
 }

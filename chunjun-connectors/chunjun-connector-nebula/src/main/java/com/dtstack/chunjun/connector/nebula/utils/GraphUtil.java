@@ -1,4 +1,3 @@
-package com.dtstack.chunjun.connector.nebula.utils;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +16,9 @@ package com.dtstack.chunjun.connector.nebula.utils;
  * limitations under the License.
  */
 
-import com.dtstack.chunjun.connector.nebula.conf.NebulaConf;
+package com.dtstack.chunjun.connector.nebula.utils;
+
+import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.flink.util.Preconditions;
@@ -26,70 +27,65 @@ import com.vesoft.nebula.client.graph.data.CASignedSSLParam;
 import com.vesoft.nebula.client.graph.data.SSLParam;
 import com.vesoft.nebula.client.graph.data.SelfSignedSSLParam;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163.com
- * @date: 2022/11/1 2:59 下午
- */
 public class GraphUtil {
 
-    public static SSLParam getSslParam(NebulaConf nebulaConf) {
+    public static SSLParam getSslParam(NebulaConfig nebulaConfig) {
         SSLParam sslParam = null;
-        if (nebulaConf.getEnableSSL()) {
-            switch (nebulaConf.getSslParamType()) {
+        if (nebulaConfig.getEnableSSL()) {
+            switch (nebulaConfig.getSslParamType()) {
                 case CA_SIGNED_SSL_PARAM:
-                    checkSSL(nebulaConf);
+                    checkSSL(nebulaConfig);
                     sslParam =
                             new CASignedSSLParam(
-                                    nebulaConf.getCaCrtFilePath(),
-                                    nebulaConf.getCrtFilePath(),
-                                    nebulaConf.getKeyFilePath());
+                                    nebulaConfig.getCaCrtFilePath(),
+                                    nebulaConfig.getCrtFilePath(),
+                                    nebulaConfig.getKeyFilePath());
 
                     break;
                 case SELF_SIGNED_SSL_PARAM:
-                    checkSSL(nebulaConf);
+                    checkSSL(nebulaConfig);
                     sslParam =
                             new SelfSignedSSLParam(
-                                    nebulaConf.getCrtFilePath(),
-                                    nebulaConf.getKeyFilePath(),
-                                    nebulaConf.getPassword());
+                                    nebulaConfig.getCrtFilePath(),
+                                    nebulaConfig.getKeyFilePath(),
+                                    nebulaConfig.getPassword());
                     break;
                 default:
                     throw new ChunJunRuntimeException(
-                            "unsupport ssl type: " + nebulaConf.getSslParamType());
+                            "unsupport ssl type: " + nebulaConfig.getSslParamType());
             }
         }
         return sslParam;
     }
 
-    public static void checkSSL(NebulaConf nebulaConf) {
-        switch (nebulaConf.getSslParamType()) {
+    public static void checkSSL(NebulaConfig nebulaConfig) {
+        switch (nebulaConfig.getSslParamType()) {
             case CA_SIGNED_SSL_PARAM:
                 Preconditions.checkNotNull(
-                        nebulaConf.getCaCrtFilePath(),
+                        nebulaConfig.getCaCrtFilePath(),
                         "nebula enableSSL is true,but caCrtFilePath is null!");
                 Preconditions.checkNotNull(
-                        nebulaConf.getCrtFilePath(),
+                        nebulaConfig.getCrtFilePath(),
                         "nebula enableSSL is true,but crtFilePath is null!");
                 Preconditions.checkNotNull(
-                        nebulaConf.getKeyFilePath(),
+                        nebulaConfig.getKeyFilePath(),
                         "nebula enableSSL is true,but keyFilePath is null!");
 
                 break;
             case SELF_SIGNED_SSL_PARAM:
                 Preconditions.checkNotNull(
-                        nebulaConf.getSslPassword(),
+                        nebulaConfig.getSslPassword(),
                         "nebula enableSSL is true,but ssl password is null!");
                 Preconditions.checkNotNull(
-                        nebulaConf.getCrtFilePath(),
+                        nebulaConfig.getCrtFilePath(),
                         "nebula enableSSL is true,but crtFilePath is null!");
                 Preconditions.checkNotNull(
-                        nebulaConf.getKeyFilePath(),
+                        nebulaConfig.getKeyFilePath(),
                         "nebula enableSSL is true,but keyFilePath is null!");
                 break;
             default:
                 throw new ChunJunRuntimeException(
-                        "unsupport ssl type: " + nebulaConf.getSslParamType());
+                        "unsupport ssl type: " + nebulaConfig.getSslParamType());
         }
     }
 }
