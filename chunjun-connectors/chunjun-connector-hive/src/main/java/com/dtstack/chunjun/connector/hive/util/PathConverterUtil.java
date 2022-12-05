@@ -92,8 +92,9 @@ public class PathConverterUtil {
                 }
                 // .在sql中会视为db.table的分隔符，需要单独过滤特殊字符 '.'
                 path = path.replace(pkey, ruleValue).replace(".", "_");
-                path = tryGetValidHiveTableName(path);
             }
+
+            path = tryGetValidHiveTableName(path);
         } catch (Exception e) {
             logger.error("parser path rules is fail", e);
         }
