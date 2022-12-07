@@ -101,7 +101,7 @@ public class Main {
 
         Options options = new OptionParser(args).getOptions();
         String job = URLDecoder.decode(options.getJob(), StandardCharsets.UTF_8.name());
-        String replacedJob = JobUtil.replaceJobParameter(options.getP(), job);
+        String replacedJob = JobUtil.replaceJobParameter(options.getP(), options.getPj(), job);
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =

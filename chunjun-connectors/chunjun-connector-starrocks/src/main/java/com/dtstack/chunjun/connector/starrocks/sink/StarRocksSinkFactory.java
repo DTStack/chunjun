@@ -50,7 +50,7 @@ public class StarRocksSinkFactory extends SinkFactory {
                 JsonUtil.toObject(
                         JsonUtil.toJson(syncConf.getWriter().getParameter()), StarRocksConf.class);
 
-        int batchSize = syncConf.getWriter().getIntVal("batchSize", 10240);
+        int batchSize = syncConf.getWriter().getIntVal("batchSize", 1024);
         starRocksConf.setBatchSize(batchSize);
         super.initCommonConf(starRocksConf);
     }
