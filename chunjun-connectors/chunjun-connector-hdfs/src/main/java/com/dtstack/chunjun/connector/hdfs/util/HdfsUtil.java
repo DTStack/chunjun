@@ -165,7 +165,7 @@ public class HdfsUtil {
             case DATE:
                 objectInspector =
                         ObjectInspectorFactory.getReflectionObjectInspector(
-                                java.sql.Date.class,
+                                org.apache.hadoop.hive.common.type.Date.class,
                                 ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case STRING:

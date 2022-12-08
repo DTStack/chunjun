@@ -231,7 +231,9 @@ public class HdfsOrcColumnConverter
                 };
             case "DATE":
                 return (rowData, index, data) ->
-                        data[index] = new Date(rowData.getTimestamp(index, 6).getMillisecond());
+                        data[index] =
+                                org.apache.hadoop.hive.common.type.Date.ofEpochMilli(
+                                        rowData.getTimestamp(index, 6).getMillisecond());
             case "BINARY":
                 return (rowData, index, data) ->
                         data[index] = new BytesWritable(rowData.getBinary(index));
