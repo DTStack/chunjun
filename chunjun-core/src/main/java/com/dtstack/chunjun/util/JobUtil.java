@@ -18,8 +18,6 @@
 
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.constants.ConstantValue;
-
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.type.TypeReference;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,14 +31,10 @@ public class JobUtil {
         throw new IllegalAccessException(getClass().getName() + " can not be instantiated");
     }
 
-    public static String replaceJobParameter(String p, String pj, String job) {
-        if (StringUtils.isNotBlank(p)) {
-            Map<String, String> parameters = commandSimpleTransform(p);
-            job = jsonValueReplace(job, parameters);
-        }
+    public static String replaceJobParameter(String pj, String job) {
         if (StringUtils.isNotBlank(pj)) {
             Map<String, String> parameters = commandJsonTransform(pj);
-            job = jsonValueReplace(job, parameters);
+            return jsonValueReplace(job, parameters);
         }
         return job;
     }
@@ -52,17 +46,6 @@ public class JobUtil {
             }
         }
         return json;
-    }
-
-    /** 将命令行中的修改命令转化为HashMap保存 */
-    public static HashMap<String, String> commandSimpleTransform(String command) {
-        HashMap<String, String> parameter = new HashMap<>();
-        String[] split = StringUtils.split(command, ConstantValue.COMMA_SYMBOL);
-        for (String item : split) {
-            String[] temp = item.split(ConstantValue.EQUAL_SYMBOL);
-            parameter.put(temp[0].trim(), temp[1].trim());
-        }
-        return parameter;
     }
 
     public static HashMap<String, String> commandJsonTransform(String command) {

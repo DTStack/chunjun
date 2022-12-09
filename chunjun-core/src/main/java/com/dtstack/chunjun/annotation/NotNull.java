@@ -15,19 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.chunjun.sink.format;
 
-import com.dtstack.chunjun.config.BaseFileConfig;
+package com.dtstack.chunjun.annotation;
 
-public abstract class FileOutputFormatBuilder<T extends BaseFileOutputFormat>
-        extends BaseRichOutputFormatBuilder<T> {
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    public FileOutputFormatBuilder(T format) {
-        super(format);
-    }
-
-    public void setBaseFileConfig(BaseFileConfig baseFileConfig) {
-        super.setConfig(baseFileConfig);
-        format.baseFileConfig = baseFileConfig;
-    }
-}
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE})
+@Documented
+@Retention(RetentionPolicy.CLASS)
+public @interface NotNull {}

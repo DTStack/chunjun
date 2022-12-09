@@ -45,7 +45,7 @@ public class Hive3OutputFormatBuilder extends BaseRichOutputFormatBuilder<BaseHd
 
     public void setHdfsConf(HdfsConfig hdfsConfig) {
         super.setConfig(hdfsConfig);
-        format.setBaseFileConf(hdfsConfig);
+        format.setBaseFileConfig(hdfsConfig);
         format.setHdfsConf(hdfsConfig);
     }
 

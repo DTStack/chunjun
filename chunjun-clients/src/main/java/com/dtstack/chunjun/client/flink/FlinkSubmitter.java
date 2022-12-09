@@ -15,19 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.chunjun.sink.format;
 
-import com.dtstack.chunjun.config.BaseFileConfig;
+package com.dtstack.chunjun.client.flink;
 
-public abstract class FileOutputFormatBuilder<T extends BaseFileOutputFormat>
-        extends BaseRichOutputFormatBuilder<T> {
-
-    public FileOutputFormatBuilder(T format) {
-        super(format);
-    }
-
-    public void setBaseFileConfig(BaseFileConfig baseFileConfig) {
-        super.setConfig(baseFileConfig);
-        format.baseFileConfig = baseFileConfig;
-    }
-}
+public class FlinkSubmitter {}

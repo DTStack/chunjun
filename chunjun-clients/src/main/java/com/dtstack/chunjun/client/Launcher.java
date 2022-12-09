@@ -17,6 +17,7 @@
  */
 package com.dtstack.chunjun.client;
 
+import com.dtstack.chunjun.annotation.NotNull;
 import com.dtstack.chunjun.classloader.ClassLoaderManager;
 import com.dtstack.chunjun.client.exception.DeploymentException;
 import com.dtstack.chunjun.client.kubernetes.KubernetesApplicationClusterClientHelper;
@@ -34,6 +35,7 @@ import org.apache.flink.client.deployment.ClusterDeploymentException;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.ConfigConstants;
 
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +43,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /** Chunjun commandline Launcher */
 public class Launcher {
@@ -55,6 +57,7 @@ public class Launcher {
     public static final String PLUGINS_DIR_NAME = "chunjun-dist";
 
     public static void main(String[] args) throws Exception {
+        // 1. parse command into options.
         OptionParser optionParser = new OptionParser(args);
         Options launcherOptions = optionParser.getOptions();
 
@@ -63,16 +66,16 @@ public class Launcher {
         List<String> argList = optionParser.getProgramExeArgList();
 
         // 将argList转化为HashMap，方便通过参数名称来获取参数值
-        HashMap<String, String> temp = new HashMap<>(16);
+        Map<String, String> commandMap = Maps.newHashMap();
         for (int i = 0; i < argList.size(); i += 2) {
-            temp.put(argList.get(i), argList.get(i + 1));
+            commandMap.put(argList.get(i), argList.get(i + 1));
         }
 
         // 清空list，填充修改后的参数值
         argList.clear();
-        for (int i = 0; i < temp.size(); i++) {
-            argList.add(temp.keySet().toArray()[i].toString());
-            argList.add(temp.values().toArray()[i].toString());
+        for (int i = 0; i < commandMap.size(); i++) {
+            argList.add(commandMap.keySet().toArray()[i].toString());
+            argList.add(commandMap.values().toArray()[i].toString());
         }
 
         JobDeployer jobDeployer = new JobDeployer(launcherOptions, argList);
@@ -161,7 +164,7 @@ public class Launcher {
         }
     }
 
-    private static void findDefaultChunJunDistDir(Options launcherOptions)
+    private static void findDefaultChunJunDistDir(@NotNull Options launcherOptions)
             throws ClusterDeploymentException {
         String distDir = launcherOptions.getChunjunDistDir();
         if (StringUtils.isEmpty(distDir)) {

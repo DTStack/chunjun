@@ -36,8 +36,8 @@ public abstract class BaseRichOutputFormatBuilder<T extends BaseRichOutputFormat
         this.format = format;
     }
 
-    public void setDdlConf(DDLConfig ddlConfig) {
-        format.setDdlConf(ddlConfig);
+    public void setDdlConfig(DDLConfig ddlConfig) {
+        format.setDdlConfig(ddlConfig);
     }
 
     public void setConfig(CommonConfig config) {
