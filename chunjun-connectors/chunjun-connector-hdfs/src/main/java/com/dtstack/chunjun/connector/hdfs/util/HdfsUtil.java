@@ -159,13 +159,13 @@ public class HdfsUtil {
             case TIMESTAMP:
                 objectInspector =
                         ObjectInspectorFactory.getReflectionObjectInspector(
-                                java.sql.Timestamp.class,
+                                org.apache.hadoop.hive.common.type.Timestamp.class,
                                 ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case DATE:
                 objectInspector =
                         ObjectInspectorFactory.getReflectionObjectInspector(
-                                java.sql.Date.class,
+                                org.apache.hadoop.hive.common.type.Date.class,
                                 ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             case STRING:
