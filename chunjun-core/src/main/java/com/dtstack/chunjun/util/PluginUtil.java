@@ -449,20 +449,17 @@ public class PluginUtil {
      * @param urlList
      * @return
      */
-    @SuppressWarnings("all")
     public static List<String> setPipelineOptionsToEnvConfig(
             StreamExecutionEnvironment env, List<String> urlList, String executionMode) {
         try {
-            Configuration configuration =
-                    (Configuration)
-                            ReflectionUtils.getDeclaredMethod(env, "getConfiguration").invoke(env);
+            Configuration configuration = (Configuration) env.getConfiguration();
             List<String> jarList = configuration.get(PipelineOptions.JARS);
             if (jarList == null) {
                 jarList = new ArrayList<>(urlList.size());
             }
             jarList.addAll(urlList);
 
-            List<String> pipelineJars = new ArrayList();
+            List<String> pipelineJars = new ArrayList<>();
             LOG.info("ChunJun executionMode: " + executionMode);
             if (ClusterMode.getByName(executionMode) == ClusterMode.kubernetesApplication) {
                 for (String jarUrl : jarList) {

@@ -44,7 +44,7 @@ public class HdfsOutputFormatBuilder extends BaseRichOutputFormatBuilder<BaseHdf
 
     public void setHdfsConf(HdfsConfig hdfsConfig) {
         super.setConfig(hdfsConfig);
-        format.setBaseFileConf(hdfsConfig);
+        format.setBaseFileConfig(hdfsConfig);
         format.setHdfsConf(hdfsConfig);
     }
 

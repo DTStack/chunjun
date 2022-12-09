@@ -34,7 +34,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -75,17 +74,19 @@ public class EnvFactory {
     }
 
     public static void registerPluginIntoEnv(Configuration configuration, List<URL> pluginPaths) {
-        List<String> jars = configuration.get(PipelineOptions.JARS);
-        if (CollectionUtils.isEmpty(jars)) {
-            jars = Lists.newArrayList();
-        }
+        List<String> jars =
+                CollectionUtils.isEmpty(configuration.get(PipelineOptions.JARS))
+                        ? Lists.newArrayList()
+                        : configuration.get(PipelineOptions.JARS);
+        List<String> classpath =
+                CollectionUtils.isEmpty(configuration.get(PipelineOptions.CLASSPATHS))
+                        ? Lists.newArrayList()
+                        : configuration.get(PipelineOptions.JARS);
+
         jars.addAll(pluginPaths.stream().map(URL::toString).collect(Collectors.toList()));
         configuration.set(
                 PipelineOptions.JARS, jars.stream().distinct().collect(Collectors.toList()));
-        List<String> classpath = configuration.get(PipelineOptions.CLASSPATHS);
-        if (classpath == null) {
-            classpath = new ArrayList<>();
-        }
+
         classpath.addAll(pluginPaths.stream().map(URL::toString).collect(Collectors.toList()));
         configuration.set(
                 PipelineOptions.CLASSPATHS,

@@ -31,7 +31,7 @@ public class FtpOutputFormatBuilder extends FileOutputFormatBuilder<FtpOutputFor
     }
 
     public void setFtpConfig(FtpConfig ftpConfig) {
-        super.setBaseFileConf(ftpConfig);
+        super.setBaseFileConfig(ftpConfig);
         format.setFtpConfig(ftpConfig);
     }
 

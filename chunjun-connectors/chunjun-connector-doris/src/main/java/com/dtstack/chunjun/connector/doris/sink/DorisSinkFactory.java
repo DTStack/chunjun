@@ -158,7 +158,7 @@ public class DorisSinkFactory extends SinkFactory {
         MysqlDialect dialect = new MysqlDialect();
         initColumnInfo(options, dialect, builder);
         builder.setJdbcConf(options);
-        builder.setDdlConf(ddlConfig);
+        builder.setDdlConfig(ddlConfig);
 
         builder.setJdbcDialect(dialect);
 

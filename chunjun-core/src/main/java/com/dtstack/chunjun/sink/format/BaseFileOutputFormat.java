@@ -37,7 +37,7 @@ import java.util.List;
 public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     protected static final String TMP_DIR_NAME = ".data";
-    protected BaseFileConfig baseFileConf;
+    protected BaseFileConfig baseFileConfig;
     /** The first half of the file name currently written */
     protected String currentFileNamePrefix;
     /** Full file name */
@@ -59,8 +59,8 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     @Override
     public void initializeGlobal(int parallelism) {
         initVariableFields();
-        if (WriteMode.OVERWRITE.name().equalsIgnoreCase(baseFileConf.getWriteMode())
-                && StringUtils.isBlank(baseFileConf.getSavePointPath())) {
+        if (WriteMode.OVERWRITE.name().equalsIgnoreCase(baseFileConfig.getWriteMode())
+                && StringUtils.isBlank(baseFileConfig.getSavePointPath())) {
             // not delete the data directory when restoring from checkpoint
             deleteDataDir();
         } else {
@@ -98,14 +98,14 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     protected void initVariableFields() {
         // The file name here is actually the partition name
-        if (StringUtils.isNotBlank(baseFileConf.getFileName())) {
+        if (StringUtils.isNotBlank(baseFileConfig.getFileName())) {
             outputFilePath =
-                    baseFileConf.getPath() + File.separatorChar + baseFileConf.getFileName();
+                    baseFileConfig.getPath() + File.separatorChar + baseFileConfig.getFileName();
         } else {
-            outputFilePath = baseFileConf.getPath();
+            outputFilePath = baseFileConfig.getPath();
         }
         tmpPath = outputFilePath + File.separatorChar + TMP_DIR_NAME;
-        nextNumForCheckDataSize = baseFileConf.getNextCheckRows();
+        nextNumForCheckDataSize = baseFileConfig.getNextCheckRows();
         openSource();
     }
 
@@ -132,10 +132,10 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
             return;
         }
         long currentFileSize = getCurrentFileSize();
-        if (currentFileSize > baseFileConf.getMaxFileSize()) {
+        if (currentFileSize > baseFileConfig.getMaxFileSize()) {
             flushData();
         }
-        nextNumForCheckDataSize += baseFileConf.getNextCheckRows();
+        nextNumForCheckDataSize += baseFileConfig.getNextCheckRows();
         LOG.info(
                 "current file: {}, size = {}, nextNumForCheckDataSize = {}",
                 currentFileName,
@@ -255,7 +255,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         return lastWriteTime;
     }
 
-    public void setBaseFileConf(BaseFileConfig baseFileConf) {
-        this.baseFileConf = baseFileConf;
+    public void setBaseFileConfig(BaseFileConfig baseFileConfig) {
+        this.baseFileConfig = baseFileConfig;
     }
 }

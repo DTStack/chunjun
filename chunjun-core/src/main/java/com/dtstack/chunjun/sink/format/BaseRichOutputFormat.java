@@ -699,7 +699,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         this.useAbstractColumn = useAbstractColumn;
     }
 
-    public void setDdlConf(DDLConfig ddlConfig) {
+    public void setDdlConfig(DDLConfig ddlConfig) {
         this.ddlConfig = ddlConfig;
     }
 }

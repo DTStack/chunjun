@@ -38,15 +38,12 @@ public class OptionParser {
 
     @VisibleForTesting protected static final String OPTION_JOB = "job";
 
-    private final org.apache.commons.cli.Options options = new org.apache.commons.cli.Options();
-
-    private final DefaultParser parser = new DefaultParser();
-
     private final Options properties = new Options();
 
     public OptionParser(String[] args) throws Exception {
-        Class cla = properties.getClass();
+        Class<?> cla = properties.getClass();
         Field[] fields = cla.getDeclaredFields();
+        org.apache.commons.cli.Options options = new org.apache.commons.cli.Options();
         for (Field field : fields) {
             String name = field.getName();
             OptionRequired optionRequired = field.getAnnotation(OptionRequired.class);
@@ -54,6 +51,7 @@ public class OptionParser {
                 options.addOption(name, optionRequired.hasArg(), optionRequired.description());
             }
         }
+        DefaultParser parser = new DefaultParser();
         CommandLine cl = parser.parse(options, args);
 
         for (Field field : fields) {
