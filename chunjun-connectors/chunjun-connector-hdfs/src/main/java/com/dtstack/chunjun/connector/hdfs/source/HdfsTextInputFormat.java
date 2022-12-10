@@ -123,7 +123,8 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
                             ((Text) value).getLength(),
                             hdfsConf.getEncoding());
             String[] fields =
-                    StringUtils.splitPreserveAllTokens(line, hdfsConf.getFieldDelimiter());
+                    StringUtils.splitByWholeSeparatorPreserveAllTokens(
+                            line, hdfsConf.getFieldDelimiter());
 
             List<FieldConf> fieldConfList = hdfsConf.getColumn();
             GenericRowData genericRowData;

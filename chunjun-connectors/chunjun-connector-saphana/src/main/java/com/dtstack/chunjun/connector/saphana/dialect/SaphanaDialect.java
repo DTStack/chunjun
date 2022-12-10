@@ -110,7 +110,7 @@ public class SaphanaDialect implements JdbcDialect {
 
     @Override
     public String quoteIdentifier(String identifier) {
-        return identifier;
+        return "\"" + identifier + "\"";
     }
 
     @Override

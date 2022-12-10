@@ -28,6 +28,7 @@ import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.dirty.DirtyConf;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
+import com.dtstack.chunjun.enums.ClusterMode;
 import com.dtstack.chunjun.enums.EJobType;
 import com.dtstack.chunjun.environment.EnvFactory;
 import com.dtstack.chunjun.environment.MyLocalStreamEnvironment;
@@ -100,7 +101,7 @@ public class Main {
 
         Options options = new OptionParser(args).getOptions();
         String job = URLDecoder.decode(options.getJob(), StandardCharsets.UTF_8.name());
-        String replacedJob = JobUtil.replaceJobParameter(options.getP(), job);
+        String replacedJob = JobUtil.replaceJobParameter(options.getP(), options.getPj(), job);
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =
@@ -321,8 +322,13 @@ public class Main {
             factoryHelper.setPluginLoadMode(options.getPluginLoadMode());
             factoryHelper.setEnv(env);
             factoryHelper.setExecutionMode(options.getMode());
-
             DirtyConf dirtyConf = DirtyConfUtil.parse(options);
+            // 注册core包
+            if (ClusterMode.local.name().equalsIgnoreCase(options.getMode())) {
+                factoryHelper.registerCachedFile(
+                        "", Thread.currentThread().getContextClassLoader(), "");
+            }
+
             factoryHelper.registerCachedFile(
                     dirtyConf.getType(),
                     Thread.currentThread().getContextClassLoader(),
