@@ -34,11 +34,6 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 
-/**
- * @program: Chunjun
- * @author: xiuzhu
- * @create: 2021/06/19
- */
 public class FtpDynamicTableSource implements ScanTableSource {
 
     private TableSchema schema;

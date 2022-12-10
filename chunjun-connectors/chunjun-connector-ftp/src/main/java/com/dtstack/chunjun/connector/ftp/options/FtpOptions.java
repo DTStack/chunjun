@@ -23,11 +23,6 @@ import com.dtstack.chunjun.table.options.BaseFileOptions;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/06/19
- */
 public class FtpOptions extends BaseFileOptions {
 
     public static final ConfigOption<String> FORMAT =
@@ -77,4 +72,16 @@ public class FtpOptions extends BaseFileOptions {
                     .stringType()
                     .defaultValue("PASV")
                     .withDescription("ftp connectPattern");
+
+    public static final ConfigOption<Boolean> isFirstLineHeader =
+            ConfigOptions.key("isFirstLineHeader")
+                    .booleanType()
+                    .defaultValue(true)
+                    .withDescription("FirstLineHeader");
+
+    public static final ConfigOption<String> FILE_TYPE =
+            ConfigOptions.key("fileType")
+                    .stringType()
+                    .defaultValue("TXT")
+                    .withDescription("FILE_TYPE");
 }

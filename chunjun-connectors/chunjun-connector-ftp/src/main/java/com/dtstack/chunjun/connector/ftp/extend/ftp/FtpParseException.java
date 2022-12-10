@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,22 +16,29 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.client.excel;
+package com.dtstack.chunjun.connector.ftp.extend.ftp;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.IOException;
 
-/** @author by dujie @Description @Date 2021/12/20 */
-public class ExcelReaderExceptionHandler implements Thread.UncaughtExceptionHandler {
+public class FtpParseException extends IOException {
+    private String content;
 
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
+    /**
+     * @param content 解析的内容
+     * @param errMsg 报错原因
+     * @param cause
+     */
+    public FtpParseException(String content, String errMsg, Throwable cause) {
+        super(errMsg, cause);
+        this.content = content;
+    }
+
+    public String getContent() {
+        return content;
+    }
 
     @Override
-    public void uncaughtException(Thread t, Throwable e) {
-        LOG.error(
-                "an error occurred during the reading of the Excel file."
-                        + " thread name : {}, message : {}",
-                t.getName(),
-                e.getMessage());
+    public String toString() {
+        return "FtpParseException{" + "content='" + content + '\'' + '}';
     }
 }

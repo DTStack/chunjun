@@ -16,13 +16,15 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.format;
+package com.dtstack.chunjun.connector.ftp.iformat;
 
-import com.dtstack.chunjun.connector.ftp.client.File;
 import com.dtstack.chunjun.connector.ftp.client.excel.ExcelReadListener;
 import com.dtstack.chunjun.connector.ftp.client.excel.ExcelReaderExecutor;
 import com.dtstack.chunjun.connector.ftp.client.excel.ExcelSubExceptionCarrier;
 import com.dtstack.chunjun.connector.ftp.client.excel.Row;
+import com.dtstack.chunjun.connector.ftp.extend.ftp.File;
+import com.dtstack.chunjun.connector.ftp.extend.ftp.IFormatConfig;
+import com.dtstack.chunjun.connector.ftp.extend.ftp.format.IFileReadFormat;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
@@ -55,7 +57,7 @@ public class ExcelFileFormat implements IFileReadFormat {
     private Row row;
 
     @Override
-    public void open(File file, InputStream inputStream, IFormatConfig config) {
+    public void open(File file, InputStream inputStream, IFormatConfig config) throws IOException {
         LOG.info("open file : {}", file.getFileName());
         this.cellCount = config.getFields().length;
         ExcelReadListener listener = new ExcelReadListener();
@@ -110,7 +112,7 @@ public class ExcelFileFormat implements IFileReadFormat {
     }
 
     @Override
-    public String[] nextRecord() {
+    public String[] nextRecord() throws IOException {
         String[] data;
         if (row.isEnd()) {
             try {
@@ -146,16 +148,16 @@ public class ExcelFileFormat implements IFileReadFormat {
     }
 
     private String[] formatValue(String[] data) {
-        String[] record = initDataContainer(cellCount);
+        String[] record = initDataContainer(cellCount, "");
         // because cellCount is always >= data.length
         System.arraycopy(data, 0, record, 0, data.length);
         return record;
     }
 
-    private String[] initDataContainer(int capacity) {
+    private String[] initDataContainer(int capacity, String defValue) {
         String[] container = new String[capacity];
         for (int i = 0; i < capacity; i++) {
-            container[i] = "";
+            container[i] = defValue;
         }
         return container;
     }

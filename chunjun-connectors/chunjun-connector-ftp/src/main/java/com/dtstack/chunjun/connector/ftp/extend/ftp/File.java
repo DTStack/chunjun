@@ -16,10 +16,9 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.client;
+package com.dtstack.chunjun.connector.ftp.extend.ftp;
 
 import java.io.Serializable;
-import java.util.StringJoiner;
 
 public class File implements Serializable {
 
@@ -79,11 +78,19 @@ public class File implements Serializable {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", File.class.getSimpleName() + "[", "]")
-                .add("fileCompressPath='" + fileCompressPath + "'")
-                .add("fileAbsolutePath='" + fileAbsolutePath + "'")
-                .add("fileName='" + fileName + "'")
-                .add("compressType='" + compressType + "'")
-                .toString();
+        return "File{"
+                + "fileCompressPath='"
+                + fileCompressPath
+                + '\''
+                + ", FileAbsolutePath='"
+                + fileAbsolutePath
+                + '\''
+                + ", fileName='"
+                + fileName
+                + '\''
+                + ", compressType='"
+                + compressType
+                + '\''
+                + '}';
     }
 }

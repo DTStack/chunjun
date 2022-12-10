@@ -16,22 +16,37 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.format;
+package com.dtstack.chunjun.connector.ftp.extend.ftp;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.StringJoiner;
 
 public class IFormatConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private String fieldDelimiter;
     private String encoding;
     private String[] fields;
     private boolean isFirstLineHeader;
     private Map<String, Object> fileConfig;
+
+    private int parallelism;
+    private long fetchMaxSize;
+
+    /* 列分隔符 */
+    private String fieldDelimiter;
+
+    /* 行分隔符 */
+    private String columnDelimiter;
+
+    public void setColumnDelimiter(String columnDelimiter) {
+        this.columnDelimiter = columnDelimiter;
+    }
+
+    public String getColumnDelimiter() {
+        return columnDelimiter;
+    }
 
     public boolean isFirstLineHeader() {
         return isFirstLineHeader;
@@ -73,14 +88,37 @@ public class IFormatConfig implements Serializable {
         this.fields = fields;
     }
 
+    public int getParallelism() {
+        return parallelism;
+    }
+
+    public void setParallelism(int parallelism) {
+        this.parallelism = parallelism;
+    }
+
+    public void setFetchMaxSize(long fetchMaxSize) {
+        this.fetchMaxSize = fetchMaxSize;
+    }
+
+    public long getFetchMaxSize() {
+        return fetchMaxSize;
+    }
+
     @Override
     public String toString() {
-        return new StringJoiner(", ", IFormatConfig.class.getSimpleName() + "[", "]")
-                .add("fieldDelimiter='" + fieldDelimiter + "'")
-                .add("encoding='" + encoding + "'")
-                .add("fields=" + Arrays.toString(fields))
-                .add("isFirstLineHeader=" + isFirstLineHeader)
-                .add("fileConfig=" + fileConfig)
-                .toString();
+        return "IFormatConfig{"
+                + "fieldDelimiter='"
+                + fieldDelimiter
+                + '\''
+                + ", encoding='"
+                + encoding
+                + '\''
+                + ", fields="
+                + Arrays.toString(fields)
+                + ", isFirstLineHeader="
+                + isFirstLineHeader
+                + ", fileConfig="
+                + fileConfig
+                + '}';
     }
 }
