@@ -22,6 +22,7 @@ import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.SourceConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.util.GsonUtil;
@@ -45,7 +46,6 @@ import static com.dtstack.chunjun.connector.jdbc.util.JdbcUtilTest.readFile;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-/** @author liuliu 2022/8/19 */
 public class JdbcColumnConverterTest {
 
     private static JdbcColumnConverter converter;
@@ -58,7 +58,7 @@ public class JdbcColumnConverterTest {
                 new GsonBuilder()
                         .registerTypeAdapter(
                                 ConnectionConfig.class,
-                                new ConnectionAdapter("SourceConnectionConf"))
+                                new ConnectionAdapter(SourceConnectionConfig.class.getSimpleName()))
                         .addDeserializationExclusionStrategy(
                                 new FieldNameExclusionStrategy("column"))
                         .create();

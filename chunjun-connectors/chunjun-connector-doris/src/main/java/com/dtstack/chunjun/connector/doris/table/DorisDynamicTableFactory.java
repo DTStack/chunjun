@@ -113,8 +113,8 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
                 getLibConfMap(context.getCatalogTable().getOptions(), DRUID_PREFIX);
 
         return new JdbcDynamicTableSource(
-                getSourceConnectionConf(helper.getOptions()),
-                getJdbcLookupConf(
+                getSourceConnectionConfig(helper.getOptions()),
+                getJdbcLookupConfig(
                         helper.getOptions(),
                         context.getObjectIdentifier().getObjectName(),
                         druidConf),
@@ -124,8 +124,8 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
     }
 
     @Override
-    protected JdbcConfig getSourceConnectionConf(ReadableConfig readableConfig) {
-        JdbcConfig jdbcConfig = super.getSourceConnectionConf(readableConfig);
+    protected JdbcConfig getSourceConnectionConfig(ReadableConfig readableConfig) {
+        JdbcConfig jdbcConfig = super.getSourceConnectionConfig(readableConfig);
         String url = readableConfig.get(DorisOptions.URL);
         List<String> feNodes = readableConfig.get(DorisOptions.FENODES);
 

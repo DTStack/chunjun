@@ -18,29 +18,29 @@
 
 package com.dtstack.chunjun.config;
 
-public class SettingConfBuilder {
+public class SettingConfigBuilder {
 
-    private SettingConfig settingConfig;
+    private final SettingConfig config;
 
-    public static SettingConfBuilder newBuilder() {
-        return new SettingConfBuilder();
+    public static SettingConfigBuilder newBuilder() {
+        return new SettingConfigBuilder();
     }
 
-    private SettingConfBuilder() {
-        this.settingConfig = new SettingConfig();
+    private SettingConfigBuilder() {
+        this.config = new SettingConfig();
     }
 
-    public SettingConfBuilder speed() {
-        this.settingConfig.setSpeed(new SpeedConfig());
+    public SettingConfigBuilder speed() {
+        this.config.setSpeed(new SpeedConfig());
         return this;
     }
 
-    public SettingConfBuilder speed(SpeedConfig speedConfig) {
-        this.settingConfig.setSpeed(speedConfig);
+    public SettingConfigBuilder speed(SpeedConfig speedConfig) {
+        this.config.setSpeed(speedConfig);
         return this;
     }
 
     public SettingConfig build() {
-        return settingConfig;
+        return config;
     }
 }

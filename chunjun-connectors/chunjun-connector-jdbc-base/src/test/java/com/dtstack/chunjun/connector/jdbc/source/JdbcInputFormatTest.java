@@ -23,7 +23,6 @@ import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.NumericTypeUtil;
-import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.metrics.AccumulatorCollector;
@@ -74,7 +73,6 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.reflect.Whitebox.setInternalState;
 
-/** @author liuliu 2022/4/15 */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
     JdbcInputFormat.class,
@@ -187,7 +185,7 @@ public class JdbcInputFormatTest {
         when(jdbcConfig.getSplitStrategy()).thenReturn("mod");
         when(jdbcConfig.getStartLocation()).thenReturn("30,40");
         Assert.assertThrows(
-                ChunJunRuntimeException.class, () -> jdbcInputFormat.createInputSplitsInternal(3));
+                IllegalArgumentException.class, () -> jdbcInputFormat.createInputSplitsInternal(3));
     }
 
     @Test
@@ -298,22 +296,6 @@ public class JdbcInputFormatTest {
     }
 
     @Test
-    public void getMaxValueTest() throws InvocationTargetException, IllegalAccessException {
-        JdbcInputSplit split = mock(JdbcInputSplit.class);
-        doCallRealMethod().when(split).setEndLocation("100");
-        doCallRealMethod().when(jdbcInputFormat).getMaxValue(split);
-        when(split.getSplitNumber()).thenReturn(0);
-        Method getMaxValueFromDb = PowerMockito.method(JdbcInputFormat.class, "getMaxValueFromDb");
-        when(getMaxValueFromDb.invoke(jdbcInputFormat)).thenReturn("100");
-        jdbcInputFormat.getMaxValue(split);
-        Assert.assertEquals(jdbcInputFormat.maxValueAccumulator.getLocalValue(), "100");
-
-        when(split.getSplitNumber()).thenReturn(1);
-        when(accumulatorCollector.getAccumulatorValue(Metrics.MAX_VALUE, true)).thenReturn(100L);
-        jdbcInputFormat.getMaxValue(split);
-    }
-
-    @Test
     public void getMaxValueFromDbTest()
             throws InvocationTargetException, IllegalAccessException, SQLException {
 
@@ -416,7 +398,7 @@ public class JdbcInputFormatTest {
         when(formatState.getState()).thenReturn(null);
         when(jdbcConfig.isPolling()).thenReturn(true);
         jdbcInputFormat.buildLocationFilter(inputSplit, whereList);
-        Assert.assertTrue(whereList.contains("chunjun_tmp.\"id\" < 100"));
+        Assert.assertTrue(whereList.contains("chunjun_tmp.\"id\"  <  100"));
     }
 
     @Test

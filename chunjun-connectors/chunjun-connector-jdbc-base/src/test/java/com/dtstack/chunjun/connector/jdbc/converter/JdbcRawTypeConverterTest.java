@@ -25,7 +25,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/** @author liuliu 2022/8/19 */
 public class JdbcRawTypeConverterTest {
 
     public static DataType apply(String type) {
@@ -64,6 +63,13 @@ public class JdbcRawTypeConverterTest {
             case "CHAR":
             case "VARCHAR":
             case "STRING":
+            case "ENUM":
+            case "SET":
+            case "JSON":
+            case "TINYTEXT":
+            case "TEXT":
+            case "MEDIUMTEXT":
+            case "LONGTEXT":
                 return DataTypes.STRING();
             case "DATE":
                 return DataTypes.DATE();
@@ -78,22 +84,10 @@ public class JdbcRawTypeConverterTest {
             case "BLOB":
             case "MEDIUMBLOB":
             case "LONGBLOB":
-                return DataTypes.BYTES();
-            case "TINYTEXT":
-            case "TEXT":
-            case "MEDIUMTEXT":
-            case "LONGTEXT":
-                return DataTypes.STRING();
+            case "GEOMETRY":
             case "BINARY":
             case "VARBINARY":
                 // BYTES 底层调用的是VARBINARY最大长度
-                return DataTypes.BYTES();
-            case "JSON":
-                return DataTypes.STRING();
-            case "ENUM":
-            case "SET":
-                return DataTypes.STRING();
-            case "GEOMETRY":
                 return DataTypes.BYTES();
 
             default:

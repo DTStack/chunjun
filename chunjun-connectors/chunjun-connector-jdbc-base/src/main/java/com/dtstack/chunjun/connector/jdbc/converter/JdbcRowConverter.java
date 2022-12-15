@@ -69,12 +69,12 @@ public class JdbcRowConverter
     public JdbcRowConverter(RowType rowType) {
         super(rowType);
         List<RowType.RowField> fields = rowType.getFields();
-        for (int i = 0; i < fields.size(); i++) {
+        for (RowType.RowField field : fields) {
             toInternalConverters.add(
-                    wrapIntoNullableInternalConverter(createInternalConverter(fields.get(i))));
+                    wrapIntoNullableInternalConverter(createInternalConverter(field)));
             toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fields.get(i)), fields.get(i).getType()));
+                            createExternalConverter(field), field.getType()));
         }
     }
 

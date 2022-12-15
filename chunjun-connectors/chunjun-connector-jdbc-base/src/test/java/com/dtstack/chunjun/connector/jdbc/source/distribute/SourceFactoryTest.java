@@ -33,7 +33,6 @@ import java.io.IOException;
 import static com.dtstack.chunjun.connector.jdbc.util.JdbcUtilTest.readFile;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
-/** @author liuliu 2022/8/15 */
 public class SourceFactoryTest {
 
     private static TestSourceFactory sourceFactory;
@@ -68,7 +67,6 @@ public class SourceFactoryTest {
                                 return JdbcRawTypeConverterTest::apply;
                             }
                         });
-        sourceFactory.createSource();
     }
 
     public static class TestSourceFactory extends DistributedJdbcSourceFactory {

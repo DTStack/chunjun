@@ -15,31 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.dtstack.chunjun.connector.iceberg.conf;
+package com.dtstack.chunjun.connector.iceberg.config;
 
 import com.dtstack.chunjun.config.CommonConfig;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class IcebergWriterConf extends CommonConfig {
+public class IcebergReaderConfig extends CommonConfig {
+    private String path;
+
     private String defaultFS;
     private String fileType;
     /** hadoop高可用相关配置 * */
     private Map<String, Object> hadoopConfig = new HashMap<>(16);
-
-    private String path;
-
-    private String writeMode;
-    /** upsert模式需要传入主键列表 */
-    private List<String> primaryKey = new ArrayList<>();
-
-    public static final String APPEND_WRITE_MODE = "append";
-    public static final String UPSERT_WRITE_MODE = "upsert";
-    public static final String OVERWRITE_WRITE_MODE = "overwrite";
 
     public String getDefaultFS() {
         return defaultFS;
@@ -65,22 +54,6 @@ public class IcebergWriterConf extends CommonConfig {
         this.hadoopConfig = hadoopConfig;
     }
 
-    public List<String> getPrimaryKey() {
-        return primaryKey;
-    }
-
-    public void setPrimaryKey(List<String> primaryKey) {
-        this.primaryKey = primaryKey;
-    }
-
-    public String getWriteMode() {
-        return writeMode;
-    }
-
-    public void setWriteMode(String writeMode) {
-        this.writeMode = writeMode;
-    }
-
     public String getPath() {
         return path;
     }
@@ -91,6 +64,6 @@ public class IcebergWriterConf extends CommonConfig {
 
     @Override
     public String toString() {
-        return "IcebergWriterConf{" + "path='" + path + '\'' + '}';
+        return "IcebergReaderConf{" + "path='" + path + '\'' + '}';
     }
 }
