@@ -18,36 +18,29 @@
 
 package com.dtstack.chunjun.config;
 
-import java.util.LinkedList;
+public class SyncConfigBuilder {
 
-public class JobConfBuilder {
+    private final SyncConfig config;
 
-    private JobConfig jobConfig;
-
-    public static JobConfBuilder newBuilder() {
-        return new JobConfBuilder();
+    public static SyncConfigBuilder newBuilder() {
+        return new SyncConfigBuilder();
     }
 
-    private JobConfBuilder() {
-        this.jobConfig = new JobConfig();
+    private SyncConfigBuilder() {
+        this.config = new SyncConfig();
     }
 
-    public JobConfBuilder setting() {
-        this.jobConfig.setSetting(new SettingConfig());
+    public SyncConfigBuilder job(JobConfig jobConfig) {
+        this.config.setJob(jobConfig);
         return this;
     }
 
-    public JobConfBuilder setting(SettingConfig settingConfig) {
-        this.jobConfig.setSetting(settingConfig);
-        return this;
+    public SyncConfig build() {
+        return config;
     }
 
-    public JobConfBuilder content(LinkedList<ContentConfig> content) {
-        this.jobConfig.setContent(content);
+    public SyncConfigBuilder pluginRoot(String pluginRoot) {
+        this.config.setPluginRoot(pluginRoot);
         return this;
-    }
-
-    public JobConfig build() {
-        return jobConfig;
     }
 }

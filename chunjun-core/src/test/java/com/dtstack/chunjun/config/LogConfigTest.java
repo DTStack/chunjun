@@ -38,7 +38,7 @@ public class LogConfigTest {
         logConfig.setPattern(ConfigConstant.DEFAULT_LOG4J_PATTERN);
 
         assertEquals(
-                "LogConf{isLogger=true, level='info', path='/tmp/dtstack/chunjun/', pattern='%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n'}",
+                "LogConfig[isLogger=true, level='info', path='/tmp/dtstack/chunjun/', pattern='%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n']",
                 logConfig.toString());
     }
 

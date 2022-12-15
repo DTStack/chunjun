@@ -59,34 +59,7 @@ public class FieldConfigTest {
         fieldConfig.setLength(1);
 
         String expected =
-                "FieldConfig{"
-                        + "name='"
-                        + "name"
-                        + '\''
-                        + ", type='"
-                        + "type"
-                        + '\''
-                        + ", index="
-                        + 1
-                        + ", value='"
-                        + "value"
-                        + '\''
-                        + ", format='"
-                        + "format"
-                        + '\''
-                        + ", parseFormat='"
-                        + "parseFormat"
-                        + '\''
-                        + ", splitter='"
-                        + "splitter"
-                        + '\''
-                        + ", isPart="
-                        + true
-                        + ", notNull="
-                        + true
-                        + ", length="
-                        + 1
-                        + '}';
+                "FieldConfig[name='name', type='type', index=1, value='value', format='format', parseFormat='parseFormat', splitter='splitter', isPart=true, notNull=true, length=1]";
 
         assertEquals(expected, fieldConfig.toString());
     }

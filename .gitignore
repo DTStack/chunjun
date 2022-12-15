@@ -51,3 +51,5 @@ chunjun-dist/
 
 chunjun-dev/data/**
 output/*
+
+venv/

@@ -23,6 +23,7 @@ import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.SourceConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -78,7 +79,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
                 new GsonBuilder()
                         .registerTypeAdapter(
                                 ConnectionConfig.class,
-                                new ConnectionAdapter("SourceConnectionConf"))
+                                new ConnectionAdapter(SourceConnectionConfig.class.getSimpleName()))
                         .addDeserializationExclusionStrategy(
                                 new FieldNameExclusionStrategy("column"))
                         .create();

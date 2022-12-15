@@ -54,13 +54,6 @@ public class BinlogUtilTest {
     }
 
     @Test
-    public void checkIfUpdrdbAndGetGroupInfoTest() throws SQLException {
-        when(resultSet.next()).thenReturn(true, false);
-        when(resultSet.getString(1)).thenReturn("drdb");
-        assert binlogConfig.getNodeGroupList().get(0).equalsIgnoreCase("coprocessor");
-    }
-
-    @Test
     public void getDatabaseTableMapTest() {
         List<String> tableNameList =
                 Arrays.asList("db1.table1", "db2.table2", "table3", "db2.table4");

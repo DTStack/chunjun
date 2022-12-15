@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.iceberg.sink;
 
 import com.dtstack.chunjun.config.SyncConfig;
-import com.dtstack.chunjun.connector.iceberg.conf.IcebergWriterConf;
+import com.dtstack.chunjun.connector.iceberg.config.IcebergWriterConfig;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.FileSystemUtil;
@@ -39,14 +39,14 @@ import org.apache.iceberg.flink.sink.FlinkSink;
 
 public class IcebergSinkFactory extends SinkFactory {
 
-    private final IcebergWriterConf writerConf;
+    private final IcebergWriterConfig writerConf;
 
     public IcebergSinkFactory(SyncConfig config) {
         super(config);
         writerConf =
                 GsonUtil.GSON.fromJson(
                         GsonUtil.GSON.toJson(config.getWriter().getParameter()),
-                        IcebergWriterConf.class);
+                        IcebergWriterConfig.class);
         writerConf.setColumn(config.getWriter().getFieldList());
         super.initCommonConf(writerConf);
     }
@@ -82,21 +82,21 @@ public class IcebergSinkFactory extends SinkFactory {
         DataStreamSink<RowData> dataDataStreamSink = null;
         // 判断写出模式
         String writeMode = writerConf.getWriteMode();
-        if (writeMode.equals(IcebergWriterConf.UPSERT_WRITE_MODE)) {
+        if (writeMode.equals(IcebergWriterConfig.UPSERT_WRITE_MODE)) {
             dataDataStreamSink =
                     FlinkSink.forRowData(streamOperator)
                             .tableLoader(tableLoader)
                             .equalityFieldColumns(Lists.newArrayList("id"))
                             .upsert(true)
                             .build();
-        } else if (writeMode.equals(IcebergWriterConf.OVERWRITE_WRITE_MODE)) {
+        } else if (writeMode.equals(IcebergWriterConfig.OVERWRITE_WRITE_MODE)) {
             dataDataStreamSink =
                     FlinkSink.forRowData(streamOperator)
                             .tableLoader(tableLoader)
                             .overwrite(true)
                             .build();
 
-        } else if (writeMode.equals(IcebergWriterConf.APPEND_WRITE_MODE)) {
+        } else if (writeMode.equals(IcebergWriterConfig.APPEND_WRITE_MODE)) {
             dataDataStreamSink =
                     FlinkSink.forRowData(streamOperator).tableLoader(tableLoader).build();
         } else {

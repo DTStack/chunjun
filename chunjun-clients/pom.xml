@@ -299,14 +299,14 @@
 						</goals>
 						<configuration>
 							<tasks>
-								<copy file="${basedir}/target/${artifactId}-${project.version}.jar"
-									  tofile="${basedir}/target/${artifactId}.jar"/>
+								<copy file="${basedir}/target/${project.artifactId}-${project.version}.jar"
+									  tofile="${basedir}/target/${project.artifactId}.jar"/>
 								<copy todir="${basedir}/../lib/"
-									  file="${basedir}/target/${artifactId}.jar"/>
+									  file="${basedir}/target/${project.artifactId}.jar"/>
 								<delete>
 									<fileset dir="${basedir}/../lib"
-											 includes="${artifactId}-*.jar"
-											 excludes="${artifactId}.jar"/>
+											 includes="${project.artifactId}-*.jar"
+											 excludes="${project.artifactId}.jar"/>
 								</delete>
 							</tasks>
 						</configuration>

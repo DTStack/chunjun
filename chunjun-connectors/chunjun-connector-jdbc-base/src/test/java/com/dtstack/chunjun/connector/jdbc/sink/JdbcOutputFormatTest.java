@@ -31,14 +31,12 @@ import com.dtstack.chunjun.enums.EWriteMode;
 import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.metrics.AccumulatorCollector;
 import com.dtstack.chunjun.metrics.BigIntegerAccumulator;
-import com.dtstack.chunjun.metrics.CustomReporter;
 import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.api.common.accumulators.LongCounter;
-import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.table.data.RowData;
 
 import org.junit.Assert;
@@ -47,7 +45,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -103,10 +100,7 @@ public class JdbcOutputFormatTest {
 
         jdbcOutputFormat = mock(JdbcOutputFormat.class);
         jdbcDialect = mock(JdbcDialect.class);
-        Logger LOG = mock(Logger.class);
         jdbcConfig = mock(JdbcConfig.class);
-        CustomReporter customReporter = mock(CustomReporter.class);
-        RuntimeContext runtimeContext = mock(RuntimeContext.class);
         accumulatorCollector = mock(AccumulatorCollector.class);
         endLocationAccumulator = mock(BigIntegerAccumulator.class);
         formatState = mock(FormatState.class);
