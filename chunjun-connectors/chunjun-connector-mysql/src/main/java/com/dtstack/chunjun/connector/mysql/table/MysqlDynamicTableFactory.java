@@ -55,16 +55,16 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
     }
 
     @Override
-    protected JdbcConfig getSourceConnectionConf(ReadableConfig readableConfig) {
-        JdbcConfig jdbcConfig = super.getSourceConnectionConf(readableConfig);
+    protected JdbcConfig getSourceConnectionConfig(ReadableConfig readableConfig) {
+        JdbcConfig jdbcConfig = super.getSourceConnectionConfig(readableConfig);
         JdbcUtil.putExtParam(jdbcConfig);
         return jdbcConfig;
     }
 
     @Override
-    protected JdbcConfig getSinkConnectionConf(
+    protected JdbcConfig getSinkConnectionConfig(
             ReadableConfig readableConfig, ResolvedSchema schema) {
-        JdbcConfig jdbcConfig = super.getSinkConnectionConf(readableConfig, schema);
+        JdbcConfig jdbcConfig = super.getSinkConnectionConfig(readableConfig, schema);
         JdbcUtil.putExtParam(jdbcConfig);
         return jdbcConfig;
     }

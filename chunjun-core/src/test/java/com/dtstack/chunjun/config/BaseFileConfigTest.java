@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertEquals;
 
-public class BaseFileConfTest {
+public class BaseFileConfigTest {
 
     /** Should return a string with all the fields */
     @Test
@@ -39,27 +39,7 @@ public class BaseFileConfTest {
         baseFileConf.setNextCheckRows(5000L);
 
         String expected =
-                "BaseFileConfig{"
-                        + "path='"
-                        + "path"
-                        + '\''
-                        + ", fileName='"
-                        + "fileName"
-                        + '\''
-                        + ", writeMode='"
-                        + "writeMode"
-                        + '\''
-                        + ", compress='"
-                        + "compress"
-                        + '\''
-                        + ", encoding='"
-                        + StandardCharsets.UTF_8.name()
-                        + '\''
-                        + ", maxFileSize="
-                        + 1024L
-                        + ", nextCheckRows="
-                        + 5000L
-                        + '}';
+                "BaseFileConfig[fromLine=1, path='path', fileName='fileName', writeMode='writeMode', compress='compress', encoding='UTF-8', maxFileSize=1024, nextCheckRows=5000, suffix='null']";
 
         assertEquals(expected, baseFileConf.toString());
     }

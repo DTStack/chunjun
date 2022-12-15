@@ -76,7 +76,7 @@ public class Vertica11DynamicTableFactory extends JdbcDynamicTableFactory {
         JdbcDialect jdbcDialect = getDialect();
 
         return new Vertica11DynamicTableSource(
-                getSourceConnectionConf(helper.getOptions()),
+                getSourceConnectionConfig(helper.getOptions()),
                 getJdbcLookupConf(
                         helper.getOptions(), context.getObjectIdentifier().getObjectName()),
                 resolvedSchema,

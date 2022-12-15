@@ -31,7 +31,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-/** @author liuliu 2022/8/15 */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({JdbcInputFormat.class, JdbcConfig.class, JdbcDialect.class})
 public class JdbcInputFormatBuilderTest {

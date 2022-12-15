@@ -16,31 +16,24 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.config;
+package com.dtstack.chunjun.client;
 
-public class SyncConfBuilder {
+import com.dtstack.chunjun.options.OptionParser;
+import com.dtstack.chunjun.options.Options;
 
-    private SyncConfig syncConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    public static SyncConfBuilder newBuilder() {
-        return new SyncConfBuilder();
-    }
+import java.util.List;
 
-    private SyncConfBuilder() {
-        this.syncConfig = new SyncConfig();
-    }
+public class Client {
 
-    public SyncConfBuilder job(JobConfig jobConfig) {
-        this.syncConfig.setJob(jobConfig);
-        return this;
-    }
+    private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
-    public SyncConfig build() {
-        return syncConfig;
-    }
-
-    public SyncConfBuilder pluginRoot(String pluginRoot) {
-        this.syncConfig.setPluginRoot(pluginRoot);
-        return this;
+    public static void main(String[] args) throws Exception {
+        // 1. parse client args
+        OptionParser optionParser = new OptionParser(args);
+        Options launcherOptions = optionParser.getOptions();
+        List<String> argList = optionParser.getProgramExeArgList();
     }
 }

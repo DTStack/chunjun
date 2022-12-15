@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.iceberg.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
-import com.dtstack.chunjun.connector.iceberg.conf.IcebergReaderConf;
+import com.dtstack.chunjun.connector.iceberg.config.IcebergReaderConfig;
 import com.dtstack.chunjun.connector.iceberg.converter.IcebergColumnConverter;
 import com.dtstack.chunjun.connector.iceberg.converter.IcebergRawTypeConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -39,14 +39,14 @@ import org.apache.iceberg.flink.source.FlinkSource;
 
 public class IcebergSourceFactory extends SourceFactory {
 
-    private final IcebergReaderConf icebergConf;
+    private final IcebergReaderConfig icebergConf;
 
     public IcebergSourceFactory(SyncConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         icebergConf =
                 GsonUtil.GSON.fromJson(
                         GsonUtil.GSON.toJson(config.getReader().getParameter()),
-                        IcebergReaderConf.class);
+                        IcebergReaderConfig.class);
         icebergConf.setColumn(config.getReader().getFieldList());
         super.initCommonConf(icebergConf);
     }

@@ -45,7 +45,7 @@ public class BinlogInputFormatBuilderTest {
         BinlogConfig binlogConfig = new BinlogConfig();
         binlogConfig.setUpdrdb(true);
         Whitebox.setInternalState(inputFormat, "config", commonConfig);
-        Whitebox.setInternalState(inputFormat, "binlogConf", binlogConfig);
+        Whitebox.setInternalState(inputFormat, "binlogConfig", binlogConfig);
         Whitebox.setInternalState(builder, "format", inputFormat);
         when(builder.finish()).thenCallRealMethod();
     }

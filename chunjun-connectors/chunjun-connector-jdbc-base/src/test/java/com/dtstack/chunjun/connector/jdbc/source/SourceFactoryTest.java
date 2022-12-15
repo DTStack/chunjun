@@ -44,14 +44,11 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-/** @author liuliu 2022/8/15 */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({JdbcUtil.class, Connection.class})
 public class SourceFactoryTest {
 
     private static TestSourceFactory sourceFactory;
-    private static StreamExecutionEnvironment env;
-    private static String json;
 
     private static SyncConfig syncConfig;
 
@@ -59,8 +56,8 @@ public class SourceFactoryTest {
     public void setup() throws IOException {
         mockStatic(JdbcUtil.class);
 
-        env = mock(StreamExecutionEnvironment.class);
-        json = readFile("sync_test.json");
+        StreamExecutionEnvironment env = mock(StreamExecutionEnvironment.class);
+        String json = readFile("sync_test.json");
         syncConfig = SyncConfig.parseJob(json);
         sourceFactory =
                 new TestSourceFactory(
@@ -103,7 +100,6 @@ public class SourceFactoryTest {
 
         when(pair.getLeft()).thenReturn(name);
         when(pair.getRight()).thenReturn(type);
-        sourceFactory.createSource();
     }
 
     @Test

@@ -20,12 +20,12 @@ package com.dtstack.chunjun.sink;
 
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.config.ContentConfig;
-import com.dtstack.chunjun.config.JobConfBuilder;
+import com.dtstack.chunjun.config.JobConfigBuilder;
 import com.dtstack.chunjun.config.OperatorConfig;
-import com.dtstack.chunjun.config.SettingConfBuilder;
+import com.dtstack.chunjun.config.SettingConfigBuilder;
 import com.dtstack.chunjun.config.SpeedConfig;
-import com.dtstack.chunjun.config.SyncConfBuilder;
 import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.config.SyncConfigBuilder;
 import com.dtstack.chunjun.constants.ConfigConstant;
 import com.dtstack.chunjun.constants.ConstantValue;
 
@@ -54,11 +54,11 @@ public class SinkFactoryTest {
                         .build());
         contentConfig.setWriter(writer);
         SyncConfig syncConfig =
-                SyncConfBuilder.newBuilder()
+                SyncConfigBuilder.newBuilder()
                         .job(
-                                JobConfBuilder.newBuilder()
+                                JobConfigBuilder.newBuilder()
                                         .setting(
-                                                SettingConfBuilder.newBuilder()
+                                                SettingConfigBuilder.newBuilder()
                                                         .speed(speedConfig)
                                                         .build())
                                         .content(new LinkedList<>(ImmutableList.of(contentConfig)))
@@ -85,11 +85,11 @@ public class SinkFactoryTest {
                         .build());
         contentConfig.setWriter(writer);
         SyncConfig syncConfig =
-                SyncConfBuilder.newBuilder()
+                SyncConfigBuilder.newBuilder()
                         .job(
-                                JobConfBuilder.newBuilder()
+                                JobConfigBuilder.newBuilder()
                                         .setting(
-                                                SettingConfBuilder.newBuilder()
+                                                SettingConfigBuilder.newBuilder()
                                                         .speed(speedConfig)
                                                         .build())
                                         .content(new LinkedList<>(ImmutableList.of(contentConfig)))
@@ -115,11 +115,11 @@ public class SinkFactoryTest {
                         .build());
         contentConfig.setWriter(writer);
         SyncConfig syncConfig =
-                SyncConfBuilder.newBuilder()
+                SyncConfigBuilder.newBuilder()
                         .job(
-                                JobConfBuilder.newBuilder()
+                                JobConfigBuilder.newBuilder()
                                         .setting(
-                                                SettingConfBuilder.newBuilder()
+                                                SettingConfigBuilder.newBuilder()
                                                         .speed(speedConfig)
                                                         .build())
                                         .content(new LinkedList<>(ImmutableList.of(contentConfig)))

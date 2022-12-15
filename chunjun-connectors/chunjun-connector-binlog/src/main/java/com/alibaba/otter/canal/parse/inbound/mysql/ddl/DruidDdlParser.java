@@ -58,14 +58,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author agapple 2017年7月27日 下午4:05:34
- * @since 1.0.25
- */
 public class DruidDdlParser {
 
     public static List<DdlResult> parse(String queryString, String schmeaName) {
-        List<SQLStatement> stmtList = null;
+        List<SQLStatement> stmtList;
         try {
             stmtList = SQLUtils.parseStatements(queryString, JdbcConstants.MYSQL, false);
         } catch (ParserException e) {
@@ -75,7 +71,7 @@ public class DruidDdlParser {
             return Arrays.asList(ddlResult);
         }
 
-        List<DdlResult> ddlResults = new ArrayList<DdlResult>();
+        List<DdlResult> ddlResults = new ArrayList<>();
         for (SQLStatement statement : stmtList) {
             if (statement instanceof SQLCreateTableStatement) {
                 DdlResult ddlResult = new DdlResult();

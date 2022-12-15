@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.iceberg.source;
 
-import com.dtstack.chunjun.connector.iceberg.conf.IcebergReaderConf;
+import com.dtstack.chunjun.connector.iceberg.config.IcebergReaderConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -30,7 +30,7 @@ public class IcebergInputFormatBuilder extends BaseRichInputFormatBuilder<Iceber
         super(new IcebergInputFormat());
     }
 
-    public void setIcebergConf(IcebergReaderConf icebergConf) {
+    public void setIcebergConf(IcebergReaderConfig icebergConf) {
         super.setConfig(icebergConf);
         format.setIcebergReaderConf(icebergConf);
     }

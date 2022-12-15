@@ -46,22 +46,18 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-/** @author liuliu 2022/8/19 */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({JdbcUtil.class, Connection.class})
 public class SinkFactoryTest {
 
-    private static TestSinkFactory sinkFactory;
-    private static DataStream<RowData> dataStream;
-    private static DataStreamSink<RowData> dataStreamSink;
     private static String json;
 
     @BeforeClass
     public static void setup() throws IOException {
         mockStatic(JdbcUtil.class);
 
-        dataStream = mock(DataStream.class);
-        dataStreamSink = mock(DataStreamSink.class);
+        DataStream<RowData> dataStream = mock(DataStream.class);
+        DataStreamSink<RowData> dataStreamSink = mock(DataStreamSink.class);
         when(dataStream.addSink(any())).thenReturn(dataStreamSink);
         json = readFile("sync_test.json");
     }
@@ -69,7 +65,7 @@ public class SinkFactoryTest {
     @Test
     public void initTest() {
         SyncConfig syncConfig = SyncConfig.parseJob(json);
-        sinkFactory =
+        TestSinkFactory sinkFactory =
                 new TestSinkFactory(
                         syncConfig,
                         new JdbcDialect() {
@@ -105,7 +101,6 @@ public class SinkFactoryTest {
 
         when(pair.getLeft()).thenReturn(name);
         when(pair.getRight()).thenReturn(type);
-        sinkFactory.createSink(dataStream);
     }
 
     public static class TestSinkFactory extends JdbcSinkFactory {

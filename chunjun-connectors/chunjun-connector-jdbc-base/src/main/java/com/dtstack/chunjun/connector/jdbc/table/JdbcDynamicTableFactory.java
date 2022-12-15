@@ -115,8 +115,8 @@ public abstract class JdbcDynamicTableFactory
                 getLibConfMap(context.getCatalogTable().getOptions(), DRUID_PREFIX);
 
         return new JdbcDynamicTableSource(
-                getSourceConnectionConf(helper.getOptions()),
-                getJdbcLookupConf(
+                getSourceConnectionConfig(helper.getOptions()),
+                getJdbcLookupConfig(
                         helper.getOptions(),
                         context.getObjectIdentifier().getObjectName(),
                         druidConf),
@@ -141,13 +141,13 @@ public abstract class JdbcDynamicTableFactory
 
         // 3.封装参数
         return new JdbcDynamicTableSink(
-                getSinkConnectionConf(helper.getOptions(), resolvedSchema),
+                getSinkConnectionConfig(helper.getOptions(), resolvedSchema),
                 jdbcDialect,
                 resolvedSchema,
                 getOutputFormatBuilder());
     }
 
-    protected JdbcConfig getSinkConnectionConf(
+    protected JdbcConfig getSinkConnectionConfig(
             ReadableConfig readableConfig, ResolvedSchema schema) {
         JdbcConfig jdbcConfig = new JdbcConfig();
         SinkConnectionConfig conf = new SinkConnectionConfig();
@@ -175,7 +175,7 @@ public abstract class JdbcDynamicTableFactory
         return jdbcConfig;
     }
 
-    protected LookupConfig getJdbcLookupConf(
+    protected LookupConfig getJdbcLookupConfig(
             ReadableConfig readableConfig, String tableName, Map<String, Object> druidConf) {
         return JdbcLookupConfig.build()
                 .setDruidConfig(druidConf)
@@ -192,7 +192,7 @@ public abstract class JdbcDynamicTableFactory
                 .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
     }
 
-    protected JdbcConfig getSourceConnectionConf(ReadableConfig readableConfig) {
+    protected JdbcConfig getSourceConnectionConfig(ReadableConfig readableConfig) {
         JdbcConfig jdbcConfig = new JdbcConfig();
         SourceConnectionConfig conf = new SourceConnectionConfig();
         jdbcConfig.setConnection(Collections.singletonList(conf));

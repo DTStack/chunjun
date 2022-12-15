@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.iceberg.source;
 
-import com.dtstack.chunjun.connector.iceberg.conf.IcebergReaderConf;
+import com.dtstack.chunjun.connector.iceberg.config.IcebergReaderConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
 
@@ -33,7 +33,7 @@ import java.io.IOException;
 
 public class IcebergInputFormat extends BaseRichInputFormat {
     private FlinkInputFormat flinkInputFormat;
-    private IcebergReaderConf icebergReaderConf;
+    private IcebergReaderConfig icebergReaderConfig;
     private StreamExecutionEnvironment env;
 
     public IcebergInputFormat() {}
@@ -42,8 +42,8 @@ public class IcebergInputFormat extends BaseRichInputFormat {
         this.flinkInputFormat = input;
     }
 
-    public void setIcebergReaderConf(IcebergReaderConf icebergReaderConf) {
-        this.icebergReaderConf = icebergReaderConf;
+    public void setIcebergReaderConf(IcebergReaderConfig icebergReaderConfig) {
+        this.icebergReaderConfig = icebergReaderConfig;
     }
 
     @Override
