@@ -25,7 +25,7 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<properties>
@@ -33,7 +33,7 @@
 	</properties>
 
 	<artifactId>chunjun-connector-vertica11</artifactId>
-	<name>ChunJun : Connectors : Vertica11</name>
+	<name>ChunJun : Connector : Vertica11</name>
 
 	<dependencies>
 		<dependency>
@@ -51,7 +51,7 @@
 		<dependency>
 			<groupId>com.vertica.jdbc</groupId>
 			<artifactId>vertica-jdbc</artifactId>
-			<version>11.1.1-0</version>
+			<version>12.0.2-0</version>
 		</dependency>
 	</dependencies>
 
@@ -59,39 +59,6 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<createDependencyReducedPom>false</createDependencyReducedPom>
-							<artifactSet>
-								<excludes>
-									<exclude>org.slf4j:slf4j-api</exclude>
-									<exclude>log4j:log4j</exclude>
-									<exclude>ch.qos.logback:*</exclude>
-								</excludes>
-							</artifactSet>
-							<filters>
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 			</plugin>
 		</plugins>

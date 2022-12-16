@@ -31,12 +31,13 @@ import com.dtstack.chunjun.options.OptionParser;
 import com.dtstack.chunjun.options.Options;
 import com.dtstack.chunjun.util.ExecuteProcessHelper;
 
+import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
+
 import org.apache.flink.client.deployment.ClusterDeploymentException;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.ConfigConstants;
 
-import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,7 +88,6 @@ public class Launcher {
         List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(launcherOptions.getAddjar());
         ClassLoaderManager.loadExtraJar(jarUrlList, urlClassLoader);
         try (ClusterClient<?> client = clusterClientHelper.submit(jobDeployer)) {
-            // do nothing.
             LOG.info(client.getClusterId() + " submit successfully.");
         }
     }

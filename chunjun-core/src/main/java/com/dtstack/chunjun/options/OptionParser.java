@@ -26,20 +26,21 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class OptionParser {
 
-    @VisibleForTesting protected static final String OPTION_JOB = "job";
+    @VisibleForTesting
+    protected static final String OPTION_JOB = "job";
 
     private final Options properties = new Options();
 
@@ -107,20 +108,13 @@ public class OptionParser {
     }
 
     private String readFile(String fileName) throws IOException {
-        // Creating an InputStream object
-        try (InputStream inputStream =
-                        Objects.requireNonNull(
-                                this.getClass().getClassLoader().getResourceAsStream(fileName));
-                // creating an InputStreamReader object
-                InputStreamReader isReader = new InputStreamReader(inputStream);
-                // Creating a BufferedReader object
-                BufferedReader reader = new BufferedReader(isReader)) {
-            StringBuilder sb = new StringBuilder();
-            String str;
-            while ((str = reader.readLine()) != null) {
-                sb.append(str);
-            }
-            return sb.toString();
+        File file = new File(fileName);
+        try (FileInputStream in = new FileInputStream(file)) {
+            byte[] fileContent = new byte[(int) file.length()];
+            in.read(fileContent);
+            return URLEncoder.encode(
+                    new String(fileContent, StandardCharsets.UTF_8),
+                    StandardCharsets.UTF_8.name());
         }
     }
 }

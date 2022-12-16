@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>chunjun-restore</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -37,18 +37,6 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.32</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${log4j.version}</version>
-			<scope>provided</scope>
-		</dependency>
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-core</artifactId>

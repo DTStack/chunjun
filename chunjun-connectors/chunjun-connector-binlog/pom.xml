@@ -24,12 +24,12 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-binlog</artifactId>
-	<name>ChunJun : Connectors : Binlog</name>
+	<name>ChunJun : Connector : Binlog</name>
 
 	<properties>
 		<canal.version>1.1.6</canal.version>
@@ -40,7 +40,6 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>19.0</version>
 		</dependency>
 
 		<dependency>
@@ -199,6 +198,7 @@
 			</plugin>
 
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 			</plugin>
 		</plugins>

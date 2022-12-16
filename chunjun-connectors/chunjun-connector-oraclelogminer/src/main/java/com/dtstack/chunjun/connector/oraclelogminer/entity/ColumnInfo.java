@@ -134,8 +134,8 @@ public class ColumnInfo {
         if (pk) {
             sb.append("constraint")
                     .append(" ")
-                    .append("flinkx_pk")
-                    .append(UUID.randomUUID().toString().trim().replace("-", "").substring(0, 12))
+                    .append("chunjun_pk")
+                    .append(UUID.randomUUID().toString().trim().replace("-", ""), 0, 12)
                     .append(" primary key");
         }
 

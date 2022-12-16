@@ -24,12 +24,12 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-http</artifactId>
-	<name>ChunJun : Connectors : Http</name>
+	<name>ChunJun : Connector : Http</name>
 
 	<properties>
 		<connector.dir>http</connector.dir>
@@ -39,52 +39,8 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<artifactSet>
-								<excludes>
-									<exclude>org.slf4j:slf4j-api</exclude>
-									<exclude>log4j:log4j</exclude>
-									<exclude>ch.qos.logback:*</exclude>
-								</excludes>
-							</artifactSet>
-							<filters>
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-							<relocations>
-								<relocation>
-									<pattern>com.google.common</pattern>
-									<shadedPattern>shade.core.com.google.common</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>com.google.thirdparty</pattern>
-									<shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
-								</relocation>
-							</relocations>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
-
-
 </project>

@@ -25,7 +25,7 @@ import com.dtstack.chunjun.throwable.WriteRecordException;
 
 import org.apache.flink.table.data.RowData;
 
-import redis.clients.jedis.JedisCommands;
+import redis.clients.jedis.commands.JedisCommands;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
 public class RedisOutputFormat extends BaseRichOutputFormat {

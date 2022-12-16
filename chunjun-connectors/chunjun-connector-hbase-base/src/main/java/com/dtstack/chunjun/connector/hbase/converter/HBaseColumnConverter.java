@@ -206,7 +206,7 @@ public class HBaseColumnConverter
             put = new Put(rowkey, version);
         }
 
-        for (int i = 0; i < rowData.getArity(); i++) {
+        for (int i = 0; i < fieldTypes.length; i++) {
             if (rowKeyIndex == i || columnConfigIndex.contains(i)) {
                 continue;
             }

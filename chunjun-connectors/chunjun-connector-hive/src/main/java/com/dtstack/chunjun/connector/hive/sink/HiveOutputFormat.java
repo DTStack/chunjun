@@ -44,7 +44,7 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 

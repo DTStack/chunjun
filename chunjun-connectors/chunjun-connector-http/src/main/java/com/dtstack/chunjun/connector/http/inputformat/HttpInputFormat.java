@@ -67,7 +67,6 @@ public class HttpInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void openInternal(InputSplit inputSplit) {
         myHttpClient = new HttpClient(httpRestConfig, metaBodys, metaParams, metaHeaders);
         if (state != null) {

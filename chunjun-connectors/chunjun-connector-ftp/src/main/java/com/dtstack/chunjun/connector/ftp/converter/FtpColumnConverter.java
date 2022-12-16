@@ -92,7 +92,7 @@ public class FtpColumnConverter
         StringBuilder sb = new StringBuilder(128);
 
         List<String> columnData = new ArrayList<>(ftpConfig.getColumn().size());
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, columnData);
             if (index != 0) {
                 sb.append(ftpConfig.getFieldDelimiter());

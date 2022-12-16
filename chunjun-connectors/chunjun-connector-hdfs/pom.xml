@@ -24,12 +24,12 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-hdfs</artifactId>
-	<name>ChunJun : Connectors : HDFS</name>
+	<name>ChunJun : Connector : HDFS</name>
 
 	<properties>
 		<hive.version>3.1.3</hive.version>
@@ -214,42 +214,6 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<artifactSet>
-								<!--exclude all log api and impls -->
-								<excludes>
-									<exclude>org.slf4j:*</exclude>
-									<exclude>org.apache.logging.log4j:*</exclude>
-									<exclude>ch.qos.logback:*</exclude>
-									<exclude>ch.qos.reload4j:*</exclude>
-									<exclude>commons-logging:*</exclude>
-									<exclude>log4j:log4j</exclude>
-								</excludes>
-							</artifactSet>
-							<filters>
-								<filter>
-									<artifact>org.apache.hive:hive-exec</artifact>
-									<excludes>
-										<exclude>parquet/**</exclude>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 			</plugin>
 		</plugins>

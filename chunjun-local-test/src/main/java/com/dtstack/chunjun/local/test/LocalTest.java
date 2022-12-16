@@ -30,7 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -39,7 +38,6 @@ public class LocalTest {
     public static Logger LOG = LoggerFactory.getLogger(LocalTest.class);
 
     public static void main(String[] args) throws Exception {
-        LOG.warn("-----");
         Properties confProperties = new Properties();
         //        confProperties.setProperty("flink.checkpoint.interval", "30000");
         //        confProperties.setProperty("state.backend","ROCKSDB");
@@ -47,14 +45,15 @@ public class LocalTest {
         //        confProperties.setProperty("state.checkpoints.dir", "file:///ck");
         String userDir = System.getProperty("user.dir");
 
-        String jobPath = userDir + "/chunjun-examples/sql/stream/row_array_map_data_type.sql";
+        String jobPath =
+                "/Users/wtz/job_place/chunjun/1.16/_01_SQL/_01_Stream/_01_stream_2_stream.sql";
         String chunjunDistDir = userDir + "/chunjun-dist";
         String s = "";
 
         // 任务配置参数
         List<String> argsList = new ArrayList<>();
         argsList.add("-mode");
-        argsList.add("local");
+        argsList.add("localTest");
         // 替换脚本中的值
         // argsList.add("-p");
         // argsList.add("$aa=aaa, $bb=bbb");
@@ -103,14 +102,14 @@ public class LocalTest {
             //            argsList.add("/opt/dtstack/flink-1.12.2/conf/");
             argsList.add("-jobName");
             argsList.add("flinkStreamSQLLocalTest");
-            argsList.add("-chunjunDistDir");
-            argsList.add(chunjunDistDir);
-            argsList.add("-remoteChunJunDistDir");
-            argsList.add(chunjunDistDir);
+            // argsList.add("-chunjunDistDir");
+            // argsList.add(chunjunDistDir);
+            // argsList.add("-remoteChunJunDistDir");
+            // argsList.add(chunjunDistDir);
             argsList.add("-pluginLoadMode");
             argsList.add("LocalTest");
-            argsList.add("-addjar");
-            argsList.add(GsonUtil.GSON.toJson(Collections.singleton("/opt/temp/aa.jar")));
+            // argsList.add("-addjar");
+            // argsList.add(GsonUtil.GSON.toJson(Collections.singleton("/opt/temp/aa.jar")));
             // argsList.add("-confProp");
             //// 脏数据相关配置信息
             // StringBuilder stringBuilder = new StringBuilder();

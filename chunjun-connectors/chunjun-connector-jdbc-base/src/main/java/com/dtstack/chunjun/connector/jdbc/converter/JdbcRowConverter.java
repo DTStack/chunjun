@@ -128,7 +128,7 @@ public class JdbcRowConverter
     @Override
     public FieldNamedPreparedStatement toExternal(
             RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, statement);
         }
         return statement;

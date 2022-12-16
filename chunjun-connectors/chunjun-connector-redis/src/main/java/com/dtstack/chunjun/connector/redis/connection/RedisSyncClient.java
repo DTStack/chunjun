@@ -22,15 +22,17 @@ import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.Connection;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisSentinelPool;
+import redis.clients.jedis.commands.JedisCommands;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.io.Closeable;
@@ -42,7 +44,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
-import static com.dtstack.chunjun.connector.redis.options.RedisOptions.REDIS_DEFAULT_PORT;
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.REDIS_HOST_PATTERN;
 
 public class RedisSyncClient {
@@ -73,7 +74,6 @@ public class RedisSyncClient {
                 if (standalone.find()) {
                     firstIp = standalone.group("host").trim();
                     firstPort = standalone.group("port").trim();
-                    firstPort = firstPort == null ? REDIS_DEFAULT_PORT.defaultValue() : firstPort;
                 }
                 if (Objects.nonNull(firstIp) && pool == null) {
                     pool =
@@ -127,7 +127,7 @@ public class RedisSyncClient {
                                 redisConfig.getTimeout(),
                                 10,
                                 redisConfig.getPassword(),
-                                poolConfig);
+                                getObjectConfig());
                 break;
             default:
                 throw new IllegalArgumentException(
@@ -216,6 +216,16 @@ public class RedisSyncClient {
 
     private JedisPoolConfig getConfig() {
         JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
+        jedisPoolConfig.setMaxTotal(redisConfig.getMaxTotal());
+        jedisPoolConfig.setMaxIdle(redisConfig.getMaxIdle());
+        jedisPoolConfig.setMinIdle(redisConfig.getMinIdle());
+        jedisPoolConfig.setTestOnBorrow(true);
+        jedisPoolConfig.setTestOnReturn(true);
+        return jedisPoolConfig;
+    }
+
+    private GenericObjectPoolConfig<Connection> getObjectConfig() {
+        GenericObjectPoolConfig<Connection> jedisPoolConfig = new GenericObjectPoolConfig<>();
         jedisPoolConfig.setMaxTotal(redisConfig.getMaxTotal());
         jedisPoolConfig.setMaxIdle(redisConfig.getMaxIdle());
         jedisPoolConfig.setMinIdle(redisConfig.getMinIdle());

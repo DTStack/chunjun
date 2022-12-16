@@ -78,7 +78,7 @@ public class HdfsOrcRowConverter
 
     @Override
     public List<Object> toExternal(RowData rowData, List<Object> data) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, data);
         }
         return data;

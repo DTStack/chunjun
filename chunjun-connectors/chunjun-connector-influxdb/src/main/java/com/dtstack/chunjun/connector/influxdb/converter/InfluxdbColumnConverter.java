@@ -163,7 +163,7 @@ public class InfluxdbColumnConverter
 
     @Override
     public Point.Builder toExternal(RowData rowData, Point.Builder output) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             if (!specicalField(fieldNameList.get(index), rowData, index, output))
                 toExternalConverters.get(index).serialize(rowData, index, output);
         }

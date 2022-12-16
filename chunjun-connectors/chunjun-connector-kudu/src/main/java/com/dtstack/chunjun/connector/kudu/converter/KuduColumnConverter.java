@@ -89,7 +89,7 @@ public class KuduColumnConverter
 
     @Override
     public Operation toExternal(RowData rowData, Operation operation) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, operation);
         }
         return operation;

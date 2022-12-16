@@ -19,42 +19,23 @@
 -->
 
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>chunjun-connectors</artifactId>
-        <groupId>com.dtstack.chunjun</groupId>
-        <version>1.16-SNAPSHOT</version>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+		 xmlns="http://maven.apache.org/POM/4.0.0"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>chunjun-connectors</artifactId>
+		<groupId>com.dtstack.chunjun</groupId>
+		<version>${revision}</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
 
-    <artifactId>chunjun-connector-stream</artifactId>
-	<name>ChunJun : Connectors : Stream</name>
+	<artifactId>chunjun-connector-stream</artifactId>
+	<name>ChunJun : Connector : Stream</name>
 
 	<properties>
 		<connector.dir>stream</connector.dir>
 	</properties>
 
 	<dependencies>
-		<!-- 日志框架 start -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${log4j.version}</version>
-			<scope>provided</scope>
-		</dependency>
 		<dependency>
 			<groupId>com.github.jsonzou</groupId>
 			<artifactId>jmockdata</artifactId>
@@ -62,45 +43,12 @@
 		</dependency>
 	</dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<artifactSet>
-								<excludes>
-									<exclude>org.slf4j:slf4j-api</exclude>
-									<exclude>log4j:log4j</exclude>
-									<exclude>ch.qos.logback:*</exclude>
-								</excludes>
-							</artifactSet>
-							<filters>
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-						</configuration>
-					</execution>
-				</executions>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
 			</plugin>
-
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
+		</plugins>
+	</build>
 </project>

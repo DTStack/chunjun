@@ -23,15 +23,15 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-mongodb</artifactId>
-	<name>ChunJun : Connectors : MongoDB</name>
+	<name>ChunJun : Connector : MongoDB</name>
 
 	<properties>
-		<mongo.version>3.11.3</mongo.version>
+		<mongo.version>3.12.11</mongo.version>
 		<connector.dir>mongodb</connector.dir>
 	</properties>
 	<dependencies>
@@ -56,37 +56,6 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<artifactSet>
-								<excludes>
-									<exclude>org.slf4j:slf4j-api</exclude>
-									<exclude>log4j:log4j</exclude>
-									<exclude>ch.qos.logback:*</exclude>
-								</excludes>
-							</artifactSet>
-							<filters>
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 			</plugin>
 		</plugins>

@@ -56,7 +56,8 @@ public class ExecuteProcessHelper {
             String remoteSqlPluginPath, String deployMode, String pluginLoadMode) {
         if (StringUtils.isEmpty(remoteSqlPluginPath)) {
             return StringUtils.equalsIgnoreCase(pluginLoadMode, EPluginLoadMode.SHIPFILE.name())
-                    || StringUtils.equalsIgnoreCase(deployMode, ClusterMode.local.name());
+                    || StringUtils.equalsIgnoreCase(deployMode, ClusterMode.local.name())
+                    || StringUtils.equalsIgnoreCase(deployMode, ClusterMode.localTest.name());
         }
         return true;
     }

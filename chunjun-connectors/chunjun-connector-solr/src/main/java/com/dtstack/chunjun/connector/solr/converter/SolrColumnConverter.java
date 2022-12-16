@@ -92,7 +92,7 @@ public class SolrColumnConverter
     @Override
     public SolrInputDocument toExternal(RowData rowData, SolrInputDocument solrInputDocument)
             throws Exception {
-        for (int pos = 0; pos < rowData.getArity(); pos++) {
+        for (int pos = 0; pos < fieldTypes.length; pos++) {
             toExternalConverters
                     .get(pos)
                     .serialize(rowData, pos, fieldNames[pos], solrInputDocument);

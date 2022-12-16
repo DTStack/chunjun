@@ -104,7 +104,7 @@ public class HdfsParquetColumnConverter
     @Override
     @SuppressWarnings("unchecked")
     public Group toExternal(RowData rowData, Group group) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, group);
         }
         return group;

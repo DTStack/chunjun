@@ -86,7 +86,7 @@ public class PrometheusReport extends CustomReporter {
             "metrics.reporter.promgateway.deleteOnShutdown";
 
     private static final char SCOPE_SEPARATOR = '_';
-    private static final String SCOPE_PREFIX = "flink" + SCOPE_SEPARATOR;
+    private static final String SCOPE_PREFIX = "org/apache/flink" + SCOPE_SEPARATOR;
 
     private final Map<String, AbstractMap.SimpleImmutableEntry<Collector, Integer>>
             collectorsWithCountByMetricName = new HashMap<>();

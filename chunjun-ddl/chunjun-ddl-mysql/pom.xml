@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>chunjun-ddl</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -48,25 +48,9 @@
 			<artifactId>calcite-core</artifactId>
 			<version>1.26.0</version>
 		</dependency>
-
-		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-			<version>3.2.2</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.25</version>
-		</dependency>
-
 	</dependencies>
 
 	<properties>
-		<maven.compiler.source>8</maven.compiler.source>
-		<maven.compiler.target>8</maven.compiler.target>
 		<sql.dir>mysql</sql.dir>
 	</properties>
 
@@ -77,6 +61,7 @@
 					 it under ${project.build.directory} where all freemarker templates are. -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.2</version>
 				<executions>
 					<execution>
 						<id>unpack-parser-template</id>
@@ -181,59 +166,9 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<artifactSet>
-								<excludes>
-									<!--exclude all log api and impls -->
-									<exclude>org.slf4j:*</exclude>
-									<exclude>org.apache.logging.log4j:*</exclude>
-									<exclude>ch.qos.logback:*</exclude>
-									<exclude>ch.qos.reload4j:*</exclude>
-									<exclude>commons-logging:*</exclude>
-									<exclude>log4j:log4j</exclude>
-								</excludes>
-							</artifactSet>
-							<filters>
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>support/**</exclude>
-										<exclude>tpcds/**</exclude>
-										<exclude>tpch/**</exclude>
-										<exclude>ddl/**</exclude>
-										<exclude>google/**</exclude>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-							<relocations>
-								<relocation>
-									<pattern>com.google.common</pattern>
-									<shadedPattern>shade.ddl.mysql.com.google.common</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>com.google.thirdparty</pattern>
-									<shadedPattern>shade.ddl.mysql.com.google.thirdparty</shadedPattern>
-								</relocation>
-							</relocations>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<executions>
 					<execution>
@@ -244,7 +179,7 @@
 							<goal>run</goal>
 						</goals>
 						<configuration>
-							<tasks>
+							<target>
 								<copy todir="${basedir}/../../${dist.dir}/ddl-plugins/mysql"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
 								<move file="${basedir}/../../${dist.dir}/ddl-plugins/mysql/${project.artifactId}-${project.version}.jar"
@@ -254,7 +189,7 @@
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}.jar"/>
 								</delete>
-							</tasks>
+							</target>
 						</configuration>
 					</execution>
 				</executions>
