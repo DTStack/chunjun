@@ -52,7 +52,7 @@ public class S3RowConverter extends AbstractRowConverter<String[], RowData, Stri
     @Override
     public RowData toInternal(String[] input) throws Exception {
         GenericRowData rowData = new GenericRowData(input.length);
-        for (int i = 0; i < rowData.getArity(); i++) {
+        for (int i = 0; i < fieldTypes.length; i++) {
             rowData.setField(i, toInternalConverters.get(i).deserialize(input[i]));
         }
         return rowData;
@@ -60,8 +60,8 @@ public class S3RowConverter extends AbstractRowConverter<String[], RowData, Stri
 
     @Override
     public String[] toExternal(RowData rowData, String[] output) throws Exception {
-        output = new String[rowData.getArity()];
-        for (int i = 0; i < rowData.getArity(); i++) {
+        output = new String[fieldTypes.length];
+        for (int i = 0; i < fieldTypes.length; i++) {
             toExternalConverters.get(i).serialize(rowData, i, output);
         }
         return output;

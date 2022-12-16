@@ -55,7 +55,7 @@ public class DorisColumnConverter
     @Override
     public StringJoiner toExternal(RowData rowData, StringJoiner joiner) throws Exception {
         if (fullColumn.size() == options.getColumn().size()) {
-            for (int index = 0; index < rowData.getArity(); index++) {
+            for (int index = 0; index < fieldTypes.length; index++) {
                 toExternalConverters.get(index).serialize(rowData, index, joiner);
             }
         } else {

@@ -24,12 +24,12 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-elasticsearch7</artifactId>
-	<name>ChunJun : Connectors : ElasticSearch7</name>
+	<name>ChunJun : Connector : ElasticSearch7</name>
 
 	<properties>
 		<connector.dir>elasticsearch7</connector.dir>
@@ -65,52 +65,6 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.0</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<createDependencyReducedPom>false</createDependencyReducedPom>
-							<relocations>
-								<relocation>
-									<pattern>org.apache.http</pattern>
-									<shadedPattern>com.dtstack.chunjun.connector.elasticsearch7.org.apache.http</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>org.elasticsearch</pattern>
-									<shadedPattern>com.dtstack.chunjun.connector.elasticsearch7.org.elasticsearch</shadedPattern>
-								</relocation>
-							</relocations>
-							<artifactSet>
-								<excludes>
-									<exclude>com.data-artisans:*</exclude>
-									<exclude>org.scala-lang:*</exclude>
-									<exclude>io.netty:*</exclude>
-									<exclude>org.slf4j:slf4j-api</exclude>
-									<exclude>log4j:log4j</exclude>
-									<exclude>ch.qos.logback:*</exclude>
-								</excludes>
-							</artifactSet>
-							<filters>
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 			</plugin>
 		</plugins>

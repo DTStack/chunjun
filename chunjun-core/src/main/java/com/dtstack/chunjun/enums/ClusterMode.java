@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 
 /** This class defines three running mode of ChunJun */
 public enum ClusterMode {
+    /** Applications executed in the local-test */
+    localTest(),
 
     /** Applications executed in the local */
     local(),
@@ -69,6 +71,8 @@ public enum ClusterMode {
                 return kubernetesPerJob;
             case "kubernetes-application":
                 return kubernetesApplication;
+            case "local-test":
+                return localTest;
             default:
                 return local;
         }

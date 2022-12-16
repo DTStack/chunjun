@@ -24,12 +24,12 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-jdbc-base</artifactId>
-	<name>ChunJun : Connectors : JDBC</name>
+	<name>ChunJun : Connector : JDBC</name>
 
 	<properties>
 		<!-- TODO 升级4.0？-->

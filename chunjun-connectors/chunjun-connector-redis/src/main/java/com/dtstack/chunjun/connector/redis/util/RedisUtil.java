@@ -20,10 +20,10 @@ package com.dtstack.chunjun.connector.redis.util;
 
 import com.dtstack.chunjun.connector.redis.enums.RedisConnectType;
 
-import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Connection;
+import redis.clients.jedis.ConnectionPool;
 import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisCommands;
-import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.commands.JedisCommands;
 
 import java.util.Map;
 import java.util.Set;
@@ -33,14 +33,15 @@ public class RedisUtil {
     public static Set<String> getRedisKeys(
             RedisConnectType redisType, JedisCommands jedis, String keyPattern) {
         if (!redisType.equals(RedisConnectType.CLUSTER)) {
-            return ((Jedis) jedis).keys(keyPattern);
+            return jedis.keys(keyPattern);
         }
         Set<String> keys = new TreeSet<>();
-        Map<String, JedisPool> clusterNodes = ((JedisCluster) jedis).getClusterNodes();
+        Map<String, ConnectionPool> clusterNodes = ((JedisCluster) jedis).getClusterNodes();
         for (String k : clusterNodes.keySet()) {
-            JedisPool jp = clusterNodes.get(k);
-            try (Jedis connection = jp.getResource()) {
-                keys.addAll(connection.keys(keyPattern));
+
+            ConnectionPool jp = clusterNodes.get(k);
+            try (Connection connection = jp.getResource()) {
+                keys.addAll(connection.getMultiBulkReply());
             } catch (Exception e) {
                 throw new RuntimeException("Getting keys error", e);
             }

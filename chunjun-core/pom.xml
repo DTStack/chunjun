@@ -24,7 +24,7 @@
     <parent>
         <artifactId>chunjun</artifactId>
         <groupId>com.dtstack.chunjun</groupId>
-        <version>1.16-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -82,12 +82,6 @@
 			<version>${slf4j.version}</version>
 			<!--<scope>provided</scope>-->
 		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${log4j.version}</version>
-			<!--<scope>provided</scope>-->
-		</dependency>
 
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -131,30 +125,6 @@
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-java</artifactId>
-            <version>${flink.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-api</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-clients</artifactId>
-            <version>${flink.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-api</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-runtime-web</artifactId>
             <version>${flink.version}</version>
             <exclusions>
                 <exclusion>
@@ -273,7 +243,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.9.10.1</version>
         </dependency>
 
         <dependency>
@@ -286,7 +255,6 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.12.0</version>
 		</dependency>
 
         <dependency>
@@ -361,7 +329,7 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 			<exclusions>
@@ -375,7 +343,7 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-hdfs</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 			<exclusions>
@@ -547,7 +515,8 @@
 			</plugin>
 
             <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
                 <executions>
                     <execution>
                         <id>copy-resources</id>
@@ -557,7 +526,7 @@
                             <goal>run</goal>
                         </goals>
                         <configuration>
-                            <tasks>
+                            <target>
                                 <copy todir="${basedir}/../${dist.dir}/"
                                       file="${basedir}/target/${project.artifactId}-${project.version}.jar"
                                 />
@@ -568,7 +537,7 @@
                                              includes="${project.artifactId}-*.jar"
                                              excludes="${project.artifactId}.jar"/>
                                 </delete>
-                            </tasks>
+                            </target>
                         </configuration>
                     </execution>
                 </executions>

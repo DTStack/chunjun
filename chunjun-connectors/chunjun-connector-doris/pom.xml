@@ -23,12 +23,12 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-doris</artifactId>
-	<name>ChunJun : Connectors : Doris</name>
+	<name>ChunJun : Connector : Doris</name>
 
 	<properties>
 		<maven.compiler.source>8</maven.compiler.source>
@@ -38,12 +38,6 @@
 
 
 	<dependencies>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.9.10.1</version>
-		</dependency>
-
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-connector-mysql</artifactId>
@@ -55,43 +49,6 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<createDependencyReducedPom>false</createDependencyReducedPom>
-							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer" />
-							</transformers>
-							<relocations>
-								<relocation>
-									<pattern>com.fasterxml.jackson.core</pattern>
-									<shadedPattern>shade.dorisbatch.com.fasterxml.jackson.core</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>com.fasterxml.jackson.databind</pattern>
-									<shadedPattern>shade.dorisbatch.com.fasterxml.jackson.databind</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>com.fasterxml.jackson.annotation</pattern>
-									<shadedPattern>shade.dorisbatch.com.fasterxml.jackson.annotation</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>org.apache.http</pattern>
-									<shadedPattern>shade.core.org.apache.http</shadedPattern>
-								</relocation>
-							</relocations>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 			</plugin>
 		</plugins>

@@ -34,7 +34,7 @@ import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
-import redis.clients.jedis.JedisCommands;
+import redis.clients.jedis.commands.JedisCommands;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -67,7 +67,7 @@ public class RedisRowConverter
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
                             createInternalConverter(rowType.getTypeAt(i))));
-            typeIndexList.add(new Triplet(fieldNames.get(i), i, rowType.getTypeAt(i)));
+            typeIndexList.add(new Triplet<>(fieldNames.get(i), i));
         }
     }
 
@@ -128,7 +128,7 @@ public class RedisRowConverter
     public JedisCommands toExternal(RowData rowData, JedisCommands jedis) throws Exception {
         List<String> fieldNames = rowType.getFieldNames();
         List<Object> fieldValue = new ArrayList<>();
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, fieldValue);
         }
 
@@ -277,18 +277,16 @@ public class RedisRowConverter
         }
     }
 
-    class Triplet<T, U, V> implements Serializable {
+    static class Triplet<T, U, V> implements Serializable {
 
         private static final long serialVersionUID = 1L;
 
         private final T first;
         private final U second;
-        private final V third;
 
-        public Triplet(T first, U second, V third) {
+        public Triplet(T first, U second) {
             this.first = first;
             this.second = second;
-            this.third = third;
         }
     }
 }

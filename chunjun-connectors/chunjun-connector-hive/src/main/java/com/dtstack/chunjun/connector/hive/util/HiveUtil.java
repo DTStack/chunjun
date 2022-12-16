@@ -37,7 +37,7 @@ import com.dtstack.chunjun.util.GsonUtil;
 import org.apache.flink.api.common.cache.DistributedCache;
 
 import com.google.common.reflect.TypeToken;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

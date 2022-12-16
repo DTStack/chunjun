@@ -24,18 +24,15 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.16-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-hive3</artifactId>
-	<name>ChunJun : Connectors : Hive3</name>
+	<name>ChunJun : Connector : Hive3</name>
 
 	<properties>
-		<maven.compiler.source>8</maven.compiler.source>
-		<maven.compiler.target>8</maven.compiler.target>
 		<hive.version>3.1.2</hive.version>
-		<hadoop3.version>3.1.4</hadoop3.version>
 		<connector.dir>hive3</connector.dir>
 	</properties>
 
@@ -44,21 +41,14 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>${slf4j.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${log4j.version}</version>
-			<scope>provided</scope>
-		</dependency>
+
 		<!--Hadoop-->
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
@@ -560,18 +550,10 @@
 								</filter>
 							</filters>
 							<relocations>
-								<!--<relocation>-->
-								<!--	<pattern>com.google.common</pattern>-->
-								<!--	<shadedPattern>shade.hive3.com.google.common</shadedPattern>-->
-								<!--</relocation>-->
 								<relocation>
 									<pattern>com.google.common.base</pattern>
 									<shadedPattern>shade.hive3.com.google.common.base</shadedPattern>
 								</relocation>
-								<!--<relocation>-->
-								<!--	<pattern>com.google.guava</pattern>-->
-								<!--	<shadedPattern>shade.hive3.com.google.guava</shadedPattern>-->
-								<!--</relocation>-->
 								<relocation>
 									<pattern>org.checkerframework</pattern>
 									<shadedPattern>shade.hive3.org.checkerframework</shadedPattern>
@@ -602,6 +584,7 @@
 			</plugin>
 
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 			</plugin>
 		</plugins>

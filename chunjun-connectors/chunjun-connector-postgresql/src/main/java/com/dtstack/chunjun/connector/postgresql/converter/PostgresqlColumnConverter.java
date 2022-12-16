@@ -96,7 +96,7 @@ public class PostgresqlColumnConverter extends JdbcColumnConverter {
     @Override
     public FieldNamedPreparedStatement toExternal(
             RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             if (arrayType.containsKey(fieldTypeList.get(index))) {
                 // eg: {1000,1000,10001}、{{1000,1000,10001},{1,2,3}}
                 String field = ((ColumnRowData) rowData).getField(index).asString();

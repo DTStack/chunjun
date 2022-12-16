@@ -100,7 +100,7 @@ public class StreamRowConverter
 
     @Override
     public RowData toExternal(RowData rowData, RowData output) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, output);
         }
         return output;

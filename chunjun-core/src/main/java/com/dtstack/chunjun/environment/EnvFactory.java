@@ -40,16 +40,9 @@ import java.util.stream.Collectors;
 
 public class EnvFactory {
 
-    /**
-     * 创建StreamExecutionEnvironment
-     *
-     * @param options
-     * @return
-     */
     public static StreamExecutionEnvironment createStreamExecutionEnvironment(Options options) {
         Configuration flinkConf = new Configuration();
         Configuration cfg = Configuration.fromMap(PropertiesUtil.confToMap(options.getConfProp()));
-        registerPluginIntoEnv(cfg, Lists.newArrayList());
         if (StringUtils.isNotEmpty(options.getFlinkConfDir())) {
             flinkConf = GlobalConfiguration.loadConfiguration(options.getFlinkConfDir());
         }
@@ -63,14 +56,6 @@ public class EnvFactory {
         env.getConfig().disableClosureCleaner();
         env.getConfig().setGlobalJobParameters(cfg);
         return env;
-    }
-
-    public static List<URL> parsePluginPath(Options options) {
-        List<URL> pluginPaths = Lists.newArrayList();
-
-        String distDir = options.getChunjunDistDir();
-
-        return pluginPaths;
     }
 
     public static void registerPluginIntoEnv(Configuration configuration, List<URL> pluginPaths) {
