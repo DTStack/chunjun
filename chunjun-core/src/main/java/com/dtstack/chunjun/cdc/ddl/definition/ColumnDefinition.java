@@ -24,11 +24,11 @@ import java.util.Objects;
 
 public class ColumnDefinition {
     /** 字段名称 */
-    private final String name;
+    private String name;
     /** 字段类型 */
     private final ColumnType type;
     /** 字段是否可以为空 */
-    private final Boolean nullable;
+    private Boolean nullable;
     /** 是否是主键 */
     private final Boolean isPrimary;
     /** 是否是唯一键* */
@@ -75,6 +75,10 @@ public class ColumnDefinition {
         this.defaultFunction = defaultFunction;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getName() {
         return name;
     }
@@ -85,6 +89,10 @@ public class ColumnDefinition {
 
     public Boolean isNullable() {
         return nullable;
+    }
+
+    public void setNullable(Boolean nullable) {
+        this.nullable = nullable;
     }
 
     public Boolean isPrimary() {
@@ -157,5 +165,130 @@ public class ColumnDefinition {
                 precision,
                 scale,
                 check);
+    }
+
+    @Override
+    public String toString() {
+        return "ColumnDefinition{"
+                + "name='"
+                + name
+                + '\''
+                + ", type="
+                + type
+                + ", nullable="
+                + nullable
+                + ", isPrimary="
+                + isPrimary
+                + ", isUnique="
+                + isUnique
+                + ", autoIncrement="
+                + autoIncrement
+                + ", defaultValue='"
+                + defaultValue
+                + '\''
+                + ", defaultFunction="
+                + defaultFunction
+                + ", comment='"
+                + comment
+                + '\''
+                + ", precision="
+                + precision
+                + ", scale="
+                + scale
+                + ", check='"
+                + check
+                + '\''
+                + '}';
+    }
+
+    public static class Builder {
+        private String name = null;
+        private ColumnType type = null;
+        private Boolean nullable = true;
+        private Boolean isPrimary = false;
+        private Boolean isUnique = false;
+        private Boolean autoIncrement = false;
+        private String defaultValue = null;
+        private DataSourceFunction defaultFunction = null;
+        private String comment = null;
+        private Integer precision = null;
+        private Integer scale = null;
+        private String check = null;
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder type(ColumnType type) {
+            this.type = type;
+            return this;
+        }
+
+        public Builder nullable(Boolean nullable) {
+            this.nullable = nullable;
+            return this;
+        }
+
+        public Builder isPrimary(Boolean isPrimary) {
+            this.isPrimary = isPrimary;
+            return this;
+        }
+
+        public Builder isUnique(Boolean isUnique) {
+            this.isUnique = isUnique;
+            return this;
+        }
+
+        public Builder autoIncrement(Boolean autoIncrement) {
+            this.autoIncrement = autoIncrement;
+            return this;
+        }
+
+        public Builder defaultValue(String defaultValue) {
+            this.defaultValue = defaultValue;
+            return this;
+        }
+
+        public Builder defaultFunction(DataSourceFunction defaultFunction) {
+            this.defaultFunction = defaultFunction;
+            return this;
+        }
+
+        public Builder comment(String comment) {
+            this.comment = comment;
+            return this;
+        }
+
+        public Builder precision(Integer precision) {
+            this.precision = precision;
+            return this;
+        }
+
+        public Builder scale(Integer scale) {
+            this.scale = scale;
+            return this;
+        }
+
+        public Builder check(String check) {
+            this.check = check;
+            return this;
+        }
+
+        public ColumnDefinition build() {
+            return new ColumnDefinition(
+                    name,
+                    type,
+                    nullable,
+                    isPrimary,
+                    isUnique,
+                    autoIncrement,
+                    defaultValue,
+                    defaultFunction,
+                    comment,
+                    precision,
+                    scale,
+                    check);
+        }
     }
 }

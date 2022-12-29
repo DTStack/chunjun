@@ -139,9 +139,9 @@ public class HBaseSinkFactoryBase extends SinkFactory {
         HBaseTableSchema hbaseSchema = new HBaseTableSchema();
         hbaseSchema.setTableName(tableName);
         RawTypeConverter rawTypeConverter = getRawTypeConverter();
-        for (FieldConfig FieldConfig : FieldConfigList) {
-            String fieldName = FieldConfig.getName();
-            DataType dataType = rawTypeConverter.apply(FieldConfig.getType());
+        for (FieldConfig config : FieldConfigList) {
+            String fieldName = config.getName();
+            DataType dataType = rawTypeConverter.apply(config.getType());
             if ("rowkey".equalsIgnoreCase(fieldName)) {
                 hbaseSchema.setRowKey(fieldName, dataType);
             } else if (fieldName.contains(":")) {

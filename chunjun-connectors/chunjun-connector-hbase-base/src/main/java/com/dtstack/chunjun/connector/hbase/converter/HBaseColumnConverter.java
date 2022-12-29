@@ -133,8 +133,8 @@ public class HBaseColumnConverter
         this.columnConfig = new ArrayList<>(rowType.getFieldCount());
         this.columnConfigIndex = new HashSet<>(rowType.getFieldCount());
         for (int i = 0; i < hBaseConfig.getColumn().size(); i++) {
-            FieldConfig FieldConfig = hBaseConfig.getColumn().get(i);
-            String name = FieldConfig.getName();
+            FieldConfig fieldConfig = hBaseConfig.getColumn().get(i);
+            String name = fieldConfig.getName();
             columnNames.add(name);
             String[] cfAndQualifier = name.split(":");
             if (cfAndQualifier.length == 2
@@ -151,7 +151,7 @@ public class HBaseColumnConverter
                 rowKeyIndex = i;
                 columnNamesWithoutcf.add(KEY_ROW_KEY);
                 columnConfig.add(i, null);
-            } else if (!StringUtils.isBlank(FieldConfig.getValue())) {
+            } else if (!StringUtils.isBlank(fieldConfig.getValue())) {
                 familyAndQualifier[i] = new byte[2][];
                 familyAndQualifierBack[i] = new byte[2][];
             } else {

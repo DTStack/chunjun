@@ -39,8 +39,7 @@ import java.util.Map;
 
 public class OptionParser {
 
-    @VisibleForTesting
-    protected static final String OPTION_JOB = "job";
+    @VisibleForTesting protected static final String OPTION_JOB = "job";
 
     private final Options properties = new Options();
 
@@ -113,8 +112,7 @@ public class OptionParser {
             byte[] fileContent = new byte[(int) file.length()];
             in.read(fileContent);
             return URLEncoder.encode(
-                    new String(fileContent, StandardCharsets.UTF_8),
-                    StandardCharsets.UTF_8.name());
+                    new String(fileContent, StandardCharsets.UTF_8), StandardCharsets.UTF_8.name());
         }
     }
 }

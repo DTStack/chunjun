@@ -39,12 +39,17 @@
 		<dependency>
 			<groupId>com.github.jsonzou</groupId>
 			<artifactId>jmockdata</artifactId>
-			<version>4.2.0</version>
+			<version>4.3.0</version>
 		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>

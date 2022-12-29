@@ -31,13 +31,12 @@ import com.dtstack.chunjun.options.OptionParser;
 import com.dtstack.chunjun.options.Options;
 import com.dtstack.chunjun.util.ExecuteProcessHelper;
 
-import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
-
 import org.apache.flink.client.deployment.ClusterDeploymentException;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.ConfigConstants;
 
+import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -181,7 +180,7 @@ public class Launcher {
             }
         }
         if (StringUtils.isEmpty(distDir)) {
-            notConfiguredException(KEY_CHUNJUN_HOME);
+            throw new ClusterDeploymentException(KEY_CHUNJUN_HOME + " is not configured.");
         }
         System.setProperty(ConfigConstants.ENV_FLINK_PLUGINS_DIR, distDir);
     }
@@ -193,10 +192,5 @@ public class Launcher {
         }
 
         return property;
-    }
-
-    private static void notConfiguredException(String propertyKey)
-            throws ClusterDeploymentException {
-        throw new ClusterDeploymentException(propertyKey + " is not configured.");
     }
 }
