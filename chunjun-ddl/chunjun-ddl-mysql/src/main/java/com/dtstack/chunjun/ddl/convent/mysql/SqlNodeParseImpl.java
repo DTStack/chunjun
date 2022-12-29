@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.ddl.convent.mysql;
 
 import com.dtstack.chunjun.cdc.EventType;
-import com.dtstack.chunjun.cdc.ddl.ColumnTypeConvent;
+import com.dtstack.chunjun.cdc.ddl.ColumnTypeConvert;
 import com.dtstack.chunjun.cdc.ddl.definition.ColumnDefinition;
 import com.dtstack.chunjun.cdc.ddl.definition.ColumnOperator;
 import com.dtstack.chunjun.cdc.ddl.definition.ConstraintDefinition;
@@ -73,14 +73,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SqlNodeParseImpl implements SqlNodeParse {
-    private ColumnTypeConvent columnTypeConvent = new MysqlTypeConvent();
+    private final ColumnTypeConvert columnTypeConvert = new MysqlTypeConvert();
 
     @Override
     public TableOperator parse(SqlCreateTable sqlCreate) {
         ArrayList<ColumnDefinition> columnDefinitions = new ArrayList<>();
         for (SqlNode sqlNode : sqlCreate.columnList) {
             SqlGeneralColumn column = (SqlGeneralColumn) sqlNode;
-            columnDefinitions.add(SqlNodeParseUtil.parseColumn(column, columnTypeConvent));
+            columnDefinitions.add(SqlNodeParseUtil.parseColumn(column, columnTypeConvert));
         }
 
         ArrayList<IndexDefinition> indexDefinitions = new ArrayList<>();
@@ -195,7 +195,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
                 sqlDropTable.name.getList().stream()
                         .map(
                                 i ->
-                                        SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                                        SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                                 (SqlIdentifier) i))
                         .collect(Collectors.toList());
 
@@ -228,7 +228,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
                                         sqlRenameTable
                                                 .toSqlString(MysqlSqlDialect.DEFAULT)
                                                 .getSql(),
-                                        SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                                        SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                                 ((SqlRenameTableSingleton) i).oldName),
                                         null,
                                         null,
@@ -238,7 +238,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
                                         false,
                                         false,
                                         null,
-                                        SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                                        SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                                 ((SqlRenameTableSingleton) i).newName)))
                 .collect(Collectors.toList());
     }
@@ -246,7 +246,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
     @Override
     public IndexOperator parse(SqlDropIndex sqlDropIndex) {
         TableIdentifier tableIdentifier =
-                SqlNodeUtil.conventSqlIdentifierToTableIdentifier(sqlDropIndex.tableName);
+                SqlNodeUtil.convertSqlIdentifierToTableIdentifier(sqlDropIndex.tableName);
         return new IndexOperator(
                 EventType.DROP_INDEX,
                 sqlDropIndex.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
@@ -259,7 +259,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
     public IndexOperator parse(SqlCreateIndex sqlCreateIndex) {
 
         TableIdentifier tableIdentifier =
-                SqlNodeUtil.conventSqlIdentifierToTableIdentifier(sqlCreateIndex.tableName);
+                SqlNodeUtil.convertSqlIdentifierToTableIdentifier(sqlCreateIndex.tableName);
 
         IndexDefinition indexDefinition = SqlNodeParseUtil.parseIndex(sqlCreateIndex.sqlIndex);
 
@@ -332,13 +332,13 @@ public class SqlNodeParseImpl implements SqlNodeParse {
                         .map(
                                 i ->
                                         SqlNodeParseUtil.parseColumn(
-                                                (SqlGeneralColumn) i, columnTypeConvent))
+                                                (SqlGeneralColumn) i, columnTypeConvert))
                         .collect(Collectors.toList());
 
         return new ColumnOperator(
                 EventType.ADD_COLUMN,
                 sqlAlterTableAddColumn.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                         sqlAlterTableAddColumn.tableIdentifier),
                 columns,
                 false,
@@ -348,7 +348,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
 
     protected IndexOperator parse(SqlAlterTableAddIndex sqlAlterTableAddIndex) {
         TableIdentifier tableIdentifier =
-                SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                         sqlAlterTableAddIndex.tableIdentifier);
         IndexDefinition indexDefinition =
                 SqlNodeParseUtil.parseIndex((SqlIndex) sqlAlterTableAddIndex.index);
@@ -362,7 +362,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
 
     protected ConstraintOperator parse(SqlAlterTableAddConstraint sqlAlterTableAddConstraint) {
         TableIdentifier tableIdentifier =
-                SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                         sqlAlterTableAddConstraint.tableIdentifier);
         ConstraintDefinition constraintDefinition =
                 SqlNodeParseUtil.parseConstraint(
@@ -376,7 +376,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
 
     protected ConstraintOperator parse(SqlAlterTableConstraint sqlAlterTableConstraint) {
         TableIdentifier tableIdentifier =
-                SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                         sqlAlterTableConstraint.tableIdentifier);
 
         ConstraintDefinition constraintDefinition =
@@ -406,7 +406,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
     protected DdlOperator parse(SqlAlterTableComment sqlAlterTableComment) {
 
         TableIdentifier tableIdentifier =
-                SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                         sqlAlterTableComment.tableIdentifier);
 
         return new TableOperator(
@@ -434,7 +434,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
 
     protected List<ColumnOperator> parse(SqlAlterTableChangeColumn sqlAlterTableChangeColumn) {
         return SqlNodeParseUtil.parseSqlAlterTableChangeColumn(
-                sqlAlterTableChangeColumn, columnTypeConvent);
+                sqlAlterTableChangeColumn, columnTypeConvert);
     }
 
     protected DdlOperator parse(SqlAlterTableRename sqlAlterTableRename) {
@@ -444,7 +444,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
                 return new ConstraintOperator(
                         EventType.RENAME_CONSTRAINT,
                         sqlAlterTableRename.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                        SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                        SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                 sqlAlterTableRename.tableIdentifier),
                         new ConstraintDefinition(
                                 sqlAlterTableRename.oldName.getSimple(),
@@ -460,7 +460,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
                 return new IndexOperator(
                         EventType.RENAME_INDEX,
                         sqlAlterTableRename.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                        SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                        SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                 sqlAlterTableRename.tableIdentifier),
                         new IndexDefinition(
                                 null, sqlAlterTableRename.oldName.getSimple(), null, null, null),
@@ -469,7 +469,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
                 return new ColumnOperator(
                         EventType.RENAME_COLUMN,
                         sqlAlterTableRename.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                        SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                        SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                 sqlAlterTableRename.tableIdentifier),
                         Collections.singletonList(
                                 new ColumnDefinition(
@@ -492,7 +492,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
                 return new TableOperator(
                         EventType.RENAME_TABLE,
                         sqlAlterTableRename.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                        SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                        SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                 sqlAlterTableRename.tableIdentifier),
                         null,
                         null,
@@ -502,7 +502,7 @@ public class SqlNodeParseImpl implements SqlNodeParse {
                         false,
                         false,
                         null,
-                        SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                        SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                 sqlAlterTableRename.newName));
             default:
                 throw new UnsupportedOperationException(

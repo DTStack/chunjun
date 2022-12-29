@@ -82,4 +82,68 @@ public class ConstraintOperator extends DdlOperator {
     public String getNewName() {
         return newName;
     }
+
+    @Override
+    public String toString() {
+        return "ConstraintOperator{"
+                + "tableIdentifier="
+                + tableIdentifier
+                + ", constraintDefinition="
+                + constraintDefinition
+                + ", enforced="
+                + enforced
+                + ", newName='"
+                + newName
+                + '\''
+                + ", type="
+                + type
+                + ", sql='"
+                + sql
+                + '\''
+                + '}';
+    }
+
+    public static class Builder {
+        private EventType type = null;
+        private String sql = null;
+        private TableIdentifier tableIdentifier = null;
+        private ConstraintDefinition constraintDefinition = null;
+        private Boolean enforced = null;
+        private String newName = null;
+
+        public Builder type(EventType type) {
+            this.type = type;
+            return this;
+        }
+
+        public Builder sql(String sql) {
+            this.sql = sql;
+            return this;
+        }
+
+        public Builder tableIdentifier(TableIdentifier tableIdentifier) {
+            this.tableIdentifier = tableIdentifier;
+            return this;
+        }
+
+        public Builder constraintDefinition(ConstraintDefinition constraintDefinition) {
+            this.constraintDefinition = constraintDefinition;
+            return this;
+        }
+
+        public Builder enforced(Boolean enforced) {
+            this.enforced = enforced;
+            return this;
+        }
+
+        public Builder newName(String newName) {
+            this.newName = newName;
+            return this;
+        }
+
+        public ConstraintOperator build() {
+            return new ConstraintOperator(
+                    type, sql, tableIdentifier, constraintDefinition, enforced, newName);
+        }
+    }
 }

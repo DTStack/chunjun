@@ -108,4 +108,81 @@ public class TableDefinition {
                 ifNotExists,
                 comment);
     }
+
+    @Override
+    public String toString() {
+        return "TableDefinition{"
+                + "tableIdentifier="
+                + tableIdentifier
+                + ", columnList="
+                + columnList
+                + ", indexList="
+                + indexList
+                + ", constraintList="
+                + constraintList
+                + ", isTemporary="
+                + isTemporary
+                + ", ifNotExists="
+                + ifNotExists
+                + ", comment='"
+                + comment
+                + '\''
+                + '}';
+    }
+
+    public class Builder {
+        private TableIdentifier tableIdentifier = null;
+        private List<ColumnDefinition> columnList = null;
+        private List<IndexDefinition> indexList = null;
+        private List<ConstraintDefinition> constraintList = null;
+        private boolean isTemporary = false;
+        private boolean ifNotExists = false;
+        private String comment = null;
+
+        public Builder tableIdentifier(TableIdentifier tableIdentifier) {
+            this.tableIdentifier = tableIdentifier;
+            return this;
+        }
+
+        public Builder columnList(List<ColumnDefinition> columnList) {
+            this.columnList = columnList;
+            return this;
+        }
+
+        public Builder indexList(List<IndexDefinition> indexList) {
+            this.indexList = indexList;
+            return this;
+        }
+
+        public Builder constraintList(List<ConstraintDefinition> constraintList) {
+            this.constraintList = constraintList;
+            return this;
+        }
+
+        public Builder isTemporary(boolean isTemporary) {
+            this.isTemporary = isTemporary;
+            return this;
+        }
+
+        public Builder ifNotExists(boolean ifNotExists) {
+            this.ifNotExists = ifNotExists;
+            return this;
+        }
+
+        public Builder comment(String comment) {
+            this.comment = comment;
+            return this;
+        }
+
+        public TableDefinition build() {
+            return new TableDefinition(
+                    tableIdentifier,
+                    columnList,
+                    indexList,
+                    constraintList,
+                    isTemporary,
+                    ifNotExists,
+                    comment);
+        }
+    }
 }

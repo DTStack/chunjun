@@ -31,9 +31,7 @@
     <artifactId>chunjun-core</artifactId>
     <name>ChunJun : Core</name>
 
-
     <dependencies>
-
 		<dependency>
 			<groupId>org.apache.curator</groupId>
 			<artifactId>curator-test</artifactId>

@@ -27,6 +27,7 @@ import org.apache.calcite.sql.SqlCharStringLiteral;
 import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.SqlTypeNameSpec;
 import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.dialect.CalciteSqlDialect;
@@ -35,6 +36,7 @@ import org.apache.calcite.util.NlsString;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class SqlNodeUtil {
@@ -61,7 +63,7 @@ public class SqlNodeUtil {
         return Pair.of(null, null);
     }
 
-    public static TableIdentifier conventSqlIdentifierToTableIdentifier(
+    public static TableIdentifier convertSqlIdentifierToTableIdentifier(
             SqlIdentifier sqlIdentifier) {
         if (sqlIdentifier.isSimple()) {
             return new TableIdentifier(null, null, sqlIdentifier.getSimple());
@@ -79,10 +81,10 @@ public class SqlNodeUtil {
         }
 
         throw new IllegalArgumentException(
-                "convent sqlIdentifier failed, sqlIdentifier: " + sqlIdentifier);
+                "convert sqlIdentifier failed, sqlIdentifier: " + sqlIdentifier);
     }
 
-    public static SqlIdentifier conventTableIdentifierToSqlIdentifier(
+    public static SqlIdentifier convertTableIdentifierToSqlIdentifier(
             TableIdentifier tableIdentifier) {
 
         ArrayList<String> strings = new ArrayList<>();
@@ -111,6 +113,10 @@ public class SqlNodeUtil {
         return null;
     }
 
+    public static String getSqlString(SqlNode sqlNode) {
+        return getSqlString(sqlNode, EMPTY_SQL_DIALECT);
+    }
+
     public static String getSqlString(SqlNode sqlNode, SqlDialect sqlDialect) {
         if (sqlNode instanceof SqlCharStringLiteral) {
             Object value = ((SqlCharStringLiteral) sqlNode).getValue();
@@ -133,5 +139,20 @@ public class SqlNodeUtil {
             }
         }
         return false;
+    }
+
+    public static List<String> parseNodeListString(SqlNodeList nodeList) {
+        return parseNodeListString(nodeList, EMPTY_SQL_DIALECT);
+    }
+
+    public static List<String> parseNodeListString(SqlNodeList sqlNodeList, SqlDialect sqlDialect) {
+        List<String> result = new ArrayList<>();
+        if (sqlNodeList == null) {
+            return result;
+        }
+        for (SqlNode sqlNode : sqlNodeList.getList()) {
+            result.add(sqlNode.toSqlString(sqlDialect).getSql());
+        }
+        return result;
     }
 }
