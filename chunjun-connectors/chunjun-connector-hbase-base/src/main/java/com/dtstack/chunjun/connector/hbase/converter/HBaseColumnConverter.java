@@ -66,6 +66,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.dtstack.chunjun.connector.hbase.HBaseTypeUtils.MAX_TIMESTAMP_PRECISION;
 import static com.dtstack.chunjun.connector.hbase.HBaseTypeUtils.MIN_TIMESTAMP_PRECISION;
@@ -211,9 +212,8 @@ public class HBaseColumnConverter
             put = new Put(rowkey, version);
         }
 
-        if (hBaseConf.getTtl() != null) {
-            put.setTTL(hBaseConf.getTtl());
-        }
+        put.setTTL(
+                Optional.ofNullable(hBaseConf.getTtl()).orElseGet(() -> (long) Integer.MAX_VALUE));
 
         for (int i = 0; i < rowData.getArity(); i++) {
             if (rowKeyIndex == i || columnConfigIndex.contains(i)) {
