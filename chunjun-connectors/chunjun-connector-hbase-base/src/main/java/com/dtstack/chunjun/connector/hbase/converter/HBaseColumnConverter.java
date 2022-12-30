@@ -211,6 +211,10 @@ public class HBaseColumnConverter
             put = new Put(rowkey, version);
         }
 
+        if (hBaseConf.getTtl() != null) {
+            put.setTTL(hBaseConf.getTtl());
+        }
+
         for (int i = 0; i < rowData.getArity(); i++) {
             if (rowKeyIndex == i || columnConfigIndex.contains(i)) {
                 continue;
@@ -224,13 +228,13 @@ public class HBaseColumnConverter
             toExternalConverters.get(i).serialize(rowData, i, put);
             if (i == rowData.getArity() - 1) {
                 for (int x = 0; x < familyAndQualifierBack.length; x++) {
-                    familyAndQualifier[x] =
-                            Arrays.copyOf(
-                                    familyAndQualifierBack[x], familyAndQualifierBack[x].length);
-                    if (x + 1 < familyAndQualifierBack.length
-                            && familyAndQualifierBack[x + 1] == null) {
-                        familyAndQualifier[x + 1] = null;
-                        x = x + 1;
+                    if (familyAndQualifierBack[x] == null) {
+                        familyAndQualifier[x] = null;
+                    } else {
+                        familyAndQualifier[x] =
+                                Arrays.copyOf(
+                                        familyAndQualifierBack[x],
+                                        familyAndQualifierBack[x].length);
                     }
                 }
             }
