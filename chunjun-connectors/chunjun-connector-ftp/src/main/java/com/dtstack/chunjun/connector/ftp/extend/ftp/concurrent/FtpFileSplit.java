@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.ftp.extend.ftp.concurrent;
 
 import java.io.Serializable;
+import java.util.StringJoiner;
 
 public class FtpFileSplit implements Serializable {
 
@@ -90,5 +91,16 @@ public class FtpFileSplit implements Serializable {
 
     public long getReadLimit() {
         return this.endPosition - this.startPosition;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", FtpFileSplit.class.getSimpleName() + "[", "]")
+                .add("startPosition=" + startPosition)
+                .add("endPosition=" + endPosition)
+                .add("filename='" + filename + "'")
+                .add("fileAbsolutePath='" + fileAbsolutePath + "'")
+                .add("compressType='" + compressType + "'")
+                .toString();
     }
 }

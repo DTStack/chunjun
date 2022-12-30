@@ -21,6 +21,7 @@ package com.dtstack.chunjun.connector.ftp.extend.ftp;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.StringJoiner;
 
 public class IFormatConfig implements Serializable {
 
@@ -106,19 +107,15 @@ public class IFormatConfig implements Serializable {
 
     @Override
     public String toString() {
-        return "IFormatConfig{"
-                + "fieldDelimiter='"
-                + fieldDelimiter
-                + '\''
-                + ", encoding='"
-                + encoding
-                + '\''
-                + ", fields="
-                + Arrays.toString(fields)
-                + ", isFirstLineHeader="
-                + isFirstLineHeader
-                + ", fileConfig="
-                + fileConfig
-                + '}';
+        return new StringJoiner(", ", IFormatConfig.class.getSimpleName() + "[", "]")
+                .add("encoding='" + encoding + "'")
+                .add("fields=" + Arrays.toString(fields))
+                .add("isFirstLineHeader=" + isFirstLineHeader)
+                .add("fileConfig=" + fileConfig)
+                .add("parallelism=" + parallelism)
+                .add("fetchMaxSize=" + fetchMaxSize)
+                .add("fieldDelimiter='" + fieldDelimiter + "'")
+                .add("columnDelimiter='" + columnDelimiter + "'")
+                .toString();
     }
 }

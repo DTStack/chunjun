@@ -23,6 +23,7 @@ import com.dtstack.chunjun.connector.ftp.enums.FileType;
 import com.dtstack.chunjun.constants.ConstantValue;
 
 import java.util.Map;
+import java.util.StringJoiner;
 
 public class FtpConfig extends BaseFileConf {
 
@@ -279,59 +280,33 @@ public class FtpConfig extends BaseFileConf {
 
     @Override
     public String toString() {
-        return "FtpConfig{"
-                + "timeout="
-                + timeout
-                + ", username='"
-                + username
-                + '\''
-                + ", password='"
-                + password
-                + '\''
-                + ", privateKeyPath='"
-                + privateKeyPath
-                + '\''
-                + ", protocol='"
-                + protocol
-                + '\''
-                + ", fieldDelimiter='"
-                + fieldDelimiter
-                + '\''
-                + ", connectPattern='"
-                + connectPattern
-                + '\''
-                + ", host='"
-                + host
-                + '\''
-                + ", port="
-                + port
-                + ", isFirstLineHeader="
-                + isFirstLineHeader
-                + ", controlEncoding='"
-                + controlEncoding
-                + '\''
-                + ", listHiddenFiles="
-                + listHiddenFiles
-                + ", ftpFileName='"
-                + ftpFileName
-                + '\''
-                + ", encoding='"
-                + encoding
-                + '\''
-                + ", nullIsReplacedWithValue="
-                + nullIsReplacedWithValue
-                + ", fileConfig="
-                + fileConfig
-                + ", fileType='"
-                + fileType
-                + '\''
-                + ", compressType='"
-                + compressType
-                + '\''
-                + ", customFormatClassName='"
-                + customFormatClassName
-                + '\''
-                + '}'
-                + super.toString();
+        return new StringJoiner(", ", FtpConfig.class.getSimpleName() + "[", "]")
+                .add("timeout=" + timeout)
+                .add("username='" + username + "'")
+                .add("password='" + password + "'")
+                .add("privateKeyPath='" + privateKeyPath + "'")
+                .add("protocol='" + protocol + "'")
+                .add("fieldDelimiter='" + fieldDelimiter + "'")
+                .add("connectPattern='" + connectPattern + "'")
+                .add("host='" + host + "'")
+                .add("port=" + port)
+                .add("isFirstLineHeader=" + isFirstLineHeader)
+                .add("controlEncoding='" + controlEncoding + "'")
+                .add("listHiddenFiles=" + listHiddenFiles)
+                .add("maxFetchSize=" + maxFetchSize)
+                .add("ftpFileName='" + ftpFileName + "'")
+                .add("nextCheckRows=" + nextCheckRows)
+                .add("encoding='" + encoding + "'")
+                .add("nullIsReplacedWithValue=" + nullIsReplacedWithValue)
+                .add("fileConfig=" + fileConfig)
+                .add("customFormatClassName='" + customFormatClassName + "'")
+                .add(
+                        "customConcurrentFileSplitClassName='"
+                                + customConcurrentFileSplitClassName
+                                + "'")
+                .add("columnDelimiter='" + columnDelimiter + "'")
+                .add("fileType='" + fileType + "'")
+                .add("compressType='" + compressType + "'")
+                .toString();
     }
 }
