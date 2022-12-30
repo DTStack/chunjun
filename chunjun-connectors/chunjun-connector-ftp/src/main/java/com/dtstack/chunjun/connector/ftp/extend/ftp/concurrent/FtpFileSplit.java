@@ -16,26 +16,25 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.source;
+package com.dtstack.chunjun.connector.ftp.extend.ftp.concurrent;
 
 import java.io.Serializable;
-import java.util.StringJoiner;
 
 public class FtpFileSplit implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     /** 这个分片处理文件的开始位置 */
-    private long startPosition;
+    private long startPosition = 0;
 
     /** 这个分片处理文件的结束位置 */
-    private long endPosition;
+    private long endPosition = 0;
 
     /** 这个分片处理的文件名 */
-    private final String filename;
+    private String filename;
 
     /** 文件完整路径 */
-    private final String fileAbsolutePath;
+    private String fileAbsolutePath;
 
     /** 压缩类型 */
     private String compressType;
@@ -91,16 +90,5 @@ public class FtpFileSplit implements Serializable {
 
     public long getReadLimit() {
         return this.endPosition - this.startPosition;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", FtpFileSplit.class.getSimpleName() + "[", "]")
-                .add("startPosition=" + startPosition)
-                .add("endPosition=" + endPosition)
-                .add("filename='" + filename + "'")
-                .add("fileAbsolutePath='" + fileAbsolutePath + "'")
-                .add("compressType='" + compressType + "'")
-                .toString();
     }
 }

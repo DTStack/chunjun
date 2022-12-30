@@ -24,14 +24,16 @@ import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.commons.lang3.StringUtils;
 
-public class FtpOutputFormatBuilder extends FileOutputFormatBuilder<FtpOutputFormat> {
+public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
+
+    private FtpOutputFormat format;
 
     public FtpOutputFormatBuilder() {
         super(new FtpOutputFormat());
     }
 
     public void setFtpConfig(FtpConfig ftpConfig) {
-        super.setBaseFileConfig(ftpConfig);
+        super.setBaseFileConf(ftpConfig);
         format.setFtpConfig(ftpConfig);
     }
 

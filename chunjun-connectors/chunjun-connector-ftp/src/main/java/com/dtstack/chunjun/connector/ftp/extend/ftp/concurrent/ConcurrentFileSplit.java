@@ -16,24 +16,31 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.format;
+package com.dtstack.chunjun.connector.ftp.extend.ftp.concurrent;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import com.dtstack.chunjun.connector.ftp.extend.ftp.IFormatConfig;
+import com.dtstack.chunjun.connector.ftp.extend.ftp.IFtpHandler;
 
-public class IFormatConfigTest {
+import java.util.Comparator;
+import java.util.List;
 
-    private IFormatConfig iFormatConfigUnderTest;
+public interface ConcurrentFileSplit {
 
-    @Before
-    public void setUp() {
-        iFormatConfigUnderTest = new IFormatConfig();
-    }
+    /**
+     * 切割文件， 生成 FtpFileSplit
+     *
+     * @param handler
+     * @param config
+     * @param files
+     * @return
+     */
+    List<FtpFileSplit> buildFtpFileSplit(
+            IFtpHandler handler, IFormatConfig config, List<String> files);
 
-    @Test
-    public void testToString() {
-        Assert.assertTrue(
-                iFormatConfigUnderTest.toString().contains(IFormatConfig.class.getSimpleName()));
-    }
+    /**
+     * 断点续传时候需要遍历FtpFileSplit，去除已经读过的文件, 所以需要保证FtpFileSplit的顺序;
+     *
+     * @return
+     */
+    Comparator<FtpFileSplit> compare();
 }

@@ -18,13 +18,13 @@
 
 package com.dtstack.chunjun.connector.ftp.conf;
 
-import com.dtstack.chunjun.config.BaseFileConfig;
+import com.dtstack.chunjun.conf.BaseFileConf;
+import com.dtstack.chunjun.connector.ftp.enums.FileType;
 import com.dtstack.chunjun.constants.ConstantValue;
 
 import java.util.Map;
-import java.util.StringJoiner;
 
-public class FtpConfig extends BaseFileConfig {
+public class FtpConfig extends BaseFileConf {
 
     public Integer timeout = ConfigConstants.DEFAULT_TIMEOUT;
     private String username;
@@ -47,6 +47,9 @@ public class FtpConfig extends BaseFileConfig {
 
     private String ftpFileName;
 
+    /** 批量写入数据太大，会导致ftp协议缓冲区报错, 批量写入默认值设置小点 */
+    private long nextCheckRows = 100;
+
     public String encoding = "UTF-8";
 
     /** 空值替换 */
@@ -58,11 +61,33 @@ public class FtpConfig extends BaseFileConfig {
     /** User defined format class name */
     private String customFormatClassName;
 
+    /** User defined split class name */
+    private String customConcurrentFileSplitClassName;
+
+    /* 行分隔符 */
+    private String columnDelimiter = "\n";
+
     /** Get the specified fileReadClient according to the filetype * */
-    public String fileType;
+    public String fileType = FileType.TXT.name();
 
     /** 压缩格式 * */
     public String compressType;
+
+    public String getColumnDelimiter() {
+        return columnDelimiter;
+    }
+
+    public void setColumnDelimiter(String columnDelimiter) {
+        this.columnDelimiter = columnDelimiter;
+    }
+
+    public String getCustomConcurrentFileSplitClassName() {
+        return customConcurrentFileSplitClassName;
+    }
+
+    public void setCustomConcurrentFileSplitClassName(String customConcurrentFileSplitClassName) {
+        this.customConcurrentFileSplitClassName = customConcurrentFileSplitClassName;
+    }
 
     public String getCustomFormatClassName() {
         return customFormatClassName;
@@ -238,33 +263,75 @@ public class FtpConfig extends BaseFileConfig {
         this.maxFetchSize = fetchSize;
     }
 
+    @Override
+    public long getNextCheckRows() {
+        return nextCheckRows;
+    }
+
+    @Override
+    public void setNextCheckRows(long nextCheckRows) {
+        this.nextCheckRows = nextCheckRows;
+    }
+
     public long getMaxFetchSize() {
         return this.maxFetchSize;
     }
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", FtpConfig.class.getSimpleName() + "[", "]")
-                .add("timeout=" + timeout)
-                .add("username='" + username + "'")
-                .add("password='" + password + "'")
-                .add("privateKeyPath='" + privateKeyPath + "'")
-                .add("protocol='" + protocol + "'")
-                .add("fieldDelimiter='" + fieldDelimiter + "'")
-                .add("connectPattern='" + connectPattern + "'")
-                .add("host='" + host + "'")
-                .add("port=" + port)
-                .add("isFirstLineHeader=" + isFirstLineHeader)
-                .add("controlEncoding='" + controlEncoding + "'")
-                .add("listHiddenFiles=" + listHiddenFiles)
-                .add("maxFetchSize=" + maxFetchSize)
-                .add("ftpFileName='" + ftpFileName + "'")
-                .add("encoding='" + encoding + "'")
-                .add("nullIsReplacedWithValue=" + nullIsReplacedWithValue)
-                .add("fileConfig=" + fileConfig)
-                .add("customFormatClassName='" + customFormatClassName + "'")
-                .add("fileType='" + fileType + "'")
-                .add("compressType='" + compressType + "'")
-                .toString();
+        return "FtpConfig{"
+                + "timeout="
+                + timeout
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", privateKeyPath='"
+                + privateKeyPath
+                + '\''
+                + ", protocol='"
+                + protocol
+                + '\''
+                + ", fieldDelimiter='"
+                + fieldDelimiter
+                + '\''
+                + ", connectPattern='"
+                + connectPattern
+                + '\''
+                + ", host='"
+                + host
+                + '\''
+                + ", port="
+                + port
+                + ", isFirstLineHeader="
+                + isFirstLineHeader
+                + ", controlEncoding='"
+                + controlEncoding
+                + '\''
+                + ", listHiddenFiles="
+                + listHiddenFiles
+                + ", ftpFileName='"
+                + ftpFileName
+                + '\''
+                + ", encoding='"
+                + encoding
+                + '\''
+                + ", nullIsReplacedWithValue="
+                + nullIsReplacedWithValue
+                + ", fileConfig="
+                + fileConfig
+                + ", fileType='"
+                + fileType
+                + '\''
+                + ", compressType='"
+                + compressType
+                + '\''
+                + ", customFormatClassName='"
+                + customFormatClassName
+                + '\''
+                + '}'
+                + super.toString();
     }
 }

@@ -59,6 +59,7 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         ftpConfig.setPassword(config.get(FtpOptions.PASSWORD));
 
         ftpConfig.setEncoding(config.get(FtpOptions.ENCODING));
+        ftpConfig.setFileType(config.get(FtpOptions.FILE_TYPE));
 
         if (config.get(FtpOptions.TIMEOUT) != null) {
             ftpConfig.setTimeout(config.get(FtpOptions.TIMEOUT));
@@ -74,6 +75,9 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
             ftpConfig.setPort(config.get(FtpOptions.PORT));
         }
 
+        if (config.get(FtpOptions.isFirstLineHeader) != null) {
+            ftpConfig.setIsFirstLineHeader(config.get(FtpOptions.isFirstLineHeader));
+        }
         return ftpConfig;
     }
 
@@ -153,6 +157,8 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         options.add(FtpOptions.ENCODING);
         options.add(FtpOptions.MAX_FILE_SIZE);
         options.add(FtpOptions.FORMAT);
+        options.add(FtpOptions.isFirstLineHeader);
+        options.add(FtpOptions.FILE_TYPE);
         return options;
     }
 }

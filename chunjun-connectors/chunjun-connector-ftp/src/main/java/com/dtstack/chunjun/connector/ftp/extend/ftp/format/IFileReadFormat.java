@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.format;
+package com.dtstack.chunjun.connector.ftp.extend.ftp.format;
 
-import com.dtstack.chunjun.connector.ftp.client.File;
+import com.dtstack.chunjun.connector.ftp.extend.ftp.File;
+import com.dtstack.chunjun.connector.ftp.extend.ftp.IFormatConfig;
 
 import java.io.Closeable;
 import java.io.IOException;

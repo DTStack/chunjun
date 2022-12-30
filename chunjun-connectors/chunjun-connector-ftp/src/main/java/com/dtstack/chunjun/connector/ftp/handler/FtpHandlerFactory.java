@@ -22,8 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public class FtpHandlerFactory {
 
-    public static IFtpHandler createFtpHandler(String protocolStr) {
-        IFtpHandler ftpHandler;
+    public static DTFtpHandler createFtpHandler(String protocolStr) {
+        DTFtpHandler ftpHandler;
 
         Protocol protocol = Protocol.getByName(protocolStr);
         if (Protocol.SFTP.equals(protocol)) {
