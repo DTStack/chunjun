@@ -61,6 +61,7 @@ public class HBaseConf extends ChunJunCommonConf {
     private String rowkeyExpress;
     private Integer versionColumnIndex;
     private String versionColumnValue;
+    private Long ttl;
 
     public String getEncoding() {
         return encoding;
@@ -180,5 +181,13 @@ public class HBaseConf extends ChunJunCommonConf {
 
     public void setColumnMetaInfos(List<FieldConf> columnMetaInfos) {
         this.columnMetaInfos = columnMetaInfos;
+    }
+
+    public void setTTL(Long ttl) {
+        this.ttl = ttl;
+    }
+
+    public Long getTtl() {
+        return ttl;
     }
 }
