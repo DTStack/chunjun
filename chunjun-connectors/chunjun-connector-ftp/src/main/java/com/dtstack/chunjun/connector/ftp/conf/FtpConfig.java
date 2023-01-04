@@ -18,14 +18,14 @@
 
 package com.dtstack.chunjun.connector.ftp.conf;
 
-import com.dtstack.chunjun.conf.BaseFileConf;
+import com.dtstack.chunjun.config.BaseFileConfig;
 import com.dtstack.chunjun.connector.ftp.enums.FileType;
 import com.dtstack.chunjun.constants.ConstantValue;
 
 import java.util.Map;
 import java.util.StringJoiner;
 
-public class FtpConfig extends BaseFileConf {
+public class FtpConfig extends BaseFileConfig {
 
     public Integer timeout = ConfigConstants.DEFAULT_TIMEOUT;
     private String username;

@@ -471,4 +471,9 @@ public class SftpHandler implements DTFtpHandler {
             throw new IOException(e);
         }
     }
+
+    @Override
+    public void close() throws Exception {
+        this.logoutFtpServer();
+    }
 }

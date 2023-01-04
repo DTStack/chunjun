@@ -500,4 +500,9 @@ public class FtpHandler implements DTFtpHandler {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public void close() throws Exception {
+        this.logoutFtpServer();
+    }
 }

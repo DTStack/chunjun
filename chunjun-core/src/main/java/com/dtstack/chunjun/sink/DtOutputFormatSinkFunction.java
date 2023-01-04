@@ -22,7 +22,6 @@ import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
-import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
@@ -57,7 +56,6 @@ import java.util.Map;
  *
  * @param <IN> Input type
  */
-@PublicEvolving
 public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
         implements CheckpointedFunction, CheckpointListener, InputTypeConfigurable {
 

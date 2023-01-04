@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.ftp.client.Data;
 import com.dtstack.chunjun.connector.ftp.conf.ConfigConstants;
 import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
@@ -173,10 +173,10 @@ public class FtpInputFormat extends BaseRichInputFormat {
                 rowData = rowConverter.toInternal(String.join(",", fields));
             } else if (rowConverter instanceof FtpColumnConverter) {
 
-                List<FieldConf> columns = ftpConfig.getColumn();
+                List<FieldConfig> columns = ftpConfig.getColumn();
 
                 if (enableFilenameRow) {
-                    List<FieldConf> tmpColumns = ftpConfig.getColumn();
+                    List<FieldConfig> tmpColumns = ftpConfig.getColumn();
                     int tmpIndex = 0;
                     for (int i = 0; i < tmpColumns.size(); i++) {
                         if (tmpColumns.get(i).getName().equals(ConfigConstants.INTERNAL_FILENAME)) {
@@ -185,7 +185,7 @@ public class FtpInputFormat extends BaseRichInputFormat {
                         }
                     }
 
-                    FieldConf tmpColumn = columns.get(tmpIndex);
+                    FieldConfig tmpColumn = columns.get(tmpIndex);
                     tmpColumn.setValue(reader.getCurrentFileName());
                     columns.set(tmpIndex, tmpColumn);
                 }
@@ -203,7 +203,7 @@ public class FtpInputFormat extends BaseRichInputFormat {
                 } else {
                     genericRowData = new GenericRowData(columns.size());
                     for (int i = 0; i < CollectionUtils.size(columns); i++) {
-                        FieldConf fieldConf = columns.get(i);
+                        FieldConfig fieldConf = columns.get(i);
 
                         Object value = null;
                         if (fieldConf.getValue() != null) {

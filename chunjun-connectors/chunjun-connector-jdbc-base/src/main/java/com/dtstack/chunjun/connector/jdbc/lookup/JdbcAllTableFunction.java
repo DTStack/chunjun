@@ -24,7 +24,6 @@ import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
 import com.dtstack.chunjun.lookup.config.LookupConfig;
 
-import org.apache.flink.annotation.Internal;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -40,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 
 /** A lookup function for jdbc. */
-@Internal
 public class JdbcAllTableFunction extends AbstractAllTableFunction {
 
     private static final long serialVersionUID = 1L;

@@ -42,7 +42,6 @@ import com.dtstack.chunjun.util.DataSyncFactoryUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.JsonUtil;
 
-import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
@@ -176,7 +175,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     protected ExecutorService executorService;
 
-    @VisibleForTesting protected boolean useAbstractColumn;
+    protected boolean useAbstractColumn;
 
     private transient volatile Exception timerWriteException;
 

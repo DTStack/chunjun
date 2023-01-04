@@ -22,7 +22,6 @@ import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.Md5Util;
 
-import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.cache.DistributedCache;
 
 import org.apache.commons.collections.MapUtils;
@@ -195,7 +194,6 @@ public class SSLUtil {
         throw new RuntimeException("File[" + filePathOnSftp + "] not exist on sftp");
     }
 
-    @VisibleForTesting
     protected static void checkFileExists(String filePath) {
         File file = new File(filePath);
         if (file.exists()) {
@@ -218,7 +216,6 @@ public class SSLUtil {
         }
     }
 
-    @VisibleForTesting
     protected static boolean fileExists(String filePath) {
         File file = new File(filePath);
         return file.exists() && file.isFile();

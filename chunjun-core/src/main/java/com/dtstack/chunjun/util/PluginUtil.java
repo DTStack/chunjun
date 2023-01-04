@@ -29,7 +29,6 @@ import com.dtstack.chunjun.enums.OperatorType;
 import com.dtstack.chunjun.options.Options;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
-import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.PipelineOptions;
@@ -273,7 +272,6 @@ public class PluginUtil {
      * @param suffix 插件类型前缀，如：source、sink
      * @return 插件包类全限定名，如：com.dtstack.chunjun.connector.binlog.source.BinlogSourceFactory
      */
-    @VisibleForTesting
     protected static String camelize(String pluginName, String suffix) {
         int pos = pluginName.indexOf(suffix);
         String left = pluginName.substring(0, pos);
