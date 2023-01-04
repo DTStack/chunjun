@@ -25,10 +25,14 @@ import com.dtstack.chunjun.throwable.WriteRecordException;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.commands.JedisCommands;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
+@Slf4j
 public class RedisOutputFormat extends BaseRichOutputFormat {
+
+    private static final long serialVersionUID = -5545866738532370105L;
 
     private transient RedisSyncClient redisSyncClient;
     /** redis Conf */
@@ -59,7 +63,7 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
         } catch (JedisConnectionException e) {
             // JedisConnectionException may be caused by jedis time out ,retry to get jedis from
             // pool
-            LOG.error("retry get redis once");
+            log.error("retry get redis once");
             jedis = redisSyncClient.testTimeout(jedis, TEST_KEY);
             rowConverter.toExternal(rowData, jedis);
         }

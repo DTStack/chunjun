@@ -26,6 +26,7 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -43,7 +44,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
+
+    private static final long serialVersionUID = 2789150801491048466L;
 
     // hive3
     private HiveConf hiveConf;
@@ -119,7 +123,7 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
         }
         if (openKerberos) {
             ugi = Hive3Util.getUGI(hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS(), null);
-            LOG.info("user:{}, ", ugi.getShortUserName());
+            log.info("user:{}, ", ugi.getShortUserName());
         } else {
             ugi = UserGroupInformation.createRemoteUser(currentUser);
         }
@@ -227,7 +231,7 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
                                         lastWriteTime = System.currentTimeMillis();
                                     }
                                 } catch (Throwable e) {
-                                    LOG.error("writeMultipleRecordsInternal 方法, 写入多条数据失败", e);
+                                    log.error("writeMultipleRecordsInternal 方法, 写入多条数据失败", e);
                                     throw new RuntimeException("WRITER DATA ERROR", e);
                                 }
                                 return null;
@@ -256,7 +260,7 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
         try {
             connect = builder.connect();
         } catch (Throwable e) { // Exception 有可能捕获不到
-            LOG.error("HdfsOrcOutputFormat getConnection 方法, 连接 Hive Metastore 失败", e);
+            log.error("HdfsOrcOutputFormat getConnection 方法, 连接 Hive Metastore 失败", e);
             String metastoreUri = hiveConf.get("hive.metastore.uris");
             throw new RuntimeException(
                     "Error connecting to Hive Metastore URI: "

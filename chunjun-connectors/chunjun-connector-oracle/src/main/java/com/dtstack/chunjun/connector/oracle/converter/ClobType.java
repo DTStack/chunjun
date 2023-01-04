@@ -30,6 +30,8 @@ import java.util.Set;
 
 public class ClobType extends LogicalType {
 
+    private static final long serialVersionUID = 5388781949147463787L;
+
     private static final Set<String> INPUT_CONVERSION =
             conversionSet(String.class.getName(), StringData.class.getName());
 

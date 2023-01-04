@@ -17,19 +17,16 @@
  */
 package com.dtstack.chunjun.dirty.consumer;
 
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.impl.DirtyDataEntry;
 import com.dtstack.chunjun.dirty.utils.TablePrintUtil;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class DefaultDirtyDataCollector extends DirtyDataCollector {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultDirtyDataCollector.class);
+    private static final long serialVersionUID = -8471928215911902043L;
 
     @Override
-    protected void init(DirtyConf conf) {}
+    protected void init(DirtyConfig conf) {}
 
     @Override
     protected void consume(DirtyDataEntry dirty) {

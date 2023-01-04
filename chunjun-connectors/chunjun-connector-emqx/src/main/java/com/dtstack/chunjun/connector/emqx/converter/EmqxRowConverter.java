@@ -32,6 +32,8 @@ import java.nio.charset.StandardCharsets;
 public class EmqxRowConverter
         extends AbstractRowConverter<String, Object, MqttMessage, LogicalType> {
 
+    private static final long serialVersionUID = -7956302669069858454L;
+
     /** DeserializationSchema Instead of source */
     private DeserializationSchema<RowData> valueDeserialization;
     /** SerializationSchema Instead of sink */

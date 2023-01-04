@@ -20,14 +20,18 @@ package com.dtstack.chunjun.config;
 import com.dtstack.chunjun.cdc.CdcConfig;
 import com.dtstack.chunjun.mapping.MappingConfig;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.LinkedList;
-import java.util.StringJoiner;
 
+@Data
 public class JobConfig implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = 1976555497399746622L;
 
     private LinkedList<ContentConfig> content;
+
     private SettingConfig setting = new SettingConfig();
 
     public OperatorConfig getReader() {
@@ -48,29 +52,5 @@ public class JobConfig implements Serializable {
 
     public TransformerConfig getTransformer() {
         return content.get(0).getTransformer();
-    }
-
-    public LinkedList<ContentConfig> getContent() {
-        return content;
-    }
-
-    public void setContent(LinkedList<ContentConfig> content) {
-        this.content = content;
-    }
-
-    public SettingConfig getSetting() {
-        return setting;
-    }
-
-    public void setSetting(SettingConfig setting) {
-        this.setting = setting;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", JobConfig.class.getSimpleName() + "[", "]")
-                .add("content=" + content)
-                .add("setting=" + setting)
-                .toString();
     }
 }

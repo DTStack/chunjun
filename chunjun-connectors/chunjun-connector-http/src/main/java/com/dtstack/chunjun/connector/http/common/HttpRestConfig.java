@@ -20,12 +20,17 @@ package com.dtstack.chunjun.connector.http.common;
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.http.client.Strategy;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class HttpRestConfig extends CommonConfig {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1100442976901794740L;
 
     /** https/http */
     private String protocol = "https";
@@ -62,136 +67,7 @@ public class HttpRestConfig extends CommonConfig {
     /** 返回结果的处理策略 */
     protected List<Strategy> strategy = new ArrayList<>(2);
 
-    public String getFieldTypes() {
-        return fieldTypes;
-    }
-
-    public void setFieldTypes(String fieldTypes) {
-        this.fieldTypes = fieldTypes;
-    }
-
     public boolean isJsonDecode() {
         return getDecode().equalsIgnoreCase(ConstantValue.DEFAULT_DECODE);
-    }
-
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getRequestMode() {
-        return requestMode;
-    }
-
-    public void setRequestMode(String requestMode) {
-        this.requestMode = requestMode;
-    }
-
-    public String getDecode() {
-        return decode;
-    }
-
-    public void setDecode(String decode) {
-        this.decode = decode;
-    }
-
-    public Long getIntervalTime() {
-        return intervalTime;
-    }
-
-    public void setIntervalTime(Long intervalTime) {
-        this.intervalTime = intervalTime;
-    }
-
-    public List<Strategy> getStrategy() {
-        return strategy;
-    }
-
-    public void setStrategy(List<Strategy> strategy) {
-        this.strategy = strategy;
-    }
-
-    public String getFields() {
-        return fields;
-    }
-
-    public void setFields(String fields) {
-        this.fields = fields;
-    }
-
-    public List<MetaParam> getHeader() {
-        return header;
-    }
-
-    public void setHeader(List<MetaParam> header) {
-        this.header = header;
-    }
-
-    public List<MetaParam> getParam() {
-        return param;
-    }
-
-    public void setParam(List<MetaParam> param) {
-        this.param = param;
-    }
-
-    public List<MetaParam> getBody() {
-        return body;
-    }
-
-    public void setBody(List<MetaParam> body) {
-        this.body = body;
-    }
-
-    public String getFieldDelimiter() {
-        return fieldDelimiter;
-    }
-
-    public void setFieldDelimiter(String fieldDelimiter) {
-        this.fieldDelimiter = fieldDelimiter;
-    }
-
-    @Override
-    public String toString() {
-        return "HttpRestConfig{"
-                + "protocol='"
-                + protocol
-                + '\''
-                + ", url='"
-                + url
-                + '\''
-                + ", requestMode='"
-                + requestMode
-                + '\''
-                + ", decode='"
-                + decode
-                + '\''
-                + ", fields='"
-                + fields
-                + '\''
-                + ", intervalTime="
-                + intervalTime
-                + ", fieldDelimiter="
-                + fieldDelimiter
-                + ", header="
-                + header
-                + ", param="
-                + param
-                + ", body="
-                + body
-                + ", strategy="
-                + strategy
-                + '}';
     }
 }

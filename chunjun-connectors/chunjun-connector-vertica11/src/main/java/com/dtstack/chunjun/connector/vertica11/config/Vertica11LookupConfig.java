@@ -21,25 +21,15 @@ package com.dtstack.chunjun.connector.vertica11.config;
 
 import com.dtstack.chunjun.connector.jdbc.config.JdbcLookupConfig;
 
-import java.util.Map;
-
 public class Vertica11LookupConfig extends JdbcLookupConfig {
+
+    private static final long serialVersionUID = 1381371803169634926L;
+
     /** vertx pool size */
     protected int asyncPoolSize = 5;
 
-    protected Map<String, Object> poolConf;
-
     public static Vertica11LookupConfig build() {
         return new Vertica11LookupConfig();
-    }
-
-    public Map<String, Object> getPoolConfig() {
-        return poolConf;
-    }
-
-    public Vertica11LookupConfig setPoolConfig(Map<String, Object> poolConfig) {
-        this.poolConf = poolConfig;
-        return this;
     }
 
     public int getAsyncPoolSize() {

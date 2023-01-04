@@ -23,7 +23,6 @@ import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import com.google.common.base.Preconditions;
 
-/** @author liuliu 2022/7/26 */
 public class StarRocksInputFormatBuilder extends BaseRichInputFormatBuilder<StarRocksInputFormat> {
     public StarRocksInputFormatBuilder(StarRocksInputFormat format) {
         super(format);

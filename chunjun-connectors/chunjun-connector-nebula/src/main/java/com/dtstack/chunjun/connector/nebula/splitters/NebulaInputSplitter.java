@@ -20,10 +20,18 @@ package com.dtstack.chunjun.connector.nebula.splitters;
 
 import org.apache.flink.core.io.GenericInputSplit;
 
-import java.util.LinkedList;
-import java.util.StringJoiner;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
+import java.util.LinkedList;
+
+@Getter
+@Setter
+@ToString
 public class NebulaInputSplitter extends GenericInputSplit {
+
+    private static final long serialVersionUID = 5783977865973344109L;
 
     public LinkedList<Integer> parts = new LinkedList<>();
 
@@ -48,39 +56,5 @@ public class NebulaInputSplitter extends GenericInputSplit {
         this.scanStart = scanStart;
         this.scanEnd = scanEnd;
         this.interval = interval;
-    }
-
-    public Long getInterval() {
-        return interval;
-    }
-
-    public void setInterval(Long interval) {
-        this.interval = interval;
-    }
-
-    public Long getScanStart() {
-        return scanStart;
-    }
-
-    public void setScanStart(Long scanStart) {
-        this.scanStart = scanStart;
-    }
-
-    public Long getScanEnd() {
-        return scanEnd;
-    }
-
-    public void setScanEnd(Long scanEnd) {
-        this.scanEnd = scanEnd;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", NebulaInputSplitter.class.getSimpleName() + "[", "]")
-                .add("parts=" + parts)
-                .add("interval=" + interval)
-                .add("scanStart=" + scanStart)
-                .add("scanEnd=" + scanEnd)
-                .toString();
     }
 }

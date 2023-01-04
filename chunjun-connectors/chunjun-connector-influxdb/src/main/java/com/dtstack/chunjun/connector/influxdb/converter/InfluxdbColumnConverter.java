@@ -48,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 
 public class InfluxdbColumnConverter
         extends AbstractRowConverter<Map<String, Object>, RowData, Point.Builder, LogicalType> {
+    private static final long serialVersionUID = 7359032828293825689L;
 
     private static final String TIME_KEY = "time";
 

@@ -27,6 +27,8 @@ import java.util.Date;
 
 public class TimestampColumn extends AbstractBaseColumn {
 
+    private static final long serialVersionUID = -135722226842323366L;
+
     private static final int DATETIME_STR_LENGTH = 19;
 
     private final int precision;

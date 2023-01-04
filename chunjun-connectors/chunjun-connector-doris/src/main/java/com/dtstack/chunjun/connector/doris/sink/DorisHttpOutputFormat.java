@@ -27,6 +27,8 @@ import com.dtstack.chunjun.throwable.WriteRecordException;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +37,9 @@ import java.util.Map;
 import java.util.Set;
 
 /** use DorisStreamLoad to write data into doris */
+@Slf4j
 public class DorisHttpOutputFormat extends BaseRichOutputFormat {
+    private static final long serialVersionUID = 992571748616683426L;
     private DorisConfig options;
     private DorisLoadClient client;
     /** cache carriers * */
@@ -55,13 +59,13 @@ public class DorisHttpOutputFormat extends BaseRichOutputFormat {
     public void open(int taskNumber, int numTasks) throws IOException {
         DorisStreamLoad dorisStreamLoad = new DorisStreamLoad(options);
         dorisStreamLoad.replaceBackend();
-        client = new DorisLoadClient(dorisStreamLoad, options);
+        client = new DorisLoadClient(dorisStreamLoad, options.isNameMapped(), options);
         super.open(taskNumber, numTasks);
     }
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
-        LOG.info("task number : {} , number task : {}", taskNumber, numTasks);
+        log.info("task number : {} , number task : {}", taskNumber, numTasks);
     }
 
     @Override

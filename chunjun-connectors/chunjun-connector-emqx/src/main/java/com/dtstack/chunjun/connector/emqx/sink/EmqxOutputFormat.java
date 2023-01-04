@@ -25,6 +25,7 @@ import com.dtstack.chunjun.throwable.WriteRecordException;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -35,7 +36,10 @@ import java.time.LocalTime;
 
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.CLIENT_ID_WRITER;
 
+@Slf4j
 public class EmqxOutputFormat extends BaseRichOutputFormat {
+
+    private static final long serialVersionUID = 2234010364657826897L;
 
     /** emqx Conf */
     private EmqxConfig emqxConfig;
@@ -54,19 +58,19 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
 
                     @Override
                     public void connectionLost(Throwable cause) {
-                        LOG.warn("connection lost and reconnect , e = {}", cause.getMessage());
+                        log.warn("connection lost and reconnect , e = {}", cause.getMessage());
                         if (client != null && client.isConnected()) {
                             try {
                                 client.disconnect();
                             } catch (MqttException e) {
-                                LOG.error(e.getMessage());
+                                log.error(e.getMessage());
                             }
                         }
 
                         try {
                             client = MqttConnectUtil.getMqttClient(emqxConfig, jobId);
                         } catch (Exception e) {
-                            LOG.error(
+                            log.error(
                                     e.getMessage()
                                             + "\n"
                                             + " can not reconnect success, please restart job!!!");

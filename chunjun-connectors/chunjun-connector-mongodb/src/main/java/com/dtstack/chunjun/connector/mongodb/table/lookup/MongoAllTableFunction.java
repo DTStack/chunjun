@@ -38,6 +38,8 @@ import java.util.Map;
 
 public class MongoAllTableFunction extends AbstractAllTableFunction {
 
+    private static final long serialVersionUID = -2554848099170846741L;
+
     private final int fetchSize;
     private final MongoClientConfig mongoClientConfig;
 

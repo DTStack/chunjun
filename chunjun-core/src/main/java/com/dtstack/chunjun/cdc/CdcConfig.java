@@ -21,12 +21,14 @@ package com.dtstack.chunjun.cdc;
 import com.dtstack.chunjun.cdc.config.CacheConfig;
 import com.dtstack.chunjun.cdc.config.DDLConfig;
 
-import java.io.Serializable;
-import java.util.StringJoiner;
+import lombok.Data;
 
+import java.io.Serializable;
+
+@Data
 public class CdcConfig implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -7411507910553457983L;
 
     /** whether skip ddl statement or not. */
     private boolean skipDDL = true;
@@ -49,90 +51,4 @@ public class CdcConfig implements Serializable {
     private DDLConfig ddl;
 
     private CacheConfig cache;
-
-    public int getWorkerNum() {
-        return workerNum;
-    }
-
-    public void setWorkerNum(int workerNum) {
-        this.workerNum = workerNum;
-    }
-
-    public int getWorkerSize() {
-        return workerSize;
-    }
-
-    public void setWorkerSize(int workerSize) {
-        this.workerSize = workerSize;
-    }
-
-    public int getWorkerMax() {
-        return workerMax;
-    }
-
-    public void setWorkerMax(int workerMax) {
-        this.workerMax = workerMax;
-    }
-
-    public boolean isSkipDDL() {
-        return skipDDL;
-    }
-
-    public void setSkipDDL(boolean skipDDL) {
-        this.skipDDL = skipDDL;
-    }
-
-    public int getBathSize() {
-        return bathSize;
-    }
-
-    public void setBathSize(int bathSize) {
-        this.bathSize = bathSize;
-    }
-
-    public long getMaxBytes() {
-        return maxBytes;
-    }
-
-    public void setMaxBytes(long maxBytes) {
-        this.maxBytes = maxBytes;
-    }
-
-    public long getCacheTimeout() {
-        return cacheTimeout;
-    }
-
-    public void setCacheTimeout(long cacheTimeout) {
-        this.cacheTimeout = cacheTimeout;
-    }
-
-    public DDLConfig getDdl() {
-        return ddl;
-    }
-
-    public void setDdl(DDLConfig ddl) {
-        this.ddl = ddl;
-    }
-
-    public CacheConfig getCache() {
-        return cache;
-    }
-
-    public void setCache(CacheConfig cache) {
-        this.cache = cache;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", CdcConfig.class.getSimpleName() + "[", "]")
-                .add("skipDDL=" + skipDDL)
-                .add("workerNum=" + workerNum)
-                .add("workerSize=" + workerSize)
-                .add("workerMax=" + workerMax)
-                .add("bathSize=" + bathSize)
-                .add("maxBytes=" + maxBytes)
-                .add("ddl=" + ddl)
-                .add("cache=" + cache)
-                .toString();
-    }
 }

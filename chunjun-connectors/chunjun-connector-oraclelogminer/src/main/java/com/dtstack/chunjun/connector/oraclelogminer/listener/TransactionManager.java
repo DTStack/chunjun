@@ -22,10 +22,9 @@ import com.dtstack.chunjun.connector.oraclelogminer.entity.RecordLog;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -35,9 +34,8 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /** 事务管理器 监听的DML语句缓存，在commit/rollback时删除 */
+@Slf4j
 public class TransactionManager {
-
-    public static Logger LOG = LoggerFactory.getLogger(TransactionManager.class);
 
     /** 缓存的结构为 xidUsn+xidSLt+xidSqn(事务id),当前事务内数据 */
     private final Cache<String, LinkedList<RecordLog>> recordCache;
@@ -68,7 +66,7 @@ public class TransactionManager {
         String key = recordLog.getXidUsn() + recordLog.getXidSlt() + recordLog.getXidSqn();
         LinkedList<RecordLog> recordList = recordCache.getIfPresent(key);
         if (Objects.isNull(recordList)) {
-            LinkedList<RecordLog> data = new LinkedList<RecordLog>();
+            LinkedList<RecordLog> data = new LinkedList<>();
             recordCache.put(key, data);
             recordList = data;
         }
@@ -84,14 +82,14 @@ public class TransactionManager {
     /** 清理已提交事务的缓存 */
     public void cleanCache(String xidUsn, String xidSLt, String xidSqn) {
         String txId = xidUsn + xidSLt + xidSqn;
-        LOG.debug(
+        log.debug(
                 "clean secondKeyCache，xidSqn = {}, xidUsn = {} ,xidSLt = {} ",
                 xidSqn,
                 xidUsn,
                 xidSLt);
         recordCache.invalidate(txId);
         earliestResolveOperateForRollback.remove(xidUsn + xidSLt + xidSqn);
-        LOG.debug("after clean，current recordCache size = {}", recordCache.size());
+        log.debug("after clean，current recordCache size = {}", recordCache.size());
     }
 
     /** 从缓存的dml语句里找到rollback语句对应的DML语句 如果查找到 需要删除对应的缓存信息 */

@@ -42,6 +42,8 @@ import java.util.stream.Collectors;
 
 public class Vertica11Dialect implements JdbcDialect {
 
+    private static final long serialVersionUID = -5097687228210606349L;
+
     private static final String DIALECT_NAME = "VERTICA11";
 
     private static final String DRIVER_NAME = "com.vertica.jdbc.Driver";

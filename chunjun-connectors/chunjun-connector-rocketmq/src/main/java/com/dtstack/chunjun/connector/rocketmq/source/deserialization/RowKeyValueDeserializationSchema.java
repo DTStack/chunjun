@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.rocketmq.source.deserialization;
 
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.manager.DirtyManager;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
 import com.dtstack.chunjun.metrics.AccumulatorCollector;
@@ -44,7 +44,7 @@ import java.util.Arrays;
  */
 public class RowKeyValueDeserializationSchema implements KeyValueDeserializationSchema<RowData> {
 
-    private static final long serialVersionUID = -1L;
+    private static final long serialVersionUID = -6942104006005258601L;
 
     private final transient ResolvedSchema tableSchema;
 
@@ -126,7 +126,7 @@ public class RowKeyValueDeserializationSchema implements KeyValueDeserialization
 
         ExecutionConfig.GlobalJobParameters params =
                 context.getExecutionConfig().getGlobalJobParameters();
-        DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
+        DirtyConfig dc = DirtyConfUtil.parseFromMap(params.toMap());
         this.dirtyManager = new DirtyManager(dc, context);
     }
 

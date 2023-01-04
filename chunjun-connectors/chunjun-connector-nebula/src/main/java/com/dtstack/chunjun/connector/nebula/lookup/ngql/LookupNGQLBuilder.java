@@ -31,7 +31,7 @@ public class LookupNGQLBuilder {
     /** 返回的字段 */
     private String[] fieldNames;
     /** 过滤的字段 */
-    private String[] fiterFieldNames;
+    private String[] filterFieldNames;
     /** nebula 配置对象 */
     private NebulaConfig nebulaConfig;
 
@@ -40,8 +40,8 @@ public class LookupNGQLBuilder {
         return this;
     }
 
-    public LookupNGQLBuilder setFiterFieldNames(String[] fiterFieldNames) {
-        this.fiterFieldNames = fiterFieldNames;
+    public LookupNGQLBuilder setFilterFieldNames(String[] filterFieldNames) {
+        this.filterFieldNames = filterFieldNames;
         return this;
     }
 
@@ -53,9 +53,9 @@ public class LookupNGQLBuilder {
     public String buildVertexNgql() {
         StringBuilder builder = new StringBuilder();
         builder.append("match (v:").append(nebulaConfig.getEntityName()).append(") ");
-        if (fiterFieldNames.length > 0) {
+        if (filterFieldNames.length > 0) {
             builder.append("where ");
-            for (String fiterFieldName : fiterFieldNames) {
+            for (String fiterFieldName : filterFieldNames) {
                 if (VID.equalsIgnoreCase(fiterFieldName)) {
                     builder.append("id(v) == $").append(fiterFieldName).append(" and");
                 } else {
@@ -93,9 +93,9 @@ public class LookupNGQLBuilder {
         StringBuilder builder = new StringBuilder();
         StringBuilder where = new StringBuilder(" where ");
         builder.append("match (f) - [e:").append(nebulaConfig.getEntityName());
-        if (fiterFieldNames.length > 0) {
+        if (filterFieldNames.length > 0) {
 
-            for (String fiterFieldName : fiterFieldNames) {
+            for (String fiterFieldName : filterFieldNames) {
                 if (SRCID.equalsIgnoreCase(fiterFieldName)) {
                     where.append("id(f) == ").append("$").append(fiterFieldName).append(" and ");
                     continue;

@@ -23,25 +23,24 @@ import com.dtstack.chunjun.connector.kudu.converter.KuduRowConverter;
 import com.dtstack.chunjun.connector.kudu.sink.KuduOutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
+import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
-
-import java.util.Arrays;
 
 public class KuduDynamicTableSink implements DynamicTableSink {
 
     private static final String IDENTIFIER = "Kudu";
 
-    private final TableSchema tableSchema;
+    private final ResolvedSchema tableSchema;
 
-    private final KuduSinkConfig sinkConf;
+    private final KuduSinkConfig sinkConfig;
 
-    public KuduDynamicTableSink(KuduSinkConfig sinkConf, TableSchema tableSchema) {
+    public KuduDynamicTableSink(KuduSinkConfig sinkConfig, ResolvedSchema tableSchema) {
         this.tableSchema = tableSchema;
-        this.sinkConf = sinkConf;
+        this.sinkConfig = sinkConfig;
     }
 
     @Override
@@ -54,19 +53,19 @@ public class KuduDynamicTableSink implements DynamicTableSink {
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
         KuduOutputFormatBuilder builder = new KuduOutputFormatBuilder();
 
-        builder.setSinkConfig(sinkConf);
+        LogicalType logicalType = tableSchema.toPhysicalRowDataType().getLogicalType();
+
+        builder.setSinkConfig(sinkConfig);
         builder.setRowConverter(
-                new KuduRowConverter(
-                        (RowType) tableSchema.toRowDataType().getLogicalType(),
-                        Arrays.asList(tableSchema.getFieldNames())));
+                new KuduRowConverter((RowType) logicalType, tableSchema.getColumnNames()));
 
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction<>(builder.finish()), sinkConf.getParallelism());
+                new DtOutputFormatSinkFunction<>(builder.finish()), sinkConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new KuduDynamicTableSink(sinkConf, tableSchema);
+        return new KuduDynamicTableSink(sinkConfig, tableSchema);
     }
 
     @Override

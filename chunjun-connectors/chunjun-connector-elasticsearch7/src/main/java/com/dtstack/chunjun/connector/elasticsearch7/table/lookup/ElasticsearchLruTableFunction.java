@@ -32,6 +32,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -39,18 +40,17 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
 
-    private static final long serialVersionUID = 2L;
-    private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchLruTableFunction.class);
+    private static final long serialVersionUID = 3722862305204165203L;
+
     private final String[] fieldNames;
     private final String[] keyNames;
     private final ElasticsearchConfig elasticsearchConfig;
@@ -100,7 +100,7 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
                                         }
                                         rowList.add(rowData);
                                     } catch (Exception e) {
-                                        LOG.error("error:{} \n  data:{}", e.getMessage(), result);
+                                        log.error("error:{} \n  data:{}", e.getMessage(), result);
                                     }
                                 }
                                 dealCacheData(
@@ -114,7 +114,7 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
                                 dealCacheData(cacheKey, CacheMissVal.getMissKeyObj());
                             }
                         } catch (Exception e) {
-                            LOG.error("", e);
+                            log.error("", e);
                         }
                     }
 

@@ -21,15 +21,14 @@ package com.dtstack.chunjun.connector.doris.source;
 import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class DorisInputFormat extends JdbcInputFormat {
 
+    private static final long serialVersionUID = 6165564668027900445L;
+
     private DorisConfig dorisConfig;
-
-    public void setDorisConf(DorisConfig dorisConfig) {
-        this.dorisConfig = dorisConfig;
-    }
-
-    public DorisConfig getDorisConf() {
-        return dorisConfig;
-    }
 }

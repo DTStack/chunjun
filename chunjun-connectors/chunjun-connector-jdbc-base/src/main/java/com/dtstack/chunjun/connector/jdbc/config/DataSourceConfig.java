@@ -20,13 +20,14 @@ package com.dtstack.chunjun.connector.jdbc.config;
 import com.dtstack.chunjun.connector.jdbc.adapter.EncryptAdapter;
 
 import com.google.gson.annotations.JsonAdapter;
+import lombok.Data;
 
 import java.io.Serializable;
-import java.util.StringJoiner;
 
+@Data
 public class DataSourceConfig implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -6297120153055313467L;
 
     private String jdbcUrl;
     private String userName;
@@ -37,55 +38,4 @@ public class DataSourceConfig implements Serializable {
     private String table;
 
     private String schema;
-
-    public String getJdbcUrl() {
-        return jdbcUrl;
-    }
-
-    public void setJdbcUrl(String jdbcUrl) {
-        this.jdbcUrl = jdbcUrl;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getTable() {
-        return table;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
-    }
-
-    public String getSchema() {
-        return schema;
-    }
-
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", DataSourceConfig.class.getSimpleName() + "[", "]")
-                .add("jdbcUrl='" + jdbcUrl + "'")
-                .add("userName='" + userName + "'")
-                .add("password='" + password + "'")
-                .add("table='" + table + "'")
-                .add("schema='" + schema + "'")
-                .toString();
-    }
 }

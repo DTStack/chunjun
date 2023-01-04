@@ -25,13 +25,10 @@ import com.dtstack.chunjun.constants.ConstantValue;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class SqlUtil {
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     public static String buildQuerySplitRangeSql(JdbcConfig jdbcConfig, JdbcDialect jdbcDialect) {
         // 构建where条件

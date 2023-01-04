@@ -20,14 +20,18 @@ package com.dtstack.chunjun.connector.kudu.config;
 
 import org.apache.flink.configuration.ReadableConfig;
 
-import java.util.StringJoiner;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import static com.dtstack.chunjun.connector.kudu.table.KuduOptions.FILTER_EXPRESSION;
 import static com.dtstack.chunjun.connector.kudu.table.KuduOptions.READ_MODE;
 import static com.dtstack.chunjun.connector.kudu.table.KuduOptions.SCAN_BATCH_SIZE_BYTES;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class KuduSourceConfig extends KuduCommonConfig {
 
+    private static final long serialVersionUID = -7861666044144669286L;
     /**
      * kudu读取模式： 1、READ_LATEST 默认的读取模式 该模式下，服务器将始终在收到请求时返回已提交的写操作。这种类型的读取不会返回快照时间戳，并且不可重复。
      * 用ACID术语表示，它对应于隔离模式：“读已提交”
@@ -45,56 +49,16 @@ public class KuduSourceConfig extends KuduCommonConfig {
 
     private String filter;
 
-    public String getReadMode() {
-        return readMode;
-    }
-
-    public void setReadMode(String readMode) {
-        this.readMode = readMode;
-    }
-
-    public int getBatchSizeBytes() {
-        return batchSizeBytes;
-    }
-
-    public void setBatchSizeBytes(int batchSizeBytes) {
-        this.batchSizeBytes = batchSizeBytes;
-    }
-
-    public String getFilter() {
-        return filter;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
-    }
-
     public static KuduSourceConfig from(ReadableConfig readableConfig) {
 
-        KuduSourceConfig conf =
+        KuduSourceConfig config =
                 (KuduSourceConfig) KuduCommonConfig.from(readableConfig, new KuduSourceConfig());
 
         // source
-        conf.setReadMode(readableConfig.get(READ_MODE));
-        conf.setBatchSizeBytes(readableConfig.get(SCAN_BATCH_SIZE_BYTES));
-        conf.setFilter(readableConfig.get(FILTER_EXPRESSION));
+        config.setReadMode(readableConfig.get(READ_MODE));
+        config.setBatchSizeBytes(readableConfig.get(SCAN_BATCH_SIZE_BYTES));
+        config.setFilter(readableConfig.get(FILTER_EXPRESSION));
 
-        return conf;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", KuduSourceConfig.class.getSimpleName() + "[", "]")
-                .add("readMode='" + readMode + "'")
-                .add("batchSizeBytes=" + batchSizeBytes)
-                .add("filter='" + filter + "'")
-                .add("masters='" + masters + "'")
-                .add("table='" + table + "'")
-                .add("kerberos=" + kerberos)
-                .add("workerCount=" + workerCount)
-                .add("operationTimeout=" + operationTimeout)
-                .add("adminOperationTimeout=" + adminOperationTimeout)
-                .add("queryTimeout=" + queryTimeout)
-                .toString();
+        return config;
     }
 }

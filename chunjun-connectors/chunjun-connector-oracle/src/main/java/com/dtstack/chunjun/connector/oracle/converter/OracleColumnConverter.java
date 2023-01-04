@@ -45,6 +45,8 @@ import java.sql.Timestamp;
 
 public class OracleColumnConverter extends JdbcColumnConverter {
 
+    private static final long serialVersionUID = 4264798795927398020L;
+
     public OracleColumnConverter(RowType rowType, CommonConfig commonConfig) {
         super(rowType, commonConfig);
     }

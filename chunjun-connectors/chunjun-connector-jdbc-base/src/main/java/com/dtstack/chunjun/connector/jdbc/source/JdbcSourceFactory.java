@@ -79,7 +79,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
                 new GsonBuilder()
                         .registerTypeAdapter(
                                 ConnectionConfig.class,
-                                new ConnectionAdapter(SourceConnectionConfig.class.getSimpleName()))
+                                new ConnectionAdapter(SourceConnectionConfig.class.getName()))
                         .addDeserializationExclusionStrategy(
                                 new FieldNameExclusionStrategy("column"))
                         .create();

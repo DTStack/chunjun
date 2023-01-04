@@ -48,6 +48,8 @@ import static com.dtstack.chunjun.connector.redis.options.RedisOptions.REDIS_KEY
 
 public class RedisColumnConverter extends AbstractRowConverter<Object, Object, Jedis, LogicalType> {
 
+    private static final long serialVersionUID = 3573774552923872927L;
+
     /** redis Conf */
     private final RedisConfig redisConfig;
     /** SimpleDateFormat */

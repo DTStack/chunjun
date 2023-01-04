@@ -46,7 +46,7 @@ public class KuduInputFormatBuilder extends BaseRichInputFormatBuilder<KuduInput
         StringBuilder sb = new StringBuilder(256);
 
         if (columns == null || columns.size() == 0) {
-            if (format.getRowConverter() == null) {
+            if (format.getCdcRowConverter() == null) {
                 sb.append("At least one of the Column and rowConverter is not empty.\n");
             }
         }

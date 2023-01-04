@@ -32,6 +32,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -60,8 +61,10 @@ import java.util.function.BiConsumer;
 import static com.dtstack.chunjun.connector.influxdb.constants.InfluxdbCons.QUERY_FIELD;
 import static com.dtstack.chunjun.connector.influxdb.constants.InfluxdbCons.QUERY_TAG;
 
+@Slf4j
 public class InfluxdbInputFormat extends BaseRichInputFormat {
 
+    private static final long serialVersionUID = -4235337915973634115L;
     private InfluxdbSourceConfig config;
     private String queryTemplate;
     private transient InfluxDB influxDB;
@@ -79,7 +82,7 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        LOG.info("subTask[{}] inputSplit = {}.", indexOfSubTask, inputSplit);
+        log.info("subTask[{}] inputSplit = {}.", indexOfSubTask, inputSplit);
         this.queue = new LinkedBlockingQueue<>(config.getFetchSize() * 3);
         this.hasNext = new AtomicBoolean(true);
         TimeUnit precision = TimePrecisionEnums.of(config.getEpoch()).getPrecision();
@@ -105,14 +108,14 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
                 new InfluxdbQuerySqlBuilder(config, columnNameList);
         this.queryTemplate = queryInfluxQLBuilder.buildSql();
         String querySql = buildQuerySql(inputSplit);
-        LOG.info("subTask[{}] querySql = {}.", indexOfSubTask, querySql);
+        log.info("subTask[{}] querySql = {}.", indexOfSubTask, querySql);
 
         this.influxDB.query(
                 new Query(querySql, config.getDatabase()),
                 config.getFetchSize(),
                 getConsumer(),
                 () -> {
-                    LOG.debug("subTask[{}] reader influxDB data is over.", indexOfSubTask);
+                    log.debug("subTask[{}] reader influxDB data is over.", indexOfSubTask);
                     hasNext.set(false);
                 },
                 throwable -> {
@@ -155,7 +158,7 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
         String querySql = queryTemplate;
 
         if (inputSplit == null) {
-            LOG.warn("inputSplit = null, Executing sql is: '{}'", querySql);
+            log.warn("inputSplit = null, Executing sql is: '{}'", querySql);
             return querySql;
         }
 
@@ -206,7 +209,7 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
                                 config.getUrl().get(0));
                 throw new ConnectException(errorMessage);
             }
-            LOG.info("connect influxdb successful. sever version :{}.", version);
+            log.info("connect influxdb successful. sever version :{}.", version);
         }
     }
 
@@ -269,7 +272,7 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
             try {
                 if (CollectionUtils.isEmpty(queryResult.getResults())
                         || "DONE".equalsIgnoreCase(queryResult.getError())) {
-                    LOG.info("results is empty and this query is done.");
+                    log.info("results is empty and this query is done.");
                 } else {
                     for (QueryResult.Result result : queryResult.getResults()) {
                         List<QueryResult.Series> seriesList = result.getSeries();
@@ -286,7 +289,7 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
                             }
                         } else {
                             // 没有数据
-                            LOG.debug(
+                            log.debug(
                                     "subTask[{}] reader influxDB series is empty.", indexOfSubTask);
                             hasNext.set(false);
                         }

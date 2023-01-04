@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.dirty.consumer;
 
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.impl.DirtyDataEntry;
 import com.dtstack.chunjun.throwable.NoRestartException;
 
@@ -40,7 +40,7 @@ class DirtyDataCollectorTest {
         dirtyDataCollector =
                 new DirtyDataCollector() {
                     @Override
-                    protected void init(DirtyConf conf) {}
+                    protected void init(DirtyConfig conf) {}
 
                     @Override
                     protected void consume(DirtyDataEntry dirty) throws Exception {}
@@ -102,7 +102,7 @@ class DirtyDataCollectorTest {
     @Test
     @DisplayName("Should set maxconsumed to the value of conf.maxconsumed")
     void initializeConsumerShouldSetMaxConsumedToTheValueOfConfMaxConsumed() {
-        DirtyConf conf = new DirtyConf();
+        DirtyConfig conf = new DirtyConfig();
         conf.setMaxConsumed(10L);
         dirtyDataCollector.initializeConsumer(conf);
         assertEquals(10L, dirtyDataCollector.maxConsumed);
@@ -111,7 +111,7 @@ class DirtyDataCollectorTest {
     @Test
     @DisplayName("Should set maxfailedconsumed to the value of conf.maxfailedconsumed")
     void initializeConsumerShouldSetMaxFailedConsumedToTheValueOfConfMaxFailedConsumed() {
-        DirtyConf conf = new DirtyConf();
+        DirtyConfig conf = new DirtyConfig();
         conf.setMaxFailedConsumed(10L);
         dirtyDataCollector.initializeConsumer(conf);
         assertEquals(10L, dirtyDataCollector.maxFailedConsumed);

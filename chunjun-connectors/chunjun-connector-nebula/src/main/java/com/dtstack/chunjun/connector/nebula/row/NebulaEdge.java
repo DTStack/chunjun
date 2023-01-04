@@ -21,10 +21,11 @@ package com.dtstack.chunjun.connector.nebula.row;
 import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.utils.NebulaSchemaFamily;
 
+import lombok.ToString;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringJoiner;
 
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.EDGE_ENDPOINT_TEMPLATE;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.EDGE_ENDPOINT_WITHOUT_RANK_TEMPLATE;
@@ -38,17 +39,20 @@ import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPSERT_E
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPSERT_EDGE_WITHOUT_RANK_TEMPLATE;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPSERT_VALUE_TEMPLATE;
 
+@ToString
 public class NebulaEdge implements Serializable {
 
-    private String srcId;
+    private static final long serialVersionUID = 8625111986484717125L;
 
-    private String dstId;
+    private final String srcId;
+
+    private final String dstId;
 
     private Long rank;
 
     private Boolean rankExist;
 
-    private List<String> propValues;
+    private final List<String> propValues;
 
     private final List<String> propNames;
 
@@ -68,42 +72,6 @@ public class NebulaEdge implements Serializable {
         }
         this.propNames = nebulaConfig.getColumnNames().subList(2, values.size());
         this.propValues = values.subList(2, values.size());
-    }
-
-    public String getPropValuesString() {
-        return String.join(",", propValues);
-    }
-
-    public List<String> getPropValues() {
-        return propValues;
-    }
-
-    public void setPropValues(List<String> propValues) {
-        this.propValues = propValues;
-    }
-
-    public String getSrcId() {
-        return srcId;
-    }
-
-    public void setSrcId(String srcId) {
-        this.srcId = srcId;
-    }
-
-    public String getDstId() {
-        return dstId;
-    }
-
-    public void setDstId(String dstId) {
-        this.dstId = dstId;
-    }
-
-    public Long getRank() {
-        return rank;
-    }
-
-    public void setRank(Long rank) {
-        this.rank = rank;
     }
 
     public String getInsertStatementString() {
@@ -172,18 +140,5 @@ public class NebulaEdge implements Serializable {
             return String.format(EDGE_ENDPOINT_TEMPLATE, srcId, dstId, rank);
         }
         return String.format(EDGE_ENDPOINT_WITHOUT_RANK_TEMPLATE, srcId, dstId);
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", NebulaEdge.class.getSimpleName() + "[", "]")
-                .add("srcId='" + srcId + "'")
-                .add("dstId='" + dstId + "'")
-                .add("rank=" + rank)
-                .add("rankExist=" + rankExist)
-                .add("propValues=" + propValues)
-                .add("propNames=" + propNames)
-                .add("nebulaConfig=" + nebulaConfig)
-                .toString();
     }
 }

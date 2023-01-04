@@ -20,15 +20,24 @@ package com.dtstack.chunjun.connector.mysqlcdc.config;
 
 import com.dtstack.chunjun.config.CommonConfig;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.io.Serializable;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class MysqlCdcConfig extends CommonConfig implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = 3203594416093431542L;
 
     protected String host;
+
     protected int port;
+
     protected List<String> databaseList;
+
     protected List<String> tableList;
 
     protected String username;
@@ -36,60 +45,4 @@ public class MysqlCdcConfig extends CommonConfig implements Serializable {
     protected String password;
 
     protected int serverId;
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public List<String> getDatabaseList() {
-        return databaseList;
-    }
-
-    public void setDatabaseList(List<String> databaseList) {
-        this.databaseList = databaseList;
-    }
-
-    public List<String> getTableList() {
-        return tableList;
-    }
-
-    public void setTableList(List<String> tableList) {
-        this.tableList = tableList;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public int getServerId() {
-        return serverId;
-    }
-
-    public void setServerId(int serverId) {
-        this.serverId = serverId;
-    }
 }

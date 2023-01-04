@@ -54,6 +54,8 @@ import static com.dtstack.chunjun.connector.starrocks.util.StarRocksUtil.addStrF
 public class StarRocksColumnConverter
         extends AbstractRowConverter<Object[], Object[], Map<String, Object>, LogicalType> {
 
+    private static final long serialVersionUID = 1073658828047131297L;
+
     private final List<String> columnList;
     public static final String DATETIME_FORMAT_SHORT = "yyyy-MM-dd HH:mm:ss";
 

@@ -34,6 +34,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
@@ -47,14 +48,21 @@ import java.util.concurrent.TimeUnit;
 
 import static com.dtstack.chunjun.connector.sqlservercdc.util.SqlServerCdcUtil.DRIVER;
 
+@Slf4j
 public class SqlServerCdcInputFormat extends BaseRichInputFormat {
+
+    private static final long serialVersionUID = -5098916364083806918L;
+
     public SqlServerCdcConfig sqlserverCdcConfig;
 
     private Connection conn;
+
     private TxLogPosition logPosition;
 
     private transient LinkedBlockingDeque<RowData> queue;
+
     private transient ExecutorService executor;
+
     private volatile boolean running = false;
 
     private AbstractCDCRowConverter rowConverter;
@@ -72,16 +80,16 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
                         new LinkedBlockingQueue<>(1024),
                         namedThreadFactory,
                         new ThreadPoolExecutor.AbortPolicy());
-        queue = new LinkedBlockingDeque(1000);
+        queue = new LinkedBlockingDeque<>(1000);
 
         if (inputSplit.getSplitNumber() != 0) {
-            LOG.info(
+            log.info(
                     "sqlServer cdc openInternal split number:{} abort...",
                     inputSplit.getSplitNumber());
             return;
         }
 
-        LOG.info(
+        log.info(
                 "sqlServer cdc openInternal split number:{} start...", inputSplit.getSplitNumber());
         try {
             ClassUtil.forName(DRIVER, getClass().getClassLoader());
@@ -104,7 +112,7 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
             executor.submit(new SqlServerCdcListener(this));
             running = true;
         } catch (Exception e) {
-            LOG.error(
+            log.error(
                     "SqlserverCdcInputFormat open() failed, e = {}",
                     ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(
@@ -112,19 +120,17 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
                             + ExceptionUtil.getErrorMessage(e));
         }
 
-        LOG.info("SqlserverCdcInputFormat[{}]open: end", jobName);
+        log.info("SqlserverCdcInputFormat[{}]open: end", jobName);
     }
 
     @Override
     protected RowData nextRecordInternal(RowData row) throws ReadRecordException {
-        RowData rowData = null;
         try {
-            rowData = queue.poll(100, TimeUnit.MILLISECONDS);
+            return queue.poll(100, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
+            log.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
             throw new ReadRecordException("takeEvent interrupted error", e);
         }
-        return rowData;
     }
 
     @Override
@@ -132,7 +138,7 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
         if (running) {
             executor.shutdownNow();
             running = false;
-            LOG.warn("shutdown SqlServerCdcListener......");
+            log.warn("shutdown SqlServerCdcListener......");
         }
     }
 
@@ -171,7 +177,7 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
         return logPosition;
     }
 
-    public AbstractCDCRowConverter getRowConverter() {
+    public AbstractCDCRowConverter getCdcRowConverter() {
         return rowConverter;
     }
 

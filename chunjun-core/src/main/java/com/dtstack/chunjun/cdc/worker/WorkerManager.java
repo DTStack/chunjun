@@ -37,7 +37,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public class WorkerManager implements Serializable {
 
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = -4853766061454474807L;
 
     private transient ThreadPoolExecutor workerExecutor;
 
@@ -58,11 +58,11 @@ public class WorkerManager implements Serializable {
     /** worker线程池的最大容量 */
     private final int workerMax;
 
-    public WorkerManager(QueuesChamberlain chamberlain, CdcConfig conf) {
+    public WorkerManager(QueuesChamberlain chamberlain, CdcConfig config) {
         this.chamberlain = chamberlain;
-        this.workerNum = conf.getWorkerNum();
-        this.workerSize = conf.getWorkerSize();
-        this.workerMax = conf.getWorkerMax();
+        this.workerNum = config.getWorkerNum();
+        this.workerSize = config.getWorkerSize();
+        this.workerMax = config.getWorkerMax();
     }
 
     /** 创建线程池 */

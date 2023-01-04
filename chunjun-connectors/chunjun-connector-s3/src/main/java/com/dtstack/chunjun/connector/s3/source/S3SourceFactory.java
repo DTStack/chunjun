@@ -36,14 +36,10 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class S3SourceFactory extends SourceFactory {
-    private static final Logger LOG = LoggerFactory.getLogger(S3SourceFactory.class);
 
     private final S3Config s3Config;
-    private final RestoreConfig restoreConf;
+    private final RestoreConfig restoreConfig;
     private final SpeedConfig speedConfig;
 
     public S3SourceFactory(SyncConfig config, StreamExecutionEnvironment env) {
@@ -52,7 +48,7 @@ public class S3SourceFactory extends SourceFactory {
                 GsonUtil.GSON.fromJson(
                         GsonUtil.GSON.toJson(config.getReader().getParameter()), S3Config.class);
         s3Config.setColumn(config.getReader().getFieldList());
-        restoreConf = config.getRestore();
+        restoreConfig = config.getRestore();
         speedConfig = config.getSpeed();
         super.initCommonConf(s3Config);
     }
@@ -65,7 +61,7 @@ public class S3SourceFactory extends SourceFactory {
     @Override
     public DataStream<RowData> createSource() {
         S3InputFormatBuilder builder = new S3InputFormatBuilder(new S3InputFormat());
-        builder.setRestoreConf(restoreConf);
+        builder.setRestoreConf(restoreConfig);
         builder.setSpeedConf(speedConfig);
         builder.setS3Conf(s3Config);
 

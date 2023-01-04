@@ -24,9 +24,6 @@ import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -38,7 +35,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializable {
-    protected static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = -4974556259079546810L;
 
     // times
     protected static final DateTimeFormatter SQL_TIME_FORMAT =
@@ -68,7 +66,6 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
                     .append(DateTimeFormatter.ISO_LOCAL_TIME)
                     .appendPattern("'Z'")
                     .toFormatter();
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected final Map<String, List<IDeserializationConverter>> cdcConverterCacheMap =
             new ConcurrentHashMap<>(32);
     protected final SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);

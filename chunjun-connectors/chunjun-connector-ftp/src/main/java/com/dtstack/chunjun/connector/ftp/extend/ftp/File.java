@@ -18,9 +18,13 @@
 
 package com.dtstack.chunjun.connector.ftp.extend.ftp;
 
-import java.io.Serializable;
-import java.util.StringJoiner;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
+import java.io.Serializable;
+
+@AllArgsConstructor
+@Data
 public class File implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -33,57 +37,4 @@ public class File implements Serializable {
     private String fileName;
     /** 压缩类型* */
     private String compressType;
-
-    public File(
-            String fileCompressPath,
-            String fileAbsolutePath,
-            String fileName,
-            String compressType) {
-        this.fileCompressPath = fileCompressPath;
-        this.fileAbsolutePath = fileAbsolutePath;
-        this.compressType = compressType;
-        this.fileName = fileName;
-    }
-
-    public String getFileCompressPath() {
-        return fileCompressPath;
-    }
-
-    public void setFileCompressPath(String fileCompressPath) {
-        this.fileCompressPath = fileCompressPath;
-    }
-
-    public String getFileAbsolutePath() {
-        return fileAbsolutePath;
-    }
-
-    public void setFileAbsolutePath(String fileAbsolutePath) {
-        this.fileAbsolutePath = fileAbsolutePath;
-    }
-
-    public String getCompressType() {
-        return compressType;
-    }
-
-    public void setCompressType(String compressType) {
-        this.compressType = compressType;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", File.class.getSimpleName() + "[", "]")
-                .add("fileCompressPath='" + fileCompressPath + "'")
-                .add("fileAbsolutePath='" + fileAbsolutePath + "'")
-                .add("fileName='" + fileName + "'")
-                .add("compressType='" + compressType + "'")
-                .toString();
-    }
 }

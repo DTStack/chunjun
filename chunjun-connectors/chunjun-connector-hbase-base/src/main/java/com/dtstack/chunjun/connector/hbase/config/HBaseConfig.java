@@ -36,11 +36,17 @@ package com.dtstack.chunjun.connector.hbase.config;
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.config.FieldConfig;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.util.List;
 import java.util.Map;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class HBaseConfig extends CommonConfig {
 
+    private static final long serialVersionUID = 2773610621793371485L;
     // 该字段与 column 不同，该字段储存的是 ":" 转化为 "." 后的字段名
     private List<FieldConfig> columnMetaInfos;
     private String encoding = "UTF-8";
@@ -61,124 +67,4 @@ public class HBaseConfig extends CommonConfig {
     private String rowkeyExpress;
     private Integer versionColumnIndex;
     private String versionColumnValue;
-
-    public String getEncoding() {
-        return encoding;
-    }
-
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
-    }
-
-    public Map<String, Object> getHbaseConfig() {
-        return hbaseConfig;
-    }
-
-    public void setHbaseConfig(Map<String, Object> hbaseConfig) {
-        this.hbaseConfig = hbaseConfig;
-    }
-
-    public String getStartRowkey() {
-        return startRowkey;
-    }
-
-    public void setStartRowkey(String startRowkey) {
-        this.startRowkey = startRowkey;
-    }
-
-    public String getEndRowkey() {
-        return endRowkey;
-    }
-
-    public void setEndRowkey(String endRowkey) {
-        this.endRowkey = endRowkey;
-    }
-
-    public boolean isBinaryRowkey() {
-        return isBinaryRowkey;
-    }
-
-    public void setBinaryRowkey(boolean binaryRowkey) {
-        isBinaryRowkey = binaryRowkey;
-    }
-
-    public String getTable() {
-        return table;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
-    }
-
-    public int getScanCacheSize() {
-        return scanCacheSize;
-    }
-
-    public void setScanCacheSize(int scanCacheSize) {
-        this.scanCacheSize = scanCacheSize;
-    }
-
-    public String getNullMode() {
-        return nullMode;
-    }
-
-    public void setNullMode(String nullMode) {
-        this.nullMode = nullMode;
-    }
-
-    public Boolean getWalFlag() {
-        return walFlag;
-    }
-
-    public void setWalFlag(Boolean walFlag) {
-        this.walFlag = walFlag;
-    }
-
-    public long getWriteBufferSize() {
-        return writeBufferSize;
-    }
-
-    public void setWriteBufferSize(long writeBufferSize) {
-        this.writeBufferSize = writeBufferSize;
-    }
-
-    public String getRowkeyExpress() {
-        return rowkeyExpress;
-    }
-
-    public void setRowkeyExpress(String rowkeyExpress) {
-        this.rowkeyExpress = rowkeyExpress;
-    }
-
-    public Integer getVersionColumnIndex() {
-        return versionColumnIndex;
-    }
-
-    public void setVersionColumnIndex(Integer versionColumnIndex) {
-        this.versionColumnIndex = versionColumnIndex;
-    }
-
-    public String getVersionColumnValue() {
-        return versionColumnValue;
-    }
-
-    public void setVersionColumnValue(String versionColumnValue) {
-        this.versionColumnValue = versionColumnValue;
-    }
-
-    public String getNullStringLiteral() {
-        return nullStringLiteral;
-    }
-
-    public void setNullStringLiteral(String nullStringLiteral) {
-        this.nullStringLiteral = nullStringLiteral;
-    }
-
-    public List<FieldConfig> getColumnMetaInfos() {
-        return columnMetaInfos;
-    }
-
-    public void setColumnMetaInfos(List<FieldConfig> columnMetaInfos) {
-        this.columnMetaInfos = columnMetaInfos;
-    }
 }

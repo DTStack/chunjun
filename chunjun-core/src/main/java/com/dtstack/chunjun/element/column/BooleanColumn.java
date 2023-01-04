@@ -27,6 +27,8 @@ import java.sql.Timestamp;
 
 public class BooleanColumn extends AbstractBaseColumn {
 
+    private static final long serialVersionUID = -268960840731455437L;
+
     public BooleanColumn(boolean data) {
         super(data, 1);
     }

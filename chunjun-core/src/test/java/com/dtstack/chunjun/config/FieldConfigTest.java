@@ -54,7 +54,7 @@ public class FieldConfigTest {
         fieldConfig.setFormat("format");
         fieldConfig.setParseFormat("parseFormat");
         fieldConfig.setSplitter("splitter");
-        fieldConfig.setPart(true);
+        fieldConfig.setIsPart(true);
         fieldConfig.setNotNull(true);
         fieldConfig.setLength(1);
 
@@ -90,7 +90,7 @@ public class FieldConfigTest {
         assertEquals(fieldConfig.getFormat(), "format");
         assertEquals(fieldConfig.getParseFormat(), "parseFormat");
         assertEquals(fieldConfig.getSplitter(), "splitter");
-        assertTrue(fieldConfig.getPart());
+        assertTrue(fieldConfig.getIsPart());
         assertTrue(fieldConfig.getNotNull());
         assertEquals(fieldConfig.getLength(), Integer.valueOf(1));
     }
@@ -194,16 +194,16 @@ public class FieldConfigTest {
     @Test
     public void getPartWhenFieldIsPart() {
         FieldConfig field = new FieldConfig();
-        field.setPart(true);
-        assertTrue(field.getPart());
+        field.setIsPart(true);
+        assertTrue(field.getIsPart());
     }
 
     /** Should return false when the field is not part */
     @Test
     public void getPartWhenFieldIsNotPart() {
         FieldConfig field = new FieldConfig();
-        field.setPart(false);
-        assertFalse(field.getPart());
+        field.setIsPart(false);
+        assertFalse(field.getIsPart());
     }
 
     /** Should return null when the fieldList is empty */

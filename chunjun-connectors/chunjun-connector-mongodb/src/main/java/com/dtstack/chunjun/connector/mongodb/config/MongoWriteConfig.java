@@ -18,32 +18,14 @@
 
 package com.dtstack.chunjun.connector.mongodb.config;
 
+import lombok.Data;
+
+@Data
 public class MongoWriteConfig {
+
     private int parallelism = 1;
+
     private long flushInterval = 1000L;
+
     private int flushMaxRows = 1;
-
-    public int getParallelism() {
-        return parallelism;
-    }
-
-    public void setParallelism(int parallelism) {
-        this.parallelism = parallelism;
-    }
-
-    public long getFlushInterval() {
-        return flushInterval;
-    }
-
-    public void setFlushInterval(long flushInterval) {
-        this.flushInterval = flushInterval;
-    }
-
-    public int getFlushMaxRows() {
-        return flushMaxRows;
-    }
-
-    public void setFlushMaxRows(int flushMaxRows) {
-        this.flushMaxRows = flushMaxRows;
-    }
 }

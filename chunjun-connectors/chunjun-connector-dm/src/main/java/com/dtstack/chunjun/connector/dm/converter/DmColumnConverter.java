@@ -45,6 +45,8 @@ import java.sql.Timestamp;
 
 public class DmColumnConverter extends JdbcColumnConverter {
 
+    private static final long serialVersionUID = 8549832360258726592L;
+
     public DmColumnConverter(RowType rowType, CommonConfig commonConfig) {
         super(rowType, commonConfig);
     }

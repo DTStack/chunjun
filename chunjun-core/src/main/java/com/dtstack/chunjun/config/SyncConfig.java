@@ -23,6 +23,7 @@ import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.util.Preconditions;
 
+import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -30,14 +31,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
+@Data
 public class SyncConfig implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = 1964981610706788313L;
 
     /** ChunJun job */
     private JobConfig job;
 
     /** ChunJun提交端的插件包路径 */
     private String pluginRoot;
+
     /** ChunJun运行时服务器上的远程端插件包路径 */
     private String remotePluginPath;
 
@@ -46,23 +50,12 @@ public class SyncConfig implements Serializable {
     /** 本次任务所需插件jar包路径列表 */
     private List<String> syncJarList;
 
-    /**
-     * 解析job字符串
-     *
-     * @param jobJson job json字符串
-     * @return ChunJunJobConfig
-     */
     public static SyncConfig parseJob(String jobJson) {
         SyncConfig config = GsonUtil.GSON.fromJson(jobJson, SyncConfig.class);
         checkJob(config);
         return config;
     }
 
-    /**
-     * 校验Job配置
-     *
-     * @param config ChunJunJobConfig
-     */
     private static void checkJob(SyncConfig config) {
         List<ContentConfig> content = config.getJob().getContent();
 
@@ -163,48 +156,8 @@ public class SyncConfig implements Serializable {
         return job.getSetting().getSpeed();
     }
 
-    public LogConfig getLog() {
-        return job.getSetting().getLog();
-    }
-
-    public RestartConfig getRestart() {
-        return job.getSetting().getRestart();
-    }
-
     public RestoreConfig getRestore() {
         return job.getSetting().getRestore();
-    }
-
-    public JobConfig getJob() {
-        return job;
-    }
-
-    public void setJob(JobConfig job) {
-        this.job = job;
-    }
-
-    public String getPluginRoot() {
-        return pluginRoot;
-    }
-
-    public void setPluginRoot(String pluginRoot) {
-        this.pluginRoot = pluginRoot;
-    }
-
-    public String getRemotePluginPath() {
-        return remotePluginPath;
-    }
-
-    public void setRemotePluginPath(String remotePluginPath) {
-        this.remotePluginPath = remotePluginPath;
-    }
-
-    public String getSavePointPath() {
-        return savePointPath;
-    }
-
-    public void setSavePointPath(String savePointPath) {
-        this.savePointPath = savePointPath;
     }
 
     public MetricPluginConfig getMetricPluginConf() {
@@ -215,23 +168,10 @@ public class SyncConfig implements Serializable {
         return job.getCdcConf();
     }
 
-    public List<String> getSyncJarList() {
-        return syncJarList;
-    }
-
-    public void setSyncJarList(List<String> syncJarList) {
-        this.syncJarList = syncJarList;
-    }
-
     public MappingConfig getNameMappingConfig() {
         return job.getNameMapping();
     }
 
-    /**
-     * 转换成字符串，不带job脚本内容
-     *
-     * @return
-     */
     @Override
     public String toString() {
         return new StringJoiner(", ", SyncConfig.class.getSimpleName() + "[", "]")

@@ -32,6 +32,7 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.StringUtils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
@@ -42,7 +43,10 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+@Slf4j
 public class PostgresOutputFormat extends JdbcOutputFormat {
+
+    private static final long serialVersionUID = -1033183812204656713L;
 
     // pg 字符串里含有\u0000 会报错 ERROR: invalid byte sequence for encoding "UTF8": 0x00
     public static final String SPACE = "\u0000";
@@ -81,7 +85,7 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
                                         ? DEFAULT_NULL_VALUE
                                         : jdbcConfig.getNullDelim());
 
-                LOG.info("write sql:{}", copySql);
+                log.info("write sql:{}", copySql);
             }
             checkUpsert();
             if (jdbcDialect.dialectName().equals("PostgreSQL")) {
@@ -215,7 +219,7 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
                 // 效验版本
                 String databaseProductVersion =
                         connection.getMetaData().getDatabaseProductVersion();
-                LOG.info("source version is {}", databaseProductVersion);
+                log.info("source version is {}", databaseProductVersion);
                 String[] split = databaseProductVersion.split("\\.");
                 // 10.1.12
                 if (split.length > 2) {

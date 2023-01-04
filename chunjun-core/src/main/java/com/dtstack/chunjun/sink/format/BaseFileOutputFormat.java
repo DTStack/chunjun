@@ -27,6 +27,7 @@ import com.dtstack.chunjun.throwable.WriteRecordException;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -34,7 +35,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
+    private static final long serialVersionUID = 338925088080739415L;
 
     protected static final String TMP_DIR_NAME = ".data";
     protected BaseFileConfig baseFileConfig;
@@ -88,10 +91,10 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         if (null != formatState && formatState.getFileIndex() > -1) {
             currentFileIndex = formatState.getFileIndex() + 1;
         }
-        LOG.info("Start current File Index:{}", currentFileIndex);
+        log.info("Start current File Index:{}", currentFileIndex);
 
         currentFileNamePrefix = jobId + "_" + taskNumber;
-        LOG.info("Channel:[{}], currentFileNamePrefix:[{}]", taskNumber, currentFileNamePrefix);
+        log.info("Channel:[{}], currentFileNamePrefix:[{}]", taskNumber, currentFileNamePrefix);
 
         initVariableFields();
     }
@@ -136,7 +139,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
             flushData();
         }
         nextNumForCheckDataSize += baseFileConfig.getNextCheckRows();
-        LOG.info(
+        log.info(
                 "current file: {}, size = {}, nextNumForCheckDataSize = {}",
                 currentFileName,
                 SizeUnitType.readableFileSize(currentFileSize),
@@ -147,7 +150,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         if (rowsOfCurrentBlock != 0) {
             flushDataInternal();
             sumRowsOfBlock += rowsOfCurrentBlock;
-            LOG.info(
+            log.info(
                     "flush file:{}, rowsOfCurrentBlock = {}, sumRowsOfBlock = {}",
                     currentFileName,
                     rowsOfCurrentBlock,

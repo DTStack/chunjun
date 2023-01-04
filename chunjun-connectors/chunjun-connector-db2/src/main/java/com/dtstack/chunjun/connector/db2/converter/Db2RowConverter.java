@@ -36,18 +36,12 @@ import java.sql.Timestamp;
 
 public class Db2RowConverter extends JdbcRowConverter {
 
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 3029835364700067219L;
 
     public Db2RowConverter(RowType rowType) {
         super(rowType);
     }
 
-    /**
-     * blob in db2 is not type byte
-     *
-     * @param type
-     * @return
-     */
     @Override
     protected IDeserializationConverter createInternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {

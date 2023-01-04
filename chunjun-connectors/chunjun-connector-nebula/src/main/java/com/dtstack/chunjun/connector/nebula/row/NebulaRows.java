@@ -22,17 +22,21 @@ import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.utils.NebulaSchemaFamily;
 
+import lombok.ToString;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.BATCH_INSERT_TEMPLATE;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.DELETE_EDGE_TEMPLATE;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.DELETE_VERTEX_TEMPLATE;
 
+@ToString
 public class NebulaRows implements Serializable {
+
+    private static final long serialVersionUID = 1080560830091721157L;
 
     private final Boolean isVertex;
 
@@ -151,16 +155,5 @@ public class NebulaRows implements Serializable {
                         .map(NebulaEdge::getUpsertStatementString)
                         .collect(Collectors.joining(";"))
                 + ";";
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", NebulaRows.class.getSimpleName() + "[", "]")
-                .add("isVertex=" + isVertex)
-                .add("nebulaVertices=" + nebulaVertices)
-                .add("nebulaEdges=" + nebulaEdges)
-                .add("nebulaConfig=" + nebulaConfig)
-                .add("values=" + values)
-                .toString();
     }
 }

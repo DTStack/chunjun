@@ -28,6 +28,8 @@ import java.util.Optional;
 
 public class ClickhouseDialect implements JdbcDialect {
 
+    private static final long serialVersionUID = 4485804663355512770L;
+
     @Override
     public String dialectName() {
         return "ClickHouse";

@@ -28,7 +28,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-nebula</artifactId>
-	<name>ChunJun : Connector : nebula</name>
+	<name>ChunJun : Connector : Nebula</name>
 
     <properties>
 		<!-- TODO before this version,the class <HostAddress.class> did not implements Serializable, change the version in some future-->

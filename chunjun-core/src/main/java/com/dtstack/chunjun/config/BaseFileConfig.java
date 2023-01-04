@@ -20,109 +20,34 @@ package com.dtstack.chunjun.config;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.sink.WriteMode;
 
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+import java.nio.charset.StandardCharsets;
+
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class BaseFileConfig extends CommonConfig {
+
+    private static final long serialVersionUID = -1246776653133188377L;
+
     private int fromLine = 1;
 
     private String path;
+
     private String fileName;
+
     /** 写入模式 * */
     private String writeMode = WriteMode.APPEND.name();
+
     /** 压缩方式 */
     private String compress;
 
     private String encoding = StandardCharsets.UTF_8.name();
+
     private long maxFileSize = ConstantValue.STORE_SIZE_G;
+
     private long nextCheckRows = 5000;
 
     private String suffix;
-
-    public int getFromLine() {
-        return fromLine;
-    }
-
-    public void setFromLine(int fromLine) {
-        this.fromLine = fromLine;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getWriteMode() {
-        return writeMode;
-    }
-
-    public void setWriteMode(String writeMode) {
-        this.writeMode = writeMode;
-    }
-
-    public String getCompress() {
-        return compress;
-    }
-
-    public void setCompress(String compress) {
-        this.compress = compress;
-    }
-
-    public String getEncoding() {
-        return encoding;
-    }
-
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
-    }
-
-    public long getMaxFileSize() {
-        return maxFileSize;
-    }
-
-    public void setMaxFileSize(long maxFileSize) {
-        this.maxFileSize = maxFileSize;
-    }
-
-    public long getNextCheckRows() {
-        return nextCheckRows;
-    }
-
-    public void setNextCheckRows(long nextCheckRows) {
-        this.nextCheckRows = nextCheckRows;
-    }
-
-    public String getSuffix() {
-        return suffix;
-    }
-
-    public void setSuffix(String suffix) {
-        this.suffix = suffix;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", BaseFileConfig.class.getSimpleName() + "[", "]")
-                .add("fromLine=" + fromLine)
-                .add("path='" + path + "'")
-                .add("fileName='" + fileName + "'")
-                .add("writeMode='" + writeMode + "'")
-                .add("compress='" + compress + "'")
-                .add("encoding='" + encoding + "'")
-                .add("maxFileSize=" + maxFileSize)
-                .add("nextCheckRows=" + nextCheckRows)
-                .add("suffix='" + suffix + "'")
-                .toString();
-    }
 }

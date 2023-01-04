@@ -24,13 +24,19 @@ import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.MapUtil;
 import com.dtstack.chunjun.util.StringUtil;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class DorisConfig extends JdbcConfig {
+
+    private static final long serialVersionUID = 3732649877755197591L;
 
     private String database;
 
@@ -51,94 +57,6 @@ public class DorisConfig extends JdbcConfig {
     private LoadConfig loadConfig;
 
     private Properties loadProperties;
-
-    public long getWaitRetryMills() {
-        return waitRetryMills;
-    }
-
-    public void setWaitRetryMills(long waitRetryMills) {
-        this.waitRetryMills = waitRetryMills;
-    }
-
-    public String getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
-    public String getTable() {
-        return table;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return Objects.isNull(password) ? "" : password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public List<String> getFeNodes() {
-        return feNodes;
-    }
-
-    public void setFeNodes(List<String> feNodes) {
-        this.feNodes = feNodes;
-    }
-
-    public Integer getMaxRetries() {
-        return maxRetries;
-    }
-
-    public void setMaxRetries(Integer maxRetries) {
-        this.maxRetries = maxRetries;
-    }
-
-    public LoadConfig getLoadConf() {
-        return loadConfig;
-    }
-
-    public void setLoadConf(LoadConfig loadConfig) {
-        this.loadConfig = loadConfig;
-    }
-
-    public Properties getLoadProperties() {
-        return loadProperties;
-    }
-
-    public void setLoadProperties(Properties loadProperties) {
-        this.loadProperties = loadProperties;
-    }
-
-    public boolean isNameMapped() {
-        return nameMapped;
-    }
-
-    public void setNameMapped(boolean nameMapped) {
-        this.nameMapped = nameMapped;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
 
     public String serializeToString() {
         try {

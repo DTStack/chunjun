@@ -22,6 +22,8 @@ import org.apache.flink.api.common.accumulators.Accumulator;
 
 public class StringAccumulator implements Accumulator<String, String> {
 
+    private static final long serialVersionUID = -225342537043064970L;
+
     private String localValue;
 
     @Override

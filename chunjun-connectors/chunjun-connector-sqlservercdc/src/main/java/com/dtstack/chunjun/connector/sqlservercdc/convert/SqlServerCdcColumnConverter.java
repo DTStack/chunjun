@@ -66,6 +66,8 @@ import static com.dtstack.chunjun.constants.CDCConstantValue.TYPE;
 public class SqlServerCdcColumnConverter
         extends AbstractCDCRowConverter<SqlServerCdcEventRow, String> {
 
+    private static final long serialVersionUID = -8218965790709917537L;
+
     public SqlServerCdcColumnConverter(boolean pavingData, boolean splitUpdate) {
         super.pavingData = pavingData;
         super.split = splitUpdate;

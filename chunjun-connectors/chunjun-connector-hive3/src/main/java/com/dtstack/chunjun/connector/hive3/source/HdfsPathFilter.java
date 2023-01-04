@@ -17,6 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hive3.source;
 
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
@@ -25,6 +26,7 @@ import org.apache.hadoop.mapred.JobConfigurable;
 
 import java.util.regex.Pattern;
 
+@NoArgsConstructor
 public class HdfsPathFilter implements PathFilter, JobConfigurable {
 
     public static final String KEY_REGEX = "file.path.regexFilter";
@@ -36,8 +38,6 @@ public class HdfsPathFilter implements PathFilter, JobConfigurable {
             };
     private static Pattern PATTERN;
     private String regex;
-
-    public HdfsPathFilter() {}
 
     public HdfsPathFilter(String regex) {
         this.regex = regex;

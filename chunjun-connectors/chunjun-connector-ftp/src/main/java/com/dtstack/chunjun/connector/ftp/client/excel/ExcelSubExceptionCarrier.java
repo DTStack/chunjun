@@ -18,17 +18,14 @@
 
 package com.dtstack.chunjun.connector.ftp.client.excel;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@NoArgsConstructor
+@Getter
+@Setter
 public class ExcelSubExceptionCarrier {
 
     private Exception throwable;
-
-    public ExcelSubExceptionCarrier() {}
-
-    public Exception getThrowable() {
-        return throwable;
-    }
-
-    public void setThrowable(Exception throwable) {
-        this.throwable = throwable;
-    }
 }

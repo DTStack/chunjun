@@ -77,6 +77,7 @@
 		<codec.version>1.13</codec.version>
 		<jcommander.version>1.81</jcommander.version>
 		<p3c-pmd.version>1.3.0</p3c-pmd.version>
+		<lobmk.version>1.18.24</lobmk.version>
 		<!-- Dependency Version End -->
 
 		<!-- Unit Test Start -->
@@ -178,6 +179,11 @@
 			<artifactId>log4j-1.2-api</artifactId>
 		</dependency>
 		<!-- ***************** slf4j & provider & bridges end ***************** -->
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>junit</groupId>
@@ -417,19 +423,6 @@
 
 		<!-- test dependencies -->
 		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-annotations</artifactId>
-			<version>${flink.version}</version>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<artifactId>slf4j-api</artifactId>
-					<groupId>org.slf4j</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
@@ -637,6 +630,12 @@
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-collections4</artifactId>
 				<version>${commons-collections4.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>${lobmk.version}</version>
 			</dependency>
 
 			<dependency>

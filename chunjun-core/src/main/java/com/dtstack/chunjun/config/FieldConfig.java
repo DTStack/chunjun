@@ -20,6 +20,7 @@ package com.dtstack.chunjun.config;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.util.GsonUtil;
 
+import lombok.Data;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -29,38 +30,42 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.StringJoiner;
 
+@Data
 public class FieldConfig implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = -5874873362857155703L;
 
     /** 字段名称 */
     private String name;
+
     /** 字段类型 */
     private String type;
+
     /** 字段索引 */
     private Integer index;
+
     /** 字段常量值 */
     private String value;
+
     /** 如果字段是时间字符串，可以指定时间的格式，将字段类型转为日期格式返回 */
     private String format;
+
     /** 与format字段组合使用，用于时间字符串格式转换 parseFormat->时间戳->format */
     private String parseFormat;
+
     /** 字段分隔符 */
     private String splitter;
+
     /** 是否为分区字段 */
     private Boolean isPart = false;
+
     /** 字段是否可空 */
     private Boolean notNull = false;
+
     /** 字段长度 */
     private Integer length;
 
-    /**
-     * 获取fieldList
-     *
-     * @param fieldList
-     * @return
-     */
     public static List<FieldConfig> getFieldList(List fieldList) {
         List<FieldConfig> list;
         if (CollectionUtils.isNotEmpty(fieldList)) {
@@ -94,13 +99,6 @@ public class FieldConfig implements Serializable {
         return list;
     }
 
-    /**
-     * 构造field
-     *
-     * @param map 属性map
-     * @param index 字段索引
-     * @return
-     */
     public static FieldConfig getField(Map map, int index) {
         FieldConfig field = new FieldConfig();
 
@@ -134,7 +132,7 @@ public class FieldConfig implements Serializable {
         field.setSplitter(splitter != null ? String.valueOf(splitter) : null);
 
         Object isPart = map.get("isPart");
-        field.setPart(isPart != null ? (Boolean) isPart : false);
+        field.setIsPart(isPart != null ? (Boolean) isPart : false);
 
         Object notNull = map.get("notNull");
         field.setNotNull(notNull != null ? (Boolean) notNull : false);
@@ -145,13 +143,6 @@ public class FieldConfig implements Serializable {
         return field;
     }
 
-    /**
-     * 根据name查找对应FieldConf
-     *
-     * @param fieldList
-     * @param name
-     * @return
-     */
     public static FieldConfig getSameNameMetaColumn(List<FieldConfig> fieldList, String name) {
         for (FieldConfig field : fieldList) {
             if (StringUtils.isNotEmpty(field.getName()) && field.getName().equals(name)) {
@@ -159,101 +150,5 @@ public class FieldConfig implements Serializable {
             }
         }
         return null;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public Integer getIndex() {
-        return index;
-    }
-
-    public void setIndex(Integer index) {
-        this.index = index;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public String getFormat() {
-        return format;
-    }
-
-    public void setFormat(String format) {
-        this.format = format;
-    }
-
-    public String getSplitter() {
-        return splitter;
-    }
-
-    public void setSplitter(String splitter) {
-        this.splitter = splitter;
-    }
-
-    public Boolean getPart() {
-        return isPart;
-    }
-
-    public void setPart(Boolean part) {
-        isPart = part;
-    }
-
-    public Boolean getNotNull() {
-        return notNull;
-    }
-
-    public void setNotNull(Boolean notNull) {
-        this.notNull = notNull;
-    }
-
-    public Integer getLength() {
-        return length;
-    }
-
-    public void setLength(Integer length) {
-        this.length = length;
-    }
-
-    public String getParseFormat() {
-        return parseFormat;
-    }
-
-    public void setParseFormat(String parseFormat) {
-        this.parseFormat = parseFormat;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", FieldConfig.class.getSimpleName() + "[", "]")
-                .add("name='" + name + "'")
-                .add("type='" + type + "'")
-                .add("index=" + index)
-                .add("value='" + value + "'")
-                .add("format='" + format + "'")
-                .add("parseFormat='" + parseFormat + "'")
-                .add("splitter='" + splitter + "'")
-                .add("isPart=" + isPart)
-                .add("notNull=" + notNull)
-                .add("length=" + length)
-                .toString();
     }
 }

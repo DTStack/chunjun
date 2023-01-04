@@ -20,14 +20,17 @@ package com.dtstack.chunjun.connector.doris.rest.module;
 
 import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.StringJoiner;
 
+@Data
 public class PartitionDefinition implements Serializable, Comparable<PartitionDefinition> {
+    private static final long serialVersionUID = -5215421222870623070L;
     private final String database;
     private final String table;
 
@@ -54,26 +57,6 @@ public class PartitionDefinition implements Serializable, Comparable<PartitionDe
         this.beAddress = beAddress;
         this.tabletIds = tabletIds;
         this.queryPlan = queryPlan;
-    }
-
-    public String getBeAddress() {
-        return beAddress;
-    }
-
-    public Set<Long> getTabletIds() {
-        return tabletIds;
-    }
-
-    public String getDatabase() {
-        return database;
-    }
-
-    public String getTable() {
-        return table;
-    }
-
-    public String getQueryPlan() {
-        return queryPlan;
     }
 
     @Override
@@ -138,17 +121,5 @@ public class PartitionDefinition implements Serializable, Comparable<PartitionDe
         result = 31 * result + queryPlan.hashCode();
         result = 31 * result + tabletIds.hashCode();
         return result;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", PartitionDefinition.class.getSimpleName() + "[", "]")
-                .add("database='" + database + "'")
-                .add("table='" + table + "'")
-                .add("beAddress='" + beAddress + "'")
-                .add("tabletIds=" + tabletIds)
-                .add("queryPlan='" + queryPlan + "'")
-                .add("serializedSettings='" + serializedSettings + "'")
-                .toString();
     }
 }

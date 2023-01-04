@@ -18,74 +18,28 @@
 
 package com.dtstack.chunjun.connector.starrocks.config;
 
-import com.dtstack.chunjun.connector.starrocks.options.ConstantValue;
+import lombok.Builder;
+import lombok.Data;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 
+@Data
+@Builder
 public class LoadConfig implements Serializable {
 
-    private static final Long serialVersionUID = 1L;
+    private static final long serialVersionUID = 6208181116730721955L;
 
     /** Timeout duration of the HTTP connection when checking the connectivity with StarRocks */
-    private Integer httpCheckTimeoutMs = ConstantValue.HTTP_CHECK_TIMEOUT_DEFAULT;
+    private Integer httpCheckTimeoutMs;
 
-    private Integer queueOfferTimeoutMs = ConstantValue.QUEUE_OFFER_TIMEOUT_DEFAULT;
+    private Integer queueOfferTimeoutMs;
 
-    private Integer queuePollTimeoutMs = ConstantValue.QUEUE_POLL_TIMEOUT_DEFAULT;
+    private Integer queuePollTimeoutMs;
 
-    private Long batchMaxSize = ConstantValue.SINK_BATCH_MAX_BYTES_DEFAULT;
+    private Long batchMaxSize;
 
-    private Long batchMaxRows = ConstantValue.SINK_BATCH_MAX_ROWS_DEFAULT;
+    private Long batchMaxRows;
 
-    private Map<String, String> headProperties = new HashMap<>();
-
-    public Integer getHttpCheckTimeoutMs() {
-        return httpCheckTimeoutMs;
-    }
-
-    public void setHttpCheckTimeoutMs(Integer httpCheckTimeoutMs) {
-        this.httpCheckTimeoutMs = httpCheckTimeoutMs;
-    }
-
-    public Integer getQueueOfferTimeoutMs() {
-        return queueOfferTimeoutMs;
-    }
-
-    public void setQueueOfferTimeoutMs(Integer queueOfferTimeoutMs) {
-        this.queueOfferTimeoutMs = queueOfferTimeoutMs;
-    }
-
-    public Integer getQueuePollTimeoutMs() {
-        return queuePollTimeoutMs;
-    }
-
-    public void setQueuePollTimeoutMs(Integer queuePollTimeoutMs) {
-        this.queuePollTimeoutMs = queuePollTimeoutMs;
-    }
-
-    public Long getBatchMaxSize() {
-        return batchMaxSize;
-    }
-
-    public void setBatchMaxSize(Long batchMaxSize) {
-        this.batchMaxSize = batchMaxSize;
-    }
-
-    public Long getBatchMaxRows() {
-        return batchMaxRows;
-    }
-
-    public void setBatchMaxRows(Long batchMaxRows) {
-        this.batchMaxRows = batchMaxRows;
-    }
-
-    public Map<String, String> getHeadProperties() {
-        return headProperties;
-    }
-
-    public void setHeadProperties(Map<String, String> headProperties) {
-        this.headProperties = headProperties;
-    }
+    private Map<String, String> headProperties;
 }

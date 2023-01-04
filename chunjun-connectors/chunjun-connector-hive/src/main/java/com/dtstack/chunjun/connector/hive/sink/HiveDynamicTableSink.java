@@ -28,11 +28,11 @@ import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 
 public class HiveDynamicTableSink implements DynamicTableSink {
 
-    private final HiveConfig hiveConf;
+    private final HiveConfig config;
     private final TableSchema tableSchema;
 
-    public HiveDynamicTableSink(HiveConfig hiveConf, TableSchema tableSchema) {
-        this.hiveConf = hiveConf;
+    public HiveDynamicTableSink(HiveConfig config, TableSchema tableSchema) {
+        this.config = config;
         this.tableSchema = tableSchema;
     }
 
@@ -45,20 +45,20 @@ public class HiveDynamicTableSink implements DynamicTableSink {
     @SuppressWarnings("all")
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
         HiveOutputFormatBuilder builder = new HiveOutputFormatBuilder();
-        hiveConf.setTableInfos(
+        config.setTableInfos(
                 HiveUtil.formatHiveTableInfo(
-                        hiveConf.getTablesColumn(),
-                        hiveConf.getPartition(),
-                        hiveConf.getFieldDelimiter(),
-                        hiveConf.getFileType()));
-        builder.setHiveConf(hiveConf);
+                        config.getTablesColumn(),
+                        config.getPartition(),
+                        config.getFieldDelimiter(),
+                        config.getFileType()));
+        builder.setHiveConf(config);
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction(builder.finish()), hiveConf.getParallelism());
+                new DtOutputFormatSinkFunction(builder.finish()), config.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new HiveDynamicTableSink(hiveConf, tableSchema);
+        return new HiveDynamicTableSink(config, tableSchema);
     }
 
     @Override

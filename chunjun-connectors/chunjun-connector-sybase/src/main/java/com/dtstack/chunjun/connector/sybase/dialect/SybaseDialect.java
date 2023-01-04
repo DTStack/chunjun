@@ -36,6 +36,8 @@ import java.sql.ResultSet;
 import java.util.Optional;
 
 public class SybaseDialect implements JdbcDialect {
+    private static final long serialVersionUID = 6837284066162011637L;
+
     private static final String DIALECT_NAME = "Sybase";
     private static final String DRIVER_NAME = "net.sourceforge.jtds.jdbc.Driver";
 

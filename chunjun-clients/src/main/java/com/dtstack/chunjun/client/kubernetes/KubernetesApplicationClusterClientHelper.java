@@ -42,9 +42,8 @@ import org.apache.flink.kubernetes.configuration.KubernetesDeploymentTarget;
 import org.apache.flink.runtime.clusterframework.TaskExecutorProcessUtils;
 import org.apache.flink.runtime.jobmanager.JobManagerProcessUtils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -54,10 +53,8 @@ import java.util.List;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
+@Slf4j
 public class KubernetesApplicationClusterClientHelper implements ClusterClientHelper<String> {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(KubernetesApplicationClusterClientHelper.class);
 
     @Override
     public ClusterClient<String> submit(JobDeployer jobDeployer) throws Exception {
@@ -86,7 +83,7 @@ public class KubernetesApplicationClusterClientHelper implements ClusterClientHe
                     descriptor.deployApplicationCluster(
                             clusterSpecification, applicationConfiguration);
             ClusterClient<String> clusterClient = clientProvider.getClusterClient();
-            LOG.info("Deploy Application with Cluster Id: {}", clusterClient.getClusterId());
+            log.info("Deploy Application with Cluster Id: {}", clusterClient.getClusterId());
             return clusterClient;
         }
     }

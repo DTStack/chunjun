@@ -40,8 +40,7 @@ import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -56,12 +55,11 @@ import java.util.Map;
  *
  * @param <IN> Input type
  */
+@Slf4j
 public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
         implements CheckpointedFunction, CheckpointListener, InputTypeConfigurable {
 
     private static final long serialVersionUID = 1L;
-
-    private static final Logger LOG = LoggerFactory.getLogger(DtOutputFormatSinkFunction.class);
 
     protected OutputFormat<IN> format;
     protected boolean cleanupCalled = false;
@@ -135,7 +133,7 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
                 ((CleanupWhenUnsuccessful) format).tryCleanupOnError();
             }
         } catch (Throwable t) {
-            LOG.error("Cleanup on error failed. {}", ExceptionUtil.getErrorMessage(t));
+            log.error("Cleanup on error failed. {}", ExceptionUtil.getErrorMessage(t));
         }
     }
 
@@ -143,7 +141,7 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         FormatState formatState = ((BaseRichOutputFormat) format).getFormatState();
         if (formatState != null) {
-            LOG.info("OutputFormat format state:{}", formatState);
+            log.info("OutputFormat format state:{}", formatState);
             unionOffsetStates.clear();
             unionOffsetStates.add(formatState);
         }
@@ -151,7 +149,7 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
 
     @Override
     public void initializeState(FunctionInitializationContext context) throws Exception {
-        LOG.info("Start initialize output format state");
+        log.info("Start initialize output format state");
 
         OperatorStateStore stateStore = context.getOperatorStateStore();
         unionOffsetStates =
@@ -160,16 +158,16 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
                                 LOCATION_STATE_NAME,
                                 TypeInformation.of(new TypeHint<FormatState>() {})));
 
-        LOG.info("Is restored:{}", context.isRestored());
+        log.info("Is restored:{}", context.isRestored());
         if (context.isRestored()) {
             formatStateMap = new HashMap<>(16);
             for (FormatState formatState : unionOffsetStates.get()) {
                 formatStateMap.put(formatState.getNumOfSubTask(), formatState);
-                LOG.info("Output format state into:{}", formatState.toString());
+                log.info("Output format state into:{}", formatState.toString());
             }
         }
 
-        LOG.info("End initialize output format state");
+        log.info("End initialize output format state");
     }
 
     @Override

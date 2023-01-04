@@ -34,11 +34,11 @@ public class ConvertUtil {
     }
 
     public static String convertClob(Clob clob) throws SQLException, IOException {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         try (Reader r = clob.getCharacterStream()) {
             int ch;
             while ((ch = r.read()) != -1) {
-                buffer.append("" + (char) ch);
+                buffer.append((char) ch);
             }
         }
         clob.free();

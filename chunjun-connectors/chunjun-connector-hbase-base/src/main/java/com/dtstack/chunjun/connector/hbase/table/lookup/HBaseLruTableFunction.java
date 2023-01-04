@@ -33,13 +33,12 @@ import com.dtstack.chunjun.lookup.config.LookupConfig;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -50,9 +49,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class HBaseLruTableFunction extends AbstractLruTableFunction {
-    private static final long serialVersionUID = 1L;
-    private static final Logger LOG = LoggerFactory.getLogger(HBaseLruTableFunction.class);
+    private static final long serialVersionUID = 2297990960765338476L;
+
     private static final int DEFAULT_BOSS_THREADS = 1;
     private static final int DEFAULT_IO_THREADS = Runtime.getRuntime().availableProcessors() * 2;
     private static final int DEFAULT_POOL_SIZE = DEFAULT_IO_THREADS + DEFAULT_BOSS_THREADS;
@@ -126,8 +126,8 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
                                 }
                             }
                         } catch (IOException e) {
-                            LOG.error("record:" + keyStr);
-                            LOG.error("get side record exception:" + e);
+                            log.error("record:" + keyStr);
+                            log.error("get side record exception:" + e);
                             future.complete(Collections.emptyList());
                         }
                     }

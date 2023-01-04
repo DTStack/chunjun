@@ -58,6 +58,8 @@ import java.util.List;
 public class HdfsOrcColumnConverter
         extends AbstractRowConverter<RowData, RowData, List<Object>, LogicalType> {
 
+    private static final long serialVersionUID = -1143450655293766846L;
+
     HdfsConfig hdfsConfig;
 
     public HdfsOrcColumnConverter(RowType rowType, HdfsConfig hdfsConfig) {

@@ -33,15 +33,19 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import static com.dtstack.chunjun.connector.cassandra.util.CassandraService.quoteColumn;
 
+@Slf4j
 public class CassandraInputFormat extends BaseRichInputFormat {
 
-    private CassandraSourceConfig sourceConf;
+    private static final long serialVersionUID = -5354898494437278362L;
+
+    private CassandraSourceConfig sourceConfig;
 
     private transient Session session;
 
@@ -52,8 +56,8 @@ public class CassandraInputFormat extends BaseRichInputFormat {
         ArrayList<CassandraInputSplit> splits = new ArrayList<>();
 
         try {
-            Preconditions.checkNotNull(sourceConf.getTableName(), "table must not null");
-            return CassandraService.splitJob(sourceConf, minNumSplits, splits);
+            Preconditions.checkNotNull(sourceConfig.getTableName(), "table must not null");
+            return CassandraService.splitJob(sourceConfig, minNumSplits, splits);
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -65,24 +69,24 @@ public class CassandraInputFormat extends BaseRichInputFormat {
     protected void openInternal(InputSplit inputSplit) {
         CassandraInputSplit split = (CassandraInputSplit) inputSplit;
 
-        String tableName = sourceConf.getTableName();
-        String keyspaces = sourceConf.getKeyspaces();
+        String tableName = sourceConfig.getTableName();
+        String keyspaces = sourceConfig.getKeyspaces();
 
-        sourceConf
+        sourceConfig
                 .getColumn()
                 .forEach(fieldConfig -> columnNameList.add(quoteColumn(fieldConfig.getName())));
 
         Preconditions.checkNotNull(tableName, "table must not null");
-        session = CassandraService.session(sourceConf);
+        session = CassandraService.session(sourceConfig);
 
-        String consistency = sourceConf.getConsistency();
+        String consistency = sourceConfig.getConsistency();
         ConsistencyLevel consistencyLevel = CassandraService.consistencyLevel(consistency);
 
         Select select = QueryBuilder.select(columnNameList.toArray()).from(keyspaces, tableName);
         select.setConsistencyLevel(consistencyLevel);
         // TODO where ? group by ? order by ?
 
-        LOG.info("split: {}, {}", split.getMinToken(), split.getMaxToken());
+        log.info("split: {}, {}", split.getMinToken(), split.getMaxToken());
         ResultSet resultSet = session.execute(select);
         cursor = resultSet.all().iterator();
     }
@@ -110,11 +114,11 @@ public class CassandraInputFormat extends BaseRichInputFormat {
         return !cursor.hasNext();
     }
 
-    public CassandraSourceConfig getSourceConf() {
-        return sourceConf;
+    public CassandraSourceConfig getSourceConfig() {
+        return sourceConfig;
     }
 
-    public void setSourceConf(CassandraSourceConfig sourceConf) {
-        this.sourceConf = sourceConf;
+    public void setSourceConfig(CassandraSourceConfig sourceConfig) {
+        this.sourceConfig = sourceConfig;
     }
 }

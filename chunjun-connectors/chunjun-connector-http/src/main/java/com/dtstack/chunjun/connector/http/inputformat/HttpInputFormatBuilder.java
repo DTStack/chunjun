@@ -32,7 +32,6 @@ import com.dtstack.chunjun.util.StringUtil;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.StrBuilder;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -47,10 +46,6 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toCollection;
 
-/**
- * @author : shifang
- * @date : 2020/3/12
- */
 public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder<HttpInputFormat> {
 
     public HttpInputFormatBuilder() {
@@ -66,8 +61,8 @@ public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder<HttpInput
         this.format.metaParams = metaColumns;
     }
 
-    public void setMetaBodys(List<MetaParam> metaColumns) {
-        this.format.metaBodys = metaColumns;
+    public void setMetaBodies(List<MetaParam> metaColumns) {
+        this.format.metaBodies = metaColumns;
     }
 
     public void setMetaHeaders(List<MetaParam> metaColumns) {
@@ -119,10 +114,10 @@ public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder<HttpInput
         ArrayList<MetaParam> metaParams =
                 new ArrayList<>(
                         format.metaParams.size()
-                                + format.metaBodys.size()
+                                + format.metaBodies.size()
                                 + format.metaHeaders.size());
         metaParams.addAll(format.metaParams);
-        metaParams.addAll(format.metaBodys);
+        metaParams.addAll(format.metaBodies);
         metaParams.addAll(format.metaHeaders);
 
         StringBuilder sb = new StringBuilder();
@@ -131,17 +126,15 @@ public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder<HttpInput
                 new HashSet<>(
                         format.metaParams.size()
                                 + format.metaHeaders.size()
-                                + format.metaBodys.size());
+                                + format.metaBodies.size());
         allowedRepeatedName.addAll(getAllowedRepeatedName(format.metaParams, sb));
-        allowedRepeatedName.addAll(getAllowedRepeatedName(format.metaBodys, sb));
+        allowedRepeatedName.addAll(getAllowedRepeatedName(format.metaBodies, sb));
         allowedRepeatedName.addAll(getAllowedRepeatedName(format.metaHeaders, sb));
 
         // 将原始参数 按照key 放入各自所属map中 如果是嵌套key 会切割后放入对应层次中
         HttpRequestParam originParam = new HttpRequestParam();
         metaParams.forEach(
-                i -> {
-                    originParam.putValue(i, format.httpRestConfig.getFieldDelimiter(), i);
-                });
+                i -> originParam.putValue(i, format.httpRestConfig.getFieldDelimiter(), i));
 
         // 如果存在相同key 且一个是嵌套key 一个是非嵌套key  那么此时需要判断 异常策略里是否有指定对应的key  因为异常策略里指定了key 但不知道是嵌套key
         // 还是非嵌套key
@@ -196,31 +189,29 @@ public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder<HttpInput
         Set<String> anallyIng = new HashSet<>();
         Set<String> analyzed = new HashSet<>();
         metaParams.forEach(
-                i -> {
-                    getValue(
-                            originParam,
-                            i,
-                            true,
-                            errorMsg,
-                            anallyIng,
-                            analyzed,
-                            allowedRepeatedName);
-                });
+                i ->
+                        getValue(
+                                originParam,
+                                i,
+                                true,
+                                errorMsg,
+                                anallyIng,
+                                analyzed,
+                                allowedRepeatedName));
 
         anallyIng.clear();
         analyzed.clear();
 
         metaParams.forEach(
-                i -> {
-                    getValue(
-                            originParam,
-                            i,
-                            false,
-                            errorMsg,
-                            anallyIng,
-                            analyzed,
-                            allowedRepeatedName);
-                });
+                i ->
+                        getValue(
+                                originParam,
+                                i,
+                                false,
+                                errorMsg,
+                                anallyIng,
+                                analyzed,
+                                allowedRepeatedName));
 
         if (errorMsg.length() > 0) {
             throw new IllegalArgumentException(errorMsg.toString());
@@ -240,7 +231,7 @@ public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder<HttpInput
         ArrayList<MetaParam> collect =
                 MetaparamUtils.getValueOfMetaParams(
                                 metaParam.getActualValue(first),
-                                metaParam.getNest(),
+                                metaParam.getIsNest(),
                                 format.httpRestConfig,
                                 requestParam)
                         .stream()
@@ -271,7 +262,7 @@ public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder<HttpInput
                                                     || i.getParamType().equals(ParamType.PARAM))
                             .map(MetaParam::getAllName)
                             .collect(Collectors.toSet());
-            StrBuilder sb = new StrBuilder(128);
+            StringBuilder sb = new StringBuilder(128);
             for (String key : keys) {
                 if (sameNames.contains(key)) {
                     sb.append(key).append(" ");
@@ -284,7 +275,7 @@ public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder<HttpInput
                                 + " on "
                                 + requestParam
                                 + "  is error because we do not know "
-                                + sb.toString()
+                                + sb
                                 + "is nest or not");
             }
         }
@@ -330,12 +321,7 @@ public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder<HttpInput
         analyzed.add(metaParam.getAllName());
     }
 
-    /**
-     * 找出 metaParams 里相同key的metaParam
-     *
-     * @param metaParams
-     * @return
-     */
+    /** 找出 metaParams 里相同key的metaParam */
     public List<MetaParam> repeatParamByKey(List<MetaParam> metaParams) {
         ArrayList<MetaParam> data = new ArrayList<>(metaParams.size());
         Map<String, List<MetaParam>> map =
@@ -349,13 +335,7 @@ public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder<HttpInput
         return data;
     }
 
-    /**
-     * 找出两个list之间MetaParam的key是相同的
-     *
-     * @param left
-     * @param right
-     * @return
-     */
+    /** 找出两个list之间MetaParam的key是相同的 */
     public List<MetaParam> repeatParamByKey(List<MetaParam> left, List<MetaParam> right) {
         ArrayList<MetaParam> data = new ArrayList<>(left.size());
         Set<String> keys = right.stream().map(MetaParam::getKey).collect(Collectors.toSet());
@@ -379,7 +359,7 @@ public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder<HttpInput
     private Set<String> getAllowedRepeatedName(List<MetaParam> params, StringBuilder sb) {
         // 按照是否是嵌套key进行划分
         Map<Boolean, List<MetaParam>> paramMap =
-                params.stream().collect(Collectors.groupingBy(MetaParam::getNest));
+                params.stream().collect(Collectors.groupingBy(MetaParam::getIsNest));
         List<MetaParam> repeatParam = new ArrayList<>(32);
 
         if (CollectionUtils.isNotEmpty(paramMap.get(true))) {
@@ -418,7 +398,7 @@ public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder<HttpInput
                                                         format.httpRestConfig.getFieldDelimiter()))
                                         .length
                                 == 1) {
-                            sb.append(i.toString())
+                            sb.append(i)
                                     .append(
                                             " is repeated and it has only one level When it is a nested key")
                                     .append("\n");

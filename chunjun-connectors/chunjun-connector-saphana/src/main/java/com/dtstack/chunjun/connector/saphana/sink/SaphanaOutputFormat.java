@@ -24,6 +24,8 @@ import java.util.Properties;
 
 public class SaphanaOutputFormat extends JdbcOutputFormat {
 
+    private static final long serialVersionUID = 6376766150008666553L;
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         Properties properties = jdbcConfig.getProperties();

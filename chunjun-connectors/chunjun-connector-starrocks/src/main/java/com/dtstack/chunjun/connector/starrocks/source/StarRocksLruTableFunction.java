@@ -38,8 +38,7 @@ import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -53,9 +52,10 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.dtstack.chunjun.connector.starrocks.util.StarRocksUtil.splitQueryBeXTablets;
 
+@Slf4j
 public class StarRocksLruTableFunction extends AbstractLruTableFunction {
 
-    private static final Logger LOG = LoggerFactory.getLogger(StarRocksLruTableFunction.class);
+    private static final long serialVersionUID = -784897225682591517L;
 
     private final StarRocksConfig starRocksConfig;
 
@@ -184,7 +184,7 @@ public class StarRocksLruTableFunction extends AbstractLruTableFunction {
                 builder.append(" and ");
             }
         }
-        LOG.info(String.format("startRocks lru querySql:%s", builder));
+        log.info(String.format("startRocks lru querySql:%s", builder));
         return builder.toString();
     }
 }

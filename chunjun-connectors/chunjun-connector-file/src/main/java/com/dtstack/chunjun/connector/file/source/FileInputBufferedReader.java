@@ -51,7 +51,7 @@ public class FileInputBufferedReader {
         }
 
         if (!hasNext) {
-            return line;
+            return null;
         }
 
         if (lr != null) {

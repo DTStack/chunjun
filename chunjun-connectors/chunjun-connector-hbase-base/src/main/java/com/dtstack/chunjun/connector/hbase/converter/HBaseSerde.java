@@ -50,6 +50,8 @@ import static org.apache.flink.util.Preconditions.checkArgument;
 /** Utilities for HBase serialization and deserialization. */
 public class HBaseSerde implements Serializable {
 
+    private static final long serialVersionUID = -4326665856298124101L;
+
     private static final byte[] EMPTY_BYTES = new byte[] {};
 
     public static final int MIN_TIMESTAMP_PRECISION = 0;

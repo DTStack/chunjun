@@ -32,6 +32,8 @@ import java.util.Objects;
 
 public class ColumnRowDataTypeInfo<T> extends TypeInformation<T> {
 
+    private static final long serialVersionUID = -3952073469551957279L;
+
     private static final String FORMAT = "%s(%s, %s)";
 
     private final LogicalType type;

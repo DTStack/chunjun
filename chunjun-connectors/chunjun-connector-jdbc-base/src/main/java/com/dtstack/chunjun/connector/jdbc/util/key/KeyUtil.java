@@ -34,6 +34,8 @@ import java.sql.SQLException;
  */
 public abstract class KeyUtil<T, F> implements Serializable {
 
+    private static final long serialVersionUID = -4190152796246863926L;
+
     public abstract T getSqlValueFromRs(ResultSet rs, int index) throws SQLException;
 
     public abstract T getSqlValueFromRs(ResultSet rs, String column) throws SQLException;

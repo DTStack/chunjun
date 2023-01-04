@@ -39,35 +39,35 @@ import org.apache.iceberg.flink.source.FlinkSource;
 
 public class IcebergSourceFactory extends SourceFactory {
 
-    private final IcebergReaderConfig icebergConf;
+    private final IcebergReaderConfig icebergConfig;
 
     public IcebergSourceFactory(SyncConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        icebergConf =
+        icebergConfig =
                 GsonUtil.GSON.fromJson(
                         GsonUtil.GSON.toJson(config.getReader().getParameter()),
                         IcebergReaderConfig.class);
-        icebergConf.setColumn(config.getReader().getFieldList());
-        super.initCommonConf(icebergConf);
+        icebergConfig.setColumn(config.getReader().getFieldList());
+        super.initCommonConf(icebergConfig);
     }
 
     @Override
     public DataStream<RowData> createSource() {
         IcebergInputFormatBuilder builder = new IcebergInputFormatBuilder();
-        builder.setIcebergConf(icebergConf);
+        builder.setIcebergConf(icebergConfig);
         // 初始化 hadoop conf
         Configuration conf =
                 FileSystemUtil.getConfiguration(
-                        icebergConf.getHadoopConfig(), icebergConf.getDefaultFS());
+                        icebergConfig.getHadoopConfig(), icebergConfig.getDefaultFS());
 
-        TableLoader tableLoader = TableLoader.fromHadoopTable(icebergConf.getPath(), conf);
+        TableLoader tableLoader = TableLoader.fromHadoopTable(icebergConfig.getPath(), conf);
         FlinkInputFormat flinkInputFormat =
                 FlinkSource.forRowData().env(env).tableLoader(tableLoader).buildFormat();
         builder.setInput(flinkInputFormat);
 
         AbstractRowConverter rowConverter;
         //        if (useAbstractBaseColumn) {
-        rowConverter = new IcebergColumnConverter(icebergConf.getColumn());
+        rowConverter = new IcebergColumnConverter(icebergConfig.getColumn());
         //        } else {
         //            checkConstant(icebergConf);
         //            final RowType rowType =

@@ -54,6 +54,8 @@ import java.util.Map;
 public class HdfsOrcColumnConverter
         extends AbstractRowConverter<RowData, RowData, Object[], String> {
 
+    private static final long serialVersionUID = 4254984437380862131L;
+
     private List<String> ColumnNameList;
     private transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 

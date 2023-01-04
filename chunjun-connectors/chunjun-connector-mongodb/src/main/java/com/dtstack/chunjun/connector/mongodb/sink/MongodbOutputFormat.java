@@ -29,17 +29,17 @@ import org.apache.flink.table.data.RowData;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.FindOneAndReplaceOptions;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class MongodbOutputFormat extends BaseRichOutputFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MongodbOutputFormat.class);
+    private static final long serialVersionUID = -4323942103916260013L;
 
     private final MongoClientConfig mongoClientConfig;
     private final String key;
@@ -99,11 +99,11 @@ public class MongodbOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void closeInternal() throws IOException {
+    protected void closeInternal() {
         if (mongoClient != null) {
-            LOG.info("Start close mongodb client");
+            log.info("Start close mongodb client");
             mongoClient.close();
-            LOG.info("Close mongodb client successfully");
+            log.info("Close mongodb client successfully");
         }
     }
 

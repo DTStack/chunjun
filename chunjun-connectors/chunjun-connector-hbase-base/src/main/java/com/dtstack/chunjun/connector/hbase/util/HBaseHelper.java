@@ -24,6 +24,7 @@ import com.dtstack.chunjun.util.FileSystemUtil;
 
 import org.apache.flink.util.concurrent.ExecutorThreadFactory;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -38,8 +39,6 @@ import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.RegionLocator;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.PrivilegedAction;
@@ -53,8 +52,8 @@ import static com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils.KEY_JAVA
 import static com.dtstack.chunjun.security.KerberosUtil.KRB_STR;
 
 /** The utility class of HBase */
+@Slf4j
 public class HBaseHelper {
-    private static final Logger LOG = LoggerFactory.getLogger(HBaseHelper.class);
 
     private static final String KEY_HBASE_SECURITY_AUTHENTICATION = "hbase.security.authentication";
     private static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
@@ -76,7 +75,7 @@ public class HBaseHelper {
             Configuration hConfiguration = getConfig(hbaseConfigMap);
             return ConnectionFactory.createConnection(hConfiguration);
         } catch (IOException e) {
-            LOG.error("Get connection fail with config:{}", hbaseConfigMap);
+            log.error("Get connection fail with config:{}", hbaseConfigMap);
             throw new RuntimeException(e);
         }
     }
@@ -92,7 +91,7 @@ public class HBaseHelper {
                                     Configuration hConfiguration = getConfig(hbaseConfigMap);
                                     return ConnectionFactory.createConnection(hConfiguration);
                                 } catch (IOException e) {
-                                    LOG.error("Get connection fail with config:{}", hbaseConfigMap);
+                                    log.error("Get connection fail with config:{}", hbaseConfigMap);
                                     throw new RuntimeException(e);
                                 }
                             });
@@ -139,19 +138,13 @@ public class HBaseHelper {
 
     public static RegionLocator getRegionLocator(Connection hConnection, String userTable) {
         TableName hTableName = TableName.valueOf(userTable);
-        Admin admin = null;
-        RegionLocator regionLocator = null;
-        try {
-            admin = hConnection.getAdmin();
+        try (Admin admin = hConnection.getAdmin()) {
             HBaseHelper.checkHbaseTable(admin, hTableName);
-            regionLocator = hConnection.getRegionLocator(hTableName);
+            return hConnection.getRegionLocator(hTableName);
         } catch (Exception e) {
-            HBaseHelper.closeRegionLocator(regionLocator);
-            HBaseHelper.closeAdmin(admin);
             HBaseHelper.closeConnection(hConnection);
             throw new RuntimeException(e);
         }
-        return regionLocator;
     }
 
     public static byte[] convertRowKey(String rowKey, boolean isBinaryRowkey) {
@@ -232,7 +225,7 @@ public class HBaseHelper {
                     try {
                         ugi.checkTGTAndReloginFromKeytab();
                     } catch (Exception e) {
-                        LOG.error("Refresh TGT failed", e);
+                        log.error("Refresh TGT failed", e);
                     }
                 },
                 0,

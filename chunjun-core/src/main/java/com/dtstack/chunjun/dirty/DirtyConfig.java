@@ -21,11 +21,13 @@ package com.dtstack.chunjun.dirty;
 import com.dtstack.chunjun.options.Options;
 import com.dtstack.chunjun.throwable.NoRestartException;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Properties;
-import java.util.StringJoiner;
 
-public class DirtyConf implements Serializable {
+@Data
+public class DirtyConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -49,64 +51,4 @@ public class DirtyConf implements Serializable {
 
     /** ChunJun dirty-plugins local plugins path {@link Options#getFlinkLibDir()} */
     private String localPluginPath;
-
-    public long getMaxConsumed() {
-        return maxConsumed;
-    }
-
-    public void setMaxConsumed(long maxConsumed) {
-        this.maxConsumed = maxConsumed;
-    }
-
-    public long getMaxFailedConsumed() {
-        return maxFailedConsumed;
-    }
-
-    public void setMaxFailedConsumed(long maxFailedConsumed) {
-        this.maxFailedConsumed = maxFailedConsumed;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public Long getPrintRate() {
-        return printRate;
-    }
-
-    public void setPrintRate(Long printRate) {
-        this.printRate = printRate;
-    }
-
-    public Properties getPluginProperties() {
-        return pluginProperties;
-    }
-
-    public void setPluginProperties(Properties pluginProperties) {
-        this.pluginProperties = pluginProperties;
-    }
-
-    public String getLocalPluginPath() {
-        return localPluginPath;
-    }
-
-    public void setLocalPluginPath(String localPluginPath) {
-        this.localPluginPath = localPluginPath;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", DirtyConf.class.getSimpleName() + "[", "]")
-                .add("maxConsumed=" + maxConsumed)
-                .add("maxFailedConsumed=" + maxFailedConsumed)
-                .add("type='" + type + "'")
-                .add("printRate=" + printRate)
-                .add("pluginProperties=" + pluginProperties)
-                .add("localPluginPath='" + localPluginPath + "'")
-                .toString();
-    }
 }

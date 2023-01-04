@@ -29,9 +29,8 @@ import com.dtstack.chunjun.util.TableUtil;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -44,9 +43,8 @@ import java.util.Set;
  * base on row data info to build preparedStatement. row data info include rowkind(which is to set
  * which sql kind to use )
  */
+@Slf4j
 public class DynamicPreparedStmt {
-
-    private static final Logger LOG = LoggerFactory.getLogger(DynamicPreparedStmt.class);
 
     protected List<String> columnNameList = new ArrayList<>();
 
@@ -143,7 +141,7 @@ public class DynamicPreparedStmt {
                 break;
             default:
                 // TODO 异常如何处理
-                LOG.warn("not support RowKind: {}", rowKind);
+                log.warn("not support RowKind: {}", rowKind);
         }
 
         return singleSql;

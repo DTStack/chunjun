@@ -19,6 +19,8 @@
 package com.dtstack.chunjun.connector.hbase;
 
 import com.google.common.collect.Lists;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +30,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Getter
+@Setter
 public class FunctionTree implements Serializable {
+
+    private static final long serialVersionUID = 2076730868867031602L;
 
     private String columnName;
 
@@ -55,21 +61,5 @@ public class FunctionTree implements Serializable {
 
     public void addInputFunction(FunctionTree inputFunction) {
         inputFunctions.add(inputFunction);
-    }
-
-    public String getColumnName() {
-        return columnName;
-    }
-
-    public void setColumnName(String columnName) {
-        this.columnName = columnName;
-    }
-
-    public IFunction getFunction() {
-        return function;
-    }
-
-    public void setFunction(IFunction function) {
-        this.function = function;
     }
 }

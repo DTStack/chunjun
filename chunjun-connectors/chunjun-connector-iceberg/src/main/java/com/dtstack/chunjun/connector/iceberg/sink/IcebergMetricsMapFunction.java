@@ -30,13 +30,13 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.RowData;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
+@Slf4j
 public class IcebergMetricsMapFunction extends RichMapFunction<RowData, RowData> {
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
+    private static final long serialVersionUID = -3001323100086864797L;
 
     /** 输出指标组 */
     protected transient BaseMetric outputMetric;
@@ -95,7 +95,7 @@ public class IcebergMetricsMapFunction extends RichMapFunction<RowData, RowData>
     }
 
     @Override
-    public RowData map(RowData rowData) throws Exception {
+    public RowData map(RowData rowData) {
         numWriteCounter.add(1L);
         updateDuration();
         bytesWriteCounter.add(rowSizeCalculator.getObjectSize(rowData));
@@ -111,7 +111,7 @@ public class IcebergMetricsMapFunction extends RichMapFunction<RowData, RowData>
         if (accumulatorCollector != null) {
             accumulatorCollector.close();
         }
-        LOG.info("subtask[{}}] close() finished", taskNumber);
+        log.info("subtask[{}}] close() finished", taskNumber);
 
         super.close();
     }

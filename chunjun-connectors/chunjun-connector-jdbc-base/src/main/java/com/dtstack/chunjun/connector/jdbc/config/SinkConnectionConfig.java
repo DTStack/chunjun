@@ -17,10 +17,14 @@
  */
 package com.dtstack.chunjun.connector.jdbc.config;
 
-import java.util.StringJoiner;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class SinkConnectionConfig extends ConnectionConfig {
 
+    private static final long serialVersionUID = -1666792510177290171L;
     protected String jdbcUrl;
 
     protected boolean allReplace;
@@ -33,33 +37,5 @@ public class SinkConnectionConfig extends ConnectionConfig {
     @Override
     public void putJdbcUrl(String jdbcUrl) {
         this.jdbcUrl = jdbcUrl;
-    }
-
-    public String getJdbcUrl() {
-        return jdbcUrl;
-    }
-
-    public void setJdbcUrl(String jdbcUrl) {
-        this.jdbcUrl = jdbcUrl;
-    }
-
-    public boolean getAllReplace() {
-        return allReplace;
-    }
-
-    public void setAllReplace(boolean allReplace) {
-        this.allReplace = allReplace;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", SinkConnectionConfig.class.getSimpleName() + "[", "]")
-                .add("jdbcUrl='" + jdbcUrl + "'")
-                .add("allReplace=" + allReplace)
-                .add("table=" + table)
-                .add("schema='" + schema + "'")
-                .add("username='" + username + "'")
-                .add("password='" + password + "'")
-                .toString();
     }
 }

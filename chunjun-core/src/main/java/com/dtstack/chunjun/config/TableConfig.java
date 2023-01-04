@@ -17,26 +17,14 @@
  */
 package com.dtstack.chunjun.config;
 
-import java.io.Serializable;
-import java.util.StringJoiner;
+import lombok.Data;
 
+import java.io.Serializable;
+
+@Data
 public class TableConfig implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = 5611460982265011807L;
 
     private String tableName;
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", TableConfig.class.getSimpleName() + "[", "]")
-                .add("tableName='" + tableName + "'")
-                .toString();
-    }
 }

@@ -20,52 +20,26 @@ package com.dtstack.chunjun.connector.cassandra.config;
 
 import org.apache.flink.configuration.ReadableConfig;
 
-import java.util.StringJoiner;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import static com.dtstack.chunjun.connector.cassandra.optinos.CassandraCommonOptions.WHERE;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class CassandraSourceConfig extends CassandraCommonConfig {
+
+    private static final long serialVersionUID = -4780014075431020594L;
+
     private String where;
 
-    public String getWhere() {
-        return where;
-    }
-
-    public void setWhere(String where) {
-        this.where = where;
-    }
-
     public static CassandraSourceConfig from(ReadableConfig readableConfig) {
-        CassandraSourceConfig conf =
+        CassandraSourceConfig config =
                 (CassandraSourceConfig)
                         CassandraCommonConfig.from(readableConfig, new CassandraSourceConfig());
 
-        conf.setWhere(readableConfig.get(WHERE));
+        config.setWhere(readableConfig.get(WHERE));
 
-        return conf;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", CassandraSourceConfig.class.getSimpleName() + "[", "]")
-                .add("where='" + where + "'")
-                .add("host='" + host + "'")
-                .add("port=" + port)
-                .add("userName='" + userName + "'")
-                .add("password='" + password + "'")
-                .add("tableName='" + tableName + "'")
-                .add("keyspaces='" + keyspaces + "'")
-                .add("hostDistance='" + hostDistance + "'")
-                .add("useSSL=" + useSSL)
-                .add("clusterName='" + clusterName + "'")
-                .add("consistency='" + consistency + "'")
-                .add("coreConnectionsPerHost=" + coreConnectionsPerHost)
-                .add("maxConnectionsPerHost=" + maxConnectionsPerHost)
-                .add("maxRequestsPerConnection=" + maxRequestsPerConnection)
-                .add("maxQueueSize=" + maxQueueSize)
-                .add("readTimeoutMillis=" + readTimeoutMillis)
-                .add("connectTimeoutMillis=" + connectTimeoutMillis)
-                .add("poolTimeoutMillis=" + poolTimeoutMillis)
-                .toString();
+        return config;
     }
 }

@@ -21,10 +21,9 @@ package com.dtstack.chunjun.connector.redis.connection;
 import com.dtstack.chunjun.connector.redis.config.RedisConfig;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Connection;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
@@ -46,13 +45,10 @@ import java.util.regex.Matcher;
 
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.REDIS_HOST_PATTERN;
 
+@Slf4j
 public class RedisSyncClient {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RedisSyncClient.class);
-
     private JedisPool pool;
-
-    private JedisCommands jedis;
 
     private JedisSentinelPool jedisSentinelPool;
 
@@ -66,6 +62,7 @@ public class RedisSyncClient {
         JedisPoolConfig poolConfig = getConfig();
         String[] nodes = StringUtils.split(redisConfig.getHostPort(), ",");
 
+        JedisCommands jedis;
         switch (redisConfig.getRedisConnectType()) {
             case STANDALONE:
                 String firstIp = null;
@@ -161,16 +158,16 @@ public class RedisSyncClient {
         JedisCommands jedisInner = null;
         for (int i = 0; i <= 2; i++) {
             try {
-                LOG.info("connect " + (i + 1) + " times.");
+                log.info("connect " + (i + 1) + " times.");
                 jedisInner = getJedisInner();
                 if (jedisInner != null) {
-                    LOG.info("jedis is connected = {} ", jedisInner);
+                    log.info("jedis is connected = {} ", jedisInner);
                     break;
                 }
             } catch (IllegalArgumentException e) {
                 throw e;
             } catch (Exception e) {
-                LOG.error(
+                log.error(
                         "connect failed:{} , sleep 3 seconds reconnect",
                         ExceptionUtil.getErrorMessage(e));
                 try {
@@ -194,7 +191,7 @@ public class RedisSyncClient {
                 }
             }
         } catch (Exception e) {
-            LOG.error("close jedis error", e);
+            log.error("close jedis error", e);
         }
     }
 
@@ -210,7 +207,7 @@ public class RedisSyncClient {
                 pool.close();
             }
         } catch (Exception e) {
-            LOG.error(ExceptionUtil.getErrorMessage(e));
+            log.error(ExceptionUtil.getErrorMessage(e));
         }
     }
 

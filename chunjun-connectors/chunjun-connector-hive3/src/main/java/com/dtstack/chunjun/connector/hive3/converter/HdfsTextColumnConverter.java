@@ -52,6 +52,8 @@ import java.util.List;
 public class HdfsTextColumnConverter
         extends AbstractRowConverter<RowData, RowData, List<String>, LogicalType> {
 
+    private static final long serialVersionUID = -6245541661525501806L;
+
     HdfsConfig hdfsConfig;
 
     public HdfsTextColumnConverter(RowType rowType, HdfsConfig hdfsConfig) {

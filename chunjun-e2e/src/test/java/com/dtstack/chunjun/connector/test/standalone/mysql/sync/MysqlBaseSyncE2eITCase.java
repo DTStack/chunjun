@@ -24,15 +24,12 @@ import com.dtstack.chunjun.connector.test.utils.ChunjunFlinkStandaloneTestEnviro
 import com.dtstack.chunjun.connector.test.utils.JdbcProxy;
 
 import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
 public class MysqlBaseSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
-    private static final Logger LOG = LoggerFactory.getLogger(MysqlBaseSyncE2eITCase.class);
 
     protected static final String MYSQL_HOST = "chunjun-e2e-mysql";
 

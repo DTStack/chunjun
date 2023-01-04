@@ -38,11 +38,10 @@ import org.apache.flink.table.data.RowData;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.sql.Connection;
@@ -73,10 +72,10 @@ import java.util.stream.Collectors;
 import static com.dtstack.chunjun.connector.oraclelogminer.listener.LogMinerConnection.RETRY_TIMES;
 import static com.dtstack.chunjun.connector.oraclelogminer.listener.LogMinerConnection.SLEEP_TIME;
 
+@Slf4j
 public class LogMinerListener implements Runnable {
     private final BigInteger MINUS_ONE = new BigInteger("-1");
 
-    public static Logger LOG = LoggerFactory.getLogger(LogMinerListener.class);
     private final LogMinerConfig logMinerConfig;
     private final PositionManager positionManager;
     private final AbstractCDCRowConverter rowConverter;
@@ -130,18 +129,18 @@ public class LogMinerListener implements Runnable {
                         RETRY_TIMES,
                         SLEEP_TIME,
                         false);
-        if (logMinerConfig.getEnableFetchAll()) {
-            BigInteger cacheScn = positionManager.getPosition();
+        if (logMinerConfig.isEnableFetchAll()) {
+            BigInteger cacheScn = positionManager.getScn();
             if (null != cacheScn && cacheScn.compareTo(BigInteger.valueOf(-1)) != 0) {
                 startScn = cacheScn;
             } else {
                 startScn = oracleFullSyncOperation(connection);
             }
         } else {
-            startScn = logMinerHelper.getStartScn(positionManager.getPosition());
+            startScn = logMinerHelper.getStartScn(positionManager.getScn());
         }
 
-        positionManager.updatePosition(startScn);
+        positionManager.setScn(startScn);
         logMinerHelper.setStartScn(startScn);
         logMinerHelper.init();
 
@@ -151,7 +150,7 @@ public class LogMinerListener implements Runnable {
         }
 
         // 初始化
-        if (logMinerConfig.isInitialTableStructure() && !logMinerConfig.getEnableFetchAll()) {
+        if (logMinerConfig.isInitialTableStructure() && !logMinerConfig.isEnableFetchAll()) {
             initialTableStruct(connection);
         }
 
@@ -164,11 +163,11 @@ public class LogMinerListener implements Runnable {
         Thread.currentThread()
                 .setUncaughtExceptionHandler(
                         (t, e) -> {
-                            LOG.warn(
+                            log.warn(
                                     "LogMinerListener run failed, Throwable = {}",
                                     ExceptionUtil.getErrorMessage(e));
                             executor.execute(listener);
-                            LOG.info("Re-execute LogMinerListener successfully");
+                            log.info("Re-execute LogMinerListener successfully");
                         });
 
         while (running) {
@@ -185,21 +184,21 @@ public class LogMinerListener implements Runnable {
         }
     }
 
-    public void sendException(Exception e, QueueData log) {
+    public void sendException(Exception e, QueueData queueData) {
         StringBuilder sb = new StringBuilder(512);
         sb.append("LogMinerListener thread exception: current scn =")
-                .append(positionManager.getPosition());
-        if (Objects.nonNull(log)) {
-            sb.append(",\nlog = ").append(log);
+                .append(positionManager.getScn());
+        if (Objects.nonNull(queueData)) {
+            sb.append(",\nqueueData = ").append(queueData);
         }
         sb.append(",\ne = ").append(ExceptionUtil.getErrorMessage(e));
         String msg = sb.toString();
-        LOG.warn(msg);
+        log.warn(msg);
         try {
             queue.put(new QueueData(BigInteger.ZERO, new ErrorMsgRowData(msg)));
             Thread.sleep(2000L);
         } catch (InterruptedException ex) {
-            LOG.warn(
+            log.warn(
                     "error to put exception message into queue, e = {}",
                     ExceptionUtil.getErrorMessage(ex));
         }
@@ -220,20 +219,20 @@ public class LogMinerListener implements Runnable {
         }
     }
 
-    private void processData(QueueData log) throws Exception {
-        if (log.getData() instanceof DdlRowData) {
+    private void processData(QueueData queueData) throws Exception {
+        if (queueData.getData() instanceof DdlRowData) {
             rowConverter.clearConverterCache();
-            queue.put((new QueueData(log.getScn(), log.getData())));
+            queue.put((new QueueData(queueData.getScn(), queueData.getData())));
             return;
         }
-        LinkedList<RowData> rowDatalist = logParser.parse(log, rowConverter);
+        LinkedList<RowData> rowDatalist = logParser.parse(queueData, rowConverter);
         RowData rowData;
         try {
             while ((rowData = rowDatalist.poll()) != null) {
-                queue.put(new QueueData(log.getScn(), rowData));
+                queue.put(new QueueData(queueData.getScn(), rowData));
             }
         } catch (Exception e) {
-            LOG.error("{}", ExceptionUtil.getErrorMessage(e));
+            log.error("{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
@@ -265,13 +264,13 @@ public class LogMinerListener implements Runnable {
                     rowData = null;
                 } else {
                     if (poll.getScn().compareTo(MINUS_ONE) != 0) {
-                        positionManager.updatePosition(poll.getScn());
+                        positionManager.setScn(poll.getScn());
                     }
                     failedTimes = 0;
                 }
             }
         } catch (InterruptedException e) {
-            LOG.warn("Get data from queue error:", e);
+            log.warn("Get data from queue error:", e);
         }
         return rowData;
     }
@@ -462,7 +461,7 @@ public class LogMinerListener implements Runnable {
     }
 
     public BigInteger getCurrentPosition() {
-        return positionManager.getPosition();
+        return positionManager.getScn();
     }
 
     private List<String> readPrimaryKeyNames(DatabaseMetaData metadata, String schema, String table)

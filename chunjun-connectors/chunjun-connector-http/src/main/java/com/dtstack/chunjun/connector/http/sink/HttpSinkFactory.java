@@ -29,12 +29,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class HttpSinkFactory extends SinkFactory {
-
-    protected static final Logger LOG = LoggerFactory.getLogger(HttpSinkFactory.class);
 
     protected HttpWriterConfig httpWriterConfig;
 

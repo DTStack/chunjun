@@ -42,6 +42,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.hadoop.hbase.HConstants;
@@ -71,10 +72,12 @@ import static com.dtstack.chunjun.connector.hbase.HBaseTypeUtils.MAX_TIMESTAMP_P
 import static com.dtstack.chunjun.connector.hbase.HBaseTypeUtils.MIN_TIMESTAMP_PRECISION;
 import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getPrecision;
 
+@Slf4j
 public class HBaseColumnConverter
         extends AbstractRowConverter<Result, RowData, Mutation, LogicalType> {
 
     public static final String KEY_ROW_KEY = "rowkey";
+    private static final long serialVersionUID = 4477327158644026233L;
 
     private FunctionTree functionTree;
 
@@ -543,7 +546,7 @@ public class HBaseColumnConverter
                 try {
                     date = timeSecondFormat.parse(timeStampValue.toString());
                 } catch (ParseException e1) {
-                    LOG.info(
+                    log.info(
                             String.format(
                                     "您指定第[%s]列作为hbase写入版本,但在尝试用yyyy-MM-dd HH:mm:ss 和 yyyy-MM-dd HH:mm:ss SSS 去解析为Date时均出错,请检查并修改",
                                     versionColumnIndex));

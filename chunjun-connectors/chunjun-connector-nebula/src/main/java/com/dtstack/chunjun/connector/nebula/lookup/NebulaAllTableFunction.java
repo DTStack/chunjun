@@ -29,18 +29,16 @@ import com.dtstack.chunjun.lookup.config.LookupConfig;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.functions.FunctionContext;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class NebulaAllTableFunction extends AbstractAllTableFunction {
 
-    private static final long serialVersionUID = 1L;
-
-    private final Logger LOG = LoggerFactory.getLogger(NebulaAllTableFunction.class);
+    private static final long serialVersionUID = 8763924058701795170L;
 
     private final NebulaConfig nebulaConfig;
 
@@ -80,7 +78,7 @@ public class NebulaAllTableFunction extends AbstractAllTableFunction {
                 buildCache(row, tmpCache);
             }
         } catch (Exception e) {
-            LOG.error("fetch data from nebula error: {}", e.getMessage(), e);
+            log.error("fetch data from nebula error: {}", e.getMessage(), e);
         }
     }
 

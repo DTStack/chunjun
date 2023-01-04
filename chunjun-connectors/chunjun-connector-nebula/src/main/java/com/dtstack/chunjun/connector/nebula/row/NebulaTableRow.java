@@ -36,11 +36,11 @@ import java.util.Iterator;
 
 public class NebulaTableRow implements Serializable {
 
+    private static final long serialVersionUID = -7359974256039250342L;
+
     private final ScanResultIterator scanResult;
 
     private final NebulaConfig nebulaConfig;
-
-    private Boolean hasNextScan;
 
     private Iterator<VertexTableRow> vertexTableRow;
 
@@ -49,7 +49,7 @@ public class NebulaTableRow implements Serializable {
     public NebulaTableRow(ScanResultIterator scanResult, NebulaConfig conf) {
         this.nebulaConfig = conf;
         this.scanResult = scanResult;
-        hasNextScan = hasNextScan();
+        Boolean hasNextScan = hasNextScan();
         if (hasNextScan) {
             scanNext();
         }

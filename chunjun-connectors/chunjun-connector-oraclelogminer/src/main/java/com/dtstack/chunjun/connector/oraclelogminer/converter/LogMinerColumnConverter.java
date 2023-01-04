@@ -40,6 +40,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -61,7 +62,10 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, String> {
+
+    private static final long serialVersionUID = -5819041803414698030L;
 
     // 存储表字段
     protected final Map<String, TableMetaData> tableMetaDataCacheMap = new ConcurrentHashMap<>(32);
@@ -226,7 +230,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
                         RowKind.DELETE,
                         result);
             default:
-                LOG.info("not support type:" + eventType.toUpperCase());
+                log.info("not support type:" + eventType.toUpperCase());
         }
     }
 

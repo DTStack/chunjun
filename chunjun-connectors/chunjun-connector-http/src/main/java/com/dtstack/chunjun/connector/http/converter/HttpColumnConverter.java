@@ -44,16 +44,13 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * @author shifang
- * @create 2021-06-07 15:51
- * @description
- */
 public class HttpColumnConverter
         extends AbstractRowConverter<String, Object, Map<String, Object>, String> {
 
-    /** restapi Conf */
-    private HttpRestConfig httpRestConfig;
+    private static final long serialVersionUID = -7759259374957914968L;
+
+    /** restapi Config */
+    private final HttpRestConfig httpRestConfig;
 
     public HttpColumnConverter(HttpRestConfig httpRestConfig) {
         this.httpRestConfig = httpRestConfig;
@@ -114,8 +111,7 @@ public class HttpColumnConverter
     }
 
     @Override
-    public Map<String, Object> toExternal(RowData rowData, Map<String, Object> output)
-            throws Exception {
+    public Map<String, Object> toExternal(RowData rowData, Map<String, Object> output) {
         return null;
     }
 

@@ -19,6 +19,9 @@
 package com.dtstack.chunjun.connector.doris.exception;
 
 public class DorisConnectFailedException extends RuntimeException {
+
+    private static final long serialVersionUID = -36125063164957231L;
+
     public DorisConnectFailedException(String username, String hostUrl, Throwable cause) {
         super(String.format("User [%s] connect to [%s] failed.", username, hostUrl), cause);
     }

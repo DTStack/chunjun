@@ -23,11 +23,19 @@ import com.dtstack.chunjun.connector.redis.enums.RedisConnectType;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataMode;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataType;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringJoiner;
 
+@Getter
+@Setter
+@ToString
 public class RedisConfig extends CommonConfig {
+    private static final long serialVersionUID = -2964324898543027634L;
+
     /** ip and port */
     private String hostPort;
     /** password */
@@ -90,190 +98,4 @@ public class RedisConfig extends CommonConfig {
     private int minIdle;
     /** primary key */
     private List<String> updateKey;
-
-    public String getHostPort() {
-        return hostPort;
-    }
-
-    public void setHostPort(String hostPort) {
-        this.hostPort = hostPort;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public int getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(int database) {
-        this.database = database;
-    }
-
-    public List<Integer> getKeyIndexes() {
-        return keyIndexes;
-    }
-
-    public void setKeyIndexes(List<Integer> keyIndexes) {
-        this.keyIndexes = keyIndexes;
-    }
-
-    public String getKeyFieldDelimiter() {
-        return keyFieldDelimiter;
-    }
-
-    public void setKeyFieldDelimiter(String keyFieldDelimiter) {
-        this.keyFieldDelimiter = keyFieldDelimiter;
-    }
-
-    public String getDateFormat() {
-        return dateFormat;
-    }
-
-    public void setDateFormat(String dateFormat) {
-        this.dateFormat = dateFormat;
-    }
-
-    public long getExpireTime() {
-        return expireTime;
-    }
-
-    public void setExpireTime(long expireTime) {
-        this.expireTime = expireTime;
-    }
-
-    public int getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
-    }
-
-    public RedisDataType getType() {
-        return type;
-    }
-
-    public void setType(RedisDataType type) {
-        this.type = type;
-    }
-
-    public RedisDataMode getMode() {
-        return mode;
-    }
-
-    public void setMode(RedisDataMode mode) {
-        this.mode = mode;
-    }
-
-    public String getValueFieldDelimiter() {
-        return valueFieldDelimiter;
-    }
-
-    public void setValueFieldDelimiter(String valueFieldDelimiter) {
-        this.valueFieldDelimiter = valueFieldDelimiter;
-    }
-
-    public RedisConnectType getRedisConnectType() {
-        return redisConnectType;
-    }
-
-    public void setRedisConnectType(RedisConnectType redisConnectType) {
-        this.redisConnectType = redisConnectType;
-    }
-
-    public String getMasterName() {
-        return masterName;
-    }
-
-    public void setMasterName(String masterName) {
-        this.masterName = masterName;
-    }
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-
-    public int getMaxTotal() {
-        return maxTotal;
-    }
-
-    public void setMaxTotal(int maxTotal) {
-        this.maxTotal = maxTotal;
-    }
-
-    public int getMaxIdle() {
-        return maxIdle;
-    }
-
-    public void setMaxIdle(int maxIdle) {
-        this.maxIdle = maxIdle;
-    }
-
-    public int getMinIdle() {
-        return minIdle;
-    }
-
-    public void setMinIdle(int minIdle) {
-        this.minIdle = minIdle;
-    }
-
-    public List<String> getUpdateKey() {
-        return updateKey;
-    }
-
-    public void setUpdateKey(List<String> updateKey) {
-        this.updateKey = updateKey;
-    }
-
-    public String getKeyPrefix() {
-        return keyPrefix;
-    }
-
-    public void setKeyPrefix(String keyPrefix) {
-        this.keyPrefix = keyPrefix;
-    }
-
-    public boolean isIndexFillHash() {
-        return indexFillHash;
-    }
-
-    public void setIndexFillHash(boolean indexFillHash) {
-        this.indexFillHash = indexFillHash;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", RedisConfig.class.getSimpleName() + "[", "]")
-                .add("hostPort='" + hostPort + "'")
-                .add("password='" + password + "'")
-                .add("database=" + database)
-                .add("keyIndexes=" + keyIndexes)
-                .add("keyFieldDelimiter='" + keyFieldDelimiter + "'")
-                .add("keyPrefix='" + keyPrefix + "'")
-                .add("indexFillHash=" + indexFillHash)
-                .add("dateFormat='" + dateFormat + "'")
-                .add("expireTime=" + expireTime)
-                .add("timeout=" + timeout)
-                .add("type=" + type)
-                .add("mode=" + mode)
-                .add("valueFieldDelimiter='" + valueFieldDelimiter + "'")
-                .add("redisConnectType=" + redisConnectType)
-                .add("masterName='" + masterName + "'")
-                .add("tableName='" + tableName + "'")
-                .add("maxTotal=" + maxTotal)
-                .add("maxIdle=" + maxIdle)
-                .add("minIdle=" + minIdle)
-                .add("updateKey=" + updateKey)
-                .toString();
-    }
 }

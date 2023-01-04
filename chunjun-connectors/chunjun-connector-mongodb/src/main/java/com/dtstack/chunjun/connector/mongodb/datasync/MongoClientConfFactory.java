@@ -54,7 +54,7 @@ public class MongoClientConfFactory {
         }
         mongoClientConfig.setAuthenticationMechanism(
                 mongodbDataSyncConfig.getAuthenticationMechanism());
-        mongoClientConfig.setConnectionConfig(mongodbDataSyncConfig.getMongodbConfig());
+        mongoClientConfig.setMongodbClientOptions(mongodbDataSyncConfig.getMongodbConfig());
         return mongoClientConfig;
     }
 

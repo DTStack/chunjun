@@ -23,8 +23,10 @@ import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryBeXTablets;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryInfo;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryPlan;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.Tablet;
+import com.dtstack.chunjun.util.ThreadUtil;
 
 import com.alibaba.fastjson.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -32,8 +34,6 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -48,9 +48,11 @@ import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.starrocks.util.StarRocksUtil.getBasicAuthHeader;
 
+@Slf4j
 public class StarRocksQueryPlanVisitor implements Serializable {
-    private static final long serialVersionUID = 1L;
-    private static final Logger LOG = LoggerFactory.getLogger(StarRocksQueryPlanVisitor.class);
+
+    private static final long serialVersionUID = -1509905823010569772L;
+
     private final StarRocksConfig starRocksConfig;
 
     public StarRocksQueryPlanVisitor(StarRocksConfig starRocksConfig) {
@@ -84,7 +86,7 @@ public class StarRocksQueryPlanVisitor implements Serializable {
         int tabletCount = Integer.MAX_VALUE;
         String currentBeNode = "";
         // Allocate tablets equally for all BeNodes
-        for (String beNode : tablet.getRoutings()) {
+        for (String beNode : tablet.getRouting()) {
             if (!beXTablets.containsKey(beNode)) {
                 beXTablets.put(beNode, new HashSet<>());
                 currentBeNode = beNode;
@@ -124,14 +126,8 @@ public class StarRocksQueryPlanVisitor implements Serializable {
             if (200 == requestCode || i == starRocksConfig.getMaxRetries()) {
                 break;
             }
-            LOG.warn("Request of get query plan failed with code:{}", requestCode);
-            try {
-                Thread.sleep(1000L * (i + 1));
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-                throw new IOException(
-                        "Unable to get query plan, interrupted while doing another attempt", ex);
-            }
+            log.warn("Request of get query plan failed with code:{}", requestCode);
+            ThreadUtil.sleepMilliseconds(1000L * (i + 1));
         }
         return dealQueryPlanResult(requestCode, respString);
     }
@@ -142,7 +138,7 @@ public class StarRocksQueryPlanVisitor implements Serializable {
                     "Request of get query plan failed with code " + requestCode + " " + respString);
         }
         if (respString.isEmpty()) {
-            LOG.warn("Request failed with empty response.");
+            log.warn("Request failed with empty response.");
             throw new RuntimeException("Request failed with empty response." + requestCode);
         }
         JSONObject jsonObject = JSONObject.parseObject(respString);

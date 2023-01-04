@@ -39,16 +39,16 @@ import org.apache.iceberg.flink.sink.FlinkSink;
 
 public class IcebergSinkFactory extends SinkFactory {
 
-    private final IcebergWriterConfig writerConf;
+    private final IcebergWriterConfig writerConfig;
 
     public IcebergSinkFactory(SyncConfig config) {
         super(config);
-        writerConf =
+        writerConfig =
                 GsonUtil.GSON.fromJson(
                         GsonUtil.GSON.toJson(config.getWriter().getParameter()),
                         IcebergWriterConfig.class);
-        writerConf.setColumn(config.getWriter().getFieldList());
-        super.initCommonConf(writerConf);
+        writerConfig.setColumn(config.getWriter().getFieldList());
+        super.initCommonConf(writerConfig);
     }
 
     @Override
@@ -74,14 +74,14 @@ public class IcebergSinkFactory extends SinkFactory {
         // 初始化 hadoop conf
         Configuration conf =
                 FileSystemUtil.getConfiguration(
-                        writerConf.getHadoopConfig(), writerConf.getDefaultFS());
+                        writerConfig.getHadoopConfig(), writerConfig.getDefaultFS());
 
-        TableLoader tableLoader = TableLoader.fromHadoopTable(writerConf.getPath(), conf);
+        TableLoader tableLoader = TableLoader.fromHadoopTable(writerConfig.getPath(), conf);
         SingleOutputStreamOperator<RowData> streamOperator =
-                dataSet.map(new IcebergMetricsMapFunction(writerConf));
+                dataSet.map(new IcebergMetricsMapFunction(writerConfig));
         DataStreamSink<RowData> dataDataStreamSink = null;
         // 判断写出模式
-        String writeMode = writerConf.getWriteMode();
+        String writeMode = writerConfig.getWriteMode();
         if (writeMode.equals(IcebergWriterConfig.UPSERT_WRITE_MODE)) {
             dataDataStreamSink =
                     FlinkSink.forRowData(streamOperator)

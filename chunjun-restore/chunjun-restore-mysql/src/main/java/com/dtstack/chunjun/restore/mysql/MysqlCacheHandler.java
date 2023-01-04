@@ -57,6 +57,8 @@ import static com.dtstack.chunjun.restore.mysql.constant.SqlConstants.TABLE_KEY;
 
 public class MysqlCacheHandler extends CacheHandler {
 
+    private static final long serialVersionUID = -6787359265687998728L;
+
     private static final String MYSQL_DRIVER_NAME = "com.mysql.jdbc.Driver";
 
     private transient DataSource dataSource;

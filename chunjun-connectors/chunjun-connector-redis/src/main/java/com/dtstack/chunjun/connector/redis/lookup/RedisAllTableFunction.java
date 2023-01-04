@@ -28,9 +28,8 @@ import com.dtstack.chunjun.lookup.config.LookupConfig;
 import org.apache.flink.table.data.GenericRowData;
 
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import redis.clients.jedis.commands.JedisCommands;
 
 import java.util.Arrays;
@@ -40,10 +39,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class RedisAllTableFunction extends AbstractAllTableFunction {
 
-    private static final long serialVersionUID = 1L;
-    private static final Logger LOG = LoggerFactory.getLogger(RedisAllTableFunction.class);
+    private static final long serialVersionUID = -1319108555631638546L;
+
     private final RedisConfig redisConfig;
     private transient RedisSyncClient redisSyncClient;
 
@@ -105,11 +105,11 @@ public class RedisAllTableFunction extends AbstractAllTableFunction {
                     }
                     tmpCache.computeIfAbsent(key, k -> Lists.newArrayList()).add(oneRow);
                 } catch (Exception e) {
-                    LOG.error("error:{} \n  data:{}", e.getMessage(), hgetAll);
+                    log.error("error:{} \n  data:{}", e.getMessage(), hgetAll);
                 }
             }
         } catch (Exception e) {
-            LOG.error("", e);
+            log.error("", e);
         } finally {
             redisSyncClient.closeJedis(jedis);
         }

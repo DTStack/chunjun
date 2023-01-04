@@ -50,7 +50,7 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogI
 
     public void setBinlogConf(BinlogConfig binlogConfig) {
         super.setConfig(binlogConfig);
-        this.format.setBinlogConf(binlogConfig);
+        this.format.setBinlogConfig(binlogConfig);
     }
 
     public void setRowConverter(AbstractCDCRowConverter rowConverter) {
@@ -58,7 +58,7 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogI
     }
 
     public void setRowConverter(AbstractCDCRowConverter rowConverter, boolean useAbstractColumn) {
-        this.format.setRowConverter(rowConverter);
+        this.format.setCdcRowConverter(rowConverter);
         format.setUseAbstractColumn(useAbstractColumn);
     }
 
@@ -74,7 +74,7 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogI
     @Override
     protected void checkFormat() {
         StringBuilder sb = new StringBuilder(256);
-        BinlogConfig binlogConfig = format.getBinlogConf();
+        BinlogConfig binlogConfig = format.getBinlogConfig();
         if (StringUtils.isBlank(binlogConfig.username)) {
             sb.append("No username supplied;\n");
         }

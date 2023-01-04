@@ -21,9 +21,8 @@ package com.dtstack.chunjun.connector.starrocks.connection;
 import com.dtstack.chunjun.util.ClassUtil;
 import com.dtstack.chunjun.util.RetryUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.sql.Connection;
@@ -32,13 +31,11 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 /** Simple JDBC connection provider. */
+@Slf4j
 public class StarRocksJdbcConnectionProvider
         implements StarRocksJdbcConnectionIProvider, Serializable {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(StarRocksJdbcConnectionProvider.class);
-
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 5487215248897952765L;
 
     private final StarRocksJdbcConnectionOptions jdbcOptions;
 
@@ -103,7 +100,7 @@ public class StarRocksJdbcConnectionProvider
         try {
             connection.close();
         } catch (SQLException e) {
-            LOG.error("JDBC connection close failed.", e);
+            log.error("JDBC connection close failed.", e);
         } finally {
             connection = null;
         }

@@ -42,13 +42,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.sql.SQLConnection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -72,15 +69,11 @@ import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.ERROR
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.MAX_DB_CONN_POOL_SIZE_LIMIT;
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.MAX_TASK_QUEUE_SIZE;
 
-/**
- * @author chuixue
- * @create 2021-04-10 21:15
- * @description
- */
+@Slf4j
 public class JdbcLruTableFunction extends AbstractLruTableFunction {
 
-    private static final long serialVersionUID = 1L;
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcLruTableFunction.class);
+    private static final long serialVersionUID = 6913010430516007916L;
+
     /** when network is unhealthy block query */
     private final AtomicBoolean connectionStatus = new AtomicBoolean(true);
     /** select sql */
@@ -145,7 +138,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                         new LinkedBlockingQueue<>(MAX_TASK_QUEUE_SIZE.defaultValue()),
                         new ChunJunThreadFactory("rdbAsyncExec"),
                         new ThreadPoolExecutor.CallerRunsPolicy());
-        LOG.info("async dim table JdbcOptions info: {} ", jdbcConfig.toString());
+        log.info("async dim table JdbcOptions info: {} ", jdbcConfig.toString());
     }
 
     @Override
@@ -155,7 +148,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         // network is unhealthy
         while (!connectionStatus.get()) {
             if (networkLogCounter.getAndIncrement() % 1000 == 0) {
-                LOG.info("network unhealthy to block task");
+                log.info("network unhealthy to block task");
             }
             Thread.sleep(100);
         }
@@ -169,31 +162,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     }
 
     private Object convertDataType(Object val) {
-        if (val == null) {
-            // OK
-        } else if (val instanceof Number && !(val instanceof BigDecimal)) {
-            // OK
-        } else if (val instanceof Boolean) {
-            // OK
-        } else if (val instanceof String) {
-            // OK
-        } else if (val instanceof Character) {
-            // OK
-        } else if (val instanceof CharSequence) {
-
-        } else if (val instanceof JsonObject) {
-
-        } else if (val instanceof JsonArray) {
-
-        } else if (val instanceof Map) {
-
-        } else if (val instanceof List) {
-
-        } else if (val instanceof byte[]) {
-
-        } else if (val instanceof Instant) {
-
-        } else if (val instanceof Timestamp) {
+        if (val instanceof Timestamp) {
             val = DateUtil.timestampToString((Timestamp) val);
         } else if (val instanceof java.util.Date) {
             val = DateUtil.dateToString((java.sql.Date) val);
@@ -219,7 +188,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                 try {
                     latch.await();
                 } catch (InterruptedException e) {
-                    LOG.error("", e);
+                    log.error("", e);
                 }
             } catch (Exception e) {
                 // 数据源队列溢出情况
@@ -269,9 +238,9 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                         if (conn.failed()) {
                             connectionStatus.set(false);
                             if (failCounter.getAndIncrement() % logPrintTime == 0) {
-                                LOG.error("getConnection error. ", conn.cause());
+                                log.error("getConnection error. ", conn.cause());
                             }
-                            LOG.error(
+                            log.error(
                                     String.format(
                                             "retry ... current time [%s]", failCounter.get()));
                             if (failCounter.get() >= retryMaxNum) {
@@ -318,7 +287,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                                     String.format(
                                             "\nget data with sql [%s],data [%s] failed! \ncause: [%s]",
                                             query, Arrays.toString(keys), rs.cause().getMessage());
-                            LOG.error(msg);
+                            log.error(msg);
                             future.completeExceptionally(new SQLException(msg));
                             return;
                         }
@@ -337,7 +306,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                                     rowList.add(row);
                                 } catch (Exception e) {
                                     // todo 这里需要抽样打印
-                                    LOG.error(
+                                    log.error(
                                             "error:{} \n sql:{} \n data:{}",
                                             e.getMessage(),
                                             jdbcConfig.getQuerySql(),
@@ -359,7 +328,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                         connection.close(
                                 done -> {
                                     if (done.failed()) {
-                                        LOG.error("sql connection close failed! ", done.cause());
+                                        log.error("sql connection close failed! ", done.cause());
                                     }
                                 });
                     }
@@ -381,7 +350,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
             vertx.close(
                     done -> {
                         if (done.failed()) {
-                            LOG.error("vert.x close error. cause by {}", done.cause().getMessage());
+                            log.error("vert.x close error. cause by {}", done.cause().getMessage());
                         }
                     });
         }
@@ -398,7 +367,9 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                 .put(DRUID_PREFIX + "url", jdbcConfig.getJdbcUrl())
                 .put(DRUID_PREFIX + "username", jdbcConfig.getUsername())
                 .put(DRUID_PREFIX + "password", jdbcConfig.getPassword())
-                .put(DRUID_PREFIX + "driverClassName", jdbcDialect.defaultDriverName().get())
+                .put(
+                        DRUID_PREFIX + "driverClassName",
+                        jdbcDialect.defaultDriverName().orElseThrow(IllegalArgumentException::new))
                 .put("provider_class", DT_PROVIDER_CLASS.defaultValue())
                 .put(DRUID_PREFIX + "maxActive", asyncPoolSize);
 

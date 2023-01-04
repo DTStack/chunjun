@@ -20,9 +20,8 @@ package com.dtstack.chunjun.local.test;
 import com.dtstack.chunjun.Main;
 import com.dtstack.chunjun.util.GsonUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -33,9 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+@Slf4j
 public class LocalTest {
-
-    public static Logger LOG = LoggerFactory.getLogger(LocalTest.class);
 
     public static void main(String[] args) throws Exception {
         Properties confProperties = new Properties();
@@ -45,8 +43,7 @@ public class LocalTest {
         //        confProperties.setProperty("state.checkpoints.dir", "file:///ck");
         String userDir = System.getProperty("user.dir");
 
-        String jobPath =
-                "/Users/wtz/job_place/chunjun/1.16/_01_SQL/_01_Stream/_01_stream_2_stream.sql";
+        String jobPath = "/Users/wtz/job_place/chunjun/1.16/_02_SYNC/_03_FTP/FTP.json";
         String chunjunDistDir = userDir + "/chunjun-dist";
         String s = "";
 
@@ -179,7 +176,7 @@ public class LocalTest {
             byte[] array = Files.readAllBytes(Paths.get(sqlPath));
             return new String(array, StandardCharsets.UTF_8);
         } catch (IOException ioe) {
-            LOG.error("Can not get the job info !!!", ioe);
+            log.error("Can not get the job info !!!", ioe);
             throw new RuntimeException(ioe);
         }
     }

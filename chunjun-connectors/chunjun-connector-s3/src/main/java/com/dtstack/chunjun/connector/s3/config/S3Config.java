@@ -21,11 +21,15 @@ package com.dtstack.chunjun.connector.s3.config;
 import com.dtstack.chunjun.config.CommonConfig;
 
 import com.amazonaws.regions.Regions;
+import lombok.Getter;
+import lombok.Setter;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 import java.io.Serializable;
 import java.util.List;
 
+@Getter
+@Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class S3Config extends CommonConfig implements Serializable {
 
@@ -73,132 +77,4 @@ public class S3Config extends CommonConfig implements Serializable {
      * Default is false.
      */
     private boolean safetySwitch = false;
-
-    public String getAccessKey() {
-        return accessKey;
-    }
-
-    public void setAccessKey(String accessKey) {
-        this.accessKey = accessKey;
-    }
-
-    public String getSecretKey() {
-        return secretKey;
-    }
-
-    public void setSecretKey(String secretKey) {
-        this.secretKey = secretKey;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(String region) {
-        this.region = region;
-    }
-
-    public String getBucket() {
-        return bucket;
-    }
-
-    public void setBucket(String bucket) {
-        this.bucket = bucket;
-    }
-
-    public List<String> getObjects() {
-        return objects;
-    }
-
-    public void setObjects(List<String> objects) {
-        this.objects = objects;
-    }
-
-    public char getFieldDelimiter() {
-        return fieldDelimiter;
-    }
-
-    public void setFieldDelimiter(char fieldDelimiter) {
-        this.fieldDelimiter = fieldDelimiter;
-    }
-
-    public String getEncoding() {
-        return encoding;
-    }
-
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
-    }
-
-    public String getEndpoint() {
-        return endpoint;
-    }
-
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
-    }
-
-    public boolean isFirstLineHeader() {
-        return isFirstLineHeader;
-    }
-
-    public void setIsFirstLineHeader(boolean isFirstLineHeader) {
-        this.isFirstLineHeader = isFirstLineHeader;
-    }
-
-    public String getWriteMode() {
-        return writeMode;
-    }
-
-    public void setWriteMode(String writeMode) {
-        this.writeMode = writeMode;
-    }
-
-    public long getMaxFileSize() {
-        return maxFileSize;
-    }
-
-    public void setMaxFileSize(long maxFileSize) {
-        this.maxFileSize = maxFileSize;
-    }
-
-    public String getObject() {
-        return object;
-    }
-
-    public void setObject(String object) {
-        this.object = object;
-    }
-
-    public String getProtocol() {
-        return Protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        Protocol = protocol;
-    }
-
-    public int getFetchSize() {
-        return fetchSize;
-    }
-
-    public void setFetchSize(int fetchSize) {
-        this.fetchSize = fetchSize;
-    }
-
-    public boolean isUseV2() {
-        return useV2;
-    }
-
-    public boolean isSafetySwitch() {
-        return safetySwitch;
-    }
-
-    public void setSafetySwitch(boolean safetySwitch) {
-        this.safetySwitch = safetySwitch;
-    }
-
-    public void setUseV2(boolean useV2) {
-        this.useV2 = useV2;
-    }
 }

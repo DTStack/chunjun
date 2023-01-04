@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
 
 public class PostgresqlDialect implements JdbcDialect {
 
+    private static final long serialVersionUID = 2647649364696033202L;
+
     private static final String DIALECT_NAME = "PostgreSQL";
     private static final String DRIVER = "org.postgresql.Driver";
     private static final String URL_START = "jdbc:postgresql:";

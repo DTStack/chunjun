@@ -42,6 +42,8 @@ import java.util.stream.Collectors;
 
 public class DmDialect implements JdbcDialect {
 
+    private static final long serialVersionUID = 3647039829317998203L;
+
     @Override
     public String dialectName() {
         return "DM";

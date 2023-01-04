@@ -23,6 +23,9 @@ import com.dtstack.chunjun.lookup.config.LookupConfig;
 import java.util.Map;
 
 public class JdbcLookupConfig extends LookupConfig {
+
+    private static final long serialVersionUID = 1468075604599487858L;
+
     /** vertx pool size */
     protected int asyncPoolSize = 5;
 

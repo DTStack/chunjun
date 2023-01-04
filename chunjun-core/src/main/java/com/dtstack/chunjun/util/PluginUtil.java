@@ -22,7 +22,7 @@ import com.dtstack.chunjun.cdc.config.CacheConfig;
 import com.dtstack.chunjun.cdc.config.DDLConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
 import com.dtstack.chunjun.enums.ClusterMode;
 import com.dtstack.chunjun.enums.OperatorType;
@@ -35,9 +35,8 @@ import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -62,6 +61,7 @@ import static com.dtstack.chunjun.constants.ConstantValue.DIRTY_DATA_DIR_NAME;
 import static com.dtstack.chunjun.constants.ConstantValue.POINT_SYMBOL;
 import static com.dtstack.chunjun.constants.ConstantValue.RESTORE_DIR_NAME;
 
+@Slf4j
 public class PluginUtil {
     public static final String FORMATS_SUFFIX = "formats";
     public static final String DIRTY_SUFFIX = "dirty-data-collector";
@@ -74,7 +74,6 @@ public class PluginUtil {
     public static final String METRIC_SUFFIX = "metrics";
     public static final String DEFAULT_METRIC_PLUGIN = "prometheus";
     private static final String SP = File.separator;
-    private static final Logger LOG = LoggerFactory.getLogger(PluginUtil.class);
     private static final String PACKAGE_PREFIX = "com.dtstack.chunjun.connector.";
     private static final String METRIC_PACKAGE_PREFIX = "com.dtstack.chunjun.metrics.";
     private static final String METRIC_REPORT_PREFIX = "Report";
@@ -309,7 +308,7 @@ public class PluginUtil {
      */
     public static void registerPluginUrlToCachedFile(
             Options options, SyncConfig config, StreamExecutionEnvironment env) {
-        DirtyConf dirtyConf = DirtyConfUtil.parse(options);
+        DirtyConfig dirtyConfig = DirtyConfUtil.parse(options);
 
         Set<URL> urlSet = new HashSet<>();
         Set<URL> coreUrlSet =
@@ -338,7 +337,7 @@ public class PluginUtil {
 
         Set<URL> dirtyUrlSet =
                 getJarFileDirPath(
-                        dirtyConf.getType(),
+                        dirtyConfig.getType(),
                         config.getPluginRoot(),
                         config.getRemotePluginPath(),
                         DIRTY_DATA_DIR_NAME);
@@ -431,7 +430,7 @@ public class PluginUtil {
                 i++;
             }
         } catch (Exception e) {
-            LOG.warn(
+            log.warn(
                     "cannot add core jar into contextClassLoader, coreUrlSet = {}",
                     GsonUtil.GSON.toJson(coreUrlSet),
                     e);
@@ -458,7 +457,7 @@ public class PluginUtil {
             jarList.addAll(urlList);
 
             List<String> pipelineJars = new ArrayList<>();
-            LOG.info("ChunJun executionMode: " + executionMode);
+            log.info("ChunJun executionMode: " + executionMode);
             if (ClusterMode.getByName(executionMode) == ClusterMode.kubernetesApplication) {
                 for (String jarUrl : jarList) {
                     String newJarUrl = jarUrl;
@@ -474,7 +473,7 @@ public class PluginUtil {
                 pipelineJars.addAll(jarList);
             }
 
-            LOG.info("ChunJun reset pipeline.jars: " + pipelineJars);
+            log.info("ChunJun reset pipeline.jars: " + pipelineJars);
             configuration.set(PipelineOptions.JARS, pipelineJars);
 
             List<String> classpathList = configuration.get(PipelineOptions.CLASSPATHS);
@@ -542,7 +541,7 @@ public class PluginUtil {
             }
             return new DistributedCache(distributeCachedFiles);
         } else {
-            LOG.warn("ClassLoader: {} is not instanceof URLClassLoader", contextClassLoader);
+            log.warn("ClassLoader: {} is not instanceof URLClassLoader", contextClassLoader);
             return null;
         }
     }

@@ -28,6 +28,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.ql.io.orc.OrcFile;
@@ -48,9 +49,11 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Slf4j
 public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
 
     private static final String COMPLEX_FIELD_TYPE_SYMBOL_REGEX = ".*(<|>|\\{|}|[|]).*";
+    private static final long serialVersionUID = 5825411463826640071L;
     private final AtomicBoolean isInit = new AtomicBoolean(false);
     private transient String[] fullColNames;
     private transient StructObjectInspector inspector;
@@ -148,7 +151,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         try (org.apache.hadoop.hive.ql.io.orc.Reader reader =
                 OrcFile.createReader(path, readerOptions)) {
             String typeStruct = reader.getObjectInspector().getTypeName();
-            LOG.info("orc typeStruct = {}", typeStruct);
+            log.info("orc typeStruct = {}", typeStruct);
 
             if (StringUtils.isEmpty(typeStruct)) {
                 throw new ChunJunRuntimeException("can't retrieve type struct from " + path);

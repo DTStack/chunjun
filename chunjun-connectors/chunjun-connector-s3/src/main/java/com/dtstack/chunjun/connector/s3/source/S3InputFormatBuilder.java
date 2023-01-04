@@ -23,9 +23,11 @@ import com.dtstack.chunjun.config.SpeedConfig;
 import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+@Slf4j
 public class S3InputFormatBuilder extends BaseRichInputFormatBuilder<S3InputFormat> {
     private SpeedConfig speedConfig;
 
@@ -44,19 +46,19 @@ public class S3InputFormatBuilder extends BaseRichInputFormatBuilder<S3InputForm
         S3InputFormat s3InputFormat = format;
         S3Config s3Config = (S3Config) s3InputFormat.getConfig();
         if (StringUtils.isBlank(s3Config.getBucket())) {
-            LOG.info("bucket was not supplied separately.");
+            log.info("bucket was not supplied separately.");
             sb.append("bucket was not supplied separately;\n");
         }
         if (StringUtils.isBlank(s3Config.getAccessKey())) {
-            LOG.info("accessKey was not supplied separately.");
+            log.info("accessKey was not supplied separately.");
             sb.append("accessKey was not supplied separately;\n");
         }
         if (StringUtils.isBlank(s3Config.getSecretKey())) {
-            LOG.info("secretKey was not supplied separately.");
+            log.info("secretKey was not supplied separately.");
             sb.append("secretKey was not supplied separately;\n");
         }
         if (CollectionUtils.isEmpty(s3Config.getObjects())) {
-            LOG.info("objects was not supplied separately.");
+            log.info("objects was not supplied separately.");
             sb.append("objects was not supplied separately;\n");
         }
         if (sb.length() > 0) {

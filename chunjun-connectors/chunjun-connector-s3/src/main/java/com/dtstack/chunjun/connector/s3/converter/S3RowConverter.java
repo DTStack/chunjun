@@ -37,6 +37,8 @@ import java.time.LocalTime;
 
 public class S3RowConverter extends AbstractRowConverter<String[], RowData, String[], LogicalType> {
 
+    private static final long serialVersionUID = 4835129977890244317L;
+
     public S3RowConverter(RowType rowType, CommonConfig conf) {
         super(rowType, conf);
         for (int i = 0; i < rowType.getFieldCount(); i++) {

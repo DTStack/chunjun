@@ -28,8 +28,7 @@ import org.apache.flink.table.data.RowData;
 import com.google.common.collect.Queues;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -40,9 +39,10 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Slf4j
 public abstract class CacheHandler implements Serializable {
+    private static final long serialVersionUID = 6758334667931679889L;
 
-    protected static final Logger LOG = LoggerFactory.getLogger(CacheHandler.class);
     protected static final Gson GSON =
             GsonUtil.setTypeAdapter(
                     new GsonBuilder()

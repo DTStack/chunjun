@@ -31,16 +31,16 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
+@Slf4j
 public class MongodbInputFormat extends BaseRichInputFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MongodbInputFormat.class);
+    private static final long serialVersionUID = -7227110247051876081L;
 
     private final MongoClientConfig mongoClientConfig;
     private final Bson filter;
@@ -86,7 +86,7 @@ public class MongodbInputFormat extends BaseRichInputFormat {
                                 (int) (size * minNumSplits), (int) (docNum - size * minNumSplits)));
             }
         } catch (Exception e) {
-            LOG.error("error to create inputSplits, e = {}", ExceptionUtil.getErrorMessage(e));
+            log.error("error to create inputSplits, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
         } finally {
             closeMongo(client, null);
@@ -97,7 +97,7 @@ public class MongodbInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) {
-        LOG.info("inputSplit = {}", inputSplit);
+        log.info("inputSplit = {}", inputSplit);
         MongodbInputSplit split = (MongodbInputSplit) inputSplit;
         FindIterable<Document> findIterable;
 
@@ -136,15 +136,15 @@ public class MongodbInputFormat extends BaseRichInputFormat {
 
     private void closeMongo(MongoClient mongoClient, MongoCursor<Document> cursor) {
         if (cursor != null) {
-            LOG.info("Start close mongodb cursor");
+            log.info("Start close mongodb cursor");
             cursor.close();
-            LOG.info("Close mongodb cursor successfully");
+            log.info("Close mongodb cursor successfully");
         }
 
         if (mongoClient != null) {
-            LOG.info("Start close mongodb client");
+            log.info("Start close mongodb client");
             mongoClient.close();
-            LOG.info("Close mongodb client successfully");
+            log.info("Close mongodb client successfully");
         }
     }
 

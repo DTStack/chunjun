@@ -31,11 +31,10 @@ import org.apache.flink.api.common.cache.DistributedCache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.security.PrivilegedAction;
 import java.sql.Connection;
@@ -49,6 +48,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class HiveDbUtil {
     public static final String SQLSTATE_USERNAME_PWD_ERROR = "28000";
     public static final String SQLSTATE_CANNOT_ACQUIRE_CONNECT = "08004";
@@ -63,7 +63,6 @@ public class HiveDbUtil {
     public static final String PARAM_KEY = "param";
     public static final String HIVE_SERVER2_AUTHENTICATION_KERBEROS_KEYTAB_KEY =
             "hive.server2.authentication.kerberos.keytab";
-    private static final Logger LOG = LoggerFactory.getLogger(HiveDbUtil.class);
     private static final String ERROR_MSG_NO_DB = "NoSuchDatabaseException";
     public static Pattern HIVE_JDBC_PATTERN =
             Pattern.compile(
@@ -94,20 +93,21 @@ public class HiveDbUtil {
 
     private static Connection getConnectionWithKerberos(
             ConnectionInfo connectionInfo, DistributedCache distributedCache) {
-        if (connectionInfo.getHiveConf() == null || connectionInfo.getHiveConf().isEmpty()) {
+        if (connectionInfo.getHiveConfig() == null || connectionInfo.getHiveConfig().isEmpty()) {
             throw new IllegalArgumentException("hiveConf can not be null or empty");
         }
 
-        String keytabFileName = KerberosUtil.getPrincipalFileName(connectionInfo.getHiveConf());
+        String keytabFileName = KerberosUtil.getPrincipalFileName(connectionInfo.getHiveConfig());
 
         keytabFileName =
                 KerberosUtil.loadFile(
-                        connectionInfo.getHiveConf(), keytabFileName, distributedCache);
-        String principal = KerberosUtil.getPrincipal(connectionInfo.getHiveConf(), keytabFileName);
-        KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConf(), distributedCache);
+                        connectionInfo.getHiveConfig(), keytabFileName, distributedCache);
+        String principal =
+                KerberosUtil.getPrincipal(connectionInfo.getHiveConfig(), keytabFileName);
+        KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConfig(), distributedCache);
         KerberosUtil.refreshConfig();
 
-        Configuration conf = FileSystemUtil.getConfiguration(connectionInfo.getHiveConf(), null);
+        Configuration conf = FileSystemUtil.getConfiguration(connectionInfo.getHiveConfig(), null);
 
         UserGroupInformation ugi;
         try {
@@ -116,7 +116,7 @@ public class HiveDbUtil {
             throw new RuntimeException("Login kerberos error:", e);
         }
 
-        LOG.info("current ugi:{}", ugi);
+        log.info("current ugi:{}", ugi);
         return ugi.doAs(
                 (PrivilegedAction<Connection>) () -> getConnectionWithRetry(connectionInfo));
     }
@@ -308,7 +308,7 @@ public class HiveDbUtil {
                 conn.close();
             }
         } catch (Throwable t) {
-            LOG.warn("", t);
+            log.warn("", t);
         }
     }
 }

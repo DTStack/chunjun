@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public class FunctionFactory {
 
-    public static IFunction createFuntion(String functionName) {
+    public static IFunction createFunction(String functionName) {
         if (StringUtils.isBlank(functionName)) {
             throw new UnsupportedOperationException("function name can't be null!");
         }

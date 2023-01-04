@@ -33,9 +33,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.Serializable;
@@ -44,10 +43,10 @@ import java.util.concurrent.SynchronousQueue;
 
 import static com.dtstack.chunjun.connector.socket.inputformat.SocketInputFormat.KEY_EXIT0;
 
+@Slf4j
 public class DtSocketClient implements Closeable, Serializable {
 
-    private static final long serialVersionUID = 1L;
-
+    private static final long serialVersionUID = 5485855168344870216L;
     protected String host;
     protected int port;
     protected String encoding = "UTF-8";
@@ -55,8 +54,6 @@ public class DtSocketClient implements Closeable, Serializable {
     protected String codeC;
     protected EventLoopGroup group = new NioEventLoopGroup();
     protected SynchronousQueue<RowData> queue;
-
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     public Channel channel;
 
@@ -93,14 +90,14 @@ public class DtSocketClient implements Closeable, Serializable {
                         .addListener(
                                 future -> {
                                     if (future.isSuccess()) {
-                                        LOG.info("connect [{}:{}] success", host, port);
+                                        log.info("connect [{}:{}] success", host, port);
                                     } else {
                                         String error =
                                                 String.format("connect [%s:%d] failed", host, port);
                                         try {
                                             queue.put(GenericRowData.of(KEY_EXIT0 + error));
                                         } catch (InterruptedException ex) {
-                                            LOG.error(ExceptionUtil.getErrorMessage(ex));
+                                            log.error(ExceptionUtil.getErrorMessage(ex));
                                         }
                                     }
                                 })
@@ -119,7 +116,7 @@ public class DtSocketClient implements Closeable, Serializable {
 
     @Override
     public void close() {
-        LOG.error("close channel!!! ");
+        log.error("close channel!!! ");
         if (channel != null) {
             channel.close();
         }

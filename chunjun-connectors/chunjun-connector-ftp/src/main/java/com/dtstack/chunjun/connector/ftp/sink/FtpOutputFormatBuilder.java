@@ -18,15 +18,13 @@
 
 package com.dtstack.chunjun.connector.ftp.sink;
 
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.sink.format.FileOutputFormatBuilder;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.commons.lang3.StringUtils;
 
-public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
-
-    private FtpOutputFormat format;
+public class FtpOutputFormatBuilder extends FileOutputFormatBuilder<FtpOutputFormat> {
 
     public FtpOutputFormatBuilder() {
         super(new FtpOutputFormat());

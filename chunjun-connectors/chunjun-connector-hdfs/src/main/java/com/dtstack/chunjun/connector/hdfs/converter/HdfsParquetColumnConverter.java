@@ -57,6 +57,8 @@ import java.util.Map;
 public class HdfsParquetColumnConverter
         extends AbstractRowConverter<RowData, RowData, Group, String> {
 
+    private static final long serialVersionUID = -5175141539300795729L;
+
     private List<String> columnNameList;
     private transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 

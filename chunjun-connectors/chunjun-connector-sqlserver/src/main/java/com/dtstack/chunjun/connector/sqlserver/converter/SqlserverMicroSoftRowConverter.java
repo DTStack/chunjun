@@ -37,6 +37,8 @@ import java.sql.Timestamp;
 
 public class SqlserverMicroSoftRowConverter extends JdbcRowConverter {
 
+    private static final long serialVersionUID = -4576784787542348741L;
+
     public SqlserverMicroSoftRowConverter(RowType rowType) {
         super(rowType);
     }

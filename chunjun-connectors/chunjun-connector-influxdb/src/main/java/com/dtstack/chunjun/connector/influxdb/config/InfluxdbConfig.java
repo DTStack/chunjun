@@ -21,36 +21,21 @@ package com.dtstack.chunjun.connector.influxdb.config;
 
 import com.dtstack.chunjun.config.CommonConfig;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.io.Serializable;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class InfluxdbConfig extends CommonConfig {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -7593820652819230606L;
 
     private String username;
     private String password;
     private List<Connection> connection;
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public List<String> getUrl() {
-        return connection.get(0).getUrl();
-    }
 
     public String getMeasurement() {
         return connection.get(0).getMeasurement().get(0);
@@ -60,38 +45,16 @@ public class InfluxdbConfig extends CommonConfig {
         return connection.get(0).getDatabase();
     }
 
-    public void setConnection(List<Connection> connection) {
-        this.connection = connection;
+    public List<String> getUrl() {
+        return connection.get(0).getUrl();
     }
 
+    @Data
     public static class Connection implements Serializable {
-        private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 6950334044173729484L;
+
         private List<String> url;
         private List<String> measurement;
         private String database;
-
-        public List<String> getUrl() {
-            return url;
-        }
-
-        public void setUrl(List<String> url) {
-            this.url = url;
-        }
-
-        public List<String> getMeasurement() {
-            return measurement;
-        }
-
-        public void setMeasurement(List<String> measurement) {
-            this.measurement = measurement;
-        }
-
-        public String getDatabase() {
-            return database;
-        }
-
-        public void setDatabase(String database) {
-            this.database = database;
-        }
     }
 }

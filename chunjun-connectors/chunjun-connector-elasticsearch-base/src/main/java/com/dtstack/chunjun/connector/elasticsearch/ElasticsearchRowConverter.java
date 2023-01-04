@@ -41,9 +41,8 @@ import org.apache.flink.table.types.logical.MapType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -58,13 +57,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class ElasticsearchRowConverter
         extends AbstractRowConverter<
                 Map<String, Object>, Map<String, Object>, Map<String, Object>, LogicalType> {
 
-    private static final long serialVersionUID = 1L;
-    private final Logger LOG = LoggerFactory.getLogger(ElasticsearchRowConverter.class);
-
+    private static final long serialVersionUID = -1093338072559909026L;
     private final List<Tuple2<String, Integer>> typeIndexList = new ArrayList<>();
 
     public ElasticsearchRowConverter(RowType rowType) {
@@ -115,7 +113,7 @@ public class ElasticsearchRowConverter
                             .collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(collect)) {
-                LOG.warn("Result Map : key [{}] not in columns", key);
+                log.warn("Result Map : key [{}] not in columns", key);
                 continue;
             }
 
@@ -183,7 +181,7 @@ public class ElasticsearchRowConverter
                                         .toString();
                         output.put(typeIndexList.get(index).f0, result);
                     } catch (Exception e) {
-                        LOG.error("converter error. Value: {}, Type: {}", val, type.getTypeRoot());
+                        log.error("converter error. Value: {}, Type: {}", val, type.getTypeRoot());
                         throw new RuntimeException("Converter error.", e);
                     }
                 };
@@ -199,7 +197,7 @@ public class ElasticsearchRowConverter
                                         .toString();
                         output.put(typeIndexList.get(index).f0, result);
                     } catch (Exception e) {
-                        LOG.error("converter error. Value: {}, Type: {}", val, type.getTypeRoot());
+                        log.error("converter error. Value: {}, Type: {}", val, type.getTypeRoot());
                         throw new RuntimeException("Converter error.", e);
                     }
                 };

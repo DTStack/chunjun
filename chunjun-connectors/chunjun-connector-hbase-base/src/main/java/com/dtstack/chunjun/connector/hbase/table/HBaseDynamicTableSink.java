@@ -30,17 +30,17 @@ import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 
 public class HBaseDynamicTableSink implements DynamicTableSink {
 
-    private final HBaseConfig conf;
+    private final HBaseConfig config;
     private final TableSchema tableSchema;
     private final HBaseTableSchema hbaseSchema;
     protected final String nullStringLiteral;
 
     public HBaseDynamicTableSink(
-            HBaseConfig conf,
+            HBaseConfig config,
             TableSchema tableSchema,
             HBaseTableSchema hbaseSchema,
             String nullStringLiteral) {
-        this.conf = conf;
+        this.config = config;
         this.tableSchema = tableSchema;
         this.hbaseSchema = hbaseSchema;
         this.nullStringLiteral = nullStringLiteral;
@@ -55,19 +55,19 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
 
         HBaseOutputFormatBuilder builder = new HBaseOutputFormatBuilder();
-        builder.setHbaseConfig(conf.getHbaseConfig());
-        builder.setTableName(conf.getTable());
-        builder.setWriteBufferSize(conf.getWriteBufferSize());
+        builder.setHbaseConfig(config.getHbaseConfig());
+        builder.setTableName(config.getTable());
+        builder.setWriteBufferSize(config.getWriteBufferSize());
         HBaseRowConverter hbaseRowConverter = new HBaseRowConverter(hbaseSchema, nullStringLiteral);
         builder.setRowConverter(hbaseRowConverter);
-        builder.setConfig(conf);
+        builder.setConfig(config);
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction(builder.finish()), conf.getParallelism());
+                new DtOutputFormatSinkFunction<>(builder.finish()), config.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new HBaseDynamicTableSink(conf, tableSchema, hbaseSchema, nullStringLiteral);
+        return new HBaseDynamicTableSink(config, tableSchema, hbaseSchema, nullStringLiteral);
     }
 
     @Override

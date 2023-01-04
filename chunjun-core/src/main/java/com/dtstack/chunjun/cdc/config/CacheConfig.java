@@ -18,11 +18,15 @@
 
 package com.dtstack.chunjun.cdc.config;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Properties;
-import java.util.StringJoiner;
 
+@Data
 public class CacheConfig implements Serializable {
+
+    private static final long serialVersionUID = -7346129428515920498L;
 
     private String type;
 
@@ -33,55 +37,4 @@ public class CacheConfig implements Serializable {
     private Long cacheTimeout = Long.MAX_VALUE;
 
     private Properties properties;
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public int getCacheSize() {
-        return cacheSize;
-    }
-
-    public void setCacheSize(int cacheSize) {
-        this.cacheSize = cacheSize;
-    }
-
-    public Long getMaxBytes() {
-        return maxBytes;
-    }
-
-    public void setMaxBytes(Long maxBytes) {
-        this.maxBytes = maxBytes;
-    }
-
-    public Long getCacheTimeout() {
-        return cacheTimeout;
-    }
-
-    public void setCacheTimeout(Long cacheTimeout) {
-        this.cacheTimeout = cacheTimeout;
-    }
-
-    public Properties getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Properties properties) {
-        this.properties = properties;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", CacheConfig.class.getSimpleName() + "[", "]")
-                .add("type='" + type + "'")
-                .add("cacheSize=" + cacheSize)
-                .add("maxBytes=" + maxBytes)
-                .add("cacheTimeout=" + cacheTimeout)
-                .add("properties=" + properties)
-                .toString();
-    }
 }

@@ -23,12 +23,11 @@ import com.dtstack.chunjun.connector.entity.JobAccumulatorResult;
 import com.dtstack.chunjun.connector.test.utils.ChunjunFlinkStandaloneTestEnvironment;
 import com.dtstack.chunjun.connector.test.utils.JdbcProxy;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.lifecycle.Startables;
 
@@ -45,8 +44,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 public class PostgreSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
-    private static final Logger LOG = LoggerFactory.getLogger(PostgreSyncE2eITCase.class);
 
     protected static final String POSTGRE_HOST = "chunjun-e2e-postgre";
 
@@ -58,15 +57,15 @@ public class PostgreSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment 
     @Override
     public void before() throws Exception {
         super.before();
-        LOG.info("Starting containers...");
+        log.info("Starting containers...");
         postgre = new PostgreContainer();
         postgre.withNetwork(NETWORK);
         postgre.withNetworkAliases(POSTGRE_HOST);
-        postgre.withLogConsumer(new Slf4jLogConsumer(LOG));
+        postgre.withLogConsumer(new Slf4jLogConsumer(log));
         Startables.deepStart(Stream.of(postgre)).join();
         Thread.sleep(5000);
         initPostgre();
-        LOG.info("Containers are started.");
+        log.info("Containers are started.");
     }
 
     @Override
@@ -123,7 +122,7 @@ public class PostgreSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment 
                 statement.execute(sql);
             }
         } catch (SQLException e) {
-            LOG.error("Execute Oracle init sql failed.", e);
+            log.error("Execute Oracle init sql failed.", e);
             throw e;
         }
     }

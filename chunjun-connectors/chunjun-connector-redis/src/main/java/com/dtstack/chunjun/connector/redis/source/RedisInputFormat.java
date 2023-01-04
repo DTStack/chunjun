@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class RedisInputFormat extends BaseRichInputFormat {
+    private static final long serialVersionUID = 88062910932514147L;
     private transient RedisSyncClient redisSyncClient;
 
     private transient Iterator<String> keyIterator;

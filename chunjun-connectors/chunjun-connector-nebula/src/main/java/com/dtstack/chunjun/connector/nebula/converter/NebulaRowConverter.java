@@ -48,6 +48,8 @@ import java.util.List;
 public class NebulaRowConverter
         extends AbstractRowConverter<BaseTableRow, BaseTableRow, NebulaRows, RowType.RowField> {
 
+    private static final long serialVersionUID = -2353660561978026681L;
+
     public NebulaRowConverter(RowType rowType) {
         super(rowType);
         List<RowType.RowField> fields = rowType.getFields();

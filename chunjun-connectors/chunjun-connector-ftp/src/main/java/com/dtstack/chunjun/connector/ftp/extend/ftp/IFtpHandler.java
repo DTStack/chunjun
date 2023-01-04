@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,7 +39,7 @@ public interface IFtpHandler extends AutoCloseable {
      * @param filePath 要检查的文件路径
      * @return true:存在,false:不存在
      */
-    boolean isFileExist(String filePath);
+    boolean isFileExist(String filePath) throws IOException;
 
     /**
      * 获取文件输入流
@@ -54,17 +54,9 @@ public interface IFtpHandler extends AutoCloseable {
      *
      * @param filePath 文件路径
      * @param startPosition 指定的位置
-     * @return
+     * @return input stream.
      */
     InputStream getInputStreamByPosition(String filePath, long startPosition);
-
-    /**
-     * 列出指定路径下的目录
-     *
-     * @param path 路径
-     * @return 目录列表
-     */
-    List<String> listDirs(String path);
 
     /**
      * 列出指定路径下的目录
@@ -103,14 +95,14 @@ public interface IFtpHandler extends AutoCloseable {
      * @param dir 指定的目录
      * @param exclude 要排除的文件
      */
-    void deleteAllFilesInDir(String dir, List<String> exclude);
+    void deleteAllFilesInDir(String dir, List<String> exclude) throws IOException;
 
     /**
      * 删除文件
      *
      * @param filePath 文件路径
      */
-    boolean deleteFile(String filePath) throws IOException;
+    void deleteFile(String filePath) throws IOException;
 
     /**
      * 重命名路径

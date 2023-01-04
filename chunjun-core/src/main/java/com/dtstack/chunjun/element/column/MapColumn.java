@@ -30,6 +30,8 @@ import java.util.Map;
 
 public class MapColumn extends AbstractBaseColumn {
 
+    private static final long serialVersionUID = 440087045570980195L;
+
     public MapColumn(Map<String, Object> data) {
         super(data, 0);
         if (data != null) {

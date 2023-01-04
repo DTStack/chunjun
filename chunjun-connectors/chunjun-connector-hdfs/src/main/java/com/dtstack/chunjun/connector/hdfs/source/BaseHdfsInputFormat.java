@@ -28,6 +28,7 @@ import com.dtstack.chunjun.util.PluginUtil;
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.core.io.InputSplit;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
@@ -40,7 +41,10 @@ import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
+
+    private static final long serialVersionUID = 6410279064990147152L;
 
     protected HdfsConfig hdfsConfig;
 
@@ -68,7 +72,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
                             hdfsConfig.getHadoopConfig(),
                             hdfsConfig.getDefaultFS(),
                             distributedCache);
-            LOG.info("user:{}, ", ugi.getShortUserName());
+            log.info("user:{}, ", ugi.getShortUserName());
             return ugi.doAs(
                     (PrivilegedAction<InputSplit[]>)
                             () -> {
@@ -138,7 +142,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
         }
 
         for (FieldConfig fieldConfig : hdfsConfig.getColumn()) {
-            if (fieldConfig.getPart()) {
+            if (fieldConfig.getIsPart()) {
                 fieldConfig.setValue(map.get(fieldConfig.getName()));
             }
         }

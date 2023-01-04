@@ -28,9 +28,8 @@ import io.lettuce.core.api.async.RedisKeyAsyncCommands;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.internal.HostAndPort;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,9 +39,8 @@ import java.util.regex.Matcher;
 
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.REDIS_HOST_PATTERN;
 
+@Slf4j
 public class RedisAsyncClient {
-
-    private static final Logger LOG = LoggerFactory.getLogger(RedisAsyncClient.class);
 
     private RedisClient redisClient;
 
@@ -62,16 +60,16 @@ public class RedisAsyncClient {
         RedisKeyAsyncCommands<String, String> redisKeyAsyncCommands = null;
         for (int i = 0; i <= 2; i++) {
             try {
-                LOG.info("connect " + (i + 1) + " times.");
+                log.info("connect " + (i + 1) + " times.");
                 redisKeyAsyncCommands = getRedisKeyAsyncCommandsInner();
                 if (redisKeyAsyncCommands != null) {
-                    LOG.info("jedis is connected = {} ", redisKeyAsyncCommands);
+                    log.info("jedis is connected = {} ", redisKeyAsyncCommands);
                     break;
                 }
             } catch (IllegalArgumentException e) {
                 throw e;
             } catch (Exception e) {
-                LOG.error(
+                log.error(
                         "connect failed:{} , sleep 3 seconds reconnect",
                         ExceptionUtil.getErrorMessage(e));
                 try {

@@ -18,6 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.options;
 
+import com.dtstack.chunjun.connector.jdbc.lookup.provider.DruidDataSourceProvider;
 import com.dtstack.chunjun.lookup.options.LookupOptions;
 
 import org.apache.flink.configuration.ConfigOption;
@@ -85,8 +86,7 @@ public class JdbcLookupOptions extends LookupOptions {
     public static final ConfigOption<String> DT_PROVIDER_CLASS =
             ConfigOptions.key("DT_PROVIDER_CLASS")
                     .stringType()
-                    .defaultValue(
-                            "com.dtstack.chunjun.connector.jdbc.lookup.provider.DruidDataSourceProvider")
+                    .defaultValue(DruidDataSourceProvider.class.getName())
                     .withDescription(" lookup ");
 
     public static final ConfigOption<String> PREFERRED_TEST_QUERY_SQL =
@@ -104,7 +104,7 @@ public class JdbcLookupOptions extends LookupOptions {
     public static LinkedHashMap<String, Object> getLibConfMap(
             Map<String, String> tableOptions, String prefix) {
         final LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        if (hasLibProperties(tableOptions, prefix)) {
+        if (hasLibProperties(tableOptions)) {
             tableOptions.keySet().stream()
                     .filter(key -> key.startsWith(prefix))
                     .forEach(
@@ -116,7 +116,7 @@ public class JdbcLookupOptions extends LookupOptions {
         return map;
     }
 
-    private static boolean hasLibProperties(Map<String, String> tableOptions, String prefix) {
+    private static boolean hasLibProperties(Map<String, String> tableOptions) {
         return tableOptions.keySet().stream().anyMatch(k -> k.startsWith(DRUID_PREFIX));
     }
 }

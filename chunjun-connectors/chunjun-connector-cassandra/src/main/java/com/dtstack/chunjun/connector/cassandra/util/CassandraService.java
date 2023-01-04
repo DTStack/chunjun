@@ -34,9 +34,8 @@ import com.datastax.driver.core.SocketOptions;
 import com.datastax.driver.core.policies.DefaultRetryPolicy;
 import com.datastax.driver.core.policies.ExponentialReconnectionPolicy;
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -44,8 +43,8 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Locale;
 
+@Slf4j
 public class CassandraService {
-    private static final Logger LOG = LoggerFactory.getLogger(CassandraService.class);
 
     private static final String TOKEN = "token(";
 
@@ -53,25 +52,16 @@ public class CassandraService {
 
     private static final String MURMUR3_PARTITIONER = "Murmur3Partitioner";
 
-    /**
-     * Build cassandra session.
-     *
-     * @param commonConfig cassandra common conf {@link CassandraCommonConfig}
-     * @return cassandraSession
-     */
     public static Session session(CassandraCommonConfig commonConfig) {
-        try {
-            String keySpace = commonConfig.getKeyspaces();
+        String keySpace = commonConfig.getKeyspaces();
 
-            Preconditions.checkNotNull(keySpace, "keySpace must not null");
-
-            // 获取集群
-            Cluster cluster = cluster(commonConfig);
-
+        Preconditions.checkNotNull(keySpace, "keySpace must not null");
+        // 获取集群
+        try (Cluster cluster = cluster(commonConfig)) {
             // 创建session
             Session cassandraSession = cluster.connect(keySpace);
 
-            LOG.info("Get cassandra session successful");
+            log.info("Get cassandra session successful");
             return cassandraSession;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -146,7 +136,7 @@ public class CassandraService {
                                     new ExponentialReconnectionPolicy(3 * 1000, 60 * 1000))
                             .build();
 
-            LOG.info("Get cassandra cluster successful");
+            log.info("Get cassandra cluster successful");
             return cassandraCluster;
         } catch (Exception e) {
             throw new ChunJunRuntimeException(e);
@@ -190,21 +180,14 @@ public class CassandraService {
 
             if (cluster != null) {
                 cluster.close();
-                LOG.info("Close cassandra cluster successfully");
+                log.info("Close cassandra cluster successfully");
             }
 
             session.close();
-            LOG.info("Close cassandra session successfully");
+            log.info("Close cassandra session successfully");
         }
     }
 
-    /**
-     * 分割任务
-     *
-     * @param minNumSplits 分片数
-     * @param splits 分片列表
-     * @return 返回InputSplit[]
-     */
     public static InputSplit[] splitJob(
             CassandraSourceConfig sourceConf,
             int minNumSplits,

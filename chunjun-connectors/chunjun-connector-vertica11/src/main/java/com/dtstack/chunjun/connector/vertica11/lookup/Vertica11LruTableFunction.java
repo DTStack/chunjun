@@ -34,6 +34,8 @@ import static com.dtstack.chunjun.connector.vertica11.lookup.options.Vertica11Lo
 
 public class Vertica11LruTableFunction extends JdbcLruTableFunction {
 
+    private static final long serialVersionUID = -6018243866809195735L;
+
     private final JdbcConfig jdbcConfig;
 
     private final JdbcDialect jdbcDialect;

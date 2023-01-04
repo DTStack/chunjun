@@ -29,18 +29,16 @@ import org.apache.flink.table.data.RowData;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.SynchronousQueue;
 
 import static com.dtstack.chunjun.connector.socket.inputformat.SocketInputFormat.KEY_EXIT0;
 
+@Slf4j
 public class DtClientHandler extends ChannelInboundHandlerAdapter {
-
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     protected SynchronousQueue<RowData> queue;
 
@@ -65,7 +63,7 @@ public class DtClientHandler extends ChannelInboundHandlerAdapter {
         try {
             queue.put(row);
         } catch (InterruptedException e) {
-            LOG.error(ExceptionUtil.getErrorMessage(e), e);
+            log.error(ExceptionUtil.getErrorMessage(e), e);
         }
     }
 
@@ -82,12 +80,12 @@ public class DtClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         String error = ExceptionUtil.getErrorMessage(cause);
-        LOG.error(error, cause);
+        log.error(error, cause);
         ctx.close();
         try {
             queue.put(GenericRowData.of(KEY_EXIT0 + error));
         } catch (InterruptedException ex) {
-            LOG.error(ExceptionUtil.getErrorMessage(ex), cause);
+            log.error(ExceptionUtil.getErrorMessage(ex), cause);
         }
     }
 }

@@ -47,6 +47,8 @@ import java.util.Arrays;
 public class HdfsTextRowConverter
         extends AbstractRowConverter<RowData, RowData, String[], LogicalType> {
 
+    private static final long serialVersionUID = -165352676945714752L;
+
     public HdfsTextRowConverter(RowType rowType) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {

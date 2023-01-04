@@ -34,23 +34,20 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.TableMetadata;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.dtstack.chunjun.connector.cassandra.util.CassandraService.quoteColumn;
 
+@Slf4j
 public class CassandraOutputFormat extends BaseRichOutputFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CassandraOutputFormat.class);
+    private static final long serialVersionUID = -4838419864829755370L;
 
-    private static final long serialVersionUID = 1L;
-
-    private CassandraSinkConfig sinkConf;
+    private CassandraSinkConfig sinkConfig;
 
     private Session session;
 
@@ -83,7 +80,7 @@ public class CassandraOutputFormat extends BaseRichOutputFormat {
                 BoundStatement statement =
                         (BoundStatement) rowConverter.toExternal(rowData, boundStatement);
 
-                if (sinkConf.isAsyncWrite()) {
+                if (sinkConfig.isAsyncWrite()) {
                     unConfirmedWrite.add(session.executeAsync(statement));
                     if (unConfirmedWrite.size() >= batchSize) {
                         for (ResultSetFuture write : unConfirmedWrite) {
@@ -120,16 +117,16 @@ public class CassandraOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        LOG.info("taskNumber: {}, numTasks: {}", taskNumber, numTasks);
+    protected void openInternal(int taskNumber, int numTasks) {
+        log.info("taskNumber: {}, numTasks: {}", taskNumber, numTasks);
 
-        String keyspaces = sinkConf.getKeyspaces();
-        String table = sinkConf.getTableName();
+        String keyspaces = sinkConfig.getKeyspaces();
+        String table = sinkConfig.getTableName();
 
         ConsistencyLevel consistencyLevel =
-                CassandraService.consistencyLevel(sinkConf.getConsistency());
+                CassandraService.consistencyLevel(sinkConfig.getConsistency());
 
-        session = CassandraService.session(sinkConf);
+        session = CassandraService.session(sinkConfig);
 
         Insert insert = QueryBuilder.insertInto(keyspaces, table);
 
@@ -147,7 +144,7 @@ public class CassandraOutputFormat extends BaseRichOutputFormat {
         preparedStatement = session.prepare(insert);
 
         if (batchSize > 1) {
-            if (sinkConf.isAsyncWrite()) {
+            if (sinkConfig.isAsyncWrite()) {
                 unConfirmedWrite = new ArrayList<>();
             } else {
                 bufferedWrite = new ArrayList<>();
@@ -156,15 +153,15 @@ public class CassandraOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void closeInternal() throws IOException {
+    protected void closeInternal() {
         CassandraService.close(session);
     }
 
-    public CassandraSinkConfig getSinkConf() {
-        return sinkConf;
+    public CassandraSinkConfig getSinkConfig() {
+        return sinkConfig;
     }
 
-    public void setSinkConf(CassandraSinkConfig sinkConf) {
-        this.sinkConf = sinkConf;
+    public void setSinkConfig(CassandraSinkConfig sinkConfig) {
+        this.sinkConfig = sinkConfig;
     }
 }

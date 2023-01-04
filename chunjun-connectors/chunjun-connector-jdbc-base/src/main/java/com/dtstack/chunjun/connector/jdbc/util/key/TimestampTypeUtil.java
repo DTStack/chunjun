@@ -31,6 +31,8 @@ import java.sql.Timestamp;
 
 public class TimestampTypeUtil extends KeyUtil<Timestamp, BigInteger> {
 
+    private static final long serialVersionUID = -3625527870391581143L;
+
     @Override
     public Timestamp getSqlValueFromRs(ResultSet rs, int index) throws SQLException {
         return rs.getTimestamp(index);

@@ -30,9 +30,8 @@ import org.apache.flink.types.RowKind;
 import com.esotericsoftware.minlog.Log;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -58,9 +57,8 @@ import java.util.concurrent.TimeUnit;
  * build prepare proxy, proxy implements FieldNamedPreparedStatement. it support to build
  * preparestmt and manager it with cache.
  */
+@Slf4j
 public class PreparedStmtProxy implements FieldNamedPreparedStatement {
-
-    private static final Logger LOG = LoggerFactory.getLogger(PreparedStmtProxy.class);
 
     private final int cacheSize = 100;
 
@@ -160,7 +158,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                                             jdbcDialect,
                                             writeExtInfo);
                                 } catch (SQLException e) {
-                                    LOG.warn("", e);
+                                    log.warn("", e);
                                     return null;
                                 }
                             });
@@ -185,7 +183,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                                             jdbcConfig.getColumn(),
                                             currentRowConverter);
                                 } catch (SQLException e) {
-                                    LOG.warn("", e);
+                                    log.warn("", e);
                                     return null;
                                 }
                             });

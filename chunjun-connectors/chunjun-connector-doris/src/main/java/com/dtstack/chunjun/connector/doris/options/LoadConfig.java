@@ -18,8 +18,13 @@
 
 package com.dtstack.chunjun.connector.doris.options;
 
+import lombok.Builder;
+import lombok.Data;
+
 import java.io.Serializable;
 
+@Data
+@Builder
 public class LoadConfig implements Serializable {
 
     private static final Long serialVersionUID = 1L;
@@ -45,92 +50,4 @@ public class LoadConfig implements Serializable {
     private Integer deserializeQueueSize;
 
     private Boolean deserializeArrowAsync;
-
-    public String getReadFields() {
-        return readFields;
-    }
-
-    public void setReadFields(String readFields) {
-        this.readFields = readFields;
-    }
-
-    public String getFilterQuery() {
-        return filterQuery;
-    }
-
-    public void setFilterQuery(String filterQuery) {
-        this.filterQuery = filterQuery;
-    }
-
-    public Integer getRequestTabletSize() {
-        return requestTabletSize;
-    }
-
-    public void setRequestTabletSize(Integer requestTabletSize) {
-        this.requestTabletSize = requestTabletSize;
-    }
-
-    public Integer getRequestConnectTimeoutMs() {
-        return requestConnectTimeoutMs;
-    }
-
-    public void setRequestConnectTimeoutMs(Integer requestConnectTimeoutMs) {
-        this.requestConnectTimeoutMs = requestConnectTimeoutMs;
-    }
-
-    public Integer getRequestReadTimeoutMs() {
-        return requestReadTimeoutMs;
-    }
-
-    public void setRequestReadTimeoutMs(Integer requestReadTimeoutMs) {
-        this.requestReadTimeoutMs = requestReadTimeoutMs;
-    }
-
-    public Integer getRequestQueryTimeoutS() {
-        return requestQueryTimeoutS;
-    }
-
-    public void setRequestQueryTimeoutS(Integer requestQueryTimeoutS) {
-        this.requestQueryTimeoutS = requestQueryTimeoutS;
-    }
-
-    public Integer getRequestRetries() {
-        return requestRetries;
-    }
-
-    public void setRequestRetries(Integer requestRetries) {
-        this.requestRetries = requestRetries;
-    }
-
-    public Integer getRequestBatchSize() {
-        return requestBatchSize;
-    }
-
-    public void setRequestBatchSize(Integer requestBatchSize) {
-        this.requestBatchSize = requestBatchSize;
-    }
-
-    public Long getExecMemLimit() {
-        return execMemLimit;
-    }
-
-    public void setExecMemLimit(Long execMemLimit) {
-        this.execMemLimit = execMemLimit;
-    }
-
-    public Integer getDeserializeQueueSize() {
-        return deserializeQueueSize;
-    }
-
-    public void setDeserializeQueueSize(Integer deserializeQueueSize) {
-        this.deserializeQueueSize = deserializeQueueSize;
-    }
-
-    public Boolean getDeserializeArrowAsync() {
-        return deserializeArrowAsync;
-    }
-
-    public void setDeserializeArrowAsync(Boolean deserializeArrowAsync) {
-        this.deserializeArrowAsync = deserializeArrowAsync;
-    }
 }

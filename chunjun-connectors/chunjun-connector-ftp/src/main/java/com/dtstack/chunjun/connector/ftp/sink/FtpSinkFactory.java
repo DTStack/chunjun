@@ -20,8 +20,8 @@ package com.dtstack.chunjun.connector.ftp.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
-import com.dtstack.chunjun.connector.ftp.conf.ConfigConstants;
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.config.ConfigConstants;
+import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.converter.FtpColumnConverter;
 import com.dtstack.chunjun.connector.ftp.converter.FtpRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;

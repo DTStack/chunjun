@@ -24,6 +24,8 @@ import java.io.Serializable;
 
 public class Md5Function implements IFunction, Serializable {
 
+    private static final long serialVersionUID = -5521221333016435520L;
+
     @Override
     public String evaluate(Object str) throws Exception {
         return Md5Util.getMd5(str.toString());

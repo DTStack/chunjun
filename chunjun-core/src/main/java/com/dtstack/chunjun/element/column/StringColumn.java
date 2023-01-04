@@ -36,6 +36,8 @@ import static com.dtstack.chunjun.element.ClassSizeUtil.getStringSize;
 
 public class StringColumn extends AbstractBaseColumn {
 
+    private static final long serialVersionUID = 575802015291413262L;
+
     private String format = "yyyy-MM-dd HH:mm:ss";
     private boolean isCustomFormat = false;
 

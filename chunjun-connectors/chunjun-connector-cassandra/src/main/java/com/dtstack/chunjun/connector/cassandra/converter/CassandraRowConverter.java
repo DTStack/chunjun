@@ -47,7 +47,7 @@ import java.util.List;
 public class CassandraRowConverter
         extends AbstractRowConverter<Row, Row, BoundStatement, LogicalType> {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -8976735679096609952L;
 
     private final List<String> columnNameList;
 

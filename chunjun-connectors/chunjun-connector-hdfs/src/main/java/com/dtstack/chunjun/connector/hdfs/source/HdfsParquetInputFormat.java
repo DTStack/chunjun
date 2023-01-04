@@ -33,6 +33,7 @@ import org.apache.flink.table.data.RowData;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -58,12 +59,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
 
     private static final int JULIAN_EPOCH_OFFSET_DAYS = 2440588;
     private static final long MILLIS_IN_DAY = TimeUnit.DAYS.toMillis(1);
     private static final long NANOS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
     private static final int TIMESTAMP_BINARY_LENGTH = 12;
+    private static final long serialVersionUID = 8835924162626158151L;
 
     private transient Group currentLine;
     private transient ParquetReader<Group> currentFileReader;
@@ -343,7 +346,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                     break;
             }
         } catch (Exception e) {
-            LOG.error("error to get data from parquet group.", e);
+            log.error("error to get data from parquet group.", e);
         }
 
         return data;

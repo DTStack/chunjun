@@ -26,9 +26,8 @@ import com.dtstack.chunjun.util.TelnetUtil;
 
 import org.apache.flink.util.FlinkRuntimeException;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -47,8 +46,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class SqlServerCdcUtil {
-    private static final Logger LOG = LoggerFactory.getLogger(SqlServerCdcUtil.class);
 
     public static final String DRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     public static Pattern p = Pattern.compile("\\[(.*?)]");
@@ -90,7 +89,7 @@ public class SqlServerCdcUtil {
                 ret = rs.next();
             }
         } catch (SQLException e) {
-            LOG.error(
+            log.error(
                     "error to query {} Enabled CDC or not, sql = {}, e = {}",
                     databaseName,
                     String.format(CHECK_CDC_DATABASE, databaseName),
@@ -115,7 +114,7 @@ public class SqlServerCdcUtil {
                 }
             }
         } catch (SQLException e) {
-            LOG.error(
+            log.error(
                     "error to query UnEnabled CDC Tables, sql = {}, e = {}",
                     CHECK_CDC_TABLE,
                     ExceptionUtil.getErrorMessage(e));
@@ -148,7 +147,7 @@ public class SqlServerCdcUtil {
                 }
             }
         } catch (SQLException e) {
-            LOG.error("error to query change table set, e = {}", ExceptionUtil.getErrorMessage(e));
+            log.error("error to query change table set, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
         }
         return changeTableSet;
@@ -163,7 +162,7 @@ public class SqlServerCdcUtil {
                 lsn = Lsn.valueOf(rs.getBytes(1));
             }
         } catch (SQLException e) {
-            LOG.error("error to query change table set, e = {}", ExceptionUtil.getErrorMessage(e));
+            log.error("error to query change table set, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
         }
         return lsn;
@@ -175,7 +174,7 @@ public class SqlServerCdcUtil {
                 SqlServerCdcUtil.queryChangeTableSet(conn, databaseName);
 
         if (cdcEnabledTableSet.isEmpty()) {
-            LOG.error(
+            log.error(
                     "No table has enabled CDC or security constraints prevents getting the list of change tables");
         }
 
@@ -204,7 +203,7 @@ public class SqlServerCdcUtil {
                 }
                 currentTable.setStopLsn(futureTable.getStartLsn());
                 changeTableList.add(futureTable);
-                LOG.info(
+                log.info(
                         "Multiple capture instances present for the same table: {} and {}",
                         currentTable,
                         futureTable);
@@ -225,7 +224,7 @@ public class SqlServerCdcUtil {
                 ret = Lsn.valueOf(rs.getBytes(1));
             }
         } catch (SQLException e) {
-            LOG.error("error to query increment lsn, e = {}", ExceptionUtil.getErrorMessage(e));
+            log.error("error to query increment lsn, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
         }
         return ret;
@@ -256,7 +255,7 @@ public class SqlServerCdcUtil {
                 idx++;
             }
         } catch (Exception e) {
-            LOG.error("error to getChangesForTables, e = {}", ExceptionUtil.getErrorMessage(e));
+            log.error("error to getChangesForTables, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
         }
         return resultSets;

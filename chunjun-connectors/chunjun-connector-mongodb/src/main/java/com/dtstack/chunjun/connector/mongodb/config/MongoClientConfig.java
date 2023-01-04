@@ -20,11 +20,15 @@ package com.dtstack.chunjun.connector.mongodb.config;
 
 import com.mongodb.AuthenticationMechanism;
 import com.mongodb.ServerAddress;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.List;
 
+@Data
 public class MongoClientConfig implements Serializable {
+
+    private static final long serialVersionUID = 8173722133864479906L;
 
     private String uri;
     private String database;
@@ -34,68 +38,4 @@ public class MongoClientConfig implements Serializable {
     private String password;
     private String authenticationMechanism = AuthenticationMechanism.SCRAM_SHA_1.getMechanismName();
     private MongodbClientOptions mongodbClientOptions;
-
-    public String getAuthenticationMechanism() {
-        return authenticationMechanism;
-    }
-
-    public void setAuthenticationMechanism(String authenticationMechanism) {
-        this.authenticationMechanism = authenticationMechanism;
-    }
-
-    public MongodbClientOptions getConnectionConfig() {
-        return mongodbClientOptions;
-    }
-
-    public void setConnectionConfig(MongodbClientOptions mongodbClientOptions) {
-        this.mongodbClientOptions = mongodbClientOptions;
-    }
-
-    public List<ServerAddress> getServerAddresses() {
-        return serverAddresses;
-    }
-
-    public void setServerAddresses(List<ServerAddress> serverAddresses) {
-        this.serverAddresses = serverAddresses;
-    }
-
-    public String getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri(String uri) {
-        this.uri = uri;
-    }
-
-    public String getCollection() {
-        return collection;
-    }
-
-    public void setCollection(String collection) {
-        this.collection = collection;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 }

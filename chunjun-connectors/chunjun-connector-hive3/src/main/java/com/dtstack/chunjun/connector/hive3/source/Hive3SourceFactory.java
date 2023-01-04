@@ -32,6 +32,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 
 public class Hive3SourceFactory extends SourceFactory {
+
     HdfsConfig hdfsConfig;
 
     public Hive3SourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {

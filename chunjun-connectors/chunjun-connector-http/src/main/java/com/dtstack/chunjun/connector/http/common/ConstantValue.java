@@ -22,11 +22,6 @@ import com.google.common.collect.Sets;
 
 import java.util.Set;
 
-/**
- * 常量
- *
- * @author shifang
- */
 public class ConstantValue {
 
     public static final String STRATEGY_STOP = "stop";
@@ -37,11 +32,12 @@ public class ConstantValue {
 
     public static final String DEFAULT_DECODE = "json";
 
-    public static String PREFIX = "${";
-    public static String SUFFIX = "}";
+    public static final String PREFIX = "${";
+    public static final String SUFFIX = "}";
+    public static final String POINT_SYMBOL = ".";
 
-    public static String CONTENT_TYPE_NAME = "Content-Type";
-    public static String CONTENT_TYPE_DEFAULT_VALUE = "application/json";
+    public static final String CONTENT_TYPE_NAME = "Content-Type";
+    public static final String CONTENT_TYPE_DEFAULT_VALUE = "application/json";
 
     public static final int REQUEST_RETRY_TIME = 3;
 

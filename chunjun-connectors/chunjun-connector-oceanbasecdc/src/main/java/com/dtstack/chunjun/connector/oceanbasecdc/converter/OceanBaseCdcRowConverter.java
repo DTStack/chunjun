@@ -52,6 +52,7 @@ import java.util.LinkedList;
 @SuppressWarnings("rawtypes, unchecked")
 public class OceanBaseCdcRowConverter
         extends AbstractCDCRowConverter<OceanBaseCdcEventRow, LogicalType> {
+    private static final long serialVersionUID = -7787763548679643153L;
     private final TimestampFormat timestampFormat;
 
     public OceanBaseCdcRowConverter(RowType rowType, TimestampFormat timestampFormat) {

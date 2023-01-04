@@ -23,6 +23,9 @@ import com.dtstack.chunjun.connector.jdbc.converter.JdbcRowConverter;
 import org.apache.flink.table.types.logical.RowType;
 
 public class DorisJdbcRowConverter extends JdbcRowConverter {
+
+    private static final long serialVersionUID = -5380768631871375132L;
+
     public DorisJdbcRowConverter(RowType rowType) {
         super(rowType);
     }

@@ -25,7 +25,10 @@ import java.util.List;
 
 public class FileInputSplit implements InputSplit {
 
+    private static final long serialVersionUID = -7369448840361207579L;
+
     private final int splitNumber;
+
     private List<String> paths = new ArrayList<>();
 
     public FileInputSplit(int splitNumber) {

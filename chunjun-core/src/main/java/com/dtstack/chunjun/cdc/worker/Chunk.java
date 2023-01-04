@@ -21,28 +21,20 @@ package com.dtstack.chunjun.cdc.worker;
 
 import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 import java.io.Serializable;
 
+@Data
+@AllArgsConstructor
 public class Chunk implements Serializable {
 
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = -1896643040252703399L;
 
     /** chunk唯一标识 */
     private final Integer chunkNum;
 
     /** 表标识 */
     private final TableIdentifier[] tableIdentities;
-
-    public Chunk(Integer chunkNum, TableIdentifier[] tableIdentities) {
-        this.chunkNum = chunkNum;
-        this.tableIdentities = tableIdentities;
-    }
-
-    public TableIdentifier[] getTableIdentities() {
-        return tableIdentities;
-    }
-
-    public Integer getChunkNum() {
-        return chunkNum;
-    }
 }

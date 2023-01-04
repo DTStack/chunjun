@@ -43,6 +43,8 @@ import java.util.List;
 public class S3ColumnConverter
         extends AbstractRowConverter<String[], RowData, String[], LogicalType> {
 
+    private static final long serialVersionUID = -3778159110420581423L;
+
     public S3ColumnConverter(RowType rowType, CommonConfig config) {
         super(rowType, config);
         super.commonConfig = config;

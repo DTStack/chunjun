@@ -46,6 +46,8 @@ import java.time.LocalDate;
 public class HdfsOrcRowConverter
         extends AbstractRowConverter<RowData, RowData, Object[], LogicalType> {
 
+    private static final long serialVersionUID = 6632938157518455020L;
+
     public HdfsOrcRowConverter(RowType rowType) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {

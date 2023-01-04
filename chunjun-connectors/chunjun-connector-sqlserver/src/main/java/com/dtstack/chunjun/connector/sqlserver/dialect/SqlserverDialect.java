@@ -42,6 +42,7 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import io.vertx.core.json.JsonArray;
+import lombok.NoArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -55,7 +56,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@NoArgsConstructor
 public class SqlserverDialect implements JdbcDialect {
+
+    private static final long serialVersionUID = 6935413064547142101L;
 
     private static final String SET_IDENTITY_INSERT_ON_SQL =
             "IF OBJECTPROPERTY(OBJECT_ID('%s'),'TableHasIdentity')=1 BEGIN SET IDENTITY_INSERT %s ON  END";
@@ -66,8 +70,6 @@ public class SqlserverDialect implements JdbcDialect {
     private boolean withNoLock;
 
     private boolean useJtdsDriver;
-
-    public SqlserverDialect() {}
 
     public SqlserverDialect(boolean withNoLock, boolean useJtdsDriver) {
         this.withNoLock = withNoLock;

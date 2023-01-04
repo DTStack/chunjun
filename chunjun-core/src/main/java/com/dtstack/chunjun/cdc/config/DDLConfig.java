@@ -19,12 +19,15 @@
 package com.dtstack.chunjun.cdc.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Properties;
-import java.util.StringJoiner;
 
+@Data
 public class DDLConfig implements Serializable {
+
+    private static final long serialVersionUID = 1582986533272327249L;
 
     @JsonProperty("type")
     private String type;
@@ -34,37 +37,4 @@ public class DDLConfig implements Serializable {
 
     @JsonProperty("properties")
     private Properties properties;
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public int getFetchInterval() {
-        return fetchInterval;
-    }
-
-    public void setFetchInterval(int fetchInterval) {
-        this.fetchInterval = fetchInterval;
-    }
-
-    public Properties getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Properties properties) {
-        this.properties = properties;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", DDLConfig.class.getSimpleName() + "[", "]")
-                .add("type='" + type + "'")
-                .add("fetchInterval=" + fetchInterval)
-                .add("properties=" + properties)
-                .toString();
-    }
 }

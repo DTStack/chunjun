@@ -20,6 +20,7 @@ package com.dtstack.chunjun.connector.binlog.listener;
 import com.dtstack.chunjun.cdc.DdlRowData;
 import com.dtstack.chunjun.cdc.DdlRowDataBuilder;
 import com.dtstack.chunjun.cdc.EventType;
+import com.dtstack.chunjun.connector.binlog.config.BinlogConfig;
 import com.dtstack.chunjun.connector.binlog.inputformat.BinlogInputFormat;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
 import com.dtstack.chunjun.element.ErrorMsgRowData;
@@ -34,10 +35,9 @@ import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 import com.google.protobuf.InvalidProtocolBufferException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.sql.Connection;
@@ -56,10 +56,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class BinlogEventSink extends AbstractCanalLifeCycle
         implements com.alibaba.otter.canal.sink.CanalEventSink<List<CanalEntry.Entry>> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(BinlogEventSink.class);
 
     private final BinlogInputFormat format;
     private final LinkedBlockingDeque<RowData> queue;
@@ -70,8 +69,8 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
     public BinlogEventSink(BinlogInputFormat format) {
         this.format = format;
         this.queue = new LinkedBlockingDeque<>();
-        this.rowConverter = format.getRowConverter();
-        this.OFFSET_LENGTH = "%0" + this.format.getBinlogConf().getOffsetLength() + "d";
+        this.rowConverter = format.getCdcRowConverter();
+        this.OFFSET_LENGTH = "%0" + this.format.getBinlogConfig().getOffsetLength() + "d";
     }
 
     public void initialTableStructData(List<String> pattern) {
@@ -145,7 +144,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
                         }
                     });
             if (CollectionUtils.isNotEmpty(tables)) {
-                LOG.info(
+                log.info(
                         "snapshot table struct {}",
                         tables.stream()
                                 .map(i -> "[" + i.getLeft() + "." + i.getRight() + "]")
@@ -167,7 +166,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
             try {
                 rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
             } catch (InvalidProtocolBufferException e) {
-                LOG.error("parser data[{}] error:{}", entry, ExceptionUtil.getErrorMessage(e));
+                log.error("parser data[{}] error:{}", entry, ExceptionUtil.getErrorMessage(e));
             }
 
             if (rowChange == null) {
@@ -183,8 +182,8 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
                 processRowChange(rowChange, schema, table, executeTime, lsn);
             } catch (WriteRecordException e) {
                 // todo 脏数据记录
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(
+                if (log.isDebugEnabled()) {
+                    log.debug(
                             "write error rowData, rowData = {}, e = {}",
                             e.getRowData().toString(),
                             ExceptionUtil.getErrorMessage(e));
@@ -217,7 +216,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
         }
         BinlogEventRow binlogEventRow =
                 new BinlogEventRow(rowChange, schema, table, executeTime, lsn);
-        LinkedList<RowData> rowDatalist = null;
+        LinkedList<RowData> rowDatalist;
         try {
             rowDatalist = rowConverter.toInternal(binlogEventRow);
         } catch (Exception e) {
@@ -229,7 +228,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
                 queue.put(rowData);
             }
         } catch (InterruptedException e) {
-            LOG.error(
+            log.error(
                     "put rowData[{}] into queue interrupted error:{}",
                     rowData,
                     ExceptionUtil.getErrorMessage(e));
@@ -250,7 +249,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
                 throw new RuntimeException(rowData.toString());
             }
         } catch (InterruptedException e) {
-            LOG.error(
+            log.error(
                     "takeRowDataFromQueue interrupted error:{}", ExceptionUtil.getErrorMessage(e));
         }
         return rowData;
@@ -265,7 +264,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
         try {
             queue.put(rowData);
         } catch (InterruptedException e) {
-            LOG.error(
+            log.error(
                     "processErrorMsgRowData interrupted rowData:{} error:{}",
                     rowData,
                     ExceptionUtil.getErrorMessage(e));
@@ -279,13 +278,14 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
 
     @Override
     public void interrupt() {
-        LOG.warn("BinlogEventSink is interrupted");
+        log.warn("BinlogEventSink is interrupted");
     }
 
     private Connection getConnection() {
-        String jdbcUrl = format.getBinlogConf().getJdbcUrl();
-        String username = format.getBinlogConf().getUsername();
-        String password = format.getBinlogConf().getPassword();
+        BinlogConfig binlogConfig = format.getBinlogConfig();
+        String jdbcUrl = binlogConfig.getJdbcUrl();
+        String username = binlogConfig.getUsername();
+        String password = binlogConfig.getPassword();
         Properties prop = new Properties();
         if (org.apache.commons.lang3.StringUtils.isNotBlank(username)) {
             prop.put("user", username);

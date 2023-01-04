@@ -26,6 +26,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class OceanbaseDialect implements JdbcDialect {
+
+    private static final long serialVersionUID = -3958547388213339994L;
+
     private static final String DIALECT_NAME = "OceanBase";
     private static final String DEFAULT_DRIVER_NAME = "com.alipay.oceanbase.jdbc.Driver";
 

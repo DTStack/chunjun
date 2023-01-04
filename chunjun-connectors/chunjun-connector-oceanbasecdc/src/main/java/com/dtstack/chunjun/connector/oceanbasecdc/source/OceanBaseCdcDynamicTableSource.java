@@ -37,13 +37,13 @@ import org.apache.flink.types.RowKind;
 public class OceanBaseCdcDynamicTableSource implements ScanTableSource {
 
     private final ResolvedSchema schema;
-    private final OceanBaseCdcConfig cdcConf;
+    private final OceanBaseCdcConfig config;
     private final TimestampFormat timestampFormat;
 
     public OceanBaseCdcDynamicTableSource(
-            ResolvedSchema schema, OceanBaseCdcConfig cdcConf, TimestampFormat timestampFormat) {
+            ResolvedSchema schema, OceanBaseCdcConfig config, TimestampFormat timestampFormat) {
         this.schema = schema;
-        this.cdcConf = cdcConf;
+        this.config = config;
         this.timestampFormat = timestampFormat;
     }
 
@@ -63,7 +63,7 @@ public class OceanBaseCdcDynamicTableSource implements ScanTableSource {
                 InternalTypeInfo.of(schema.toPhysicalRowDataType().getLogicalType());
 
         OceanBaseCdcInputFormatBuilder builder = new OceanBaseCdcInputFormatBuilder();
-        builder.setOceanBaseCdcConf(cdcConf);
+        builder.setOceanBaseCdcConf(config);
         builder.setRowConverter(
                 new OceanBaseCdcRowConverter(
                         InternalTypeInfo.of(schema.toPhysicalRowDataType().getLogicalType())
@@ -75,7 +75,7 @@ public class OceanBaseCdcDynamicTableSource implements ScanTableSource {
 
     @Override
     public DynamicTableSource copy() {
-        return new OceanBaseCdcDynamicTableSource(schema, cdcConf, timestampFormat);
+        return new OceanBaseCdcDynamicTableSource(schema, config, timestampFormat);
     }
 
     @Override

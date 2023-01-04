@@ -28,6 +28,9 @@ import java.sql.Time;
 import java.sql.Timestamp;
 
 public class BytesColumn extends AbstractBaseColumn {
+
+    private static final long serialVersionUID = 1358912196298267067L;
+
     private String encoding = StandardCharsets.UTF_8.name();
 
     public BytesColumn(byte[] data) {

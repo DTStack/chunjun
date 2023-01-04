@@ -32,16 +32,16 @@ import com.dtstack.chunjun.throwable.ReadRecordException;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class NebulaInputFormat extends BaseRichInputFormat {
-    private final Logger LOG = LoggerFactory.getLogger(NebulaInputFormat.class);
-    public static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 5454581365772623980L;
+
     protected NebulaConfig nebulaConfig;
     protected NebulaTableRow nebulaTableRow;
     protected NebulaInputSplitter currentInputSplit;
@@ -66,20 +66,20 @@ public class NebulaInputFormat extends BaseRichInputFormat {
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
         storageClient.init();
-        LOG.debug("inited nebula storage client!");
+        log.debug("inited nebula storage client!");
         List<Integer> spaceParts =
                 new ArrayList<>(
                         storageClient
                                 .getMetaManager()
                                 .getPartsAlloc(nebulaConfig.getSpace())
                                 .keySet());
-        LOG.debug("space parts collections is " + spaceParts);
+        log.debug("space parts collections is " + spaceParts);
         NebulaInputSplitter[] inputSplits = new NebulaInputSplitter[minNumSplits];
         BaseSplitResponsibility baseSplitResponsibility = new BaseSplitResponsibility(true);
         baseSplitResponsibility.createSplit(
                 minNumSplits, spaceParts.size(), inputSplits, spaceParts, nebulaConfig);
 
-        LOG.debug("inputSplits are " + inputSplits);
+        log.debug("inputSplits are " + inputSplits);
         closeInternal();
         return inputSplits;
     }

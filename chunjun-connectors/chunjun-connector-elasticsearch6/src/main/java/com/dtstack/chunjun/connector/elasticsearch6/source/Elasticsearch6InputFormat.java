@@ -29,6 +29,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.search.ClearScrollRequest;
 import org.elasticsearch.action.search.ClearScrollResponse;
@@ -48,7 +49,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class Elasticsearch6InputFormat extends BaseRichInputFormat {
+
+    private static final long serialVersionUID = 389258823998116952L;
 
     /** Elasticsearch Configuration */
     private Elasticsearch6Config elasticsearchConfig;
@@ -138,7 +142,7 @@ public class Elasticsearch6InputFormat extends BaseRichInputFormat {
         clearScrollRequest.addScrollId(scrollId);
         ClearScrollResponse clearScrollResponse = rhlClient.clearScroll(clearScrollRequest);
         boolean succeeded = clearScrollResponse.isSucceeded();
-        LOG.info("Clear scroll response:{}", succeeded);
+        log.info("Clear scroll response:{}", succeeded);
     }
 
     @Override

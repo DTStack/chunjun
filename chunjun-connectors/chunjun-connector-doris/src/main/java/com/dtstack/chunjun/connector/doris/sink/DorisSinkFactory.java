@@ -22,12 +22,14 @@ import com.dtstack.chunjun.config.OperatorConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.doris.converter.DorisRowTypeConverter;
 import com.dtstack.chunjun.connector.doris.options.DorisConfig;
-import com.dtstack.chunjun.connector.doris.options.LoadConfBuilder;
 import com.dtstack.chunjun.connector.doris.options.LoadConfig;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
+import com.dtstack.chunjun.connector.jdbc.config.SinkConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
+import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -81,7 +83,7 @@ public class DorisSinkFactory extends SinkFactory {
                 new GsonBuilder()
                         .registerTypeAdapter(
                                 ConnectionConfig.class,
-                                new ConnectionAdapter("SinkConnectionConfig"))
+                                new ConnectionAdapter(SinkConnectionConfig.class.getName()))
                         .addDeserializationExclusionStrategy(
                                 new FieldNameExclusionStrategy("column"))
                         .create();
@@ -90,48 +92,46 @@ public class DorisSinkFactory extends SinkFactory {
                 gson.fromJson(
                         gson.toJson(syncConfig.getWriter().getParameter()), DorisConfig.class);
 
-        LoadConfBuilder loadConfBuilder = new LoadConfBuilder();
-
         Properties properties = parameter.getProperties(LOAD_OPTIONS_KEY, new Properties());
         LoadConfig loadConfig =
-                loadConfBuilder
-                        .setRequestTabletSize(
+                LoadConfig.builder()
+                        .requestTabletSize(
                                 (int)
                                         properties.getOrDefault(
                                                 REQUEST_TABLET_SIZE_KEY, Integer.MAX_VALUE))
-                        .setRequestConnectTimeoutMs(
+                        .requestConnectTimeoutMs(
                                 (int)
                                         properties.getOrDefault(
                                                 REQUEST_CONNECT_TIMEOUT_MS_KEY,
                                                 DORIS_REQUEST_CONNECT_TIMEOUT_MS_DEFAULT))
-                        .setRequestReadTimeoutMs(
+                        .requestReadTimeoutMs(
                                 (int)
                                         properties.getOrDefault(
                                                 REQUEST_READ_TIMEOUT_MS_KEY,
                                                 DORIS_REQUEST_READ_TIMEOUT_MS_DEFAULT))
-                        .setRequestQueryTimeoutMs(
+                        .requestQueryTimeoutS(
                                 (int)
                                         properties.getOrDefault(
                                                 REQUEST_QUERY_TIMEOUT_S_KEY,
                                                 DORIS_REQUEST_QUERY_TIMEOUT_S_DEFAULT))
-                        .setRequestRetries(
+                        .requestRetries(
                                 (int)
                                         properties.getOrDefault(
                                                 REQUEST_RETRIES_KEY, DORIS_REQUEST_RETRIES_DEFAULT))
-                        .setRequestBatchSize(
+                        .requestBatchSize(
                                 (int)
                                         properties.getOrDefault(
                                                 REQUEST_BATCH_SIZE_KEY, DORIS_BATCH_SIZE_DEFAULT))
-                        .setExecMemLimit(
+                        .execMemLimit(
                                 (long)
                                         properties.getOrDefault(
                                                 EXEC_MEM_LIMIT_KEY, DORIS_EXEC_MEM_LIMIT_DEFAULT))
-                        .setDeserializeQueueSize(
+                        .deserializeQueueSize(
                                 (int)
                                         properties.getOrDefault(
                                                 DESERIALIZE_QUEUE_SIZE_KEY,
                                                 DORIS_DESERIALIZE_QUEUE_SIZE_DEFAULT))
-                        .setDeserializeArrowAsync(
+                        .deserializeArrowAsync(
                                 (boolean)
                                         properties.getOrDefault(
                                                 DESERIALIZE_ARROW_ASYNC_KEY,
@@ -140,7 +140,7 @@ public class DorisSinkFactory extends SinkFactory {
 
         options.setColumn(syncConfig.getWriter().getFieldList());
         options.setLoadProperties(properties);
-        options.setLoadConf(loadConfig);
+        options.setLoadConfig(loadConfig);
         super.initCommonConf(options);
     }
 
@@ -152,8 +152,7 @@ public class DorisSinkFactory extends SinkFactory {
             return createOutput(dataSet, builder.finish());
         }
 
-        DorisJdbcOutputFormatBuilder builder =
-                new DorisJdbcOutputFormatBuilder(new DorisJdbcOutputFormat());
+        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(new JdbcOutputFormat());
 
         MysqlDialect dialect = new MysqlDialect();
         initColumnInfo(options, dialect, builder);
@@ -175,7 +174,7 @@ public class DorisSinkFactory extends SinkFactory {
     }
 
     protected void initColumnInfo(
-            DorisConfig conf, JdbcDialect dialect, DorisJdbcOutputFormatBuilder builder) {
+            DorisConfig conf, JdbcDialect dialect, JdbcOutputFormatBuilder builder) {
         Connection conn = JdbcUtil.getConnection(conf, dialect);
 
         // get table metadata

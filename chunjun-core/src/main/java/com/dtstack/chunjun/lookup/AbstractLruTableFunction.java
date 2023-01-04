@@ -38,8 +38,7 @@ import org.apache.flink.table.functions.AsyncTableFunction;
 import org.apache.flink.table.functions.FunctionContext;
 
 import com.google.common.collect.Lists;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -51,8 +50,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
+@Slf4j
 public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowData> {
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractLruTableFunction.class);
+
+    private static final long serialVersionUID = 8054577160378024212L;
     /** 指标 */
     protected transient Counter parseErrorRecords;
     /** 缓存 */
@@ -83,7 +84,7 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
         field.setAccessible(true);
         runtimeContext = (RuntimeContext) field.get(context);
 
-        LOG.info("async dim table lookupOptions info: {} ", lookupConfig.toString());
+        log.info("async dim table lookupOptions info: {} ", lookupConfig.toString());
     }
 
     /** 初始化缓存 */
@@ -168,7 +169,7 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
     // todo 无法设置超时
     public void timeout(CompletableFuture<Collection<RowData>> future, Object... keys) {
         if (timeOutNum % TIMEOUT_LOG_FLUSH_NUM == 0) {
-            LOG.info(
+            log.info(
                     "Async function call has timed out. input:{}, timeOutNum:{}", keys, timeOutNum);
         }
         timeOutNum++;
@@ -218,7 +219,7 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
             handleAsyncInvoke(future, keys);
         } catch (Exception e) {
             // todo 优化
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
         }
     }
 
@@ -343,20 +344,10 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
     protected void dealFillDataError(CompletableFuture<Collection<RowData>> future, Throwable e) {
         parseErrorRecords.inc();
         if (parseErrorRecords.getCount() > lookupConfig.getErrorLimit()) {
-            LOG.info("dealFillDataError", e);
+            log.info("dealFillDataError", e);
             future.completeExceptionally(new SuppressRestartsException(e));
         } else {
             dealMissKey(future);
         }
-    }
-
-    /**
-     * 资源释放
-     *
-     * @throws Exception
-     */
-    @Override
-    public void close() throws Exception {
-        super.close();
     }
 }

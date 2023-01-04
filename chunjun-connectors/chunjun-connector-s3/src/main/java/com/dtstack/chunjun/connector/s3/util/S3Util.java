@@ -44,17 +44,16 @@ import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class S3Util {
-    private static final Logger LOG = LoggerFactory.getLogger(S3Util.class);
 
     public static AmazonS3 getS3Client(S3Config s3Config) {
         if (s3Config != null) {
@@ -119,15 +118,15 @@ public class S3Util {
             }
             String token = result.getNextContinuationToken();
             req.setContinuationToken(token);
-            if (LOG.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 if (objects.size() > 1024) {
-                    LOG.debug(
+                    log.debug(
                             "nextToken {}, result.isTruncated {}, objectsize {}",
                             token,
                             result.isTruncated(),
                             objects.size());
                 } else {
-                    LOG.debug(
+                    log.debug(
                             "nextToken {}, result.isTruncated {}, objects {}",
                             token,
                             result.isTruncated(),
@@ -156,15 +155,15 @@ public class S3Util {
                 String marker = ol.getNextMarker();
                 if (StringUtils.isNotBlank(marker)) {
                     req.setMarker(marker);
-                    if (LOG.isDebugEnabled()) {
+                    if (log.isDebugEnabled()) {
                         if (objects.size() > 1024) {
-                            LOG.debug(
+                            log.debug(
                                     "nextToken {}, result.isTruncated {}, objectsSize {}",
                                     marker,
                                     true,
                                     objects.size());
                         } else {
-                            LOG.debug(
+                            log.debug(
                                     "nextToken {}, result.isTruncated {}, objects {}",
                                     marker,
                                     true,
@@ -172,7 +171,7 @@ public class S3Util {
                         }
                     }
                 } else {
-                    LOG.warn("Warning: missing NextMarker when IsTruncated");
+                    log.warn("Warning: missing NextMarker when IsTruncated");
                 }
             }
         } while (ol.isTruncated());

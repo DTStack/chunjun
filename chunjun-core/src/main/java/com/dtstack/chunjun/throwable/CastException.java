@@ -20,6 +20,8 @@ package com.dtstack.chunjun.throwable;
 
 public class CastException extends ChunJunRuntimeException {
 
+    private static final long serialVersionUID = -9135916393394462017L;
+
     public CastException(String beforeType, String afterType, String stringValue) {
         super(String.format("%s[%s] can not cast to %s.", beforeType, stringValue, afterType));
     }

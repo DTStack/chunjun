@@ -22,6 +22,7 @@ import org.apache.flink.core.io.InputSplit;
 
 public class ErrorInputSplit implements InputSplit {
 
+    private static final long serialVersionUID = -8172632555407711932L;
     int splitNumber;
 
     String errorMessage;

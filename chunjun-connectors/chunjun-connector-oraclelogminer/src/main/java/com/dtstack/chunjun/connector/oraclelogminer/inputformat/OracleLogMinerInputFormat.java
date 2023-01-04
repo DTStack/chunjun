@@ -34,6 +34,8 @@ import java.math.BigInteger;
 
 public class OracleLogMinerInputFormat extends BaseRichInputFormat {
 
+    private static final long serialVersionUID = -5365632049708957327L;
+
     public LogMinerConfig logMinerConfig;
 
     private transient LogMinerListener logMinerListener;
@@ -61,7 +63,7 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
             BigInteger position = new BigInteger(formatState.getState().toString());
             // 查询数据时时左闭右开区间 所以需要将上次消费位点+1
             position = position.add(BigInteger.ONE);
-            positionManager.updatePosition(position);
+            positionManager.setScn(position);
         }
     }
 
@@ -76,7 +78,7 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
         super.getFormatState();
 
         if (formatState != null) {
-            formatState.setState(positionManager.getPosition());
+            formatState.setState(positionManager.getScn());
         }
 
         return formatState;

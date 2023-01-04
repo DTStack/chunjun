@@ -37,8 +37,8 @@ public enum SqlServerCdcEnum {
 
     UPDATE(5, "update");
 
-    public int code;
-    public String name;
+    public final int code;
+    public final String name;
 
     SqlServerCdcEnum(int code, String name) {
         this.code = code;

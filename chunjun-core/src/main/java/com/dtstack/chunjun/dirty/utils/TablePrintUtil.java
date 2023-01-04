@@ -19,8 +19,7 @@ package com.dtstack.chunjun.dirty.utils;
 
 import com.dtstack.chunjun.dirty.impl.DirtyDataEntry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -31,11 +30,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class TablePrintUtil {
     public static final int ALIGN_LEFT = 1; // 左对齐
     public static final int ALIGN_RIGHT = 2; // 右对齐
     public static final int ALIGN_CENTER = 3; // 居中对齐
-    private static final Logger LOG = LoggerFactory.getLogger(TablePrintUtil.class);
     private static final Pattern PATTERN = Pattern.compile("[\u4e00-\u9fa5]");
 
     private int align = ALIGN_CENTER; // 默认居中对齐
@@ -112,7 +111,7 @@ public class TablePrintUtil {
                     } catch (IllegalAccessException
                             | InvocationTargetException
                             | NoSuchMethodException e) {
-                        LOG.error("", e);
+                        log.error("", e);
                     }
                     item[j] = value == null ? "null" : value;
                 }
@@ -289,7 +288,7 @@ public class TablePrintUtil {
 
     /** 直接打印表格 */
     public void print() {
-        LOG.info("\n" + getTableString());
+        log.info("\n" + getTableString());
     }
 
     // 下面是链式调用的set方法

@@ -48,6 +48,8 @@ public class Db2Dialect implements JdbcDialect {
 
     private static final String DRIVER_NAME = "com.ibm.db2.jcc.DB2Driver";
 
+    private static final long serialVersionUID = -7835547832951441619L;
+
     @Override
     public String dialectName() {
         return DIALECT_NAME;

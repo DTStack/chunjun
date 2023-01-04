@@ -20,10 +20,9 @@ package com.dtstack.chunjun.connector.binlog.util;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.throwable.ChunJunException;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -36,11 +35,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class BinlogUtil {
     public static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
     public static final int RETRY_TIMES = 3;
     public static final int SLEEP_TIME = 2000;
-    private static final Logger LOG = LoggerFactory.getLogger(BinlogUtil.class);
     // 是否开启binlog
     private static final String CHECK_BINLOG_ENABLE =
             "show variables where variable_name = 'log_bin';";
@@ -62,13 +61,6 @@ public class BinlogUtil {
     private static final String CHECK_UPDRDB_PRIVILEGE =
             "SELECT ENGINE FROM information_schema.TABLES LIMIT 1";
 
-    /**
-     * 校验是否开启binlog
-     *
-     * @param conn
-     * @return
-     * @throws SQLException
-     */
     public static boolean checkEnabledBinlog(Connection conn) throws SQLException {
         try (Statement statement = conn.createStatement()) {
             try (ResultSet rs = statement.executeQuery(CHECK_BINLOG_ENABLE)) {
@@ -81,7 +73,7 @@ public class BinlogUtil {
                 return false;
             }
         } catch (SQLException e) {
-            LOG.error(
+            log.error(
                     String.format(
                             "error to query BINLOG is enabled , sql = %s", CHECK_BINLOG_ENABLE),
                     e);
@@ -89,13 +81,6 @@ public class BinlogUtil {
         }
     }
 
-    /**
-     * 校验binlog的format格式
-     *
-     * @param conn
-     * @return
-     * @throws SQLException
-     */
     public static boolean checkBinlogFormat(Connection conn) throws SQLException {
         try (Statement statement = conn.createStatement()) {
             try (ResultSet rs = statement.executeQuery(CHECK_BINLOG_FORMAT)) {
@@ -108,24 +93,18 @@ public class BinlogUtil {
                 return false;
             }
         } catch (SQLException e) {
-            LOG.error(
+            log.error(
                     String.format("error to query binLog format, sql = %s", CHECK_BINLOG_FORMAT),
                     e);
             throw e;
         }
     }
 
-    /**
-     * 效验用户的权限
-     *
-     * @param conn
-     * @return
-     */
     public static boolean checkUserPrivilege(Connection conn) {
         try (Statement statement = conn.createStatement()) {
             statement.execute(CHECK_USER_PRIVILEGE);
         } catch (SQLException e) {
-            LOG.error(
+            log.error(
                     "'show master status' has an error!,please check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation",
                     e);
             return false;
@@ -133,16 +112,6 @@ public class BinlogUtil {
         return true;
     }
 
-    /**
-     * 校验MySQL表权限
-     *
-     * @param connection MySQL connection
-     * @param database database名称
-     * @param filter 过滤字符串
-     * @param tables 表名
-     * @return 没有权限的表
-     * @throws SQLException
-     */
     public static List<String> checkTablesPrivilege(
             Connection connection, String database, String filter, List<String> tables)
             throws SQLException {
@@ -165,10 +134,6 @@ public class BinlogUtil {
         return null;
     }
 
-    /**
-     * @param schema 需要校验权限的schemaName
-     * @param tables 需要校验权限的tableName schemaName权限验证 取schemaName下第一个表进行验证判断整个schemaName下是否具有权限
-     */
     public static List<String> checkSourceAuthority(
             Connection connection, String schema, Collection<String> tables) throws SQLException {
         try (Statement statement = connection.createStatement()) {
@@ -201,7 +166,7 @@ public class BinlogUtil {
 
             return failedTables;
         } catch (SQLException sqlException) {
-            LOG.error(
+            log.error(
                     String.format(
                             "error to check table select privilege error, sql = %s",
                             AUTHORITY_TEMPLATE),
@@ -210,12 +175,6 @@ public class BinlogUtil {
         }
     }
 
-    /**
-     * 从JDBC URL中获取database名称
-     *
-     * @param jdbcUrl
-     * @return
-     */
     public static String getDataBaseByUrl(String jdbcUrl) {
         int paramStartIndex = jdbcUrl.lastIndexOf('?');
         paramStartIndex = paramStartIndex < 0 ? jdbcUrl.length() : paramStartIndex;
@@ -223,13 +182,6 @@ public class BinlogUtil {
         return StringUtils.substring(jdbcUrl, dbStartIndex, paramStartIndex);
     }
 
-    /**
-     * 每一个表格式化为schema.tableName格式
-     *
-     * @param schemaName
-     * @param tableName
-     * @return
-     */
     public static String formatTableName(String schemaName, String tableName) {
         StringBuilder stringBuilder = new StringBuilder();
         if (tableName.contains(ConstantValue.POINT_SYMBOL)) {
@@ -243,13 +195,6 @@ public class BinlogUtil {
         }
     }
 
-    /**
-     * 根据用户输入的表名以.作为切分键切分database和表名，按database分组并以map形式返回
-     *
-     * @param tableNameList 用户输入的表名
-     * @param defaultDatabase 默认database（url中的schema）
-     * @return
-     */
     public static Map<String, List<String>> getDatabaseTableMap(
             List<String> tableNameList, String defaultDatabase) {
         Map<String, List<String>> db_tables = new HashMap<>();
@@ -273,13 +218,6 @@ public class BinlogUtil {
         return db_tables;
     }
 
-    /**
-     * 判断filter是否合法
-     *
-     * @param filter 过滤器
-     * @return SchemaRegex+TableRegex
-     * @throws ChunJunException filter未明确指定shcema，目前设计必须指定schema
-     */
     public static String[] checkAndAnalyzeFilter(String filter) throws ChunJunException {
         // filter指定了所有表
         if (filter.equals(".*") || filter.equals(".*\\..*")) {

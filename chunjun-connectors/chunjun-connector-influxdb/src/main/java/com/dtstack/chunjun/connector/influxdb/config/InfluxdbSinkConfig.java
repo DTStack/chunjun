@@ -20,10 +20,17 @@ package com.dtstack.chunjun.connector.influxdb.config;
 
 import com.dtstack.chunjun.sink.WriteMode;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.util.List;
 import java.util.Locale;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class InfluxdbSinkConfig extends InfluxdbConfig {
+
+    private static final long serialVersionUID = 1267698737855055756L;
 
     /** retention policy for influxdb writer */
     private String rp;
@@ -41,57 +48,12 @@ public class InfluxdbSinkConfig extends InfluxdbConfig {
 
     private boolean enableBatch = true;
 
-    public boolean isEnableBatch() {
-        return enableBatch;
-    }
-
-    public void setEnableBatch(boolean enableBatch) {
-        this.enableBatch = enableBatch;
-    }
-
-    public int getFlushDuration() {
-        return flushDuration;
-    }
-
-    public void setFlushDuration(int flushDuration) {
-        this.flushDuration = flushDuration;
-    }
-
-    /** the name of timestamp field */
     private String timestamp;
-
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
 
     private int writeTimeout = 5;
 
-    public int getWriteTimeout() {
-        return writeTimeout;
-    }
-
-    public void setWriteTimeout(int writeTimeout) {
-        this.writeTimeout = writeTimeout;
-    }
-
     /** precision of Unix time */
     private String precision = "ns";
-
-    public String getRp() {
-        return rp;
-    }
-
-    public void setRp(String rp) {
-        this.rp = rp;
-    }
-
-    public WriteMode getWriteMode() {
-        return writeMode;
-    }
 
     public void setWriteMode(String writeMode) {
         switch (writeMode.toLowerCase(Locale.ENGLISH)) {
@@ -107,29 +69,5 @@ public class InfluxdbSinkConfig extends InfluxdbConfig {
             default:
                 this.writeMode = WriteMode.APPEND;
         }
-    }
-
-    public List<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<String> tags) {
-        this.tags = tags;
-    }
-
-    public int getBufferLimit() {
-        return bufferLimit;
-    }
-
-    public void setBufferLimit(int bufferLimit) {
-        this.bufferLimit = bufferLimit;
-    }
-
-    public String getPrecision() {
-        return precision;
-    }
-
-    public void setPrecision(String precision) {
-        this.precision = precision;
     }
 }

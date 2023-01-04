@@ -18,7 +18,6 @@
 package com.dtstack.chunjun.connector.starrocks.table;
 
 import com.dtstack.chunjun.connector.starrocks.config.LoadConfig;
-import com.dtstack.chunjun.connector.starrocks.config.LoadConfigBuilder;
 import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.sink.StarRocksDynamicTableSink;
 import com.dtstack.chunjun.connector.starrocks.source.StarRocksDynamicTableSource;
@@ -143,24 +142,23 @@ public class StarRocksDynamicTableFactory
         boolean nameMapped = options.get(NAME_MAPPED);
         Integer batchSize = options.get(SINK_BUFFER_FLUSH_MAX_ROWS);
         Long sinkInternal = options.get(SINK_BUFFER_FLUSH_INTERVAL);
-        LoadConfig loadConfig = getLoadConf(options);
+        LoadConfig loadConfig = getLoadConfig(options);
         // loading
         sinkConf.setNameMapped(nameMapped);
         sinkConf.setBatchSize(batchSize);
         sinkConf.setFlushIntervalMills(sinkInternal);
-        sinkConf.setLoadConf(loadConfig);
+        sinkConf.setLoadConfig(loadConfig);
         return sinkConf;
     }
 
-    private LoadConfig getLoadConf(ReadableConfig options) {
-        LoadConfigBuilder loadConfigBuilder = new LoadConfigBuilder();
-        return loadConfigBuilder
-                .setBatchMaxSize(options.get(SINK_BATCH_MAX_BYTES))
-                .setBatchMaxRows(options.get(SINK_BATCH_MAX_ROWS))
-                .setHttpCheckTimeoutMs(options.get(HTTP_CHECK_TIMEOUT))
-                .setQueueOfferTimeoutMs(options.get(QUEUE_OFFER_TIMEOUT))
-                .setQueuePollTimeoutMs(options.get(QUEUE_POLL_TIMEOUT))
-                .setHeadProperties(options.get(STREAM_LOAD_HEAD_PROPERTIES))
+    private LoadConfig getLoadConfig(ReadableConfig options) {
+        return LoadConfig.builder()
+                .batchMaxSize(options.get(SINK_BATCH_MAX_BYTES))
+                .batchMaxRows(options.get(SINK_BATCH_MAX_ROWS))
+                .httpCheckTimeoutMs(options.get(HTTP_CHECK_TIMEOUT))
+                .queueOfferTimeoutMs(options.get(QUEUE_OFFER_TIMEOUT))
+                .queuePollTimeoutMs(options.get(QUEUE_POLL_TIMEOUT))
+                .headProperties(options.get(STREAM_LOAD_HEAD_PROPERTIES))
                 .build();
     }
 

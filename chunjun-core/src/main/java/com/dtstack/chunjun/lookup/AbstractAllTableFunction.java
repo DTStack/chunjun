@@ -30,9 +30,8 @@ import org.apache.flink.types.RowKind;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -45,8 +44,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+@Slf4j
 public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractAllTableFunction.class);
+
+    private static final long serialVersionUID = 5565390751716048922L;
     /** 和维表join字段的名称 */
     protected final String[] keyNames;
     /** 缓存 */
@@ -89,7 +90,7 @@ public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
         }
 
         cacheRef.set(newCache);
-        LOG.info(
+        log.info(
                 "----- " + lookupConfig.getTableName() + ": all cacheRef reload end:{}",
                 LocalDateTime.now());
     }
@@ -105,7 +106,7 @@ public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
     public void open(FunctionContext context) throws Exception {
         super.open(context);
         initCache();
-        LOG.info("----- all cacheRef init end-----");
+        log.info("----- all cacheRef init end-----");
 
         // start reload cache thread
         es = new ScheduledThreadPoolExecutor(1, new ChunJunThreadFactory("cache-all-reload"));

@@ -18,11 +18,15 @@
 
 package com.dtstack.chunjun.connector.elasticsearch7;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Map;
 
+@Data
 public class SslConfig implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = -2066838539828035252L;
 
     /** whether to use local files */
     private boolean useLocalFile;
@@ -37,52 +41,4 @@ public class SslConfig implements Serializable {
     private String type = "pkcs12";
     /** sftp config * */
     private Map<String, Object> sftpConfig;
-
-    public boolean isUseLocalFile() {
-        return useLocalFile;
-    }
-
-    public void setUseLocalFile(boolean useLocalFile) {
-        this.useLocalFile = useLocalFile;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
-
-    public String getKeyStorePass() {
-        return keyStorePass;
-    }
-
-    public void setKeyStorePass(String keyStorePass) {
-        this.keyStorePass = keyStorePass;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public Map<String, Object> getSftpConfig() {
-        return sftpConfig;
-    }
-
-    public void setSftpConfig(Map<String, Object> sftpConfig) {
-        this.sftpConfig = sftpConfig;
-    }
 }

@@ -30,6 +30,8 @@ import java.sql.SQLException;
 
 public class DateTypeUtil extends KeyUtil<Date, BigInteger> {
 
+    private static final long serialVersionUID = 3421622481648892359L;
+
     @Override
     public Date getSqlValueFromRs(ResultSet rs, int index) throws SQLException {
         return rs.getDate(index);

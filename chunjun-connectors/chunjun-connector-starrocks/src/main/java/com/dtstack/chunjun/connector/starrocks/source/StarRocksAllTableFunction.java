@@ -32,9 +32,8 @@ import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.functions.FunctionContext;
 
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -46,9 +45,10 @@ import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.starrocks.util.StarRocksUtil.splitQueryBeXTablets;
 
+@Slf4j
 public class StarRocksAllTableFunction extends AbstractAllTableFunction {
 
-    private static final Logger LOG = LoggerFactory.getLogger(StarRocksAllTableFunction.class);
+    private static final long serialVersionUID = -4561229223877402123L;
 
     private final StarRocksConfig starRocksConfig;
 
@@ -97,7 +97,7 @@ public class StarRocksAllTableFunction extends AbstractAllTableFunction {
         }
 
         cacheRef.set(newCache);
-        LOG.info(
+        log.info(
                 "----- " + lookupConfig.getTableName() + ": all cacheRef reload end:{}",
                 LocalDateTime.now());
     }

@@ -29,6 +29,8 @@ import java.time.LocalTime;
 
 public class TimeColumn extends AbstractBaseColumn {
 
+    private static final long serialVersionUID = -1556675149388070369L;
+
     public TimeColumn(Time data) {
         super(data, 8);
     }

@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WorkerOverseer implements Runnable, Serializable {
 
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 177978497091465224L;
 
     private final transient ThreadPoolExecutor workerExecutor;
 

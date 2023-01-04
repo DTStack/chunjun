@@ -44,6 +44,7 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -59,7 +60,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+@Slf4j
 public class HiveOutputFormat extends BaseRichOutputFormat {
+
+    private static final long serialVersionUID = -5345705130137076697L;
 
     private org.apache.flink.configuration.Configuration parameters;
     private int taskNumber;
@@ -105,7 +109,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         connectionInfo.setJdbcUrl(hiveConfig.getJdbcUrl());
         connectionInfo.setUsername(hiveConfig.getUsername());
         connectionInfo.setPassword(hiveConfig.getPassword());
-        connectionInfo.setHiveConf(hiveConfig.getHadoopConfig());
+        connectionInfo.setHiveConfig(hiveConfig.getHadoopConfig());
         primaryCreateTable();
     }
 
@@ -180,7 +184,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         } catch (Exception e) {
             // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
             if (numWriteCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0) {
-                LOG.warn("write hdfs exception:", e);
+                log.warn("write hdfs exception:", e);
             }
         }
         rowsOfCurrentTransaction++;
@@ -245,7 +249,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 format.close();
                 format.finalizeGlobal(numTasks);
             } catch (IOException e) {
-                LOG.warn("close {} outputFormat error", entry.getKey(), e);
+                log.warn("close {} outputFormat error", entry.getKey(), e);
             }
         }
     }
@@ -282,7 +286,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                     format.finalizeGlobal(numTasks);
                     format.close();
                 } catch (IOException e) {
-                    LOG.warn("close {} outputFormat error", hiveTablePath, e);
+                    log.warn("close {} outputFormat error", hiveTablePath, e);
                 }
             }
             outputFormatMap.put(tableName, Pair.of(partitionPath, outputFormat));
@@ -334,7 +338,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
             return outputFormat;
         } catch (Exception e) {
-            LOG.error("create [HdfsOutputFormat] exception:", e);
+            log.error("create [HdfsOutputFormat] exception:", e);
             throw new ChunJunRuntimeException(e);
         }
     }
@@ -360,7 +364,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             String tablePath, RowData rowData, Map<String, Object> event) {
         TableInfo tableInfo = tableCacheMap.get(tablePath);
         if (tableInfo == null) {
-            LOG.info("tablePath:{}, rowData:{}, even:{}", tablePath, rowData, event);
+            log.info("tablePath:{}, rowData:{}, even:{}", tablePath, rowData, event);
 
             String tableName = tablePath;
             if (event != null) {
@@ -414,7 +418,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                         "partitionEnum = " + hiveConfig.getPartitionType() + " is undefined!");
         }
         TimeZone timeZone = TimeZone.getDefault();
-        LOG.info("timeZone = {}", timeZone);
+        log.info("timeZone = {}", timeZone);
         format.setTimeZone(timeZone);
         return format;
     }

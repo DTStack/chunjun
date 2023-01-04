@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
 
 public class MysqlDialect implements JdbcDialect {
 
+    private static final long serialVersionUID = 4607084579671405838L;
+
     @Override
     public String dialectName() {
         return "MySQL";

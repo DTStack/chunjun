@@ -32,6 +32,7 @@ import org.apache.flink.table.data.RowData;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -56,7 +57,10 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
+
+    private static final long serialVersionUID = -1389833901319776251L;
 
     private List<String> currentSplitFilePaths;
     private static final int JULIAN_EPOCH_OFFSET_DAYS = 2440588;
@@ -258,7 +262,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                     break;
             }
         } catch (Exception e) {
-            LOG.error("error to get data from parquet group.", e);
+            log.error("error to get data from parquet group.", e);
         }
 
         return data;

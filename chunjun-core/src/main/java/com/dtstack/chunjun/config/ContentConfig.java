@@ -20,67 +20,23 @@ package com.dtstack.chunjun.config;
 import com.dtstack.chunjun.cdc.CdcConfig;
 import com.dtstack.chunjun.mapping.MappingConfig;
 
-import java.io.Serializable;
-import java.util.StringJoiner;
+import lombok.Data;
 
+import java.io.Serializable;
+
+@Data
 public class ContentConfig implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = -4879980246136110446L;
 
     private OperatorConfig reader;
+
     private OperatorConfig writer;
+
     private TransformerConfig transformer;
+
     private MappingConfig nameMapping;
+
     /** cdc restore conf */
     private CdcConfig restoration = new CdcConfig();
-
-    public OperatorConfig getReader() {
-        return reader;
-    }
-
-    public void setReader(OperatorConfig reader) {
-        this.reader = reader;
-    }
-
-    public OperatorConfig getWriter() {
-        return writer;
-    }
-
-    public void setWriter(OperatorConfig writer) {
-        this.writer = writer;
-    }
-
-    public TransformerConfig getTransformer() {
-        return transformer;
-    }
-
-    public void setTransformer(TransformerConfig transformer) {
-        this.transformer = transformer;
-    }
-
-    public MappingConfig getNameMapping() {
-        return nameMapping;
-    }
-
-    public void setNameMapping(MappingConfig nameMapping) {
-        this.nameMapping = nameMapping;
-    }
-
-    public CdcConfig getRestoration() {
-        return restoration;
-    }
-
-    public void setRestoration(CdcConfig restoration) {
-        this.restoration = restoration;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", ContentConfig.class.getSimpleName() + "[", "]")
-                .add("reader=" + reader)
-                .add("writer=" + writer)
-                .add("transformer=" + transformer)
-                .add("nameMapping=" + nameMapping)
-                .add("restoration=" + restoration)
-                .toString();
-    }
 }

@@ -32,23 +32,23 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.StringUtils;
 
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import org.influxdb.BatchOptions;
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Point;
 import org.influxdb.impl.InfluxDBImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class InfluxdbOutputFormat extends BaseRichOutputFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(InfluxdbOutputFormat.class);
+    private static final long serialVersionUID = -3677021871315224915L;
 
     private InfluxdbSinkConfig sinkConfig;
 
@@ -112,7 +112,7 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
 
     private void establishConnection() {
         if (influxDB != null) return;
-        LOG.info("Get the connection for influxdb");
+        log.info("Get the connection for influxdb");
         OkHttpClient.Builder clientBuilder =
                 new OkHttpClient.Builder()
                         .connectTimeout(15000, TimeUnit.MILLISECONDS)
@@ -137,8 +137,8 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
                                         for (Point point : iterable) {
                                             dirtyManager.collect(point, e, null);
                                         }
-                                        if (LOG.isTraceEnabled()) {
-                                            LOG.trace(
+                                        if (log.isTraceEnabled()) {
+                                            log.trace(
                                                     "write data error, e = {}",
                                                     ExceptionUtil.getErrorMessage(e));
                                         }

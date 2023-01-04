@@ -25,7 +25,6 @@ import com.dtstack.chunjun.connector.saphana.converter.SaphanaColumnConverter;
 import com.dtstack.chunjun.connector.saphana.converter.SaphanaRawTypeConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
-import com.dtstack.chunjun.enums.EDatabaseType;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -41,9 +40,11 @@ import java.util.stream.Collectors;
 
 public class SaphanaDialect implements JdbcDialect {
 
+    private static final long serialVersionUID = 3485113286486596308L;
+
     @Override
     public String dialectName() {
-        return EDatabaseType.SapHana.name();
+        return "SapHana";
     }
 
     @Override

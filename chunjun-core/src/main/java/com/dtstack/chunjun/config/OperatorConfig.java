@@ -20,29 +20,33 @@ package com.dtstack.chunjun.config;
 import com.dtstack.chunjun.constants.ConfigConstant;
 import com.dtstack.chunjun.util.GsonUtil;
 
-import com.google.gson.internal.LinkedTreeMap;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.StringJoiner;
 
+@Data
 public class OperatorConfig implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = 3226232793890188454L;
 
     /** source插件名称 */
     private String name;
+
     /** source配置 */
     private Map<String, Object> parameter;
+
     /** table设置 */
     private TableConfig table;
+
     /** fieldList */
     private List<FieldConfig> fieldList;
+
     /** fieldNameList */
     private List<String> fieldNameList;
 
@@ -60,49 +64,6 @@ public class OperatorConfig implements Serializable {
         return fieldList;
     }
 
-    public String getSemantic() {
-        return semantic;
-    }
-
-    public void setSemantic(String semantic) {
-        this.semantic = semantic;
-    }
-
-    public List<String> getFieldNameList() {
-        return fieldNameList;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Map<String, Object> getParameter() {
-        return parameter;
-    }
-
-    public void setParameter(Map<String, Object> parameter) {
-        this.parameter = parameter;
-    }
-
-    public TableConfig getTable() {
-        return table;
-    }
-
-    public void setTable(TableConfig table) {
-        this.table = table;
-    }
-
-    /**
-     * 从parameter中获取指定key的value，若无则返回defaultValue
-     *
-     * @param key
-     * @param defaultValue
-     * @return
-     */
     public int getIntVal(String key, int defaultValue) {
         Object ret = parameter.get(key);
         if (ret == null) {
@@ -174,26 +135,6 @@ public class OperatorConfig implements Serializable {
                         key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
     }
 
-    public Object getVal(String key) {
-        Object obj = parameter.get(key);
-        if (obj instanceof LinkedTreeMap) {
-            LinkedTreeMap treeMap = (LinkedTreeMap) obj;
-            Map<String, Object> map =
-                    new HashMap<>(Math.max((int) (treeMap.size() / .75f) + 1, 16));
-            map.putAll(treeMap);
-            return map;
-        }
-        return obj;
-    }
-
-    public Object getVal(String key, Object defaultValue) {
-        Object ret = getVal(key);
-        if (ret == null) {
-            return defaultValue;
-        }
-        return ret;
-    }
-
     public String getStringVal(String key) {
         return (String) parameter.get(key);
     }
@@ -220,13 +161,6 @@ public class OperatorConfig implements Serializable {
                         key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
     }
 
-    /**
-     * 从指定key中获取Properties配置信息
-     *
-     * @param key
-     * @param p
-     * @return Properties
-     */
     @SuppressWarnings("unchecked")
     public Properties getProperties(String key, Properties p) {
         Object ret = parameter.get(key);
@@ -245,24 +179,8 @@ public class OperatorConfig implements Serializable {
         } else {
             throw new RuntimeException(
                     String.format(
-                            "cant't %s from %s to map, internalMap = %s",
+                            "can't %s from %s to map, internalMap = %s",
                             key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
         }
-    }
-
-    public void setFieldNameList(List<String> fieldNameList) {
-        this.fieldNameList = fieldNameList;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", OperatorConfig.class.getSimpleName() + "[", "]")
-                .add("name='" + name + "'")
-                .add("parameter=" + parameter)
-                .add("table=" + table)
-                .add("fieldList=" + fieldList)
-                .add("fieldNameList=" + fieldNameList)
-                .add("semantic='" + semantic + "'")
-                .toString();
     }
 }

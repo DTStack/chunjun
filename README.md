@@ -203,6 +203,10 @@ Thanks to all contributors! We are very happy that you can contribute Chunjun.
   <img src="https://contrib.rocks/image?repo=DTStack/chunjun"  alt="contributors"/>
 </a>
 
+## Contributor Over Time
+
+[![Stargazers Over Time](https://contributor-overtime-api.git-contributor.com/contributors-svg?chart=contributorOverTime&repo=DTStack/chunjun)](https://git-contributor.com?chart=contributorOverTime&repo=DTStack/chunjun)
+
 ## License
 
 ChunJun is under the Apache 2.0 license. Please visit [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) for details.

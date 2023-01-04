@@ -28,6 +28,7 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.hadoop.fs.Path;
@@ -38,7 +39,9 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
+    private static final long serialVersionUID = -5004066346338703715L;
 
     private static final int NEWLINE = 10;
     private transient OutputStream stream;
@@ -66,7 +69,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
                 }
             }
             currentFileIndex++;
-            LOG.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
+            log.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
         } catch (IOException e) {
             throw new ChunJunRuntimeException(
                     Hive3Util.parseErrorMsg(null, ExceptionUtil.getErrorMessage(e)), e);
@@ -75,7 +78,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public void flushDataInternal() {
-        LOG.info(
+        log.info(
                 "Close current text stream, write data size:[{}]",
                 SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
 

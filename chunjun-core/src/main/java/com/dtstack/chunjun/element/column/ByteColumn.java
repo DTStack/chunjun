@@ -27,6 +27,9 @@ import java.sql.Time;
 import java.sql.Timestamp;
 
 public class ByteColumn extends AbstractBaseColumn {
+
+    private static final long serialVersionUID = -7151575051615132219L;
+
     public ByteColumn(byte data) {
         super(data, 1);
     }

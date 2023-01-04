@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,25 +16,26 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.conf;
+package com.dtstack.chunjun.connector.solr;
 
-public class ConfigConstants {
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.security.KerberosConfig;
 
-    public static final int DEFAULT_FTP_PORT = 21;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-    public static final int DEFAULT_SFTP_PORT = 22;
+import java.io.Serializable;
+import java.util.List;
 
-    public static final int DEFAULT_TIMEOUT = 5000;
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class SolrConfig extends CommonConfig implements Serializable {
 
-    public static final String DEFAULT_FTP_CONNECT_PATTERN = "PASV";
+    private static final long serialVersionUID = 8189017299395641643L;
 
-    public static final String SFTP_PROTOCOL = "sftp";
-
-    public static final String FTP_PROTOCOL = "ftp";
-
-    public static final String DEFAULT_FIELD_DELIMITER = ",";
-
-    public static final String INTERNAL_FILENAME = "internal_file_name";
-
-    public static final String FTP_COUNTER_PREFIX = "ftp";
+    private List<String> zkHosts;
+    private String zkChroot;
+    private String collection;
+    private List<String> filterQueries;
+    private KerberosConfig kerberosConfig;
 }

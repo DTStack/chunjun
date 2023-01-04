@@ -26,7 +26,6 @@ import com.dtstack.chunjun.cdc.ddl.definition.DdlOperator;
 import com.dtstack.chunjun.cdc.ddl.definition.IndexOperator;
 import com.dtstack.chunjun.cdc.ddl.definition.TableOperator;
 import com.dtstack.chunjun.ddl.convert.oracle.parse.impl.ChunjunOracleParserImpl;
-import com.dtstack.chunjun.mapping.MappingConfig;
 import com.dtstack.chunjun.throwable.ConventException;
 
 import org.apache.calcite.config.Lex;
@@ -40,15 +39,12 @@ import java.util.List;
 
 public class OracleDdlConvertImpl implements DdlConvent {
 
+    private static final long serialVersionUID = 5228388287731540597L;
+
     private final SqlVisitor<List<DdlOperator>> oracleVisitor =
             new SqlNodeConvertVisitor(new SqlNodeParseImpl());
+
     private final OperatorConvertImpl operatorConvert = new OperatorConvertImpl();
-
-    public OracleDdlConvertImpl() {
-        this(null);
-    }
-
-    public OracleDdlConvertImpl(MappingConfig mappingConf) {}
 
     @Override
     public List<DdlOperator> rowConventToDdlData(DdlRowData row) throws ConventException {

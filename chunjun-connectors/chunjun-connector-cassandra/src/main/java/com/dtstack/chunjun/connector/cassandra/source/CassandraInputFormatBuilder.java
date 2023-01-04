@@ -32,12 +32,12 @@ public class CassandraInputFormatBuilder extends BaseRichInputFormatBuilder<Cass
 
     public void setSourceConf(CassandraSourceConfig sourceConf) {
         super.setConfig(sourceConf);
-        format.setSourceConf(sourceConf);
+        format.setSourceConfig(sourceConf);
     }
 
     @Override
     protected void checkFormat() {
-        CassandraSourceConfig sourceConf = format.getSourceConf();
+        CassandraSourceConfig sourceConf = format.getSourceConfig();
 
         StringBuilder stringBuilder = new StringBuilder(256);
 

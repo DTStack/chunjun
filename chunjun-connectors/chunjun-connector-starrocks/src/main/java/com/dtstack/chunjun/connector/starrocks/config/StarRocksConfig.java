@@ -18,15 +18,23 @@
 package com.dtstack.chunjun.connector.starrocks.config;
 
 import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.connector.starrocks.options.ConstantValue;
 
 import org.apache.flink.table.types.DataType;
+
+import com.google.common.collect.Maps;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class StarRocksConfig extends CommonConfig {
 
+    private static final long serialVersionUID = 3755174342122073385L;
     // common
     private String url;
 
@@ -41,7 +49,7 @@ public class StarRocksConfig extends CommonConfig {
     private String password;
 
     private String writeMode;
-    /** * default value is 3 */
+    /** default value is 3 */
     private Integer maxRetries = 3;
 
     // sink
@@ -51,7 +59,15 @@ public class StarRocksConfig extends CommonConfig {
     /** 是否配置了NameMapping, true, RowData中将携带名称匹配后的数据库和表名, sink端配置的database和table失效* */
     private boolean nameMapped;
 
-    private LoadConfig loadConfig = new LoadConfig();
+    private LoadConfig loadConfig =
+            LoadConfig.builder()
+                    .httpCheckTimeoutMs(ConstantValue.HTTP_CHECK_TIMEOUT_DEFAULT)
+                    .queueOfferTimeoutMs(ConstantValue.QUEUE_OFFER_TIMEOUT_DEFAULT)
+                    .queuePollTimeoutMs(ConstantValue.QUEUE_POLL_TIMEOUT_DEFAULT)
+                    .batchMaxSize(ConstantValue.SINK_BATCH_MAX_BYTES_DEFAULT)
+                    .batchMaxRows(ConstantValue.SINK_BATCH_MAX_ROWS_DEFAULT)
+                    .headProperties(Maps.newHashMap())
+                    .build();
 
     // source
     private String[] fieldNames;
@@ -71,164 +87,4 @@ public class StarRocksConfig extends CommonConfig {
     private long beFetchMaxBytes = 1024 * 1024 * 1024;
 
     private Map<String, String> beSocketProperties = new HashMap<>();
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public List<String> getFeNodes() {
-        return feNodes;
-    }
-
-    public void setFeNodes(List<String> feNodes) {
-        this.feNodes = feNodes;
-    }
-
-    public String getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
-    public String getTable() {
-        return table;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getWriteMode() {
-        return writeMode;
-    }
-
-    public void setWriteMode(String writeMode) {
-        this.writeMode = writeMode;
-    }
-
-    public Integer getMaxRetries() {
-        return maxRetries;
-    }
-
-    public void setMaxRetries(Integer maxRetries) {
-        this.maxRetries = maxRetries;
-    }
-
-    public long getWaitRetryMills() {
-        return waitRetryMills;
-    }
-
-    public void setWaitRetryMills(long waitRetryMills) {
-        this.waitRetryMills = waitRetryMills;
-    }
-
-    public boolean isNameMapped() {
-        return nameMapped;
-    }
-
-    public void setNameMapped(boolean nameMapped) {
-        this.nameMapped = nameMapped;
-    }
-
-    public LoadConfig getLoadConf() {
-        return loadConfig;
-    }
-
-    public void setLoadConf(LoadConfig loadConfig) {
-        this.loadConfig = loadConfig;
-    }
-
-    public String[] getFieldNames() {
-        return fieldNames;
-    }
-
-    public void setFieldNames(String[] fieldNames) {
-        this.fieldNames = fieldNames;
-    }
-
-    public DataType[] getDataTypes() {
-        return dataTypes;
-    }
-
-    public void setDataTypes(DataType[] dataTypes) {
-        this.dataTypes = dataTypes;
-    }
-
-    public String getFilterStatement() {
-        return filterStatement;
-    }
-
-    public void setFilterStatement(String filterStatement) {
-        this.filterStatement = filterStatement;
-    }
-
-    public int getBeClientKeepLiveMin() {
-        return beClientKeepLiveMin;
-    }
-
-    public void setBeClientKeepLiveMin(int beClientKeepLiveMin) {
-        this.beClientKeepLiveMin = beClientKeepLiveMin;
-    }
-
-    public int getBeQueryTimeoutSecond() {
-        return beQueryTimeoutSecond;
-    }
-
-    public void setBeQueryTimeoutSecond(int beQueryTimeoutSecond) {
-        this.beQueryTimeoutSecond = beQueryTimeoutSecond;
-    }
-
-    public int getBeClientTimeout() {
-        return beClientTimeout;
-    }
-
-    public void setBeClientTimeout(int beClientTimeout) {
-        this.beClientTimeout = beClientTimeout;
-    }
-
-    public int getBeFetchRows() {
-        return beFetchRows;
-    }
-
-    public void setBeFetchRows(int beFetchRows) {
-        this.beFetchRows = beFetchRows;
-    }
-
-    public long getBeFetchMaxBytes() {
-        return beFetchMaxBytes;
-    }
-
-    public void setBeFetchMaxBytes(long beFetchMaxBytes) {
-        this.beFetchMaxBytes = beFetchMaxBytes;
-    }
-
-    public Map<String, String> getBeSocketProperties() {
-        return beSocketProperties;
-    }
-
-    public void setBeSocketProperties(Map<String, String> beSocketProperties) {
-        this.beSocketProperties = beSocketProperties;
-    }
 }

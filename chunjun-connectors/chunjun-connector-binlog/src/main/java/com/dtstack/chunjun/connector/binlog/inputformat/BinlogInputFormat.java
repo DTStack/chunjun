@@ -41,6 +41,9 @@ import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,12 +57,17 @@ import java.util.List;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
+@Slf4j
+@Getter
+@Setter
 public class BinlogInputFormat extends BaseRichInputFormat {
+
+    private static final long serialVersionUID = -8239253671514109268L;
 
     protected BinlogConfig binlogConfig;
     protected volatile EntryPosition entryPosition;
     protected List<String> categories = new ArrayList<>();
-    protected AbstractCDCRowConverter rowConverter;
+    protected AbstractCDCRowConverter cdcRowConverter;
 
     protected transient MysqlEventParser controller;
     protected transient BinlogEventSink binlogEventSink;
@@ -77,7 +85,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
-        LOG.info(
+        log.info(
                 "binlog FilterBefore:{}, tableBefore: {}",
                 binlogConfig.getFilter(),
                 binlogConfig.getTable());
@@ -141,7 +149,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
             } else if (StringUtils.isNotBlank(binlogConfig.getFilter())) {
                 tableFilters = Arrays.asList(binlogConfig.getFilter().split(","));
             }
-            LOG.info(
+            log.info(
                     "binlog FilterAfter:{},tableAfter: {}",
                     binlogConfig.getFilter(),
                     binlogConfig.getTable());
@@ -151,12 +159,12 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) {
         if (inputSplit.getSplitNumber() != 0) {
-            LOG.info("binlog openInternal split number:{} abort...", inputSplit.getSplitNumber());
+            log.info("binlog openInternal split number:{} abort...", inputSplit.getSplitNumber());
             return;
         }
 
-        LOG.info("binlog openInternal split number:{} start...", inputSplit.getSplitNumber());
-        LOG.info("binlog config:{}", JsonUtil.toPrintJson(binlogConfig));
+        log.info("binlog openInternal split number:{} start...", inputSplit.getSplitNumber());
+        log.info("binlog config:{}", JsonUtil.toPrintJson(binlogConfig));
 
         binlogEventSink = new BinlogEventSink(this);
         controller =
@@ -206,7 +214,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         }
 
         if (StringUtils.isNotEmpty(filter)) {
-            LOG.info("binlogFilter最终值：{},current username: {}", filter, username);
+            log.info("binlogFilter最终值：{},current username: {}", filter, username);
             controller.setEventFilter(new AviaterRegexFilter(filter));
         }
         return controller;
@@ -226,9 +234,9 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         if (binlogEventSink != null) {
             return binlogEventSink.takeRowDataFromQueue();
         }
-        LOG.warn("binlog park start");
+        log.warn("binlog park start");
         LockSupport.park(this);
-        LOG.warn("binlog park end...");
+        log.warn("binlog park end...");
         return null;
     }
 
@@ -237,17 +245,12 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         if (controller != null && controller.isStart()) {
             controller.stop();
             controller = null;
-            LOG.info(
+            log.info(
                     "binlog closeInternal..., entryPosition:{}",
                     formatState != null ? formatState.getState() : null);
         }
     }
 
-    /**
-     * 设置binlog文件起始位置
-     *
-     * @return
-     */
     protected EntryPosition findStartPosition() {
         EntryPosition startPosition = null;
         if (formatState != null
@@ -271,11 +274,6 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         return startPosition;
     }
 
-    /**
-     * 校验Binlog文件是否存在
-     *
-     * @param journalName
-     */
     private void checkBinlogFile(String journalName) {
         if (StringUtils.isNotEmpty(journalName)) {
             if (!new BinlogJournalValidator(
@@ -292,29 +290,5 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     @Override
     public boolean reachedEnd() {
         return false;
-    }
-
-    public BinlogConfig getBinlogConf() {
-        return binlogConfig;
-    }
-
-    public void setBinlogConf(BinlogConfig binlogConfig) {
-        this.binlogConfig = binlogConfig;
-    }
-
-    public List<String> getCategories() {
-        return categories;
-    }
-
-    public void setEntryPosition(EntryPosition entryPosition) {
-        this.entryPosition = entryPosition;
-    }
-
-    public AbstractCDCRowConverter getRowConverter() {
-        return rowConverter;
-    }
-
-    public void setRowConverter(AbstractCDCRowConverter rowConverter) {
-        this.rowConverter = rowConverter;
     }
 }

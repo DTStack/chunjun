@@ -50,6 +50,8 @@ import java.util.List;
 public class HdfsParquetRowConverter
         extends AbstractRowConverter<RowData, RowData, Group, LogicalType> {
 
+    private static final long serialVersionUID = -4819153961537643326L;
+
     private List<String> columnNameList;
 
     public HdfsParquetRowConverter(RowType rowType) {

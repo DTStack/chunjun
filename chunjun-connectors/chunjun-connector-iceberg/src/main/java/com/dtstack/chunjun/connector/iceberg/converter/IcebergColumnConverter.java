@@ -46,6 +46,8 @@ import java.util.Map;
 
 public class IcebergColumnConverter extends AbstractRowConverter<RowData, RowData, String, String> {
 
+    private static final long serialVersionUID = -6943511991872584809L;
+
     private List<String> columnNameList;
     private transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 

@@ -18,37 +18,16 @@
 
 package com.dtstack.chunjun.connector.s3.util;
 
-import java.io.Serializable;
-import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
+import java.io.Serializable;
+
+@Data
+@AllArgsConstructor
 public class S3SimpleObject implements Serializable {
 
     private static final long serialVersionUID = -7199607264925678753L;
 
     private String key;
-
-    public S3SimpleObject(String key) {
-        this.key = key;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        S3SimpleObject that = (S3SimpleObject) o;
-        return Objects.equals(key, that.key);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(key);
-    }
 }

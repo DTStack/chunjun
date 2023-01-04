@@ -17,71 +17,27 @@
  */
 package com.dtstack.chunjun.config;
 
-import java.io.Serializable;
-import java.util.StringJoiner;
+import lombok.Data;
 
+import java.io.Serializable;
+
+@Data
 public class SpeedConfig implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = -105756501712238327L;
 
     /** 任务全局并行度 */
     private int channel = 1;
+
     /** source并行度，-1代表采用全局并行度 */
     private int readerChannel = -1;
+
     /** sink并行度，-1代表采用全局并行度 */
     private int writerChannel = -1;
+
     /** 速率上限，0代表不限速 */
     private long bytes = 0;
+
     /** 是否强制进行rebalance，开启会消耗性能 */
     private boolean rebalance = false;
-
-    public int getChannel() {
-        return channel;
-    }
-
-    public void setChannel(int channel) {
-        this.channel = channel;
-    }
-
-    public int getReaderChannel() {
-        return readerChannel;
-    }
-
-    public void setReaderChannel(int readerChannel) {
-        this.readerChannel = readerChannel;
-    }
-
-    public int getWriterChannel() {
-        return writerChannel;
-    }
-
-    public void setWriterChannel(int writerChannel) {
-        this.writerChannel = writerChannel;
-    }
-
-    public long getBytes() {
-        return bytes;
-    }
-
-    public void setBytes(long bytes) {
-        this.bytes = bytes;
-    }
-
-    public boolean isRebalance() {
-        return rebalance;
-    }
-
-    public void setRebalance(boolean rebalance) {
-        this.rebalance = rebalance;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", SpeedConfig.class.getSimpleName() + "[", "]")
-                .add("channel=" + channel)
-                .add("readerChannel=" + readerChannel)
-                .add("writerChannel=" + writerChannel)
-                .add("bytes=" + bytes)
-                .add("rebalance=" + rebalance)
-                .toString();
-    }
 }

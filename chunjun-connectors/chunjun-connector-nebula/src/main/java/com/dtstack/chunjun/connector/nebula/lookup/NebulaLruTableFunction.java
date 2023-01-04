@@ -38,8 +38,7 @@ import com.vesoft.nebula.client.graph.data.ResultSet;
 import com.vesoft.nebula.client.graph.data.ValueWrapper;
 import com.vesoft.nebula.client.graph.exception.IOErrorException;
 import com.vesoft.nebula.client.storage.data.BaseTableRow;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,9 +49,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class NebulaLruTableFunction extends AbstractLruTableFunction {
-    private static final Logger LOG = LoggerFactory.getLogger(NebulaLruTableFunction.class);
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = 4945338224694722514L;
 
     private final NebulaConfig nebulaConfig;
 
@@ -106,14 +106,14 @@ public class NebulaLruTableFunction extends AbstractLruTableFunction {
                 new LookupNGQLBuilder()
                         .setFieldNames(fieldNames)
                         .setNebulaConf(nebulaConfig)
-                        .setFiterFieldNames(keyNames)
+                        .setFilterFieldNames(keyNames)
                         .build();
 
         ResultSet resultSet = null;
         try {
             resultSet = nebulaSession.executeWithParameter(ngql, params);
         } catch (IOErrorException e) {
-            LOG.error(
+            log.error(
                     "execute ngql failed,massage: {},ngql: {},params: {}",
                     e.getMessage(),
                     ngql,
@@ -132,7 +132,7 @@ public class NebulaLruTableFunction extends AbstractLruTableFunction {
                 try {
                     rowData = rowConverter.toInternal(baseTableRow);
                 } catch (Exception e) {
-                    LOG.error(
+                    log.error(
                             "convert data failed,massage: {},data : {}",
                             e.getMessage(),
                             baseTableRow);
@@ -153,7 +153,7 @@ public class NebulaLruTableFunction extends AbstractLruTableFunction {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (nebulaSession != null) {
             nebulaSession.close();
         }

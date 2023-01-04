@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.dirty.utils;
 
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class DirtyConfUtilTest {
+class DirtyConfigUtilTest {
     @Test
     @DisplayName("Should return dirtyconf when the type is default")
     public void parseWhenTypeIsDefault() {
@@ -39,13 +39,13 @@ class DirtyConfUtilTest {
         confMap.put(DirtyConfUtil.PRINT_INTERVAL, "300");
         confMap.put(DirtyConfUtil.DIRTY_DIR, "/tmp/dirty");
 
-        DirtyConf dirtyConf = DirtyConfUtil.parseFromMap(confMap);
+        DirtyConfig dirtyConfig = DirtyConfUtil.parseFromMap(confMap);
 
-        assertEquals("default", dirtyConf.getType());
-        assertEquals(100, dirtyConf.getMaxConsumed());
-        assertEquals(200, dirtyConf.getMaxFailedConsumed());
-        assertEquals(300, dirtyConf.getPrintRate());
-        assertEquals("/tmp/dirty", dirtyConf.getLocalPluginPath());
+        assertEquals("default", dirtyConfig.getType());
+        assertEquals(100, dirtyConfig.getMaxConsumed());
+        assertEquals(200, dirtyConfig.getMaxFailedConsumed());
+        assertEquals(300, dirtyConfig.getPrintRate());
+        assertEquals("/tmp/dirty", dirtyConfig.getLocalPluginPath());
     }
 
     @Test
@@ -58,12 +58,12 @@ class DirtyConfUtilTest {
         confMap.put(DirtyConfUtil.PRINT_INTERVAL, "300");
         confMap.put(DirtyConfUtil.DIRTY_DIR, "/tmp/dirty");
 
-        DirtyConf dirtyConf = DirtyConfUtil.parseFromMap(confMap);
+        DirtyConfig dirtyConfig = DirtyConfUtil.parseFromMap(confMap);
 
-        assertEquals("mysql", dirtyConf.getType());
-        assertEquals(100, dirtyConf.getMaxConsumed());
-        assertEquals(200, dirtyConf.getMaxFailedConsumed());
-        assertEquals(300, dirtyConf.getPrintRate());
-        assertEquals("/tmp/dirty", dirtyConf.getLocalPluginPath());
+        assertEquals("mysql", dirtyConfig.getType());
+        assertEquals(100, dirtyConfig.getMaxConsumed());
+        assertEquals(200, dirtyConfig.getMaxFailedConsumed());
+        assertEquals(300, dirtyConfig.getPrintRate());
+        assertEquals("/tmp/dirty", dirtyConfig.getLocalPluginPath());
     }
 }

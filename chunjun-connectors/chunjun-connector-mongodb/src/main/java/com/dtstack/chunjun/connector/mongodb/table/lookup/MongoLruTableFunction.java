@@ -35,9 +35,8 @@ import com.mongodb.async.client.MongoClient;
 import com.mongodb.async.client.MongoClients;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -45,9 +44,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Slf4j
 public class MongoLruTableFunction extends AbstractLruTableFunction {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MongoLruTableFunction.class);
+    private static final long serialVersionUID = -7492650828362052066L;
 
     private final MongoClientConfig mongoClientConfig;
     private final String[] keyNames;
@@ -90,15 +90,15 @@ public class MongoLruTableFunction extends AbstractLruTableFunction {
                     try {
                         row = ((MongodbRowConverter) rowConverter).toInternalLookup(document);
                     } catch (Exception e) {
-                        LOG.error("", e);
+                        log.error("", e);
                     }
                     rowList.add(row);
                 };
 
         SingleResultCallback<Void> callbackWhenFinished =
                 (result, t) -> {
-                    if (rowList.size() <= 0) {
-                        LOG.warn("Cannot retrieve the data from the database");
+                    if (rowList.isEmpty()) {
+                        log.warn("Cannot retrieve the data from the database");
                         future.complete(Collections.emptyList());
                     } else {
                         future.complete(rowList);

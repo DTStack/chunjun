@@ -34,7 +34,7 @@ public class DorisInputFormatBuilder extends JdbcInputFormatBuilder {
     @Override
     protected void checkFormat() {
         DorisInputFormat format = (DorisInputFormat) this.format;
-        DorisConfig config = format.getDorisConf();
+        DorisConfig config = format.getDorisConfig();
         List<String> feNodes = config.getFeNodes();
         String url = config.getUrl();
 

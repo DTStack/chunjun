@@ -32,6 +32,7 @@ import com.dtstack.chunjun.util.TelnetUtil;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,6 +47,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
+@Slf4j
 public class OracleLogMinerInputFormatBuilder
         extends BaseRichInputFormatBuilder<OracleLogMinerInputFormat> {
 
@@ -96,7 +98,7 @@ public class OracleLogMinerInputFormatBuilder
             sb.append("transactionCacheNumSize must bigger than 1;\n");
         }
 
-        if (config.getPavingData() && config.isSplit()) {
+        if (config.isPavingData() && config.isSplit()) {
             throw new IllegalArgumentException("can't use pavingData and split at the same time");
         }
 
@@ -175,7 +177,7 @@ public class OracleLogMinerInputFormatBuilder
                                     SqlUtil.SQL_ALTER_SESSION_CONTAINER,
                                     LogMinerConnection.CDB_CONTAINER_ROOT));
                 } catch (SQLException e) {
-                    LOG.warn(
+                    log.warn(
                             "alter session container to CDB$ROOT error,errorInfo is {} ",
                             ExceptionUtil.getErrorMessage(e));
                     sb.append("your account can't alter session container to CDB$ROOT \n");
@@ -281,7 +283,7 @@ public class OracleLogMinerInputFormatBuilder
             StringBuilder detailsInfo = new StringBuilder(sb.length() + 128);
 
             if (sb.length() > 0) {
-                detailsInfo.append(" logMiner config not right，details is  ").append(sb.toString());
+                detailsInfo.append(" logMiner config not right，details is  ").append(sb);
             }
 
             detailsInfo

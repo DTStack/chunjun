@@ -18,8 +18,11 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.entity;
 
-import java.util.StringJoiner;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
+@Data
+@AllArgsConstructor
 public class EventRowData {
     /** fieldName * */
     private String name;
@@ -27,43 +30,4 @@ public class EventRowData {
     private String data;
 
     private boolean isNull;
-
-    public EventRowData(String name, String data, boolean isNull) {
-        this.name = name;
-        this.data = data;
-        this.isNull = isNull;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
-    }
-
-    public boolean isNull() {
-        return isNull;
-    }
-
-    public void setNull(boolean aNull) {
-        isNull = aNull;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", EventRowData.class.getSimpleName() + "[", "]")
-                .add("name='" + name + "'")
-                .add("data='" + data + "'")
-                .add("isNull=" + isNull)
-                .toString();
-    }
 }

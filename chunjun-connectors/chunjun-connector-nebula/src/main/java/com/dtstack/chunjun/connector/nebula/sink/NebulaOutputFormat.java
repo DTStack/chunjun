@@ -32,12 +32,16 @@ import org.apache.flink.table.data.RowData;
 import com.google.common.collect.Lists;
 import com.vesoft.nebula.client.graph.data.ResultSet;
 import com.vesoft.nebula.client.graph.exception.IOErrorException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class NebulaOutputFormat extends BaseRichOutputFormat {
+
+    private static final long serialVersionUID = 3745600530397638831L;
 
     private NebulaConfig nebulaConfig;
 
@@ -54,7 +58,7 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
             check();
             closeInternal();
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             throw new ChunJunRuntimeException(e);
         }
     }
@@ -124,7 +128,7 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
             if (res.getErrorCode() != 0) {}
 
             if (!res.isSucceeded()) {
-                LOG.warn("write failed!");
+                log.warn("write failed!");
                 for (RowData row : rows) {
                     WriteRecordException exception =
                             new WriteRecordException(
@@ -137,7 +141,7 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
                 }
             }
         } catch (Exception e) {
-            LOG.error("write failed!");
+            log.error("write failed!");
             WriteRecordException exception;
             for (RowData row : rows) {
                 exception = new WriteRecordException(e.getMessage(), e);
@@ -166,7 +170,7 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
     private void check() throws IOErrorException, InterruptedException {
         Boolean spaceExist = storageClient.isSpaceExist(nebulaConfig.getSpace());
         if (!spaceExist) {
-            LOG.info("space dose not exist,create space");
+            log.info("space dose not exist,create space");
             ResultSet res = session.createSpace(nebulaConfig.getSpace());
             if (!res.isSucceeded()) {
                 throw new ChunJunRuntimeException("create space failed: " + res.getErrorMessage());
@@ -177,7 +181,7 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
         Boolean schemaExist =
                 storageClient.isSchemaExist(nebulaConfig.getSpace(), nebulaConfig.getEntityName());
         if (!schemaExist) {
-            LOG.info("tag/edge dose not exist,create tag/edge");
+            log.info("tag/edge dose not exist,create tag/edge");
             ResultSet res =
                     session.createSchema(nebulaConfig.getSpace(), nebulaConfig.getEntityName());
             if (!res.isSucceeded()) {

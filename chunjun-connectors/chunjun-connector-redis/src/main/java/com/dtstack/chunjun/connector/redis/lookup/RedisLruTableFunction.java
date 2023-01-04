@@ -34,19 +34,18 @@ import com.google.common.collect.Lists;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.async.RedisHashAsyncCommands;
 import io.lettuce.core.api.async.RedisKeyAsyncCommands;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 public class RedisLruTableFunction extends AbstractLruTableFunction {
 
-    private static final long serialVersionUID = 1L;
-    private static final Logger LOG = LoggerFactory.getLogger(RedisLruTableFunction.class);
+    private static final long serialVersionUID = -7190171034606939751L;
 
     private transient RedisAsyncClient redisAsyncClient;
     private RedisKeyAsyncCommands<String, String> redisKeyAsyncCommands;
@@ -83,7 +82,7 @@ public class RedisLruTableFunction extends AbstractLruTableFunction {
                             }
                             rowList.add(rowData);
                         } catch (Exception e) {
-                            LOG.error(
+                            log.error(
                                     "error:{} \n cacheKey:{} \n data:{}",
                                     e.getMessage(),
                                     cacheKey,
@@ -106,8 +105,7 @@ public class RedisLruTableFunction extends AbstractLruTableFunction {
     }
 
     @Override
-    public void close() throws Exception {
-        super.close();
+    public void close() {
         redisAsyncClient.close();
     }
 }

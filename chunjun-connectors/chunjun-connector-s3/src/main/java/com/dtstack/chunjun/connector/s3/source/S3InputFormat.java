@@ -36,9 +36,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -52,9 +51,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class S3InputFormat extends BaseRichInputFormat {
-
-    private static final Logger LOG = LoggerFactory.getLogger(S3InputFormat.class);
 
     private static final long serialVersionUID = -3217513386563100062L;
 
@@ -120,7 +118,7 @@ public class S3InputFormat extends BaseRichInputFormat {
                             + "，objects: "
                             + s3Config.getObjects());
         }
-        LOG.info("read file {}", GsonUtil.GSON.toJson(objects));
+        log.info("read file {}", GsonUtil.GSON.toJson(objects));
         List<String> keys = new ArrayList<>();
         for (S3SimpleObject object : objects) {
             keys.add(object.getKey());
@@ -174,7 +172,7 @@ public class S3InputFormat extends BaseRichInputFormat {
                 currentObject = splits.next();
                 GetObjectRequest rangeObjectRequest =
                         new GetObjectRequest(s3Config.getBucket(), currentObject);
-                LOG.info("Current read file {}", currentObject);
+                log.info("Current read file {}", currentObject);
                 if (restoreConf.isRestore()
                         && offsetMap.containsKey(currentObject)
                         && 0 <= offsetMap.get(currentObject)) {
@@ -270,8 +268,8 @@ public class S3InputFormat extends BaseRichInputFormat {
             }
         }
         List<S3SimpleObject> distinct = new ArrayList<>(resolved);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(
+        if (log.isDebugEnabled()) {
+            log.debug(
                     "match object is[{}]",
                     distinct.stream().map(S3SimpleObject::getKey).collect(Collectors.joining(",")));
         }

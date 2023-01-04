@@ -102,7 +102,7 @@ public class FunctionParser {
             }
 
             FunctionTree child = new FunctionTree();
-            child.setFunction(FunctionFactory.createFuntion(splits[splits.length - 1]));
+            child.setFunction(FunctionFactory.createFunction(splits[splits.length - 1]));
             root.addInputFunction(child);
 
             String subExpress = express.substring(leftBracketsIndex + 1, rightBracketsIndex);

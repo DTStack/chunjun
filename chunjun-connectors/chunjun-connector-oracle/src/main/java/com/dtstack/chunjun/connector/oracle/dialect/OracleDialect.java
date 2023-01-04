@@ -47,6 +47,8 @@ import java.util.stream.Collectors;
 
 public class OracleDialect implements JdbcDialect {
 
+    private static final long serialVersionUID = -1304861371329709477L;
+
     @Override
     public String dialectName() {
         return "ORACLE";

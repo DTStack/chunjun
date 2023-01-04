@@ -22,10 +22,9 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.RetryUtil;
 import com.dtstack.chunjun.util.TelnetUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -33,10 +32,10 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
 
+@Slf4j
 public class JdbcUtil {
 
     public static final String TEMPORARY_TABLE_NAME = "chunjun_tmp";
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcUtil.class);
 
     /**
      * 获取JDBC连接
@@ -63,10 +62,9 @@ public class JdbcUtil {
         if (StringUtils.isNotBlank(jdbcConfig.getPassword())) {
             prop.put("password", jdbcConfig.getPassword());
         }
-        Properties finalProp = prop;
         synchronized (ClassUtil.LOCK_STR) {
             return RetryUtil.executeWithRetry(
-                    () -> DriverManager.getConnection(jdbcConfig.getJdbcUrl(), finalProp),
+                    () -> DriverManager.getConnection(jdbcConfig.getJdbcUrl(), prop),
                     3,
                     2000,
                     false);
@@ -84,7 +82,7 @@ public class JdbcUtil {
                 conn.commit();
             }
         } catch (SQLException e) {
-            LOG.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
+            log.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 }

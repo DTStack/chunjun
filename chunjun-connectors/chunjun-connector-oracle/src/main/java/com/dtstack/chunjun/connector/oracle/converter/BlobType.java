@@ -29,6 +29,8 @@ import java.util.Set;
 
 public class BlobType extends LogicalType {
 
+    private static final long serialVersionUID = 8090174696502453284L;
+
     private static final Class<?> INPUT_CONVERSION = byte[].class;
 
     private static final Class<?> DEFAULT_CONVERSION = byte[].class;

@@ -30,9 +30,8 @@ import com.dtstack.chunjun.throwable.ReadRecordException;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,10 +39,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.dtstack.chunjun.connector.starrocks.util.StarRocksUtil.splitQueryBeXTablets;
 
-/** @author liuliu 2022/7/26 */
+@Slf4j
 public class StarRocksInputFormat extends BaseRichInputFormat {
 
-    private final Logger LOG = LoggerFactory.getLogger(StarRocksInputFormat.class);
+    private static final long serialVersionUID = 8315233040239002065L;
 
     private StarRocksConfig starRocksConfig;
 
@@ -52,7 +51,7 @@ public class StarRocksInputFormat extends BaseRichInputFormat {
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
         String querySql = getQueryStatement();
-        LOG.info(String.format("starRocksInputFormat querySql is %s", querySql));
+        log.info(String.format("starRocksInputFormat querySql is %s", querySql));
         StarRocksQueryPlanVisitor queryPlanVisitor = new StarRocksQueryPlanVisitor(starRocksConfig);
         QueryInfo queryInfo = queryPlanVisitor.getQueryInfo(querySql);
         List<List<QueryBeXTablets>> lists = splitQueryBeXTablets(minNumSplits, queryInfo);

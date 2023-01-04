@@ -27,22 +27,21 @@ import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.GenericRowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class Elasticsearch6AllTableFunction extends AbstractAllTableFunction {
 
-    private static final long serialVersionUID = 2L;
-    private static final Logger LOG = LoggerFactory.getLogger(Elasticsearch6LruTableFunction.class);
+    private static final long serialVersionUID = -2046161755223639032L;
 
     private final Elasticsearch6Config elasticsearchConfig;
 
@@ -80,11 +79,11 @@ public class Elasticsearch6AllTableFunction extends AbstractAllTableFunction {
                     }
                     buildCache(oneRow, tmpCache);
                 } catch (Exception e) {
-                    LOG.error("error:{} \n  data:{}", e.getMessage(), source);
+                    log.error("error:{} \n  data:{}", e.getMessage(), source);
                 }
             }
         } catch (Exception e) {
-            LOG.error("", e);
+            log.error("", e);
         }
     }
 

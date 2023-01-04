@@ -24,6 +24,9 @@ import java.io.Serializable;
 import java.util.StringJoiner;
 
 public class LookupConfig implements Serializable {
+
+    private static final long serialVersionUID = 4244502617187621548L;
+
     /** 表名 */
     protected String tableName = "";
     /** 间隔加载时间 */

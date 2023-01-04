@@ -34,10 +34,13 @@ import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
+import lombok.AllArgsConstructor;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@AllArgsConstructor
 public class CassandraDynamicTableSink implements DynamicTableSink {
 
     private static final String IDENTIFIED = "Cassandra";
@@ -47,13 +50,6 @@ public class CassandraDynamicTableSink implements DynamicTableSink {
     private final ResolvedSchema tableSchema;
 
     private final DataType dataType;
-
-    public CassandraDynamicTableSink(
-            CassandraSinkConfig sinkConf, ResolvedSchema tableSchema, DataType dataType) {
-        this.sinkConf = sinkConf;
-        this.tableSchema = tableSchema;
-        this.dataType = dataType;
-    }
 
     @Override
     public ChangelogMode getChangelogMode(ChangelogMode requestedMode) {
@@ -91,11 +87,11 @@ public class CassandraDynamicTableSink implements DynamicTableSink {
         final RowType rowType =
                 TableUtil.createRowType(sinkConf.getColumn(), CassandraRawTypeConverter::apply);
 
-        builder.setSinkConf(sinkConf);
+        builder.setSinkConfig(sinkConf);
         builder.setRowConverter(new CassandraRowConverter(rowType, columnNameList));
 
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction(builder.finish()), sinkConf.getParallelism());
+                new DtOutputFormatSinkFunction<>(builder.finish()), sinkConf.getParallelism());
     }
 
     @Override

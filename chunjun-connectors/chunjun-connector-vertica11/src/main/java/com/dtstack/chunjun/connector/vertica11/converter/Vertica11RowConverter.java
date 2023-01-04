@@ -48,7 +48,7 @@ import java.util.ArrayList;
 
 public class Vertica11RowConverter extends JdbcRowConverter {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -4636169894477054710L;
 
     protected ArrayList<IDeserializationConverter> toAsyncInternalConverters;
 

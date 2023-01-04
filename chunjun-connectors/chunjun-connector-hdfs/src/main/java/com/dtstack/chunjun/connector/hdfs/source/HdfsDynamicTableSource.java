@@ -70,7 +70,7 @@ public class HdfsDynamicTableSource implements ScanTableSource {
             field.setType(column.getDataType().getLogicalType().asSummaryString());
             field.setIndex(i);
             if (partitionKeyList.contains(fieldName)) {
-                field.setPart(true);
+                field.setIsPart(true);
             }
             columnList.add(field);
         }

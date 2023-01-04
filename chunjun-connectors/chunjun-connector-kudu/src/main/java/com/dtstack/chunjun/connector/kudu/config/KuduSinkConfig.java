@@ -22,7 +22,8 @@ import com.dtstack.chunjun.sink.WriteMode;
 
 import org.apache.flink.configuration.ReadableConfig;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Locale;
 
@@ -32,7 +33,11 @@ import static com.dtstack.chunjun.connector.kudu.table.KuduOptions.WRITE_MODE;
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class KuduSinkConfig extends KuduCommonConfig {
+
+    private static final long serialVersionUID = 676243416963918497L;
 
     /** writer写入时session刷新模式 auto_flush_sync（默认） auto_flush_background manual_flush */
     private String flushMode = "auto_flush_sync";
@@ -44,29 +49,17 @@ public class KuduSinkConfig extends KuduCommonConfig {
     private long flushInterval = 10 * 1000;
 
     public static KuduSinkConfig from(ReadableConfig readableConfig) {
-        KuduSinkConfig conf =
+        KuduSinkConfig config =
                 (KuduSinkConfig) KuduCommonConfig.from(readableConfig, new KuduSinkConfig());
 
         // sink
-        conf.setBatchSize(readableConfig.get(SINK_BUFFER_FLUSH_MAX_ROWS));
-        conf.setWriteMode(readableConfig.get(WRITE_MODE));
-        conf.setMaxBufferSize(readableConfig.get(MUTATION_BUFFER_SPACE));
-        conf.setFlushMode(readableConfig.get(FLUSH_MODE));
-        conf.setFlushInterval(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
+        config.setBatchSize(readableConfig.get(SINK_BUFFER_FLUSH_MAX_ROWS));
+        config.setWriteMode(readableConfig.get(WRITE_MODE));
+        config.setMaxBufferSize(readableConfig.get(MUTATION_BUFFER_SPACE));
+        config.setFlushMode(readableConfig.get(FLUSH_MODE));
+        config.setFlushInterval(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
 
-        return conf;
-    }
-
-    public String getFlushMode() {
-        return flushMode;
-    }
-
-    public void setFlushMode(String flushMode) {
-        this.flushMode = flushMode;
-    }
-
-    public WriteMode getWriteMode() {
-        return writeMode;
+        return config;
     }
 
     public void setWriteMode(String writeMode) {
@@ -83,31 +76,5 @@ public class KuduSinkConfig extends KuduCommonConfig {
             default:
                 this.writeMode = WriteMode.APPEND;
         }
-    }
-
-    public int getMaxBufferSize() {
-        return maxBufferSize;
-    }
-
-    public void setMaxBufferSize(int maxBufferSize) {
-        this.maxBufferSize = maxBufferSize;
-    }
-
-    public long getFlushInterval() {
-        return flushInterval;
-    }
-
-    public void setFlushInterval(long flushInterval) {
-        this.flushInterval = flushInterval;
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("masters", masters)
-                .append("flush-mode", flushMode)
-                .append("flush-interval", flushInterval)
-                .append("write-mode", writeMode)
-                .toString();
     }
 }

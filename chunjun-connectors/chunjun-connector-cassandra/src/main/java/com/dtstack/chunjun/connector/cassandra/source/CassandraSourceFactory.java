@@ -38,17 +38,17 @@ import java.util.List;
 
 public class CassandraSourceFactory extends SourceFactory {
 
-    private final CassandraSourceConfig sourceConf;
+    private final CassandraSourceConfig sourceConfig;
 
     public CassandraSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
         super(syncConfig, env);
 
-        sourceConf =
+        sourceConfig =
                 JsonUtil.toObject(
                         JsonUtil.toJson(syncConfig.getReader().getParameter()),
                         CassandraSourceConfig.class);
-        sourceConf.setColumn(syncConfig.getReader().getFieldList());
-        super.initCommonConf(sourceConf);
+        sourceConfig.setColumn(syncConfig.getReader().getFieldList());
+        super.initCommonConf(sourceConfig);
     }
 
     @Override
@@ -60,9 +60,9 @@ public class CassandraSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         CassandraInputFormatBuilder builder = new CassandraInputFormatBuilder();
 
-        builder.setSourceConf(sourceConf);
+        builder.setSourceConf(sourceConfig);
 
-        List<FieldConfig> fieldConfList = sourceConf.getColumn();
+        List<FieldConfig> fieldConfList = sourceConfig.getColumn();
         List<String> columnNameList = new ArrayList<>();
         fieldConfList.forEach(fieldConfig -> columnNameList.add(fieldConfig.getName()));
 

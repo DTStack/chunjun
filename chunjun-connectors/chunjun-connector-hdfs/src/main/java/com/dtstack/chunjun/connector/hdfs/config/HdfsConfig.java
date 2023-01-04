@@ -19,14 +19,19 @@ package com.dtstack.chunjun.connector.hdfs.config;
 
 import com.dtstack.chunjun.config.BaseFileConfig;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import parquet.hadoop.ParquetWriter;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class HdfsConfig extends BaseFileConfig {
+
+    private static final long serialVersionUID = 5718545511467772229L;
 
     private String defaultFS;
     private String fileType;
@@ -39,91 +44,4 @@ public class HdfsConfig extends BaseFileConfig {
     private boolean enableDictionary = true;
     private List<String> fullColumnName;
     private List<String> fullColumnType;
-
-    public String getDefaultFS() {
-        return defaultFS;
-    }
-
-    public void setDefaultFS(String defaultFS) {
-        this.defaultFS = defaultFS;
-    }
-
-    public String getFileType() {
-        return fileType;
-    }
-
-    public void setFileType(String fileType) {
-        this.fileType = fileType;
-    }
-
-    public Map<String, Object> getHadoopConfig() {
-        return hadoopConfig;
-    }
-
-    public void setHadoopConfig(Map<String, Object> hadoopConfig) {
-        this.hadoopConfig = hadoopConfig;
-    }
-
-    public String getFilterRegex() {
-        return filterRegex;
-    }
-
-    public void setFilterRegex(String filterRegex) {
-        this.filterRegex = filterRegex;
-    }
-
-    public String getFieldDelimiter() {
-        return fieldDelimiter;
-    }
-
-    public void setFieldDelimiter(String fieldDelimiter) {
-        this.fieldDelimiter = fieldDelimiter;
-    }
-
-    public int getRowGroupSize() {
-        return rowGroupSize;
-    }
-
-    public void setRowGroupSize(int rowGroupSize) {
-        this.rowGroupSize = rowGroupSize;
-    }
-
-    public boolean isEnableDictionary() {
-        return enableDictionary;
-    }
-
-    public void setEnableDictionary(boolean enableDictionary) {
-        this.enableDictionary = enableDictionary;
-    }
-
-    public List<String> getFullColumnName() {
-        return fullColumnName;
-    }
-
-    public void setFullColumnName(List<String> fullColumnName) {
-        this.fullColumnName = fullColumnName;
-    }
-
-    public List<String> getFullColumnType() {
-        return fullColumnType;
-    }
-
-    public void setFullColumnType(List<String> fullColumnType) {
-        this.fullColumnType = fullColumnType;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", HdfsConfig.class.getSimpleName() + "[", "]")
-                .add("defaultFS='" + defaultFS + "'")
-                .add("fileType='" + fileType + "'")
-                .add("hadoopConfig=" + hadoopConfig)
-                .add("filterRegex='" + filterRegex + "'")
-                .add("fieldDelimiter='" + fieldDelimiter + "'")
-                .add("rowGroupSize=" + rowGroupSize)
-                .add("enableDictionary=" + enableDictionary)
-                .add("fullColumnName=" + fullColumnName)
-                .add("fullColumnType=" + fullColumnType)
-                .toString();
-    }
 }

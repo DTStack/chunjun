@@ -28,6 +28,7 @@ import com.dtstack.chunjun.throwable.WriteRecordException;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kudu.client.KuduClient;
 import org.apache.kudu.client.KuduException;
 import org.apache.kudu.client.KuduSession;
@@ -36,17 +37,14 @@ import org.apache.kudu.client.Operation;
 import org.apache.kudu.client.OperationResponse;
 import org.apache.kudu.client.RowError;
 import org.apache.kudu.client.SessionConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Locale;
 
+@Slf4j
 public class KuduOutputFormat extends BaseRichOutputFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KuduOutputFormat.class);
-
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -7721569835325272207L;
 
     private KuduSinkConfig sinkConfig;
 
@@ -123,7 +121,7 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
 
         switch (flushMode.name().toLowerCase(Locale.ENGLISH)) {
             case "auto_flush_background":
-                LOG.warn(
+                log.warn(
                         "Unable to determine the order of data at AUTO_FLUSH_BACKGROUND mode. "
                                 + "Only [batchWaitInterval] will effect.");
                 session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_BACKGROUND);
@@ -132,7 +130,7 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
                 session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
                 break;
             default:
-                LOG.warn("Parameter [batchSize] will not take effect at AUTO_FLUSH_SYNC mode.");
+                log.warn("Parameter [batchSize] will not take effect at AUTO_FLUSH_SYNC mode.");
                 session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_SYNC);
         }
     }

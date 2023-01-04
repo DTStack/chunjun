@@ -30,6 +30,7 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.parquet.column.ParquetProperties;
@@ -51,7 +52,9 @@ import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Locale;
 
+@Slf4j
 public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
+    private static final long serialVersionUID = 7468612312577174864L;
 
     private static final ColumnTypeUtil.DecimalInfo PARQUET_DEFAULT_DECIMAL_INFO =
             new ColumnTypeUtil.DecimalInfo(10, 0);
@@ -135,7 +138,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public void flushDataInternal() {
-        LOG.info(
+        log.info(
                 "Close current parquet record writer, write data size:[{}]",
                 SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
         try {
@@ -181,7 +184,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
     @Override
     protected void closeSource() {
         try {
-            LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);
+            log.info("close:Current block writer record:" + rowsOfCurrentBlock);
             if (writer != null) {
                 writer.close();
             }

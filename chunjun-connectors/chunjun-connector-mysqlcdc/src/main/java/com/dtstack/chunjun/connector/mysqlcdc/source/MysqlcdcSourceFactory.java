@@ -21,6 +21,7 @@ package com.dtstack.chunjun.connector.mysqlcdc.source;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
+import com.dtstack.chunjun.connector.jdbc.config.SourceConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.chunjun.connector.mysqlcdc.config.MysqlCdcConfig;
 import com.dtstack.chunjun.connector.mysqlcdc.converter.MysqlCdcRawTypeConverter;
@@ -49,7 +50,7 @@ import java.util.List;
 
 public class MysqlcdcSourceFactory extends SourceFactory {
 
-    protected MysqlCdcConfig cdcConf;
+    protected MysqlCdcConfig config;
 
     public MysqlcdcSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
         super(syncConfig, env);
@@ -57,12 +58,12 @@ public class MysqlcdcSourceFactory extends SourceFactory {
                 new GsonBuilder()
                         .registerTypeAdapter(
                                 ConnectionConfig.class,
-                                new ConnectionAdapter("SourceConnectionConf"))
+                                new ConnectionAdapter(SourceConnectionConfig.class.getName()))
                         .addDeserializationExclusionStrategy(
                                 new FieldNameExclusionStrategy("column"))
                         .create();
         GsonUtil.setTypeAdapter(gson);
-        cdcConf = gson.fromJson(gson.toJson(syncConfig.getReader().getParameter()), getConfClass());
+        config = gson.fromJson(gson.toJson(syncConfig.getReader().getParameter()), getConfClass());
     }
 
     @Override
@@ -90,15 +91,15 @@ public class MysqlcdcSourceFactory extends SourceFactory {
 
         DebeziumSourceFunction<RowData> mySqlSource =
                 new MySQLSource.Builder<RowData>()
-                        .hostname(cdcConf.getHost())
-                        .port(cdcConf.getPort())
-                        .databaseList(cdcConf.getDatabaseList().toArray(new String[0]))
+                        .hostname(config.getHost())
+                        .port(config.getPort())
+                        .databaseList(config.getDatabaseList().toArray(new String[0]))
                         .tableList(
-                                cdcConf.getTableList()
-                                        .toArray(new String[cdcConf.getDatabaseList().size()]))
-                        .username(cdcConf.getUsername())
-                        .password(cdcConf.getPassword())
-                        .serverId(cdcConf.getServerId())
+                                config.getTableList()
+                                        .toArray(new String[config.getDatabaseList().size()]))
+                        .username(config.getUsername())
+                        .password(config.getPassword())
+                        .serverId(config.getServerId())
                         .deserializer(buildRowDataDebeziumDeserializeSchema(dataType))
                         .build();
 
@@ -120,6 +121,8 @@ public class MysqlcdcSourceFactory extends SourceFactory {
 
     public static final class DemoValueValidator
             implements RowDataDebeziumDeserializeSchema.ValueValidator {
+
+        private static final long serialVersionUID = -6090345002104410773L;
 
         @Override
         public void validate(RowData rowData, RowKind rowKind) {

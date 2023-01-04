@@ -130,7 +130,7 @@ public class HttpSourceFactory extends SourceFactory {
         builder.setHttpRestConfig(httpRestConfig);
         builder.setMetaHeaders(httpRestConfig.getHeader());
         builder.setMetaParams(httpRestConfig.getParam());
-        builder.setMetaBodys(httpRestConfig.getBody());
+        builder.setMetaBodies(httpRestConfig.getBody());
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());
     }

@@ -41,6 +41,8 @@ import static com.dtstack.chunjun.element.ClassSizeUtil.getStringSize;
 
 public class DdlRowData implements RowData, Serializable {
 
+    private static final long serialVersionUID = -6694422834471791214L;
+
     private final String[] headers;
     private final String[] ddlInfos;
     private RowKind rowKind;
@@ -251,11 +253,6 @@ public class DdlRowData implements RowData, Serializable {
     }
 
     public DdlRowData copy() {
-        String[] strings = new String[headers.length];
-        for (int i = 0; i < headers.length; i++) {
-            strings[i] = headers[i];
-        }
-
         DdlRowData ddlRowData = new DdlRowData(headers);
         for (int i = 0; i < headers.length; i++) {
             ddlRowData.setDdlInfo(i, this.getInfo(i));

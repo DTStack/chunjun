@@ -22,12 +22,11 @@ import com.dtstack.chunjun.connector.entity.JobAccumulatorResult;
 import com.dtstack.chunjun.connector.test.utils.ChunjunFlinkStandaloneTestEnvironment;
 import com.dtstack.chunjun.connector.test.utils.JdbcProxy;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.OracleContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.lifecycle.Startables;
@@ -45,9 +44,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 public class OracleSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
-
-    private static final Logger LOG = LoggerFactory.getLogger(OracleSyncE2eITCase.class);
 
     public static final URL ORACLE_INIT_SQL_URL =
             OracleSyncE2eITCase.class.getClassLoader().getResource("docker/oracle/init.sql");
@@ -63,15 +61,15 @@ public class OracleSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
     @Override
     public void before() throws Exception {
         super.before();
-        LOG.info("Starting containers...");
+        log.info("Starting containers...");
         oracle =
                 new OracleContainer(ORACLE_IMAGE)
                         .withNetwork(NETWORK)
                         .withNetworkAliases(INTER_CONTAINER_ORACLE_ALIAS)
-                        .withLogConsumer(new Slf4jLogConsumer(LOG));
+                        .withLogConsumer(new Slf4jLogConsumer(log));
         Startables.deepStart(Stream.of(oracle)).join();
         initOracle();
-        LOG.info("Containers are started.");
+        log.info("Containers are started.");
     }
 
     @Override
@@ -165,7 +163,7 @@ public class OracleSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
                 statement.execute(sql);
             }
         } catch (SQLException e) {
-            LOG.error("Execute Oracle init sql failed.", e);
+            log.error("Execute Oracle init sql failed.", e);
             throw e;
         }
     }

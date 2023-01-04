@@ -21,8 +21,7 @@ package com.dtstack.chunjun.connector.starrocks.streamload;
 import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 
 import com.alibaba.fastjson.JSON;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
-/** @author liuliu 2022/7/12 */
+@Slf4j
 public class StreamLoadManager {
     final LinkedBlockingDeque<StarRocksSinkBufferEntity> flushQueue = new LinkedBlockingDeque<>(1);
     private final Map<String, StarRocksSinkBufferEntity> bufferMap = new ConcurrentHashMap<>();
@@ -48,8 +47,6 @@ public class StreamLoadManager {
 
     private volatile boolean closed = false;
     private volatile Throwable flushException;
-
-    private final Logger LOG = LoggerFactory.getLogger(StreamLoadManager.class);
 
     public StreamLoadManager(StarRocksConfig starRocksConfig) {
         this.starRocksConfig = starRocksConfig;
@@ -79,10 +76,10 @@ public class StreamLoadManager {
                             });
             bufferEntity.addToBuffer(
                     JSON.toJSONString(data).getBytes(StandardCharsets.UTF_8), data.size());
-            if (bufferEntity.getBatchCount() >= starRocksConfig.getLoadConf().getBatchMaxRows()
+            if (bufferEntity.getBatchCount() >= starRocksConfig.getLoadConfig().getBatchMaxRows()
                     || bufferEntity.getBatchSize()
-                            >= starRocksConfig.getLoadConf().getBatchMaxSize()) {
-                LOG.info(
+                            >= starRocksConfig.getLoadConfig().getBatchMaxSize()) {
+                log.info(
                         String.format(
                                 "StarRocks buffer Sinking triggered: tableIdentify[%s] rows[%d] label[%s].",
                                 tableIdentify,
@@ -96,7 +93,7 @@ public class StreamLoadManager {
     }
 
     public void validateTableStructure(StarRocksSinkBufferEntity entity) {
-        if (starRocksConfig.getLoadConf().getHeadProperties().containsKey("columns")) {
+        if (starRocksConfig.getLoadConfig().getHeadProperties().containsKey("columns")) {
             return;
         }
         List<Map<String, Object>> rows = starrocksQueryVisitor.getTableColumnsMetaData();
@@ -170,7 +167,7 @@ public class StreamLoadManager {
     void offer(StarRocksSinkBufferEntity bufferEntity) throws InterruptedException {
         if (!flushQueue.offer(
                 bufferEntity,
-                starRocksConfig.getLoadConf().getQueueOfferTimeoutMs(),
+                starRocksConfig.getLoadConfig().getQueueOfferTimeoutMs(),
                 TimeUnit.MILLISECONDS)) {
             throw new RuntimeException("Timeout while offering data to flushQueue");
         }
@@ -180,7 +177,7 @@ public class StreamLoadManager {
         if (flushException != null) {
             StackTraceElement[] stack = Thread.currentThread().getStackTrace();
             for (StackTraceElement stackTraceElement : stack) {
-                LOG.info(
+                log.info(
                         stackTraceElement.getClassName()
                                 + "."
                                 + stackTraceElement.getMethodName()
@@ -199,7 +196,7 @@ public class StreamLoadManager {
                             while (true) {
                                 try {
                                     if (!asyncFlush()) {
-                                        LOG.info("StarRocks flush failed.");
+                                        log.info("StarRocks flush failed.");
                                         break;
                                     }
                                 } catch (Exception e) {
@@ -210,7 +207,7 @@ public class StreamLoadManager {
 
         flushThread.setUncaughtExceptionHandler(
                 (t, e) -> {
-                    LOG.error(
+                    log.error(
                             "StarRocks flush thread uncaught exception occurred: " + e.getMessage(),
                             e);
                     flushException = e;
@@ -224,12 +221,12 @@ public class StreamLoadManager {
     private boolean asyncFlush() throws Exception {
         StarRocksSinkBufferEntity flushData =
                 flushQueue.poll(
-                        starRocksConfig.getLoadConf().getQueuePollTimeoutMs(),
+                        starRocksConfig.getLoadConfig().getQueuePollTimeoutMs(),
                         TimeUnit.MILLISECONDS);
         if (flushData == null || 0 == flushData.getBatchCount()) {
             return true;
         }
-        LOG.info(
+        log.info(
                 String.format(
                         "Async stream load: db[%s] table[%s] rows[%d] bytes[%d] label[%s].",
                         flushData.getDatabase(),
@@ -240,12 +237,12 @@ public class StreamLoadManager {
         for (int i = 0; i <= starRocksConfig.getMaxRetries(); i++) {
             try {
                 starrocksStreamLoadVisitor.doStreamLoad(flushData);
-                LOG.info(
+                log.info(
                         String.format(
                                 "Async stream load finished: label[%s].", flushData.getLabel()));
                 break;
             } catch (Exception e) {
-                LOG.warn("Failed to flush batch data to StarRocks, retry times = {}", i, e);
+                log.warn("Failed to flush batch data to StarRocks, retry times = {}", i, e);
                 if (i >= starRocksConfig.getMaxRetries()) {
                     throw e;
                 }
@@ -253,7 +250,7 @@ public class StreamLoadManager {
                         && ((StarRocksStreamLoadFailedException) e).needReCreateLabel()) {
                     String oldLabel = flushData.getLabel();
                     flushData.reGenerateLabel();
-                    LOG.warn(
+                    log.warn(
                             String.format(
                                     "Batch label changed from [%s] to [%s]",
                                     oldLabel, flushData.getLabel()));
@@ -283,7 +280,7 @@ public class StreamLoadManager {
                 return;
             }
             try {
-                LOG.info("StarRocks Sink is about to close.");
+                log.info("StarRocks Sink is about to close.");
                 flush(null, true);
             } catch (Exception e) {
                 throw new RuntimeException("Writing records to StarRocks failed.", e);

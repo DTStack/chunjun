@@ -32,6 +32,7 @@ import java.util.StringJoiner;
 public class DorisColumnConverter
         extends AbstractRowConverter<RowData, RowData, StringJoiner, String> {
 
+    private static final long serialVersionUID = -4922719207762096570L;
     private List<String> fullColumn;
     private List<String> columnNames;
     private final DorisConfig options;

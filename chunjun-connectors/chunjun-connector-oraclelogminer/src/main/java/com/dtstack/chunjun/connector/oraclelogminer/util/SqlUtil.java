@@ -29,10 +29,9 @@ import com.dtstack.chunjun.util.DateUtil;
 
 import org.apache.flink.types.RowKind;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -46,6 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class SqlUtil {
 
     /**
@@ -364,7 +364,6 @@ public class SqlUtil {
             Arrays.asList("CREATE SESSION", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
     private static final List<String> SUPPORTED_OPERATIONS =
             Arrays.asList("UPDATE", "INSERT", "DELETE");
-    public static Logger LOG = LoggerFactory.getLogger(SqlUtil.class);
 
     /** 查找事务里 回滚数据（delete 和 update）对应的操作数据 */
     public static String queryDataForRollback =
@@ -422,7 +421,7 @@ public class SqlUtil {
         sqlBuilder.append(")");
 
         String sql = sqlBuilder.toString();
-        LOG.info("SelectSql = {}", sql);
+        log.info("SelectSql = {}", sql);
         return sql;
     }
 

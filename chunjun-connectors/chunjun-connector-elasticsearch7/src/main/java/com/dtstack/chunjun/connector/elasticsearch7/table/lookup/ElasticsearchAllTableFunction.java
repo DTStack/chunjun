@@ -28,25 +28,25 @@ import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.flink.table.data.GenericRowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
 
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = -1359021097622405548L;
+
     private final ElasticsearchConfig elasticsearchConfig;
-    Logger LOG = LoggerFactory.getLogger(ElasticsearchAllTableFunction.class);
     private transient RestHighLevelClient rhlClient;
     private static final String SORT_COLUMN = "_id";
 
@@ -84,7 +84,7 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
                         }
                         buildCache(oneRow, tmpCache);
                     } catch (Exception e) {
-                        LOG.error("error:{} \n  data:{}", e.getMessage(), source);
+                        log.error("error:{} \n  data:{}", e.getMessage(), source);
                     }
                 }
                 requestBuilder =

@@ -41,6 +41,7 @@ import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
@@ -55,12 +56,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class ElasticsearchColumnConverter
         extends AbstractRowConverter<
                 Map<String, Object>, Object, Map<String, Object>, LogicalType> {
 
-    private static final long serialVersionUID = 2L;
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final long serialVersionUID = -4080093751566715519L;
 
     private final List<Tuple2<String, Integer>> typeIndexList = new ArrayList<>();
     private final Map<Integer, SimpleDateFormat> dateFormatMap = new HashMap<>();
@@ -112,7 +114,7 @@ public class ElasticsearchColumnConverter
                     typeIndexList.stream().filter(x -> x.f1 == index).collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(collect)) {
-                LOG.warn("Result Map : key [{}] not in columns", typeIndexList.get(index).f1);
+                log.warn("Result Map : key [{}] not in columns", typeIndexList.get(index).f1);
                 continue;
             }
 

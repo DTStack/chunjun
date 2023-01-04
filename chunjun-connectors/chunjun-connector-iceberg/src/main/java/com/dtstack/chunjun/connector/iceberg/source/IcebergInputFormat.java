@@ -26,17 +26,19 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 
+import lombok.NoArgsConstructor;
 import org.apache.iceberg.flink.source.FlinkInputFormat;
 import org.apache.iceberg.flink.source.FlinkInputSplit;
 
 import java.io.IOException;
 
+@NoArgsConstructor
 public class IcebergInputFormat extends BaseRichInputFormat {
+    private static final long serialVersionUID = 151014153208168637L;
+
     private FlinkInputFormat flinkInputFormat;
     private IcebergReaderConfig icebergReaderConfig;
     private StreamExecutionEnvironment env;
-
-    public IcebergInputFormat() {}
 
     public void setInput(FlinkInputFormat input) {
         this.flinkInputFormat = input;
@@ -57,7 +59,7 @@ public class IcebergInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
+    protected void openInternal(InputSplit inputSplit) {
         flinkInputFormat.open((FlinkInputSplit) inputSplit);
     }
 
@@ -78,7 +80,7 @@ public class IcebergInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
+    public boolean reachedEnd() {
         return flinkInputFormat.reachedEnd();
     }
 }

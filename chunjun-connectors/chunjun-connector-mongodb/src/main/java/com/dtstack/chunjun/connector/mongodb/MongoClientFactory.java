@@ -31,8 +31,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +38,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MongoClientFactory {
-
-    private static final Logger LOG = LoggerFactory.getLogger(MongoClientFactory.class);
 
     private static final String HOST_SPLIT_REGEX = ",\\s*";
     private static final Pattern HOST_PORT_PATTERN = Pattern.compile("(?<host>.*):(?<port>\\d+)*");
@@ -61,7 +57,7 @@ public class MongoClientFactory {
             List<ServerAddress> serverAddresses = mongoClientConfig.getServerAddresses();
             MongoClientOptions options =
                     MongodbClientOptions.getClientOptionsWhenDataSync(
-                            mongoClientConfig.getConnectionConfig());
+                            mongoClientConfig.getMongodbClientOptions());
             if (StringUtils.isNotEmpty(username)) {
                 MongoCredential credential =
                         createMongoCredential(

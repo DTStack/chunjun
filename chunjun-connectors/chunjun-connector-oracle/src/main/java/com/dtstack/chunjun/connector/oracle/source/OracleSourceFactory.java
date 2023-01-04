@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.oracle.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -36,7 +37,7 @@ public class OracleSourceFactory extends JdbcSourceFactory {
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new OracleInputFormat());
+        return new JdbcInputFormatBuilder(new JdbcInputFormat());
     }
 
     @Override

@@ -33,6 +33,7 @@ import org.apache.flink.table.data.RowData;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PartETag;
 import com.esotericsoftware.minlog.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.StringWriter;
@@ -42,12 +43,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-/**
- * The OutputFormat Implementation which write data to Amazon S3.
- *
- * @author jier
- */
+/** The OutputFormat Implementation which write data to Amazon S3. */
+@Slf4j
 public class S3OutputFormat extends BaseRichOutputFormat {
+
+    private static final long serialVersionUID = -7314796548887092597L;
 
     private transient AmazonS3 amazonS3;
 
@@ -126,7 +126,7 @@ public class S3OutputFormat extends BaseRichOutputFormat {
                 writeSingleRecordInternal(rowData);
             } catch (Exception e) {
                 e.printStackTrace();
-                LOG.warn("first line fail to write");
+                log.warn("first line fail to write");
             }
         }
     }
@@ -140,7 +140,7 @@ public class S3OutputFormat extends BaseRichOutputFormat {
             } catch (UnsupportedEncodingException e) {
                 throw new ChunJunRuntimeException(e);
             }
-            LOG.info("Upload part size：" + byteArray.length);
+            log.info("Upload part size：" + byteArray.length);
             PartETag partETag =
                     S3Util.uploadPart(
                             amazonS3,
@@ -153,7 +153,7 @@ public class S3OutputFormat extends BaseRichOutputFormat {
             MyPartETag myPartETag = new MyPartETag(partETag);
             myPartETags.add(myPartETag);
 
-            LOG.debug(
+            log.debug(
                     "task-{} upload etag:[{}]",
                     taskNumber,
                     myPartETags.stream().map(Objects::toString).collect(Collectors.joining(",")));
@@ -169,7 +169,7 @@ public class S3OutputFormat extends BaseRichOutputFormat {
         List<PartETag> partETags =
                 myPartETags.stream().map(MyPartETag::genPartETag).collect(Collectors.toList());
         if (partETags.size() > 0) {
-            LOG.info(
+            log.info(
                     "Start merging files partETags:{}",
                     partETags.stream().map(PartETag::getETag).collect(Collectors.joining(",")));
             S3Util.completeMultipartUpload(

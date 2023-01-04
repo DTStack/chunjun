@@ -33,6 +33,7 @@ import com.dtstack.chunjun.util.FileSystemUtil;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.parquet.column.ParquetProperties;
@@ -55,7 +56,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
+    private static final long serialVersionUID = -7568959295666745371L;
 
     private static final ColumnTypeUtil.DecimalInfo PARQUET_DEFAULT_DECIMAL_INFO =
             new ColumnTypeUtil.DecimalInfo(10, 0);
@@ -68,7 +71,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         super.openSource();
 
         schema = buildSchema();
-        GroupWriteSupport.setSchema(schema, conf);
+        GroupWriteSupport.setSchema(schema, config);
         groupFactory = new SimpleGroupFactory(schema);
         List<String> columnNameList =
                 hdfsConfig.getColumn().stream()
@@ -115,7 +118,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                             .withWriteMode(ParquetFileWriter.Mode.CREATE)
                             .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
                             .withCompressionCodec(compressionCodecName)
-                            .withConf(conf)
+                            .withConf(config)
                             .withType(schema)
                             .withDictionaryEncoding(hdfsConfig.isEnableDictionary())
                             .withRowGroupSize(hdfsConfig.getRowGroupSize());
@@ -149,7 +152,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public void flushDataInternal() {
-        LOG.info(
+        log.info(
                 "Close current parquet record writer, write data size:[{}]",
                 SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
         try {
@@ -196,7 +199,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
     @Override
     protected void closeSource() {
         try {
-            LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);
+            log.info("close:Current block writer record:" + rowsOfCurrentBlock);
             if (writer != null) {
                 writer.close();
             }

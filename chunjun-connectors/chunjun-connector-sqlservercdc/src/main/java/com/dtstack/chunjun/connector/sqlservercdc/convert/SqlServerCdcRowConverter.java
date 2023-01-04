@@ -54,6 +54,7 @@ import java.util.Map;
 
 public class SqlServerCdcRowConverter
         extends AbstractCDCRowConverter<SqlServerCdcEventRow, LogicalType> {
+    private static final long serialVersionUID = -7462105746858831513L;
     private final TimestampFormat timestampFormat;
 
     public SqlServerCdcRowConverter(RowType rowType, TimestampFormat timestampFormat) {

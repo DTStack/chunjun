@@ -47,6 +47,8 @@ import java.util.Map;
 /** Base class for all converters that convert between restapi body and Flink internal object. */
 public class HttpRowConverter extends AbstractRowConverter<String, RowData, RowData, LogicalType> {
 
+    private static final long serialVersionUID = -9145005567073875082L;
+
     private HttpRestConfig httpRestConfig;
 
     public HttpRowConverter(RowType rowType, HttpRestConfig httpRestConfig) {

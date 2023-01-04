@@ -30,6 +30,8 @@ import java.sql.SQLException;
 
 public class NumericTypeUtil extends KeyUtil<Long, BigInteger> {
 
+    private static final long serialVersionUID = -8216714135018785606L;
+
     @Override
     public Long getSqlValueFromRs(ResultSet rs, int index) throws SQLException {
         return new BigDecimal(rs.getString(index)).toBigInteger().longValue();

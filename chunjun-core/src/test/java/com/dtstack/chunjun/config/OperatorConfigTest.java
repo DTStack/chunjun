@@ -156,19 +156,6 @@ class OperatorConfigTest {
     }
 
     @Test
-    @DisplayName("Should return the value when the key is in the map")
-    public void getValWhenKeyIsInTheMap() {
-        operatorConfig.setParameter(
-                new HashMap<String, Object>() {
-                    {
-                        put("key9", "value");
-                    }
-                });
-
-        assertEquals("value", operatorConfig.getVal("key9"));
-    }
-
-    @Test
     @DisplayName("Should return the fieldnamelist when the fieldnamelist is not null")
     public void getFieldNameListWhenFieldNameListIsNotNull() {
         OperatorConfig operatorConfig = new OperatorConfig();

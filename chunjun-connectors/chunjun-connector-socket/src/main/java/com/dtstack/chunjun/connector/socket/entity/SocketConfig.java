@@ -20,7 +20,14 @@ package com.dtstack.chunjun.connector.socket.entity;
 
 import com.dtstack.chunjun.config.CommonConfig;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class SocketConfig extends CommonConfig {
+
+    private static final long serialVersionUID = -5401700410083216417L;
 
     private String address;
 
@@ -31,44 +38,4 @@ public class SocketConfig extends CommonConfig {
     private String host;
 
     private int port;
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getParse() {
-        return parse;
-    }
-
-    public void setParse(String parse) {
-        this.parse = parse;
-    }
-
-    public String getEncoding() {
-        return encoding;
-    }
-
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
-    }
 }

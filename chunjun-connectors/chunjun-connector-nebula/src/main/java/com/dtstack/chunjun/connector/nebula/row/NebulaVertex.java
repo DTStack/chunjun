@@ -21,10 +21,11 @@ package com.dtstack.chunjun.connector.nebula.row;
 import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.utils.NebulaSchemaFamily;
 
+import lombok.ToString;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringJoiner;
 
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPDATE_VALUE_TEMPLATE;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPDATE_VERTEX_TEMPLATE;
@@ -32,7 +33,10 @@ import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPSERT_V
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.UPSERT_VERTEX_TEMPLATE;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.VERTEX_VALUE_TEMPLATE;
 
+@ToString
 public class NebulaVertex implements Serializable {
+
+    private static final long serialVersionUID = 1730140666287635863L;
 
     private String vid;
 
@@ -102,15 +106,5 @@ public class NebulaVertex implements Serializable {
                 nebulaConfig.getEntityName(),
                 vid,
                 updatePropsString);
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", NebulaVertex.class.getSimpleName() + "[", "]")
-                .add("vid='" + vid + "'")
-                .add("propValues=" + propValues)
-                .add("nebulaConfig=" + nebulaConfig)
-                .add("propNames=" + propNames)
-                .toString();
     }
 }

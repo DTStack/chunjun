@@ -78,6 +78,8 @@ import java.util.Map;
 
 public class PostgresqlColumnConverter extends JdbcColumnConverter {
 
+    private static final long serialVersionUID = -5872074166105206892L;
+
     private List<String> fieldTypeList;
     private transient BaseConnection connection;
     private static final Map<String, Integer> arrayType = new HashMap<>();

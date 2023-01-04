@@ -44,7 +44,6 @@ import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -117,7 +116,6 @@ public class JdbcInputFormatTest {
 
         jdbcInputFormat = mock(JdbcInputFormat.class);
         jdbcDialect = mock(JdbcDialect.class);
-        Logger LOG = mock(Logger.class);
         jdbcConfig = mock(JdbcConfig.class);
         CustomReporter customReporter = mock(CustomReporter.class);
         RuntimeContext runtimeContext = mock(RuntimeContext.class);
@@ -126,7 +124,6 @@ public class JdbcInputFormatTest {
         formatState = mock(FormatState.class);
         rowConverter = mock(JdbcColumnConverter.class);
 
-        setInternalState(jdbcInputFormat, "LOG", LOG);
         setInternalState(jdbcInputFormat, "jdbcConfig", jdbcConfig);
         setInternalState(jdbcInputFormat, "jdbcDialect", jdbcDialect);
         setInternalState(jdbcInputFormat, "customReporter", customReporter);

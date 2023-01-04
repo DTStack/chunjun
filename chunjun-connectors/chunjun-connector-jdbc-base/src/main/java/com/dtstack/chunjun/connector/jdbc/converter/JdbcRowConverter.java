@@ -44,6 +44,7 @@ import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.utils.TypeConversions;
 
 import io.vertx.core.json.JsonArray;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -60,11 +61,12 @@ import java.util.List;
 import java.util.Map;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
+@Slf4j
 public class JdbcRowConverter
         extends AbstractRowConverter<
                 ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -931022595406994406L;
 
     public JdbcRowConverter(RowType rowType) {
         super(rowType);
@@ -91,7 +93,7 @@ public class JdbcRowConverter
                             TypeConversions.fromDataTypeToLegacyInfo(
                                     TypeConversions.fromLogicalToDataType(type)));
         } catch (IllegalArgumentException e) {
-            LOG.warn(e.getMessage());
+            log.warn(e.getMessage());
         }
         int finalSqlType = sqlType;
         return (val, index, statement) -> {

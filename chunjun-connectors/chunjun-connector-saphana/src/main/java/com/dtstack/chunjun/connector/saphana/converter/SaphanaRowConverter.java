@@ -40,7 +40,7 @@ import java.time.LocalTime;
 
 public class SaphanaRowConverter extends JdbcRowConverter {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -1606599344755515664L;
 
     public SaphanaRowConverter(RowType rowType) {
         super(rowType);

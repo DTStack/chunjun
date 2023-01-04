@@ -23,12 +23,12 @@ import com.dtstack.chunjun.security.KerberosConfig;
 
 import org.apache.flink.configuration.ReadableConfig;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.collections.MapUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringJoiner;
 
 import static com.dtstack.chunjun.connector.kudu.table.KuduOptions.ADMIN_OPERATION_TIMEOUT;
 import static com.dtstack.chunjun.connector.kudu.table.KuduOptions.MASTER_ADDRESS;
@@ -41,7 +41,11 @@ import static com.dtstack.chunjun.security.KerberosOptions.KRB5_CONF;
 import static com.dtstack.chunjun.security.KerberosOptions.PRINCIPAL;
 import static com.dtstack.chunjun.source.options.SourceOptions.SCAN_PARALLELISM;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class KuduCommonConfig extends CommonConfig {
+
+    private static final long serialVersionUID = 7636567670954773869L;
 
     /** master节点地址:端口，多个以,隔开 */
     protected String masters;
@@ -67,75 +71,9 @@ public class KuduCommonConfig extends CommonConfig {
     /** 连接scan token的超时时间，如果不设置，则与operationTimeout一致 */
     protected Long queryTimeout = 30 * 1000L;
 
-    public String getTable() {
-        return table;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
-    }
-
-    public Long getQueryTimeout() {
-        return queryTimeout;
-    }
-
-    public void setQueryTimeout(Long queryTimeout) {
-        this.queryTimeout = queryTimeout;
-    }
-
-    public String getMasters() {
-        return masters;
-    }
-
-    @JsonProperty(value = "masters")
-    public void setMasters(String masters) {
-        this.masters = masters;
-    }
-
-    @JsonProperty(value = "masterAddresses")
-    public void setMasterAddresses(String masters) {
-        this.masters = masters;
-    }
-
-    public Integer getWorkerCount() {
-        return workerCount;
-    }
-
-    public void setWorkerCount(Integer workerCount) {
-        this.workerCount = workerCount;
-    }
-
-    public Long getOperationTimeout() {
-        return operationTimeout;
-    }
-
-    public void setOperationTimeout(Long operationTimeout) {
-        this.operationTimeout = operationTimeout;
-    }
-
-    public Long getAdminOperationTimeout() {
-        return adminOperationTimeout;
-    }
-
-    public void setAdminOperationTimeout(Long adminOperationTimeout) {
-        this.adminOperationTimeout = adminOperationTimeout;
-    }
-
     public KerberosConfig getKerberos() {
         kerberos.judgeAndSetKrbEnabled();
         return kerberos;
-    }
-
-    public void setKerberos(KerberosConfig kerberos) {
-        this.kerberos = kerberos;
-    }
-
-    public Map<String, Object> getHadoopConfig() {
-        return hadoopConfig;
-    }
-
-    public void setHadoopConfig(Map<String, Object> hadoopConfig) {
-        this.hadoopConfig = hadoopConfig;
     }
 
     public static KuduCommonConfig from(ReadableConfig readableConfig, KuduCommonConfig conf) {
@@ -168,19 +106,5 @@ public class KuduCommonConfig extends CommonConfig {
         String krb5Conf = MapUtils.getString(hadoopConfig, "java.security.krb5.conf");
 
         return new KerberosConfig(principal, keytab, krb5Conf);
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", KuduCommonConfig.class.getSimpleName() + "[", "]")
-                .add("masters='" + masters + "'")
-                .add("table='" + table + "'")
-                .add("kerberos=" + kerberos)
-                .add("hadoopConfig=" + hadoopConfig)
-                .add("workerCount=" + workerCount)
-                .add("operationTimeout=" + operationTimeout)
-                .add("adminOperationTimeout=" + adminOperationTimeout)
-                .add("queryTimeout=" + queryTimeout)
-                .toString();
     }
 }

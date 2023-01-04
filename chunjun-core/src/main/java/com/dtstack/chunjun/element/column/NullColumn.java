@@ -26,6 +26,8 @@ import java.util.Date;
 
 public class NullColumn extends AbstractBaseColumn {
 
+    private static final long serialVersionUID = 5030650752823753810L;
+
     public NullColumn() {
         super(null, 0);
     }

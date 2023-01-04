@@ -36,6 +36,8 @@ import java.util.List;
 /** OutputFormat for stream writer */
 public class StreamOutputFormat extends BaseRichOutputFormat {
 
+    private static final long serialVersionUID = 341020012101206838L;
+
     private StreamConfig streamConfig;
 
     @Override
@@ -52,7 +54,7 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
                                     rowData,
                                     new GenericRowData(rowData.getRowKind(), rowData.getArity()));
             row.setRowKind(rowData.getRowKind());
-            if (streamConfig.getPrint()) {
+            if (streamConfig.isPrint()) {
                 TablePrintUtil.printTable(row, getFieldNames(rowData));
             }
         } catch (Exception e) {

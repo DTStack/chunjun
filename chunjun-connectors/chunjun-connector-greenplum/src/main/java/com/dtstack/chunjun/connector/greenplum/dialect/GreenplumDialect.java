@@ -29,6 +29,7 @@ public class GreenplumDialect extends PostgresqlDialect {
     private static final String DIALECT_NAME = "Greenplum";
     private static final String DRIVER = "com.pivotal.jdbc.GreenplumDriver";
     private static final String URL_START = "jdbc:pivotal:greenplum:";
+    private static final long serialVersionUID = -3047306110114350759L;
 
     @Override
     public String dialectName() {

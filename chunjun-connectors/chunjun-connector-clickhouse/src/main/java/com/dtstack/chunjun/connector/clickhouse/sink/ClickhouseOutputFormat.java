@@ -26,6 +26,8 @@ import java.sql.SQLException;
 
 public class ClickhouseOutputFormat extends JdbcOutputFormat {
 
+    private static final long serialVersionUID = 8629752097265213952L;
+
     @Override
     protected Connection getConnection() throws SQLException {
         return ClickhouseUtil.getConnection(

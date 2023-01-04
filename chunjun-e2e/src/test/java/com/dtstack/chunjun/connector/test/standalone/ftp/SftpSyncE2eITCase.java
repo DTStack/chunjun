@@ -22,12 +22,11 @@ import com.dtstack.chunjun.connector.containers.ftp.SftpContainer;
 import com.dtstack.chunjun.connector.entity.JobAccumulatorResult;
 import com.dtstack.chunjun.connector.test.utils.ChunjunFlinkStandaloneTestEnvironment;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.lifecycle.Startables;
 
@@ -35,8 +34,8 @@ import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.stream.Stream;
 
+@Slf4j
 public class SftpSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
-    private static final Logger LOG = LoggerFactory.getLogger(SftpSyncE2eITCase.class);
 
     protected static final String sftpImageName = "ftp-e2e-stream";
 
@@ -47,18 +46,18 @@ public class SftpSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
         sftpContainer
                 .withNetwork(NETWORK)
                 .withNetworkAliases(sftpImageName)
-                .withLogConsumer(new Slf4jLogConsumer(LOG))
+                .withLogConsumer(new Slf4jLogConsumer(log))
                 .dependsOn(flinkStandaloneContainer);
     }
 
     @Before
     public void before() throws Exception {
         super.before();
-        LOG.info("Starting sftp containers...");
+        log.info("Starting sftp containers...");
         initContainer();
         Startables.deepStart(Stream.of(sftpContainer)).join();
         Thread.sleep(5000);
-        LOG.info("sftp Containers are started.");
+        log.info("sftp Containers are started.");
     }
 
     @After

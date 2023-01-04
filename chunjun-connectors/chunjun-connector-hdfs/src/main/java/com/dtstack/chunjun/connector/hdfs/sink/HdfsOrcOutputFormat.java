@@ -34,6 +34,7 @@ import com.dtstack.chunjun.util.ReflectionUtils;
 import org.apache.flink.table.data.RowData;
 
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.orc.OrcFile;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
@@ -58,7 +59,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
+    private static final long serialVersionUID = -7422373310272271581L;
 
     private static final ColumnTypeUtil.DecimalInfo ORC_DEFAULT_DECIMAL_INFO =
             new ColumnTypeUtil.DecimalInfo(
@@ -77,7 +80,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
         orcSerde = new OrcSerde();
         outputFormat = new org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat();
-        jobConfig = new JobConf(conf);
+        jobConfig = new JobConf(config);
 
         Class<? extends CompressionCodec> codecClass;
         switch (compressType) {
@@ -165,8 +168,8 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             currentFileIndex++;
 
             setFs();
-            LOG.info("nextBlock:Current block writer record:" + rowsOfCurrentBlock);
-            LOG.info("Current block file name:" + currentBlockTmpPath);
+            log.info("nextBlock:Current block writer record:" + rowsOfCurrentBlock);
+            log.info("Current block file name:" + currentBlockTmpPath);
         } catch (IOException | IllegalAccessException e) {
             throw new ChunJunRuntimeException(
                     HdfsUtil.parseErrorMsg(null, ExceptionUtil.getErrorMessage(e)), e);
@@ -175,7 +178,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public void flushDataInternal() {
-        LOG.info(
+        log.info(
                 "Close current orc record writer, write data size:[{}]",
                 SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
 
@@ -234,7 +237,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     @Override
     protected void closeSource() {
         try {
-            LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);
+            log.info("close:Current block writer record:" + rowsOfCurrentBlock);
             RecordWriter rw = this.recordWriter;
             if (rw != null) {
                 rw.close(Reporter.NULL);

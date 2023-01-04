@@ -20,12 +20,17 @@ package com.dtstack.chunjun.connector.elasticsearch6;
 
 import com.dtstack.chunjun.config.CommonConfig;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.io.Serializable;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class Elasticsearch6Config extends CommonConfig implements Serializable {
 
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 5325755340503264018L;
 
     /** elasticsearch address -> ip:port localhost:9200 */
     private List<String> hosts;
@@ -52,68 +57,4 @@ public class Elasticsearch6Config extends CommonConfig implements Serializable {
 
     /** table field names */
     private String[] fieldNames;
-
-    public List<String> getHosts() {
-        return hosts;
-    }
-
-    public void setHosts(List<String> hosts) {
-        this.hosts = hosts;
-    }
-
-    public String getIndex() {
-        return index;
-    }
-
-    public void setIndex(String index) {
-        this.index = index;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public List<String> getIds() {
-        return ids;
-    }
-
-    public void setIds(List<String> ids) {
-        this.ids = ids;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getKeyDelimiter() {
-        return keyDelimiter;
-    }
-
-    public void setKeyDelimiter(String keyDelimiter) {
-        this.keyDelimiter = keyDelimiter;
-    }
-
-    public String[] getFieldNames() {
-        return fieldNames;
-    }
-
-    public void setFieldNames(String[] fieldNames) {
-        this.fieldNames = fieldNames;
-    }
 }

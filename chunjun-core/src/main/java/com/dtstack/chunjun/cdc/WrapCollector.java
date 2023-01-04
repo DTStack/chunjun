@@ -24,6 +24,8 @@ import java.io.Serializable;
 
 public class WrapCollector<T> implements Serializable {
 
+    private static final long serialVersionUID = 2900390927879265764L;
+
     private static final Object LOCK = new Object();
     private final Collector<T> collector;
 

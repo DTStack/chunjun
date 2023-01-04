@@ -19,10 +19,16 @@ package com.dtstack.chunjun.connector.emqx.config;
 
 import com.dtstack.chunjun.config.CommonConfig;
 
-import java.util.List;
-import java.util.StringJoiner;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+import java.util.List;
+
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class EmqxConfig extends CommonConfig {
+
+    private static final long serialVersionUID = -1825374657637975204L;
 
     /** emq address:tcp://localhost:1883 */
     private String broker;
@@ -47,91 +53,4 @@ public class EmqxConfig extends CommonConfig {
      * key-value pair type json string output
      */
     private List<String> tableFields;
-
-    public String getBroker() {
-        return broker;
-    }
-
-    public void setBroker(String broker) {
-        this.broker = broker;
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public boolean isCleanSession() {
-        return isCleanSession;
-    }
-
-    public void setCleanSession(boolean cleanSession) {
-        isCleanSession = cleanSession;
-    }
-
-    public int getQos() {
-        return qos;
-    }
-
-    public void setQos(int qos) {
-        this.qos = qos;
-    }
-
-    public String getCodec() {
-        return codec;
-    }
-
-    public void setCodec(String codec) {
-        this.codec = codec;
-    }
-
-    public List<String> getTableFields() {
-        return tableFields;
-    }
-
-    public void setTableFields(List<String> tableFields) {
-        this.tableFields = tableFields;
-    }
-
-    public void setConnectRetryTimes(int connectRetryTimes) {
-        this.connectRetryTimes = connectRetryTimes;
-    }
-
-    public int getConnectRetryTimes() {
-        return connectRetryTimes;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", EmqxConfig.class.getSimpleName() + "[", "]")
-                .add("broker='" + broker + "'")
-                .add("topic='" + topic + "'")
-                .add("username='" + username + "'")
-                .add("password='" + password + "'")
-                .add("isCleanSession=" + isCleanSession)
-                .add("qos=" + qos)
-                .add("codec='" + codec + "'")
-                .add("connectRetryTimes=" + connectRetryTimes)
-                .add("tableFields=" + tableFields)
-                .toString();
-    }
 }

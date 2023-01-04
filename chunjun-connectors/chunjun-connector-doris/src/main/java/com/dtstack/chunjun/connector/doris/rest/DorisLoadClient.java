@@ -30,9 +30,8 @@ import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
+import lombok.AllArgsConstructor;
 import org.apache.commons.collections.MapUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
@@ -49,9 +48,10 @@ import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@AllArgsConstructor
 public class DorisLoadClient implements Serializable {
-    private static final long serialVersionUID = 1L;
-    private static final Logger LOG = LoggerFactory.getLogger(DorisLoadClient.class);
+
+    private static final long serialVersionUID = 9155539896112185387L;
 
     private final Set<String> metaHeader =
             Stream.of("schema", "table", "type", "opTime", "ts", "scn")
@@ -64,20 +64,8 @@ public class DorisLoadClient implements Serializable {
 
     private final DorisStreamLoad dorisStreamLoad;
     private final boolean nameMapped;
-    private final DorisConfig conf;
+    private final DorisConfig config;
 
-    public DorisLoadClient(DorisStreamLoad dorisStreamLoad, DorisConfig conf) {
-        this.dorisStreamLoad = dorisStreamLoad;
-        this.conf = conf;
-        this.nameMapped = conf.isNameMapped();
-    }
-
-    /**
-     * Each time a RowData is processed, a Carrier is obtained and then returned.
-     *
-     * @param value RowData
-     * @return Carrier
-     */
     public void process(RowData value, List<String> columns, AbstractRowConverter converter)
             throws Exception {
         String schema;
@@ -89,15 +77,15 @@ public class DorisLoadClient implements Serializable {
             List<String> columnsFromValue = new LinkedList<>();
             Map<String, String> identityMap = new HashMap<>(2);
             wrap((ColumnRowData) value, columnsFromValue, insertV, deleteV, identityMap);
-            schema = MapUtils.getString(identityMap, KEY_SCHEMA, conf.getDatabase());
-            table = MapUtils.getString(identityMap, KEY_TABLE, conf.getTable());
+            schema = MapUtils.getString(identityMap, KEY_SCHEMA, config.getDatabase());
+            table = MapUtils.getString(identityMap, KEY_TABLE, config.getTable());
             Carrier carrier = initCarrier(columnsFromValue, insertV, deleteV, schema, table);
             flush(carrier);
         }
 
         if (value instanceof GenericRowData) {
-            schema = conf.getDatabase();
-            table = conf.getTable();
+            schema = config.getDatabase();
+            table = config.getTable();
             StringJoiner joiner = new StringJoiner(",");
             if (RowKind.INSERT.equals(value.getRowKind())) {
                 Object toExternal = converter.toExternal(value, joiner);
@@ -154,8 +142,8 @@ public class DorisLoadClient implements Serializable {
         Map<String, String> identityMap = new HashMap<>(2);
         List<String> columns = new LinkedList<>();
         wrap((ColumnRowData) value, columns, insertV, deleteV, identityMap);
-        String schema = MapUtils.getString(identityMap, KEY_SCHEMA, conf.getDatabase());
-        String table = MapUtils.getString(identityMap, KEY_TABLE, conf.getTable());
+        String schema = MapUtils.getString(identityMap, KEY_SCHEMA, config.getDatabase());
+        String table = MapUtils.getString(identityMap, KEY_TABLE, config.getTable());
         String key = schema + KEY_POINT + table;
         if (carrierMap.containsKey(key)) {
             Carrier carrier = carrierMap.get(key);
@@ -179,8 +167,8 @@ public class DorisLoadClient implements Serializable {
             List<String> columns,
             AbstractRowConverter converter)
             throws Exception {
-        String schema = conf.getDatabase();
-        String table = conf.getTable();
+        String schema = config.getDatabase();
+        String table = config.getTable();
         StringJoiner joiner = new StringJoiner(",");
         if (RowKind.INSERT.equals(value.getRowKind())) {
             Object toExternal = converter.toExternal(value, joiner);
@@ -213,8 +201,8 @@ public class DorisLoadClient implements Serializable {
                     dorisStreamLoad::load,
                     dorisStreamLoad::replaceBackend,
                     carrier,
-                    conf.getMaxRetries(),
-                    conf.getWaitRetryMills());
+                    config.getMaxRetries(),
+                    config.getWaitRetryMills());
         } catch (Exception e) {
             String errorMessage = "write record failed.";
             throw new WriteRecordException(errorMessage, e, -1, carrier.toString());
@@ -376,14 +364,14 @@ public class DorisLoadClient implements Serializable {
         if (nameMapped) {
             wrapColumnsFromRowData(value, columns, insertV, deleteV, identityMap, delete);
         } else {
-            columns.addAll(getColumnName(conf.getColumn()));
+            columns.addAll(getColumnName(config.getColumn()));
             if (columns.isEmpty()) {
                 // neither nameMapping nor column are set.
                 wrapColumnsFromRowData(value, columns, insertV, deleteV, identityMap, delete);
             } else {
                 wrapValuesFromRowData(value, columns, insertV, deleteV, delete);
-                identityMap.put(KEY_SCHEMA, conf.getDatabase());
-                identityMap.put(KEY_TABLE, conf.getTable());
+                identityMap.put(KEY_SCHEMA, config.getDatabase());
+                identityMap.put(KEY_TABLE, config.getTable());
             }
         }
     }

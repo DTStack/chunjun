@@ -20,15 +20,16 @@ package com.dtstack.chunjun.metrics;
 import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.api.common.accumulators.SimpleAccumulator;
 
+import lombok.NoArgsConstructor;
+
 import java.math.BigInteger;
 
+@NoArgsConstructor
 public class BigIntegerAccumulator implements SimpleAccumulator<BigInteger> {
 
     private static final long serialVersionUID = 1L;
 
     private BigInteger max = BigInteger.valueOf(Integer.MIN_VALUE);
-
-    public BigIntegerAccumulator() {}
 
     @Override
     public void add(BigInteger value) {

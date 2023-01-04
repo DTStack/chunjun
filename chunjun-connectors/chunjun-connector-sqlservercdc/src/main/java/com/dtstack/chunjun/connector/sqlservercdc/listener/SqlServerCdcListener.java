@@ -36,8 +36,7 @@ import com.dtstack.chunjun.util.SnowflakeIdWorker;
 
 import org.apache.flink.table.data.RowData;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -48,8 +47,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 public class SqlServerCdcListener implements Runnable {
-    private static final Logger LOG = LoggerFactory.getLogger(SqlServerCdcListener.class);
 
     private final SqlServerCdcInputFormat format;
     private TxLogPosition logPosition;
@@ -75,12 +74,12 @@ public class SqlServerCdcListener implements Runnable {
         this.pollInterval =
                 Duration.of(format.sqlserverCdcConfig.getPollInterval(), ChronoUnit.MILLIS);
         idWorker = new SnowflakeIdWorker(1, 1);
-        this.rowConverter = format.getRowConverter();
+        this.rowConverter = format.getCdcRowConverter();
     }
 
     @Override
     public void run() {
-        LOG.info("SqlServerCdcListener start running.....");
+        log.info("SqlServerCdcListener start running.....");
         Metronome metronome = Metronome.sleeper(pollInterval, Clock.system());
         while (true) {
             try {
@@ -89,7 +88,7 @@ public class SqlServerCdcListener implements Runnable {
                 // Shouldn't happen if the agent is running, but it is better to guard against such
                 // situation
                 if (!currentMaxLsn.isAvailable()) {
-                    LOG.warn(
+                    log.warn(
                             "No maximum LSN recorded in the database; please ensure that the SQL Server Agent is running");
                     metronome.pause();
                     if (format.sqlserverCdcConfig.isAutoResetConnection()) {
@@ -110,14 +109,14 @@ public class SqlServerCdcListener implements Runnable {
                 final ChangeTablePointer[] changeTables = getChangeTables(currentMaxLsn);
                 readData(changeTables);
 
-                LOG.debug("currentMaxLsn = {}", logPosition);
+                log.debug("currentMaxLsn = {}", logPosition);
                 logPosition = TxLogPosition.valueOf(currentMaxLsn);
                 if (!format.sqlserverCdcConfig.isAutoCommit()) {
                     conn.rollback();
                 }
             } catch (Exception e) {
                 String errorMessage = ExceptionUtil.getErrorMessage(e);
-                LOG.error(errorMessage, e);
+                log.error(errorMessage, e);
             }
         }
     }
@@ -131,7 +130,7 @@ public class SqlServerCdcListener implements Runnable {
 
             if (!(tableWithSmallestLsn.getChangePosition().isAvailable()
                     && tableWithSmallestLsn.getChangePosition().getInTxLsn().isAvailable())) {
-                LOG.error(
+                log.error(
                         "Skipping change {} as its LSN is NULL which is not expected",
                         tableWithSmallestLsn);
                 tableWithSmallestLsn.next();
@@ -140,7 +139,7 @@ public class SqlServerCdcListener implements Runnable {
 
             // After restart for changes that were executed before the last committed offset
             if (tableWithSmallestLsn.getChangePosition().compareTo(logPosition) < 0) {
-                LOG.info(
+                log.info(
                         "Skipping change {} as its position is smaller than the last recorded position {}",
                         tableWithSmallestLsn,
                         logPosition);
@@ -155,7 +154,7 @@ public class SqlServerCdcListener implements Runnable {
                                     .compareTo(
                                             tableWithSmallestLsn.getChangePosition().getCommitLsn())
                             <= 0) {
-                LOG.debug(
+                log.debug(
                         "Skipping table change {} as its stop LSN is smaller than the last recorded LSN {}",
                         tableWithSmallestLsn,
                         tableWithSmallestLsn.getChangePosition());

@@ -22,11 +22,16 @@ import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class PostgresqlInputFormat extends JdbcInputFormat {
+
+    private static final long serialVersionUID = -2996563902455817663L;
 
     @Override
     protected void queryPollingWithOutStartLocation() throws SQLException {
@@ -55,14 +60,14 @@ public class PostgresqlInputFormat extends JdbcInputFormat {
                 // 每隔五分钟打印一次，(当前时间 - 任务开始时间) % 300秒 <= 一个间隔轮询周期
                 if ((System.currentTimeMillis() - startTime) % 300000
                         <= jdbcConfig.getPollingInterval()) {
-                    LOG.info(
+                    log.info(
                             "no record matched condition in database, execute query sql = {}, startLocation = {}",
                             jdbcConfig.getQuerySql(),
                             endLocationAccumulator.getLocalValue());
                 }
             }
         } catch (InterruptedException e) {
-            LOG.warn(
+            log.warn(
                     "interrupted while waiting for polling, e = {}",
                     ExceptionUtil.getErrorMessage(e));
         }
@@ -87,6 +92,6 @@ public class PostgresqlInputFormat extends JdbcInputFormat {
                         resultSetConcurrency);
         ps.setFetchSize(jdbcConfig.getFetchSize());
         ps.setQueryTimeout(jdbcConfig.getQueryTimeOut());
-        LOG.info("update querySql, sql = {}", jdbcConfig.getQuerySql());
+        log.info("update querySql, sql = {}", jdbcConfig.getQuerySql());
     }
 }

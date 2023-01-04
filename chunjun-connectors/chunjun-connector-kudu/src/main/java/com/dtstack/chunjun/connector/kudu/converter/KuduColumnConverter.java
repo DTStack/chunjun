@@ -47,7 +47,7 @@ import java.util.Locale;
 public class KuduColumnConverter
         extends AbstractRowConverter<RowResult, RowResult, Operation, String> {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -2483096181893124988L;
 
     private final List<String> columnName;
 

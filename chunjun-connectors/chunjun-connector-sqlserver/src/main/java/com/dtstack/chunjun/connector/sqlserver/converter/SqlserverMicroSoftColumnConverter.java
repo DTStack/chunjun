@@ -56,6 +56,8 @@ import java.util.TimeZone;
 
 public class SqlserverMicroSoftColumnConverter extends JdbcColumnConverter {
 
+    private static final long serialVersionUID = -8683172637123747253L;
+
     public SqlserverMicroSoftColumnConverter(RowType rowType, CommonConfig commonConfig) {
         super(rowType, commonConfig);
     }

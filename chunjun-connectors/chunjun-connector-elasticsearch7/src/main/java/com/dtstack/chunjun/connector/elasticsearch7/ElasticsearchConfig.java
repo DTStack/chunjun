@@ -20,13 +20,18 @@ package com.dtstack.chunjun.connector.elasticsearch7;
 
 import com.dtstack.chunjun.config.CommonConfig;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class ElasticsearchConfig extends CommonConfig implements Serializable {
 
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = -3282191233629067381L;
 
     /** elasticsearch address -> ip:port localhost:9200 */
     private List<String> hosts;
@@ -71,124 +76,4 @@ public class ElasticsearchConfig extends CommonConfig implements Serializable {
 
     /** Filter condition expression */
     protected Map query;
-
-    public String[] getFieldNames() {
-        return fieldNames;
-    }
-
-    public void setFieldNames(String[] fieldNames) {
-        this.fieldNames = fieldNames;
-    }
-
-    public int getMaxConnPerRoute() {
-        return maxConnPerRoute;
-    }
-
-    public void setMaxConnPerRoute(int maxConnPerRoute) {
-        this.maxConnPerRoute = maxConnPerRoute;
-    }
-
-    public int getRequestTimeout() {
-        return requestTimeout;
-    }
-
-    public void setRequestTimeout(int requestTimeout) {
-        this.requestTimeout = requestTimeout;
-    }
-
-    public int getSocketTimeout() {
-        return socketTimeout;
-    }
-
-    public void setSocketTimeout(int socketTimeout) {
-        this.socketTimeout = socketTimeout;
-    }
-
-    public int getKeepAliveTime() {
-        return keepAliveTime;
-    }
-
-    public void setKeepAliveTime(int keepAliveTime) {
-        this.keepAliveTime = keepAliveTime;
-    }
-
-    public int getConnectTimeout() {
-        return connectTimeout;
-    }
-
-    public void setConnectTimeout(int connectTimeout) {
-        this.connectTimeout = connectTimeout;
-    }
-
-    public List<String> getHosts() {
-        return hosts;
-    }
-
-    public void setHosts(List<String> hosts) {
-        this.hosts = hosts;
-    }
-
-    public String getIndex() {
-        return index;
-    }
-
-    public void setIndex(String index) {
-        this.index = index;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public List<String> getIds() {
-        return ids;
-    }
-
-    public void setIds(List<String> ids) {
-        this.ids = ids;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getKeyDelimiter() {
-        return keyDelimiter;
-    }
-
-    public void setKeyDelimiter(String keyDelimiter) {
-        this.keyDelimiter = keyDelimiter;
-    }
-
-    public SslConfig getSslConfig() {
-        return sslConfig;
-    }
-
-    public void setSslConfig(SslConfig sslConfig) {
-        this.sslConfig = sslConfig;
-    }
-
-    public Map getQuery() {
-        return query;
-    }
-
-    public void setQuery(Map query) {
-        this.query = query;
-    }
 }

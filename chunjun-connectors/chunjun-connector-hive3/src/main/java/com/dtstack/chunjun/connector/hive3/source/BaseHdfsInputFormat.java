@@ -28,6 +28,7 @@ import com.dtstack.chunjun.util.PluginUtil;
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.core.io.InputSplit;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
@@ -38,7 +39,10 @@ import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
+
+    private static final long serialVersionUID = -5796117380755050652L;
 
     protected HdfsConfig hdfsConfig;
 
@@ -124,7 +128,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
      */
     public void findCurrentPartition(Path path) {
         if (null == path) {
-            LOG.warn("The Path finding partition value is null");
+            log.warn("The Path finding partition value is null");
             return;
         }
         Map<String, String> partitionAndValueMap = new HashMap<>(16);
@@ -143,7 +147,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
         // 从 map 里面找出对应分区字段，然后给该列设置值。
         for (FieldConfig fieldConfig : hdfsConfig.getColumn()) {
             // 如果此列是分区字段
-            if (fieldConfig.getPart()) {
+            if (fieldConfig.getIsPart()) {
                 fieldConfig.setValue(partitionAndValueMap.get(fieldConfig.getName()));
             }
         }

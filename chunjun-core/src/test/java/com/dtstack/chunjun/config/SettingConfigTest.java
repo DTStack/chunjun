@@ -36,39 +36,10 @@ class SettingConfigTest {
     }
 
     @Test
-    @DisplayName("Should set the log")
-    public void setLogShouldSetTheLog() {
-        LogConfig logConfig = new LogConfig();
-        logConfig.setLogger(true);
-        logConfig.setLevel("info");
-        logConfig.setPath("/tmp/dtstack/chunjun/");
-        logConfig.setPattern("%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n");
-
-        settingConfig.setLog(logConfig);
-
-        assertEquals(logConfig, settingConfig.getLog());
-    }
-
-    @Test
     @DisplayName("Should set the restore when the restore is not null")
     public void setRestoreWhenRestoreIsNotNull() {
         settingConfig.setRestore(restoreConfig);
         assertEquals(restoreConfig, settingConfig.getRestore());
-    }
-
-    @Test
-    @DisplayName("Should set the restart")
-    public void setRestartShouldSetTheRestart() {
-        RestartConfig restartConfig = new RestartConfig();
-        restartConfig.setStrategy("no_restart");
-        restartConfig.setRestartAttempts(3);
-        restartConfig.setDelayInterval(10);
-        restartConfig.setFailureRate(2);
-        restartConfig.setFailureInterval(60);
-
-        settingConfig.setRestart(restartConfig);
-
-        assertEquals(restartConfig, settingConfig.getRestart());
     }
 
     @Test

@@ -41,14 +41,11 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.Connection;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 public abstract class JdbcSinkFactory extends SinkFactory {
@@ -66,7 +63,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
                 new GsonBuilder()
                         .registerTypeAdapter(
                                 ConnectionConfig.class,
-                                new ConnectionAdapter(SinkConnectionConfig.class.getSimpleName()))
+                                new ConnectionAdapter(SinkConnectionConfig.class.getName()))
                         .addDeserializationExclusionStrategy(
                                 new FieldNameExclusionStrategy("column"))
                         .create();
@@ -94,7 +91,6 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         }
         super.initCommonConf(jdbcConfig);
         resetTableInfo();
-        rebuildJdbcConf(jdbcConfig);
     }
 
     @Override
@@ -164,19 +160,6 @@ public abstract class JdbcSinkFactory extends SinkFactory {
     protected void resetTableInfo() {
         if (StringUtils.isBlank(jdbcConfig.getSchema())) {
             JdbcUtil.resetSchemaAndTable(jdbcConfig, "\\\"", "\\\"");
-        }
-    }
-
-    protected void rebuildJdbcConf(JdbcConfig jdbcConfig) {
-        // updateKey has Deprecated，please use uniqueKey
-        if (MapUtils.isNotEmpty(jdbcConfig.getUpdateKey())
-                && CollectionUtils.isEmpty(jdbcConfig.getUniqueKey())) {
-            for (Map.Entry<String, List<String>> entry : jdbcConfig.getUpdateKey().entrySet()) {
-                if (CollectionUtils.isNotEmpty(entry.getValue())) {
-                    jdbcConfig.setUniqueKey(entry.getValue());
-                    break;
-                }
-            }
         }
     }
 }

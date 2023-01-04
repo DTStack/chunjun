@@ -38,16 +38,14 @@ import com.starrocks.thrift.TScanOpenParams;
 import com.starrocks.thrift.TScanOpenResult;
 import com.starrocks.thrift.TStarrocksExternalService;
 import com.starrocks.thrift.TStatusCode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class StarRocksSourceBeReader {
-
-    private static final Logger LOG = LoggerFactory.getLogger(StarRocksSourceBeReader.class);
 
     private final StarRocksConfig starRocksConfig;
     private final String beHost;
@@ -96,8 +94,8 @@ public class StarRocksSourceBeReader {
         params.setProperties(starRocksConfig.getBeSocketProperties());
         params.setKeep_alive_min((short) starRocksConfig.getBeClientKeepLiveMin());
         params.setQuery_timeout(starRocksConfig.getBeQueryTimeoutSecond());
-        LOG.info("open Scan params.mem_limit {} B", params.getMem_limit());
-        LOG.info("open Scan params.keep-alive-min {} min", params.getKeep_alive_min());
+        log.info("open Scan params.mem_limit {} B", params.getMem_limit());
+        log.info("open Scan params.keep-alive-min {} min", params.getKeep_alive_min());
         TScanOpenResult result;
         int times = 0;
         while (true) {
@@ -112,7 +110,7 @@ public class StarRocksSourceBeReader {
                 break;
             } catch (TException e) {
                 if (++times <= starRocksConfig.getMaxRetries()) {
-                    LOG.info(
+                    log.info(
                             String.format("failed to open beScanner,current retryTimes:%s", times));
                 } else {
                     throw new ChunJunRuntimeException(
@@ -173,7 +171,7 @@ public class StarRocksSourceBeReader {
                 break;
             } catch (Exception e) {
                 if (++times <= starRocksConfig.getMaxRetries()) {
-                    LOG.info(String.format("failed to scan from be,current retryTimes:%s", times));
+                    log.info(String.format("failed to scan from be,current retryTimes:%s", times));
                 } else {
                     throw new ChunJunRuntimeException(
                             String.format("failed to scan from be,scanParams[%s]", params), e);

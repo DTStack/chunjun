@@ -22,6 +22,8 @@ import java.io.Serializable;
 
 public class StringFunction implements IFunction, Serializable {
 
+    private static final long serialVersionUID = 2102011574747787581L;
+
     @Override
     public String evaluate(Object str) {
         return str.toString();

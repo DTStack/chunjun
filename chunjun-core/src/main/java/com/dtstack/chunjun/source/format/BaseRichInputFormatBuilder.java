@@ -22,13 +22,9 @@ import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Abstract specification for all the InputFormatBuilder implementation */
 public abstract class BaseRichInputFormatBuilder<T extends BaseRichInputFormat> {
-
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     protected T format;
 

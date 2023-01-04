@@ -49,6 +49,8 @@ import java.util.Map;
 
 public class LogMinerRowConverter extends AbstractCDCRowConverter<EventRow, LogicalType> {
 
+    private static final long serialVersionUID = -7611385227503313499L;
+
     public LogMinerRowConverter(RowType rowType) {
         super.fieldNameList = rowType.getFieldNames();
         super.converters = new ArrayList<>();

@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.ftp.table;
 
 import com.dtstack.chunjun.config.FieldConfig;
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.options.FtpOptions;
 import com.dtstack.chunjun.connector.ftp.sink.FtpDynamicTableSink;
 import com.dtstack.chunjun.connector.ftp.source.FtpDynamicTableSource;
@@ -76,7 +76,7 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         }
 
         if (config.get(FtpOptions.isFirstLineHeader) != null) {
-            ftpConfig.setIsFirstLineHeader(config.get(FtpOptions.isFirstLineHeader));
+            ftpConfig.setFirstLineHeader(config.get(FtpOptions.isFirstLineHeader));
         }
         return ftpConfig;
     }

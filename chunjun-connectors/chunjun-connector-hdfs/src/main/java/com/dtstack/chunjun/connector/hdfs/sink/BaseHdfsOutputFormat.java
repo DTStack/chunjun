@@ -30,6 +30,7 @@ import com.dtstack.chunjun.util.PluginUtil;
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.api.common.functions.RuntimeContext;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -44,14 +45,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
+
+    private static final long serialVersionUID = 6079975649960844071L;
 
     protected FileSystem fs;
     protected HdfsConfig hdfsConfig;
 
     protected List<String> fullColumnNameList;
     protected List<String> fullColumnTypeList;
-    protected Configuration conf;
+    protected Configuration config;
     protected transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
     protected CompressType compressType;
 
@@ -62,7 +66,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
             try {
                 Thread.sleep(5000L + (long) (10000 * Math.random()));
             } catch (Exception e) {
-                LOG.warn("", e);
+                log.warn("", e);
             }
         }
         super.openInternal(taskNumber, numTasks);
@@ -131,7 +135,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void openSource() {
-        conf =
+        config =
                 FileSystemUtil.getConfiguration(
                         hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS());
         RuntimeContext runtimeContext = null;
@@ -188,9 +192,9 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
             FileStatus[] dataFiles = fs.listStatus(tmpDir, pathFilter);
             for (FileStatus dataFile : dataFiles) {
                 currentFilePath = dataFile.getPath().getName();
-                FileUtil.copy(fs, dataFile.getPath(), fs, dir, false, conf);
+                FileUtil.copy(fs, dataFile.getPath(), fs, dir, false, config);
                 copyList.add(currentFilePath);
-                LOG.info("copy temp file:{} to dir:{}", currentFilePath, dir);
+                log.info("copy temp file:{} to dir:{}", currentFilePath, dir);
             }
         } catch (Exception e) {
             throw new ChunJunRuntimeException(
@@ -210,7 +214,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                 currentFilePath = path + getHdfsPathChar() + fileName;
                 Path commitFilePath = new Path(currentFilePath);
                 fs.delete(commitFilePath, true);
-                LOG.info("delete file:{}", currentFilePath);
+                log.info("delete file:{}", currentFilePath);
             }
         } catch (IOException e) {
             throw new ChunJunRuntimeException(
@@ -232,7 +236,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
             for (FileStatus dataFile : dataFiles) {
                 currentFilePath = dataFile.getPath().getName();
                 fs.rename(dataFile.getPath(), dir);
-                LOG.info("move temp file:{} to dir:{}", dataFile.getPath(), dir);
+                log.info("move temp file:{} to dir:{}", dataFile.getPath(), dir);
             }
             fs.delete(tmpDir, true);
         } catch (IOException e) {
@@ -268,7 +272,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
     protected abstract CompressType getCompressType();
 
     protected void deleteDirectory(String path) {
-        LOG.info("start to delete directory：{}", path);
+        log.info("start to delete directory：{}", path);
         try {
             Path dir = new Path(path);
             if (fs == null) {

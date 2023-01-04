@@ -28,7 +28,7 @@ import com.dtstack.chunjun.classloader.ClassLoaderManager;
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.config.MetricParam;
 import com.dtstack.chunjun.config.SyncConfig;
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.consumer.DirtyDataCollector;
 import com.dtstack.chunjun.enums.OperatorType;
 import com.dtstack.chunjun.mapping.MappingConfig;
@@ -41,16 +41,11 @@ import com.dtstack.chunjun.throwable.NoRestartException;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.Set;
 
 public class DataSyncFactoryUtil {
-
-    private static final Logger LOG = LoggerFactory.getLogger(DataSyncFactoryUtil.class);
 
     private static final String DEFAULT_DIRTY_TYPE = "default";
 
@@ -112,7 +107,7 @@ public class DataSyncFactoryUtil {
         }
     }
 
-    public static DirtyDataCollector discoverDirty(DirtyConf conf) {
+    public static DirtyDataCollector discoverDirty(DirtyConfig conf) {
         try {
             String pluginName = conf.getType();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.dirty);

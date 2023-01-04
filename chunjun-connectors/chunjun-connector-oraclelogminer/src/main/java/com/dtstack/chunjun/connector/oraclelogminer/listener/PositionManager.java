@@ -18,17 +18,14 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.listener;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigInteger;
 
+@Getter
+@Setter
 public class PositionManager {
 
     private BigInteger scn;
-
-    public void updatePosition(BigInteger scn) {
-        this.scn = scn;
-    }
-
-    public BigInteger getPosition() {
-        return this.scn;
-    }
 }

@@ -44,7 +44,7 @@ class SyncConfigTest {
     }
 
     @Test
-    @DisplayName("Should return the correct string when pluginroot is null")
+    @DisplayName("Should return the correct string when pluginRoot is null")
     public void toStringWhenPluginRootIsNull() {
         SyncConfig syncConfig = new SyncConfig();
         syncConfig.setPluginRoot(null);
@@ -61,7 +61,7 @@ class SyncConfigTest {
     }
 
     @Test
-    @DisplayName("Should return the metricpluginconf when the metricpluginconf is not null")
+    @DisplayName("Should return the metricPluginConf when the metricPluginConf is not null")
     public void getMetricPluginConfWhenMetricPluginConfIsNotNull() {
         SyncConfig syncConfig = new SyncConfig();
         JobConfig jobConfig = new JobConfig();
@@ -77,7 +77,7 @@ class SyncConfigTest {
     }
 
     @Test
-    @DisplayName("Should set the savepointpath when the savepointpath is not null")
+    @DisplayName("Should set the savepointPath when the savepointPath is not null")
     public void setSavePointPathWhenSavePointPathIsNotNull() {
         SyncConfig syncConfig = new SyncConfig();
         syncConfig.setSavePointPath("/tmp/savepoint");
@@ -85,33 +85,11 @@ class SyncConfigTest {
     }
 
     @Test
-    @DisplayName("Should set the pluginroot when the pluginroot is not null")
+    @DisplayName("Should set the pluginRoot when the pluginRoot is not null")
     public void setPluginRootWhenPluginRootIsNotNull() {
         SyncConfig syncConfig = new SyncConfig();
         syncConfig.setPluginRoot("/tmp/plugin");
         assertNotNull(syncConfig.getPluginRoot());
-    }
-
-    @Test
-    @DisplayName("Should return the log when the log is not null")
-    public void getLogWhenLogIsNotNull() {
-        SyncConfig syncConfig = new SyncConfig();
-        syncConfig.setJob(new JobConfig());
-        syncConfig.getJob().setSetting(new SettingConfig());
-        syncConfig.getJob().getSetting().setLog(new LogConfig());
-
-        LogConfig log = syncConfig.getLog();
-
-        assertNotNull(log);
-    }
-
-    @Test
-    @DisplayName("Should return the default log when the log is null")
-    public void getLogWhenLogIsNullThenReturnDefaultLog() {
-        SyncConfig syncConfig = new SyncConfig();
-        syncConfig.setJob(new JobConfig());
-        syncConfig.getJob().setSetting(new SettingConfig());
-        assertNotNull(syncConfig.getLog());
     }
 
     @Test
@@ -137,7 +115,7 @@ class SyncConfigTest {
         SyncConfig syncConfig = new SyncConfig();
         syncConfig.setJob(new JobConfig());
 
-        assertThrows(NullPointerException.class, () -> syncConfig.getReader());
+        assertThrows(NullPointerException.class, syncConfig::getReader);
     }
 
     @Test

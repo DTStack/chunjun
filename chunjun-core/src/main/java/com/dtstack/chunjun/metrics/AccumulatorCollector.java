@@ -31,8 +31,7 @@ import org.apache.flink.runtime.taskexecutor.rpc.RpcGlobalAggregateManager;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.util.Preconditions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -43,9 +42,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class AccumulatorCollector {
-
-    private static final Logger LOG = LoggerFactory.getLogger(AccumulatorCollector.class);
 
     private static final String THREAD_NAME = "accumulator-collector-thread";
 
@@ -66,7 +64,7 @@ public class AccumulatorCollector {
         valueAccumulatorMap = new HashMap<>(metricNames.size());
         for (String metricName : metricNames) {
             valueAccumulatorMap.put(
-                    metricName, new ValueAccumulator(0, context.getLongCounter(metricName)));
+                    metricName, new ValueAccumulator(context.getLongCounter(metricName), 0));
         }
 
         scheduledExecutorService =
@@ -86,7 +84,7 @@ public class AccumulatorCollector {
         try {
             gateway = (JobMasterGateway) field.get(globalAggregateManager);
         } catch (IllegalArgumentException | IllegalAccessException e) {
-            LOG.error(
+            log.error(
                     "failed to get field:[gateway] from RpcGlobalAggregateManager, e = {}",
                     ExceptionUtil.getErrorMessage(e));
         }
@@ -164,7 +162,7 @@ public class AccumulatorCollector {
         try {
             TimeUnit.MILLISECONDS.sleep(this.period);
         } catch (InterruptedException e) {
-            LOG.warn(
+            log.warn(
                     "Interrupted when waiting for valueAccumulatorMap, e = {}",
                     ExceptionUtil.getErrorMessage(e));
         }

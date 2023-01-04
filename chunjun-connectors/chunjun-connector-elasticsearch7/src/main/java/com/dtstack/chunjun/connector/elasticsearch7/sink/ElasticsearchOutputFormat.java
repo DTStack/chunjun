@@ -44,6 +44,8 @@ import java.util.Map;
 
 public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
 
+    private static final long serialVersionUID = 4075917714665517802L;
+
     /** Elasticsearch Configuration */
     ElasticsearchConfig elasticsearchConfig;
 
@@ -163,10 +165,8 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
                             elasticsearchConfig.getIds(),
                             message,
                             elasticsearchConfig.getKeyDelimiter());
-            UpdateRequest updateRequest =
-                    Elasticsearch7RequestFactory.createUpdateRequest(
-                            indexGenerator.generate(rowData), key, message);
-            return updateRequest;
+            return Elasticsearch7RequestFactory.createUpdateRequest(
+                    indexGenerator.generate(rowData), key, message);
         }
     }
 

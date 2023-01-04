@@ -18,26 +18,18 @@
 
 package com.dtstack.chunjun.connector.starrocks.source.be.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.util.List;
 
+@Getter
+@AllArgsConstructor
 public class QueryBeXTablets implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -3497409381564988900L;
 
     private final String beNode;
     private final List<Long> tabletIds;
-
-    public QueryBeXTablets(String beNode, List<Long> tabletIds) {
-        this.beNode = beNode;
-        this.tabletIds = tabletIds;
-    }
-
-    public String getBeNode() {
-        return beNode;
-    }
-
-    public List<Long> getTabletIds() {
-        return tabletIds;
-    }
 }

@@ -45,6 +45,8 @@ import java.util.Set;
 
 public class ColumnRowDataSerializer extends TypeSerializer<RowData> {
 
+    private static final long serialVersionUID = -3193875237503741622L;
+
     StringSerializer stringSerializer = StringSerializer.INSTANCE;
     int size;
 

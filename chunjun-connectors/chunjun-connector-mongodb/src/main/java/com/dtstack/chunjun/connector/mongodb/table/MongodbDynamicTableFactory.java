@@ -26,13 +26,11 @@ import com.dtstack.chunjun.lookup.config.LookupConfigFactory;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -62,8 +60,6 @@ public class MongodbDynamicTableFactory
         final ReadableConfig config = helper.getOptions();
         // 校验 requiredOptions 和 optionalOptions;
         helper.validate();
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
         validateConfigOptions(config);
 
@@ -77,7 +73,8 @@ public class MongodbDynamicTableFactory
         config.getOptional(MongoClientOptions.PASSWORD).ifPresent(mongoClientConfig::setPassword);
 
         LookupConfig lookupConfig = LookupConfigFactory.createLookupConfig(config);
-        return new MongodbDynamicTableSource(mongoClientConfig, lookupConfig, physicalSchema);
+        return new MongodbDynamicTableSource(
+                mongoClientConfig, lookupConfig, context.getCatalogTable().getResolvedSchema());
     }
 
     /**
@@ -140,8 +137,6 @@ public class MongodbDynamicTableFactory
         final ReadableConfig config = helper.getOptions();
         // 校验 requiredOptions 和 optionalOptions;
         helper.validate();
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
         validateConfigOptions(config);
 
@@ -158,6 +153,7 @@ public class MongodbDynamicTableFactory
         config.getOptional(SINK_BUFFER_FLUSH_MAX_ROWS).ifPresent(mongoWriteConfig::setFlushMaxRows);
         config.getOptional(SINK_BUFFER_FLUSH_INTERVAL)
                 .ifPresent(mongoWriteConfig::setFlushInterval);
-        return new MongodbDynamicTableSink(mongoClientConfig, physicalSchema, mongoWriteConfig);
+        return new MongodbDynamicTableSink(
+                mongoClientConfig, context.getCatalogTable().getResolvedSchema(), mongoWriteConfig);
     }
 }

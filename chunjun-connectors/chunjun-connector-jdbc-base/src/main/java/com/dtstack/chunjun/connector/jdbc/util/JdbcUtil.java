@@ -33,11 +33,10 @@ import com.dtstack.chunjun.util.TelnetUtil;
 
 import org.apache.flink.table.types.logical.LogicalType;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.sql.Clob;
@@ -57,6 +56,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** Utilities for relational database connection and sql execution */
+@Slf4j
 public class JdbcUtil {
     /** 增量任务过滤条件占位符 */
     public static final String INCREMENT_FILTER_PLACEHOLDER = "${incrementFilter}";
@@ -65,7 +65,6 @@ public class JdbcUtil {
 
     public static final String TEMPORARY_TABLE_NAME = "chunjun_tmp";
     public static final String NULL_STRING = "null";
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcUtil.class);
     /** 数据库连接的最大重试次数 */
     private static final int MAX_RETRY_TIMES = 3;
     /** 秒级时间戳的长度为10位 */
@@ -243,7 +242,7 @@ public class JdbcUtil {
             try {
                 rs.close();
             } catch (SQLException e) {
-                LOG.warn("Close resultSet error: {}", ExceptionUtil.getErrorMessage(e));
+                log.warn("Close resultSet error: {}", ExceptionUtil.getErrorMessage(e));
             }
         }
 
@@ -251,7 +250,7 @@ public class JdbcUtil {
             try {
                 stmt.close();
             } catch (SQLException e) {
-                LOG.warn("Close statement error:{}", ExceptionUtil.getErrorMessage(e));
+                log.warn("Close statement error:{}", ExceptionUtil.getErrorMessage(e));
             }
         }
 
@@ -265,7 +264,7 @@ public class JdbcUtil {
 
                 conn.close();
             } catch (SQLException e) {
-                LOG.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));
+                log.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));
             }
         }
     }
@@ -281,7 +280,7 @@ public class JdbcUtil {
                 conn.commit();
             }
         } catch (SQLException e) {
-            LOG.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
+            log.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
@@ -296,7 +295,7 @@ public class JdbcUtil {
                 conn.rollback();
             }
         } catch (SQLException e) {
-            LOG.warn("rollBack error:{}", ExceptionUtil.getErrorMessage(e));
+            log.warn("rollBack error:{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
@@ -331,7 +330,7 @@ public class JdbcUtil {
                             resultSet,
                             GsonUtil.GSON.toJson(columnTypeList),
                             ExceptionUtil.getErrorMessage(e));
-            LOG.error(message);
+            log.error(message);
             throw new RuntimeException(message);
         }
         return columnTypeList;
@@ -502,14 +501,14 @@ public class JdbcUtil {
         }
 
         if (StringUtils.isNotBlank(schema)) {
-            LOG.info(
+            log.info(
                     "before reset table info, schema: {}, table: {}",
                     jdbcConfig.getSchema(),
                     jdbcConfig.getTable());
 
             jdbcConfig.setSchema(schema);
             jdbcConfig.setTable(table);
-            LOG.info(
+            log.info(
                     "after reset table info,schema: {},table: {}",
                     jdbcConfig.getSchema(),
                     jdbcConfig.getTable());

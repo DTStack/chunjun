@@ -26,12 +26,17 @@ import com.dtstack.chunjun.enums.EWriteMode;
 import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.util.JsonUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.sql.SQLException;
 import java.util.List;
 
+@Slf4j
 public class Vertica11OutputFormat extends JdbcOutputFormat {
+
+    private static final long serialVersionUID = 5927516457280937846L;
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         try {
@@ -48,12 +53,12 @@ public class Vertica11OutputFormat extends JdbcOutputFormat {
                             JdbcUtil.getTablePrimaryKey(
                                     jdbcConfig.getSchema(), jdbcConfig.getTable(), dbConn);
                     jdbcConfig.setUniqueKey(tableIndex);
-                    LOG.info("updateKey = {}", JsonUtil.toJson(tableIndex));
+                    log.info("updateKey = {}", JsonUtil.toJson(tableIndex));
                 }
             }
 
             buildStmtProxy();
-            LOG.info("subTask[{}}] wait finished", taskNumber);
+            log.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
         } finally {
@@ -84,7 +89,7 @@ public class Vertica11OutputFormat extends JdbcOutputFormat {
         } else {
             throw new IllegalArgumentException("Unknown write mode:" + jdbcConfig.getMode());
         }
-        LOG.info("write sql:{}", singleSql);
+        log.info("write sql:{}", singleSql);
         return singleSql;
     }
 }

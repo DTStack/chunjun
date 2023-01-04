@@ -20,15 +20,19 @@ package com.dtstack.chunjun.connector.hive3.config;
 
 import com.dtstack.chunjun.config.BaseFileConfig;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.parquet.hadoop.ParquetWriter;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class HdfsConfig extends BaseFileConfig {
+    private static final long serialVersionUID = -4493809656180425250L;
+
     private String defaultFS;
     private String fileType;
     /** hadoop高可用相关配置 * */
@@ -48,136 +52,4 @@ public class HdfsConfig extends BaseFileConfig {
     private String partitionName;
     private String schema;
     private String table;
-
-    public String getDefaultFS() {
-        return defaultFS;
-    }
-
-    public void setDefaultFS(String defaultFS) {
-        this.defaultFS = defaultFS;
-    }
-
-    public String getFileType() {
-        return fileType;
-    }
-
-    public void setFileType(String fileType) {
-        this.fileType = fileType;
-    }
-
-    public Map<String, Object> getHadoopConfig() {
-        return hadoopConfig;
-    }
-
-    public void setHadoopConfig(Map<String, Object> hadoopConfig) {
-        this.hadoopConfig = hadoopConfig;
-    }
-
-    public String getFilterRegex() {
-        return filterRegex;
-    }
-
-    public void setFilterRegex(String filterRegex) {
-        this.filterRegex = filterRegex;
-    }
-
-    public String getFieldDelimiter() {
-        return fieldDelimiter;
-    }
-
-    public void setFieldDelimiter(String fieldDelimiter) {
-        this.fieldDelimiter = fieldDelimiter;
-    }
-
-    public int getRowGroupSize() {
-        return rowGroupSize;
-    }
-
-    public void setRowGroupSize(int rowGroupSize) {
-        this.rowGroupSize = rowGroupSize;
-    }
-
-    public boolean isEnableDictionary() {
-        return enableDictionary;
-    }
-
-    public void setEnableDictionary(boolean enableDictionary) {
-        this.enableDictionary = enableDictionary;
-    }
-
-    public List<String> getFullColumnName() {
-        return fullColumnName;
-    }
-
-    public void setFullColumnName(List<String> fullColumnName) {
-        this.fullColumnName = fullColumnName;
-    }
-
-    public List<String> getFullColumnType() {
-        return fullColumnType;
-    }
-
-    public void setFullColumnType(List<String> fullColumnType) {
-        this.fullColumnType = fullColumnType;
-    }
-
-    public int[] getFullColumnIndexes() {
-        return fullColumnIndexes;
-    }
-
-    public void setFullColumnIndexes(int[] fullColumnIndexes) {
-        this.fullColumnIndexes = fullColumnIndexes;
-    }
-
-    public String getPartitionName() {
-        return partitionName;
-    }
-
-    public void setPartitionName(String partitionName) {
-        this.partitionName = partitionName;
-    }
-
-    public String getSchema() {
-        return schema;
-    }
-
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
-
-    public String getTable() {
-        return table;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
-    }
-
-    public boolean isTransaction() {
-        return isTransaction;
-    }
-
-    public void setTransaction(boolean transaction) {
-        isTransaction = transaction;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", HdfsConfig.class.getSimpleName() + "[", "]")
-                .add("defaultFS='" + defaultFS + "'")
-                .add("fileType='" + fileType + "'")
-                .add("hadoopConfig=" + hadoopConfig)
-                .add("filterRegex='" + filterRegex + "'")
-                .add("fieldDelimiter='" + fieldDelimiter + "'")
-                .add("rowGroupSize=" + rowGroupSize)
-                .add("enableDictionary=" + enableDictionary)
-                .add("fullColumnName=" + fullColumnName)
-                .add("fullColumnType=" + fullColumnType)
-                .add("fullColumnIndexes=" + Arrays.toString(fullColumnIndexes))
-                .add("isTransaction=" + isTransaction)
-                .add("partitionName='" + partitionName + "'")
-                .add("schema='" + schema + "'")
-                .add("table='" + table + "'")
-                .toString();
-    }
 }

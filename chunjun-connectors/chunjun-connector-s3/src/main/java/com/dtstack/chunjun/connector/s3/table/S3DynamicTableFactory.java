@@ -57,7 +57,7 @@ public class S3DynamicTableFactory implements DynamicTableSourceFactory, Dynamic
         s3Config.setFieldDelimiter(options.get(S3Options.FIELD_DELIMITER).trim().toCharArray()[0]);
         s3Config.setEncoding(options.get(S3Options.ENCODING));
         s3Config.setRegion(options.get(S3Options.REGION));
-        s3Config.setIsFirstLineHeader(options.get(S3Options.IS_FIRST_LINE_HEADER));
+        s3Config.setFirstLineHeader(options.get(S3Options.IS_FIRST_LINE_HEADER));
 
         return new S3DynamicTableSource(context.getCatalogTable().getResolvedSchema(), s3Config);
     }
@@ -104,7 +104,7 @@ public class S3DynamicTableFactory implements DynamicTableSourceFactory, Dynamic
         s3Config.setFieldDelimiter(options.get(S3Options.FIELD_DELIMITER).trim().toCharArray()[0]);
         s3Config.setEncoding(options.get(S3Options.ENCODING));
         s3Config.setRegion(options.get(S3Options.REGION));
-        s3Config.setIsFirstLineHeader(options.get(S3Options.IS_FIRST_LINE_HEADER));
+        s3Config.setFirstLineHeader(options.get(S3Options.IS_FIRST_LINE_HEADER));
 
         return new S3DynamicTableSink(context.getCatalogTable().getResolvedSchema(), s3Config);
     }

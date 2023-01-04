@@ -25,13 +25,11 @@ import com.dtstack.chunjun.connector.nebula.utils.GraphUtil;
 
 import com.vesoft.nebula.client.graph.data.SSLParam;
 import com.vesoft.nebula.client.graph.exception.ClientServerIncompatibleException;
-import com.vesoft.nebula.client.graph.exception.IOErrorException;
 import com.vesoft.nebula.client.meta.MetaCache;
 import com.vesoft.nebula.client.meta.MetaManager;
 import com.vesoft.nebula.client.storage.StorageClient;
 import com.vesoft.nebula.client.storage.scan.ScanResultIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -41,9 +39,10 @@ import java.util.List;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.RANK;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.VID;
 
+@Slf4j
 public class NebulaStorageClient implements Serializable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(NebulaStorageClient.class);
+    private static final long serialVersionUID = -5627797931752187660L;
 
     private final NebulaConfig nebulaConfig;
 
@@ -60,7 +59,7 @@ public class NebulaStorageClient implements Serializable {
             initMetaManagerAndClient();
             client.connect();
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             throw new IOException(e);
         }
     }
@@ -87,20 +86,16 @@ public class NebulaStorageClient implements Serializable {
                         sslParam);
     }
 
-    /**
-     * fetch data from nebula
-     *
-     * @throws IOErrorException
-     */
+    /** fetch data from nebula */
     public NebulaTableRow fetchRangeData(
-            Integer part, Long scanStart, NebulaInputSplitter inputSplitter) throws Exception {
+            Integer part, Long scanStart, NebulaInputSplitter inputSplitter) {
         ScanResultIterator scanResultIterator = null;
         List<String> columnNames = nebulaConfig.getColumnNames();
         long ScanEnd =
                 (scanStart + inputSplitter.getInterval()) < inputSplitter.getScanEnd()
                         ? scanStart + inputSplitter.getInterval()
                         : inputSplitter.getScanEnd();
-        //        LOG.debug("part is {},scanStart is {}, ScanEnd is {} ", part, scanStart, ScanEnd);
+        //        log.debug("part is {},scanStart is {}, ScanEnd is {} ", part, scanStart, ScanEnd);
         switch (nebulaConfig.getSchemaType()) {
             case VERTEX:
             case TAG:
@@ -145,12 +140,8 @@ public class NebulaStorageClient implements Serializable {
         return new NebulaTableRow(scanResultIterator, nebulaConfig);
     }
 
-    /**
-     * fetch data from nebula
-     *
-     * @throws IOErrorException
-     */
-    public NebulaTableRow fetchAllData() throws Exception {
+    /** fetch data from nebula */
+    public NebulaTableRow fetchAllData() {
         ScanResultIterator scanResultIterator = null;
         List<String> columnNames = nebulaConfig.getColumnNames();
         switch (nebulaConfig.getSchemaType()) {

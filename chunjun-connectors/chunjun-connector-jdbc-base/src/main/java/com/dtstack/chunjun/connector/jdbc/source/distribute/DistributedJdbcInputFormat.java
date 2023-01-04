@@ -26,13 +26,17 @@ import com.dtstack.chunjun.util.RangeSplitUtil;
 
 import org.apache.flink.core.io.InputSplit;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+@Slf4j
 public class DistributedJdbcInputFormat extends JdbcInputFormat {
+
+    private static final long serialVersionUID = 3985627300325628890L;
 
     protected List<DataSourceConfig> sourceList;
     protected DistributedJdbcInputSplit inputSplit;
@@ -47,7 +51,7 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
             noDataSource = true;
             return;
         }
-        LOG.info("DistributedJdbcInputFormat[{}]open: end", inputSplit);
+        log.info("DistributedJdbcInputFormat[{}]open: end", inputSplit);
     }
 
     @Override
@@ -73,7 +77,7 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
             inputSplits[i] = split;
         }
 
-        LOG.info(
+        log.info(
                 "create InputSplits successfully, inputSplits = {}",
                 GsonUtil.GSON.toJson(inputSplits));
         return inputSplits;
@@ -100,7 +104,7 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
             return !hasNext;
         } catch (SQLException e) {
             closeInternal();
-            LOG.error("", e);
+            log.error("", e);
             throw new ChunJunRuntimeException(e);
         }
     }
@@ -119,7 +123,7 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
         resultSet = statement.executeQuery(querySql);
         hasNext = resultSet.next();
 
-        LOG.info(
+        log.info(
                 "open source: {}, table: {}", currentSource.getJdbcUrl(), currentSource.getTable());
     }
 

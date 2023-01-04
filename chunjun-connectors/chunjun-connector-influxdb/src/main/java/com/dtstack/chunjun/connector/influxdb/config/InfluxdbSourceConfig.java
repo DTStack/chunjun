@@ -19,11 +19,16 @@
 
 package com.dtstack.chunjun.connector.influxdb.config;
 
-import java.util.Locale;
-import java.util.StringJoiner;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+import java.util.Locale;
+
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class InfluxdbSourceConfig extends InfluxdbConfig {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = -3007933210720629076L;
 
     private String where;
     private String customSql;
@@ -37,68 +42,7 @@ public class InfluxdbSourceConfig extends InfluxdbConfig {
         return format.toUpperCase(Locale.ENGLISH);
     }
 
-    public void setFormat(String format) {
-        this.format = format;
-    }
-
-    public String getWhere() {
-        return where;
-    }
-
-    public void setWhere(String where) {
-        this.where = where;
-    }
-
-    public String getCustomSql() {
-        return customSql;
-    }
-
-    public void setCustomSql(String customSql) {
-        this.customSql = customSql;
-    }
-
-    public String getSplitPk() {
-        return splitPk;
-    }
-
-    public void setSplitPk(String splitPk) {
-        this.splitPk = splitPk;
-    }
-
-    public int getFetchSize() {
-        return fetchSize;
-    }
-
-    public void setFetchSize(int fetchSize) {
-        this.fetchSize = fetchSize;
-    }
-
-    public int getQueryTimeOut() {
-        return queryTimeOut;
-    }
-
-    public void setQueryTimeOut(int queryTimeOut) {
-        this.queryTimeOut = queryTimeOut;
-    }
-
     public String getEpoch() {
         return epoch.toLowerCase(Locale.ENGLISH);
-    }
-
-    public void setEpoch(String epoch) {
-        this.epoch = epoch;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", InfluxdbSourceConfig.class.getSimpleName() + "[", "]")
-                .add("where='" + where + "'")
-                .add("customSql='" + customSql + "'")
-                .add("splitPk='" + splitPk + "'")
-                .add("queryTimeOut=" + queryTimeOut)
-                .add("fetchSize=" + fetchSize)
-                .add("epoch='" + epoch + "'")
-                .add("format='" + format + "'")
-                .toString();
     }
 }

@@ -23,12 +23,7 @@ import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public abstract class BaseRichOutputFormatBuilder<T extends BaseRichOutputFormat> {
-
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     protected T format;
 

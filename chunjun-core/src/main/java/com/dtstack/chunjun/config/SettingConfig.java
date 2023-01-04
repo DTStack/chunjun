@@ -17,71 +17,21 @@
  */
 package com.dtstack.chunjun.config;
 
-import java.io.Serializable;
-import java.util.StringJoiner;
+import lombok.Data;
 
+import java.io.Serializable;
+
+@Data
 public class SettingConfig implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = 6924923752271158577L;
 
     /** 速率及通道配置 */
     private SpeedConfig speed = new SpeedConfig();
+
     /** 任务指标插件信息 */
     private MetricPluginConfig metricPluginConfig = new MetricPluginConfig();
+
     /** 断点续传配置 */
     private RestoreConfig restore = new RestoreConfig();
-    /** 失败重试配置 */
-    private RestartConfig restart = new RestartConfig();
-    /** ChunJun日志记录配置 */
-    private LogConfig log = new LogConfig();
-
-    public void setMetricPluginConfig(MetricPluginConfig metricPluginConfig) {
-        this.metricPluginConfig = metricPluginConfig;
-    }
-
-    public MetricPluginConfig getMetricPluginConfig() {
-        return metricPluginConfig;
-    }
-
-    public SpeedConfig getSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(SpeedConfig speed) {
-        this.speed = speed;
-    }
-
-    public RestoreConfig getRestore() {
-        return restore;
-    }
-
-    public void setRestore(RestoreConfig restore) {
-        this.restore = restore;
-    }
-
-    public RestartConfig getRestart() {
-        return restart;
-    }
-
-    public void setRestart(RestartConfig restart) {
-        this.restart = restart;
-    }
-
-    public LogConfig getLog() {
-        return log;
-    }
-
-    public void setLog(LogConfig log) {
-        this.log = log;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", SettingConfig.class.getSimpleName() + "[", "]")
-                .add("speed=" + speed)
-                .add("metricPluginConf=" + metricPluginConfig)
-                .add("restore=" + restore)
-                .add("restart=" + restart)
-                .add("log=" + log)
-                .toString();
-    }
 }

@@ -32,9 +32,9 @@ public class CassandraOutputFormatBuilder
         super(new CassandraOutputFormat());
     }
 
-    public void setSinkConf(CassandraSinkConfig config) {
+    public void setSinkConfig(CassandraSinkConfig config) {
         super.setConfig(config);
-        format.setSinkConf(config);
+        format.setSinkConfig(config);
     }
 
     public void setConverter(AbstractRowConverter rowConverter) {
@@ -43,7 +43,7 @@ public class CassandraOutputFormatBuilder
 
     @Override
     protected void checkFormat() {
-        CassandraSinkConfig sinkConf = format.getSinkConf();
+        CassandraSinkConfig sinkConf = format.getSinkConfig();
 
         StringBuilder stringBuilder = new StringBuilder(256);
 

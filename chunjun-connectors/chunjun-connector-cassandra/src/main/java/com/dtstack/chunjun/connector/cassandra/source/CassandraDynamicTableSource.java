@@ -52,7 +52,7 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
 
     private static final String IDENTIFIER = "Cassandra";
 
-    private final CassandraSourceConfig sourceConf;
+    private final CassandraSourceConfig sourceConfig;
 
     private final CassandraLookupConfig cassandraLookupConfig;
 
@@ -61,11 +61,11 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
     private final DataType dataType;
 
     public CassandraDynamicTableSource(
-            CassandraSourceConfig sourceConf,
+            CassandraSourceConfig sourceConfig,
             CassandraLookupConfig cassandraLookupConfig,
             ResolvedSchema tableSchema,
             DataType dataType) {
-        this.sourceConf = sourceConf;
+        this.sourceConfig = sourceConfig;
         this.cassandraLookupConfig = cassandraLookupConfig;
         this.tableSchema = tableSchema;
         this.dataType = dataType;
@@ -100,24 +100,24 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
 
             columnList.add(field);
         }
-        sourceConf.setColumn(columnList);
+        sourceConfig.setColumn(columnList);
 
         RowType rowType =
-                TableUtil.createRowType(sourceConf.getColumn(), CassandraRawTypeConverter::apply);
+                TableUtil.createRowType(sourceConfig.getColumn(), CassandraRawTypeConverter::apply);
 
-        builder.setSourceConf(sourceConf);
+        builder.setSourceConf(sourceConfig);
         builder.setRowConverter(new CassandraRowConverter(rowType, columnNameList));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInfo),
                 false,
-                sourceConf.getParallelism());
+                sourceConfig.getParallelism());
     }
 
     @Override
     public DynamicTableSource copy() {
         return new CassandraDynamicTableSource(
-                sourceConf, cassandraLookupConfig, tableSchema, dataType);
+                sourceConfig, cassandraLookupConfig, tableSchema, dataType);
     }
 
     @Override

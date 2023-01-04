@@ -42,6 +42,7 @@ import java.util.List;
 
 public class MysqlDdlConventImpl implements DdlConvent {
 
+    private static final long serialVersionUID = 6427759469833888308L;
     private final SqlVisitor<List<DdlOperator>> mysqlVisitor =
             new SqlNodeConventVisitor(new SqlNodeParseImpl());
 

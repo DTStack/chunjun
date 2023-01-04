@@ -20,11 +20,15 @@ package com.dtstack.chunjun.connector.hive.config;
 import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hive.entity.TableInfo;
 
+import lombok.Data;
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringJoiner;
 
+@Data
 public class HiveConfig extends HdfsConfig {
+
+    private static final long serialVersionUID = 5161832759671076024L;
 
     private String jdbcUrl;
     private String username;
@@ -40,127 +44,4 @@ public class HiveConfig extends HdfsConfig {
     private Map<String, TableInfo> tableInfos = new HashMap<>();
     private String tableName;
     private boolean autoCreateTable;
-
-    public String getJdbcUrl() {
-        return jdbcUrl;
-    }
-
-    public void setJdbcUrl(String jdbcUrl) {
-        this.jdbcUrl = jdbcUrl;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getPartitionType() {
-        return partitionType;
-    }
-
-    public void setPartitionType(String partitionType) {
-        this.partitionType = partitionType;
-    }
-
-    public String getPartition() {
-        return partition;
-    }
-
-    public void setPartition(String partition) {
-        this.partition = partition;
-    }
-
-    public String getTablesColumn() {
-        return tablesColumn;
-    }
-
-    public void setTablesColumn(String tablesColumn) {
-        this.tablesColumn = tablesColumn;
-    }
-
-    public String getDistributeTable() {
-        return distributeTable;
-    }
-
-    public void setDistributeTable(String distributeTable) {
-        this.distributeTable = distributeTable;
-    }
-
-    public String getSchema() {
-        return schema;
-    }
-
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
-
-    public String getAnalyticalRules() {
-        return analyticalRules;
-    }
-
-    public void setAnalyticalRules(String analyticalRules) {
-        this.analyticalRules = analyticalRules;
-    }
-
-    public Map<String, String> getDistributeTableMapping() {
-        return distributeTableMapping;
-    }
-
-    public void setDistributeTableMapping(Map<String, String> distributeTableMapping) {
-        this.distributeTableMapping = distributeTableMapping;
-    }
-
-    public Map<String, TableInfo> getTableInfos() {
-        return tableInfos;
-    }
-
-    public void setTableInfos(Map<String, TableInfo> tableInfos) {
-        this.tableInfos = tableInfos;
-    }
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-
-    public boolean isAutoCreateTable() {
-        return autoCreateTable;
-    }
-
-    public void setAutoCreateTable(boolean autoCreateTable) {
-        this.autoCreateTable = autoCreateTable;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", HiveConfig.class.getSimpleName() + "[", "]")
-                .add("jdbcUrl='" + jdbcUrl + "'")
-                .add("username='" + username + "'")
-                .add("password='" + password + "'")
-                .add("partitionType='" + partitionType + "'")
-                .add("partition='" + partition + "'")
-                .add("tablesColumn='" + tablesColumn + "'")
-                .add("distributeTable='" + distributeTable + "'")
-                .add("schema='" + schema + "'")
-                .add("analyticalRules='" + analyticalRules + "'")
-                .add("distributeTableMapping=" + distributeTableMapping)
-                .add("tableInfos=" + tableInfos)
-                .add("tableName='" + tableName + "'")
-                .add("autoCreateTable=" + autoCreateTable)
-                .toString();
-    }
 }

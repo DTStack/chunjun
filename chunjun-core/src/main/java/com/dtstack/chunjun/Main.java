@@ -26,7 +26,7 @@ import com.dtstack.chunjun.config.OperatorConfig;
 import com.dtstack.chunjun.config.SpeedConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
 import com.dtstack.chunjun.enums.ClusterMode;
 import com.dtstack.chunjun.enums.EJobType;
@@ -70,9 +70,8 @@ import org.apache.flink.table.expressions.Expression;
 import org.apache.flink.table.types.DataType;
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.net.URLDecoder;
@@ -82,14 +81,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
+@Slf4j
 public class Main {
 
-    public static Logger LOG = LoggerFactory.getLogger(Main.class);
-
     public static void main(String[] args) throws Exception {
-        LOG.info("------------program params-------------------------");
-        Arrays.stream(args).forEach(arg -> LOG.info("{}", arg));
-        LOG.info("-------------------------------------------");
+        log.info("------------program params-------------------------");
+        Arrays.stream(args).forEach(arg -> log.info("{}", arg));
+        log.info("-------------------------------------------");
 
         Options options = new OptionParser(args).getOptions();
         String job = URLDecoder.decode(options.getJob(), StandardCharsets.UTF_8.name());
@@ -98,7 +96,7 @@ public class Main {
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =
                 EnvFactory.createStreamTableEnvironment(env, confProperties, options.getJobName());
-        LOG.info(
+        log.info(
                 "Register to table configuration:{}",
                 tEnv.getConfig().getConfiguration().toString());
         switch (EJobType.getByName(options.getJobType())) {
@@ -115,7 +113,7 @@ public class Main {
                                 + "], jobType must in [SQL, SYNC].");
         }
 
-        LOG.info("program {} execution success", options.getJobName());
+        log.info("program {} execution success", options.getJobName());
     }
 
     private static void exeSqlJob(
@@ -276,7 +274,7 @@ public class Main {
             factoryHelper.setPluginLoadMode(options.getPluginLoadMode());
             factoryHelper.setEnv(env);
             factoryHelper.setExecutionMode(options.getMode());
-            DirtyConf dirtyConf = DirtyConfUtil.parse(options);
+            DirtyConfig dirtyConfig = DirtyConfUtil.parse(options);
             // 注册core包
             if (ClusterMode.local.name().equalsIgnoreCase(options.getMode())) {
                 factoryHelper.registerCachedFile(
@@ -284,7 +282,7 @@ public class Main {
             }
 
             factoryHelper.registerCachedFile(
-                    dirtyConf.getType(),
+                    dirtyConfig.getType(),
                     Thread.currentThread().getContextClassLoader(),
                     ConstantValue.DIRTY_DATA_DIR_NAME);
             // TODO sql 支持restore.

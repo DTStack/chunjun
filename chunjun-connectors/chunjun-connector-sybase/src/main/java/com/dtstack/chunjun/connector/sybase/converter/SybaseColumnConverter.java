@@ -42,6 +42,8 @@ import java.sql.Time;
 import java.sql.Timestamp;
 
 public class SybaseColumnConverter extends JdbcColumnConverter {
+    private static final long serialVersionUID = 5539444089187873362L;
+
     public SybaseColumnConverter(RowType rowType, CommonConfig commonConfig) {
         super(rowType, commonConfig);
     }

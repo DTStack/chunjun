@@ -34,14 +34,13 @@ import org.apache.flink.runtime.security.SecurityUtils;
 import org.apache.flink.yarn.YarnClientYarnClusterInformationRetriever;
 import org.apache.flink.yarn.YarnClusterDescriptor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -51,9 +50,8 @@ import java.util.Set;
 import static org.apache.flink.yarn.configuration.YarnConfigOptions.APPLICATION_ID;
 import static org.apache.flink.yarn.configuration.YarnConfigOptions.APPLICATION_QUEUE;
 
+@Slf4j
 public class YarnSessionClusterClientHelper implements ClusterClientHelper<ApplicationId> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(YarnSessionClusterClientHelper.class);
 
     @Override
     public ClusterClient<ApplicationId> submit(JobDeployer jobDeployer) throws Exception {
@@ -117,7 +115,7 @@ public class YarnSessionClusterClientHelper implements ClusterClientHelper<Appli
                                         jobGraph.getUserJars().clear();
                                         jobGraph.getUserArtifacts().clear();
                                         JobID jobID = clusterClient.submitJob(jobGraph).get();
-                                        LOG.info("submit job successfully, jobID = {}", jobID);
+                                        log.info("submit job successfully, jobID = {}", jobID);
                                         return clusterClient;
                                     }
                                 }

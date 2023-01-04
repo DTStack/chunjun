@@ -26,11 +26,10 @@ import org.apache.flink.table.functions.AggregateFunction;
 import org.apache.flink.table.functions.ScalarFunction;
 import org.apache.flink.table.functions.TableFunction;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class FunctionManager {
-    private static final Logger logger = LoggerFactory.getLogger(FunctionManager.class);
 
     /** TABLE|SCALAR|AGGREGATE 注册UDF到table env */
     public static void registerUDF(
@@ -66,9 +65,9 @@ public class FunctionManager {
                             .asSubclass(ScalarFunction.class)
                             .newInstance();
             tableEnv.createTemporaryFunction(funcName, udfFunc);
-            logger.info("register scalar function:{} success.", funcName);
+            log.info("register scalar function:{} success.", funcName);
         } catch (Exception e) {
-            logger.error("", e);
+            log.error("", e);
             throw new RuntimeException("register UDF exception:", e);
         }
     }
@@ -90,9 +89,9 @@ public class FunctionManager {
                             .newInstance();
 
             tableEnv.createTemporaryFunction(funcName, udtf);
-            logger.info("register table function:{} success.", funcName);
+            log.info("register table function:{} success.", funcName);
         } catch (Exception e) {
-            logger.error("", e);
+            log.error("", e);
             throw new RuntimeException("register Table UDF exception:", e);
         }
     }
@@ -121,9 +120,9 @@ public class FunctionManager {
                             .asSubclass(AggregateFunction.class)
                             .newInstance();
             tableEnv.createTemporaryFunction(funcName, udaf);
-            logger.info("register Aggregate function:{} success.", funcName);
+            log.info("register Aggregate function:{} success.", funcName);
         } catch (Exception e) {
-            logger.error("", e);
+            log.error("", e);
             throw new RuntimeException("register Aggregate UDF exception:", e);
         }
     }

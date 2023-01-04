@@ -49,7 +49,7 @@ public class LookupNGQLBuilderTest {
                 new LookupNGQLBuilder()
                         .setNebulaConf(nebulaConfig)
                         .setFieldNames(fieldNames)
-                        .setFiterFieldNames(fiterFieldNames)
+                        .setFilterFieldNames(fiterFieldNames)
                         .build();
         System.out.println(build);
     }
@@ -63,7 +63,7 @@ public class LookupNGQLBuilderTest {
                 new LookupNGQLBuilder()
                         .setNebulaConf(nebulaConfig)
                         .setFieldNames(fieldNames)
-                        .setFiterFieldNames(fiterFieldNames)
+                        .setFilterFieldNames(fiterFieldNames)
                         .build();
         System.out.println(build);
     }

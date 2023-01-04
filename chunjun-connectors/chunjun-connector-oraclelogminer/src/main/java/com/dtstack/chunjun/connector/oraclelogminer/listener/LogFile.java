@@ -17,10 +17,11 @@
  */
 package com.dtstack.chunjun.connector.oraclelogminer.listener;
 
-import java.math.BigInteger;
-import java.util.Objects;
-import java.util.StringJoiner;
+import lombok.Data;
 
+import java.math.BigInteger;
+
+@Data
 public class LogFile {
 
     private String fileName;
@@ -43,99 +44,7 @@ public class LogFile {
     /** 文件大小 * */
     private Long bytes;
 
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public BigInteger getFirstChange() {
-        return firstChange;
-    }
-
-    public void setFirstChange(BigInteger firstChange) {
-        this.firstChange = firstChange;
-    }
-
-    public BigInteger getNextChange() {
-        return nextChange;
-    }
-
-    public void setNextChange(BigInteger nextChange) {
-        this.nextChange = nextChange;
-    }
-
-    public long getThread() {
-        return thread;
-    }
-
-    public void setThread(Long thread) {
-        this.thread = thread;
-    }
-
-    public Long getBytes() {
-        return bytes;
-    }
-
-    public void setBytes(Long bytes) {
-        this.bytes = bytes;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public boolean isOnline() {
         return "ONLINE".equals(this.type);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        LogFile logFile = (LogFile) o;
-        return Objects.equals(fileName, logFile.fileName)
-                && Objects.equals(firstChange, logFile.firstChange)
-                && Objects.equals(thread, logFile.thread)
-                && Objects.equals(nextChange, logFile.nextChange)
-                && Objects.equals(type, logFile.type);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(fileName, firstChange, nextChange, thread, bytes);
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", LogFile.class.getSimpleName() + "[", "]")
-                .add("fileName='" + fileName + "'")
-                .add("firstChange=" + firstChange)
-                .add("nextChange=" + nextChange)
-                .add("thread=" + thread)
-                .add("status=" + status)
-                .add("type='" + type + "'")
-                .add("bytes=" + bytes)
-                .toString();
     }
 }

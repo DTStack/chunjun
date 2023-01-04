@@ -17,11 +17,15 @@
  */
 package com.dtstack.chunjun.connector.jdbc.config;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.List;
 
+@Data
 public abstract class ConnectionConfig implements Serializable {
-    protected static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = 65443196344254166L;
 
     protected List<String> table;
     protected String schema;
@@ -41,36 +45,4 @@ public abstract class ConnectionConfig implements Serializable {
      * @param jdbcUrl JDBC URL连接
      */
     public abstract void putJdbcUrl(String jdbcUrl);
-
-    public List<String> getTable() {
-        return table;
-    }
-
-    public void setTable(List<String> table) {
-        this.table = table;
-    }
-
-    public String getSchema() {
-        return schema;
-    }
-
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 }

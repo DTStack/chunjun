@@ -31,9 +31,8 @@ import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -47,9 +46,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class MysqldSourceFactory extends DistributedJdbcSourceFactory {
-
-    private static final Logger LOG = LoggerFactory.getLogger(MysqldSourceFactory.class);
 
     private final AtomicInteger jdbcPatternCounter = new AtomicInteger(0);
     private final AtomicInteger jdbcQueryTableCounter = new AtomicInteger(0);
@@ -131,7 +129,7 @@ public class MysqldSourceFactory extends DistributedJdbcSourceFactory {
             ResultSet tableResult = metaData.getTables(databaseName, null, null, null);
             while (tableResult.next()) {
                 String tableName = tableResult.getString("TABLE_NAME");
-                LOG.info(
+                log.info(
                         "query table [{}]: {}, table: {}.{}",
                         jdbcQueryTableCounter.incrementAndGet(),
                         url,
@@ -152,8 +150,8 @@ public class MysqldSourceFactory extends DistributedJdbcSourceFactory {
                 dataSourceConf.setPassword(pass);
                 dataSourceConf.setSchema(key);
                 dataSourceConf.setTable(mTable);
-                LOG.info(
-                        "pattern jdbcurl: [{}] {}, table: {}.{}",
+                log.info(
+                        "pattern jdbcUrl: [{}] {}, table: {}.{}",
                         jdbcPatternCounter.incrementAndGet(),
                         url,
                         key,

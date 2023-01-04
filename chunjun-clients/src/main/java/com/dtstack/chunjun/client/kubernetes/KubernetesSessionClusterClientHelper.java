@@ -32,16 +32,13 @@ import org.apache.flink.kubernetes.kubeclient.FlinkKubeClient;
 import org.apache.flink.kubernetes.kubeclient.FlinkKubeClientFactory;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+@Slf4j
 public class KubernetesSessionClusterClientHelper implements ClusterClientHelper<String> {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(KubernetesSessionClusterClientHelper.class);
 
     @Override
     public ClusterClient<String> submit(JobDeployer jobDeployer) throws Exception {
@@ -65,7 +62,7 @@ public class KubernetesSessionClusterClientHelper implements ClusterClientHelper
             JobGraph jobGraph =
                     JobGraphUtil.buildJobGraph(launcherOptions, programArgs.toArray(new String[0]));
             JobID jobID = clusterClient.submitJob(jobGraph).get();
-            LOG.info("submit job successfully, jobID = {}", jobID);
+            log.info("submit job successfully, jobID = {}", jobID);
             return clusterClient;
         }
     }

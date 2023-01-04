@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.sink;
 
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.converter.FtpRowConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 

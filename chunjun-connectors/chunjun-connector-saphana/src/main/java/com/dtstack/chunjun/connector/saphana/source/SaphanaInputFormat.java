@@ -26,6 +26,8 @@ import java.util.Properties;
 
 public class SaphanaInputFormat extends JdbcInputFormat {
 
+    private static final long serialVersionUID = -1068852381723024237L;
+
     @Override
     public void openInternal(InputSplit inputSplit) {
         Properties properties = jdbcConfig.getProperties();

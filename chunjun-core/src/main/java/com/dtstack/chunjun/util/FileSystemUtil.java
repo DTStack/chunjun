@@ -22,14 +22,13 @@ import com.dtstack.chunjun.security.KerberosUtil;
 
 import org.apache.flink.api.common.cache.DistributedCache;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.PrivilegedAction;
@@ -38,9 +37,8 @@ import java.util.Map;
 
 import static com.dtstack.chunjun.security.KerberosUtil.KRB_STR;
 
+@Slf4j
 public class FileSystemUtil {
-
-    public static final Logger LOG = LoggerFactory.getLogger(FileSystemUtil.class);
 
     private static final String KEY_HADOOP_SECURITY_AUTHORIZATION = "hadoop.security.authorization";
     private static final String KEY_HADOOP_SECURITY_AUTHENTICATION =
@@ -74,14 +72,14 @@ public class FileSystemUtil {
 
         try {
             String previousUserName = UserGroupInformation.getLoginUser().getUserName();
-            LOG.info(
+            log.info(
                     "Hadoop user from '{}' switch to '{}' with SIMPLE auth",
                     previousUserName,
                     hadoopUserName);
             UserGroupInformation ugi = UserGroupInformation.createRemoteUser(hadoopUserName);
             UserGroupInformation.setLoginUser(ugi);
         } catch (Exception e) {
-            LOG.warn("Set hadoop user name error:", e);
+            log.warn("Set hadoop user name error:", e);
         }
     }
 

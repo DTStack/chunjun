@@ -40,7 +40,7 @@ import java.sql.Timestamp;
 
 public class DmRowConverter extends JdbcRowConverter {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 6869354155055068764L;
 
     public DmRowConverter(RowType rowType) {
         super(rowType);

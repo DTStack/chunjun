@@ -73,7 +73,7 @@ public class CommonConfigTest {
         fieldConfig.setValue("value");
         fieldConfig.setFormat("format");
         fieldConfig.setSplitter("splitter");
-        fieldConfig.setPart(true);
+        fieldConfig.setIsPart(true);
         fieldConfig.setNotNull(true);
         fieldConfig.setLength(1);
         fieldConfig.setParseFormat("parseFormat");

@@ -40,6 +40,8 @@ import java.util.Objects;
  */
 public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
 
+    private static final long serialVersionUID = -1936334572949200754L;
+
     private final QueuesChamberlain chamberlain;
     private final WorkerManager workerManager;
 

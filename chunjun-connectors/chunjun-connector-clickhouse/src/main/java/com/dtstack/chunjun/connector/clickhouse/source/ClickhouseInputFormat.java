@@ -24,17 +24,22 @@ import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 
 import org.apache.flink.core.io.InputSplit;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 
+@Slf4j
 public class ClickhouseInputFormat extends JdbcInputFormat {
+
+    private static final long serialVersionUID = 8179162549184574982L;
 
     @Override
     public void openInternal(InputSplit inputSplit) {
         currentJdbcInputSplit = (JdbcInputSplit) inputSplit;
         initMetric(currentJdbcInputSplit);
         if (!canReadData(currentJdbcInputSplit)) {
-            LOG.warn(
+            log.warn(
                     "Not read data when the start location are equal to end location, start = {}, end = {}",
                     currentJdbcInputSplit.getStartLocation(),
                     currentJdbcInputSplit.getEndLocation());

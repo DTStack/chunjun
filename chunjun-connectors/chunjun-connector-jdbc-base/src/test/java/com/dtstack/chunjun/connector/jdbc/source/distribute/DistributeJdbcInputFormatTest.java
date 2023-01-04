@@ -88,7 +88,6 @@ public class DistributeJdbcInputFormatTest {
     private static SyncConfig syncConfig;
     private static JdbcConfig jdbcConfig;
     private static JdbcDialect jdbcDialect;
-    private static Logger LOG;
 
     @Before
     public void setup() throws IOException {
@@ -100,10 +99,8 @@ public class DistributeJdbcInputFormatTest {
         inputFormat = mock(DistributedJdbcInputFormat.class);
         inputSplit = mock(DistributedJdbcInputSplit.class);
         jdbcConfig = mock(JdbcConfig.class);
-        LOG = mock(Logger.class);
         jdbcDialect = mock(JdbcDialect.class);
 
-        setInternalState(inputFormat, "LOG", LOG);
         setInternalState(inputFormat, "jdbcConfig", jdbcConfig);
         setInternalState(inputFormat, "jdbcDialect", jdbcDialect);
 
@@ -112,7 +109,7 @@ public class DistributeJdbcInputFormatTest {
                 new GsonBuilder()
                         .registerTypeAdapter(
                                 ConnectionConfig.class,
-                                new ConnectionAdapter(SourceConnectionConfig.class.getSimpleName()))
+                                new ConnectionAdapter(SourceConnectionConfig.class.getName()))
                         .addDeserializationExclusionStrategy(
                                 new FieldNameExclusionStrategy("column"))
                         .create();

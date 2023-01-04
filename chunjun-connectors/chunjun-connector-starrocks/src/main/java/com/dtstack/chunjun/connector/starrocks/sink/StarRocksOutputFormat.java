@@ -30,19 +30,20 @@ import org.apache.flink.table.data.RowData;
 
 import com.alibaba.fastjson.JSON;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class StarRocksOutputFormat extends BaseRichOutputFormat {
 
+    private static final long serialVersionUID = -72510119599895395L;
+
     StreamLoadManager streamLoadManager;
     private StarRocksConfig starRocksConfig;
     private StarRocksWriteProcessor writeProcessor;
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+    protected void openInternal(int taskNumber, int numTasks) {
         List<String> columnNameList =
                 starRocksConfig.getColumn().stream()
                         .map(FieldConfig::getName)

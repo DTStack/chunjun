@@ -51,6 +51,8 @@ import java.util.UUID;
 public class CassandraColumnConverter
         extends AbstractRowConverter<ResultSet, Row, BoundStatement, String> {
 
+    private static final long serialVersionUID = 9079536637671380594L;
+
     private final List<FieldConfig> fieldConfList;
 
     public CassandraColumnConverter(RowType rowType, List<FieldConfig> fieldConfList) {

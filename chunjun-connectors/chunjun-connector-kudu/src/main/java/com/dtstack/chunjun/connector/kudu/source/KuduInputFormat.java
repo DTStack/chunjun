@@ -32,6 +32,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kudu.client.KuduClient;
 import org.apache.kudu.client.KuduException;
 import org.apache.kudu.client.KuduScanToken;
@@ -43,7 +44,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class KuduInputFormat extends BaseRichInputFormat {
+
+    private static final long serialVersionUID = -2213920219898440077L;
 
     private KuduSourceConfig sourceConf;
 
@@ -55,7 +59,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
-        LOG.info("execute createInputSplits,minNumSplits:{}", minNumSplits);
+        log.info("execute createInputSplits,minNumSplits:{}", minNumSplits);
         List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(sourceConf);
         KuduInputSplit[] inputSplits = new KuduInputSplit[scanTokens.size()];
         for (int i = 0; i < scanTokens.size(); i++) {
@@ -75,7 +79,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
 
-        LOG.info(
+        log.info(
                 "Execute openInternal: splitNumber = {}, indexOfSubtask  = {}",
                 inputSplit.getSplitNumber(),
                 indexOfSubTask);
@@ -107,14 +111,14 @@ public class KuduInputFormat extends BaseRichInputFormat {
     @Override
     protected void closeInternal() {
 
-        LOG.info("closeInternal: closing input format.");
+        log.info("closeInternal: closing input format.");
 
         if (scanner != null) {
             try {
                 scanner.close();
                 scanner = null;
             } catch (KuduException e) {
-                LOG.warn("Kudu Scanner close failed.", e);
+                log.warn("Kudu Scanner close failed.", e);
             }
         }
     }
@@ -129,7 +133,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
                 client = null;
             }
         } catch (KuduException e) {
-            LOG.error("Close kudu client failed.", e);
+            log.error("Close kudu client failed.", e);
         }
     }
 
@@ -153,7 +157,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
         return sourceConf;
     }
 
-    public AbstractRowConverter getRowConverter() {
+    public AbstractRowConverter getCdcRowConverter() {
         return rowConverter;
     }
 }

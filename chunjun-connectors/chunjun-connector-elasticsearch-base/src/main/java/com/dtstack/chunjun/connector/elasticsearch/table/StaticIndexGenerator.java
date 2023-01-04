@@ -25,6 +25,8 @@ import org.apache.flink.table.data.RowData;
 @Internal
 final class StaticIndexGenerator extends IndexGeneratorBase {
 
+    private static final long serialVersionUID = 7951508842872017686L;
+
     public StaticIndexGenerator(String index) {
         super(index);
     }

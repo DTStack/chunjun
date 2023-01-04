@@ -21,7 +21,6 @@ package com.dtstack.chunjun.connector.doris.table;
 import com.dtstack.chunjun.connector.doris.DorisUtil;
 import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.doris.options.DorisOptions;
-import com.dtstack.chunjun.connector.doris.options.LoadConfBuilder;
 import com.dtstack.chunjun.connector.doris.options.LoadConfig;
 import com.dtstack.chunjun.connector.doris.sink.DorisDynamicTableSink;
 import com.dtstack.chunjun.connector.doris.source.DorisInputFormat;
@@ -100,7 +99,7 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
         dorisConfig.setUrl(config.get(DorisOptions.URL));
         dorisConfig.setFeNodes(config.get(DorisOptions.FENODES));
 
-        dorisInputFormat.setDorisConf(dorisConfig);
+        dorisInputFormat.setDorisConfig(dorisConfig);
 
         // 2.参数校验
         helper.validateExcept(VERTX_PREFIX, DRUID_PREFIX);
@@ -171,8 +170,8 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
             dorisConfig.setPassword(config.get(DorisOptions.PASSWORD));
         }
 
-        LoadConfig loadConfig = getLoadConf(config);
-        dorisConfig.setLoadConf(loadConfig);
+        LoadConfig loadConfig = getLoadConfig(config);
+        dorisConfig.setLoadConfig(loadConfig);
         dorisConfig.setLoadProperties(new Properties());
         dorisConfig.setMaxRetries(config.get(DorisOptions.MAX_RETRIES));
         dorisConfig.setMode(config.get(DorisOptions.WRITE_MODE));
@@ -181,18 +180,17 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
         return dorisConfig;
     }
 
-    private static LoadConfig getLoadConf(ReadableConfig config) {
-        LoadConfBuilder loadConfBuilder = new LoadConfBuilder();
-        return loadConfBuilder
-                .setRequestTabletSize(config.get(DorisOptions.REQUEST_TABLET_SIZE))
-                .setRequestConnectTimeoutMs(config.get(DorisOptions.REQUEST_CONNECT_TIMEOUT_MS))
-                .setRequestReadTimeoutMs(config.get(DorisOptions.REQUEST_READ_TIMEOUT_MS))
-                .setRequestQueryTimeoutMs(config.get(DorisOptions.REQUEST_QUERY_TIMEOUT_SEC))
-                .setRequestRetries(config.get(DorisOptions.REQUEST_RETRIES))
-                .setRequestBatchSize(config.get(DorisOptions.REQUEST_BATCH_SIZE))
-                .setExecMemLimit(config.get(DorisOptions.EXEC_MEM_LIMIT))
-                .setDeserializeQueueSize(config.get(DorisOptions.DESERIALIZE_QUEUE_SIZE))
-                .setDeserializeArrowAsync(config.get(DorisOptions.DESERIALIZE_ARROW_ASYNC))
+    private static LoadConfig getLoadConfig(ReadableConfig config) {
+        return LoadConfig.builder()
+                .requestTabletSize(config.get(DorisOptions.REQUEST_TABLET_SIZE))
+                .requestConnectTimeoutMs(config.get(DorisOptions.REQUEST_CONNECT_TIMEOUT_MS))
+                .requestReadTimeoutMs(config.get(DorisOptions.REQUEST_READ_TIMEOUT_MS))
+                .requestQueryTimeoutS(config.get(DorisOptions.REQUEST_QUERY_TIMEOUT_SEC))
+                .requestRetries(config.get(DorisOptions.REQUEST_RETRIES))
+                .requestBatchSize(config.get(DorisOptions.REQUEST_BATCH_SIZE))
+                .execMemLimit(config.get(DorisOptions.EXEC_MEM_LIMIT))
+                .deserializeQueueSize(config.get(DorisOptions.DESERIALIZE_QUEUE_SIZE))
+                .deserializeArrowAsync(config.get(DorisOptions.DESERIALIZE_ARROW_ASYNC))
                 .build();
     }
 

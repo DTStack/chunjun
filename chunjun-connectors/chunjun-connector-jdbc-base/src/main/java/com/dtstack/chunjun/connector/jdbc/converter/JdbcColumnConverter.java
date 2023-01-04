@@ -43,6 +43,7 @@ import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.logical.YearMonthIntervalType;
 
 import io.vertx.core.json.JsonArray;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
@@ -53,9 +54,12 @@ import java.sql.Timestamp;
 import java.util.List;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
+@Slf4j
 public class JdbcColumnConverter
         extends AbstractRowConverter<
                 ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
+
+    private static final long serialVersionUID = -6344403538183946505L;
 
     public JdbcColumnConverter(RowType rowType) {
         this(rowType, null);
@@ -209,7 +213,7 @@ public class JdbcColumnConverter
                     try {
                         a = ((ColumnRowData) val).getField(index).asYearInt();
                     } catch (Exception e) {
-                        LOG.error("val {}, index{}", val, index, e);
+                        log.error("val {}, index{}", val, index, e);
                     }
 
                     statement.setInt(index, a);

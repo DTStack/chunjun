@@ -21,8 +21,14 @@ package com.dtstack.chunjun.connector.oceanbasecdc.config;
 import com.dtstack.chunjun.config.CommonConfig;
 
 import com.oceanbase.clogproxy.client.config.ObReaderConfig;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class OceanBaseCdcConfig extends CommonConfig {
+    private static final long serialVersionUID = -3826059387486062675L;
+
     private String logProxyHost;
     private int logProxyPort;
     private ObReaderConfig obReaderConfig;
@@ -31,60 +37,4 @@ public class OceanBaseCdcConfig extends CommonConfig {
     private boolean splitUpdate;
 
     private String timestampFormat = "sql";
-
-    public String getLogProxyHost() {
-        return logProxyHost;
-    }
-
-    public void setLogProxyHost(String logProxyHost) {
-        this.logProxyHost = logProxyHost;
-    }
-
-    public int getLogProxyPort() {
-        return logProxyPort;
-    }
-
-    public void setLogProxyPort(int logProxyPort) {
-        this.logProxyPort = logProxyPort;
-    }
-
-    public ObReaderConfig getObReaderConfig() {
-        return obReaderConfig;
-    }
-
-    public void setObReaderConfig(ObReaderConfig obReaderConfig) {
-        this.obReaderConfig = obReaderConfig;
-    }
-
-    public String getCat() {
-        return cat;
-    }
-
-    public void setCat(String cat) {
-        this.cat = cat;
-    }
-
-    public boolean isPavingData() {
-        return pavingData;
-    }
-
-    public void setPavingData(boolean pavingData) {
-        this.pavingData = pavingData;
-    }
-
-    public boolean isSplitUpdate() {
-        return splitUpdate;
-    }
-
-    public void setSplitUpdate(boolean splitUpdate) {
-        this.splitUpdate = splitUpdate;
-    }
-
-    public String getTimestampFormat() {
-        return timestampFormat;
-    }
-
-    public void setTimestampFormat(String timestampFormat) {
-        this.timestampFormat = timestampFormat;
-    }
 }

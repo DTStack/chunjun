@@ -23,8 +23,8 @@ import java.io.InputStream;
 
 public class FtpInputStreamProxy extends InputStream {
 
-    private InputStream input;
-    private long readLimit;
+    private final InputStream input;
+    private final long readLimit;
     private long currentReadBytes;
 
     public FtpInputStreamProxy(InputStream input, long readLimit) {

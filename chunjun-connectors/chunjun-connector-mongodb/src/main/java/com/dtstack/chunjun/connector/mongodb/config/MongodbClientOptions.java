@@ -20,11 +20,15 @@ package com.dtstack.chunjun.connector.mongodb.config;
 
 import com.mongodb.MongoClientOptions;
 import com.mongodb.WriteConcern;
+import lombok.Data;
 
 import java.io.Serializable;
-import java.util.StringJoiner;
 
+@Data
 public class MongodbClientOptions implements Serializable {
+
+    private static final long serialVersionUID = 3792530779184681100L;
+
     private int connectionsPerHost = 100;
 
     private int threadsForConnectionMultiplier = 100;
@@ -46,56 +50,5 @@ public class MongodbClientOptions implements Serializable {
         build.socketTimeout(mongodbClientOptions.getSocketTimeout());
         build.writeConcern(WriteConcern.UNACKNOWLEDGED);
         return build.build();
-    }
-
-    public int getConnectionsPerHost() {
-        return connectionsPerHost;
-    }
-
-    public void setConnectionsPerHost(int connectionsPerHost) {
-        this.connectionsPerHost = connectionsPerHost;
-    }
-
-    public int getThreadsForConnectionMultiplier() {
-        return threadsForConnectionMultiplier;
-    }
-
-    public void setThreadsForConnectionMultiplier(int threadsForConnectionMultiplier) {
-        this.threadsForConnectionMultiplier = threadsForConnectionMultiplier;
-    }
-
-    public int getConnectionTimeout() {
-        return connectionTimeout;
-    }
-
-    public void setConnectionTimeout(int connectionTimeout) {
-        this.connectionTimeout = connectionTimeout;
-    }
-
-    public int getMaxWaitTime() {
-        return maxWaitTime;
-    }
-
-    public void setMaxWaitTime(int maxWaitTime) {
-        this.maxWaitTime = maxWaitTime;
-    }
-
-    public int getSocketTimeout() {
-        return socketTimeout;
-    }
-
-    public void setSocketTimeout(int socketTimeout) {
-        this.socketTimeout = socketTimeout;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", MongodbClientOptions.class.getSimpleName() + "[", "]")
-                .add("connectionsPerHost=" + connectionsPerHost)
-                .add("threadsForConnectionMultiplier=" + threadsForConnectionMultiplier)
-                .add("connectionTimeout=" + connectionTimeout)
-                .add("maxWaitTime=" + maxWaitTime)
-                .add("socketTimeout=" + socketTimeout)
-                .toString();
     }
 }

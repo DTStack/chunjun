@@ -30,6 +30,8 @@ import static com.dtstack.chunjun.element.ClassSizeUtil.getStringSize;
 
 public class BigDecimalColumn extends AbstractBaseColumn {
 
+    private static final long serialVersionUID = 8849006021507991960L;
+
     public BigDecimalColumn(BigDecimal data) {
         this(data, data.toString());
     }

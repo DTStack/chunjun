@@ -45,6 +45,8 @@ import java.util.List;
 
 public class HdfsTextInputFormat extends BaseHdfsInputFormat {
 
+    private static final long serialVersionUID = 2393219757331128551L;
+
     @Override
     protected InputSplit[] createHdfsSplit(int minNumSplits) throws IOException {
         initHadoopJobConf();

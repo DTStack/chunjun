@@ -27,13 +27,12 @@ import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -43,9 +42,10 @@ import java.util.concurrent.SynchronousQueue;
 
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.CLIENT_ID_READER;
 
+@Slf4j
 public class EmqxInputFormat extends BaseRichInputFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(EmqxInputFormat.class);
+    private static final long serialVersionUID = 1958341837631491857L;
 
     /** emqx Conf */
     private EmqxConfig emqxConfig;
@@ -80,20 +80,20 @@ public class EmqxInputFormat extends BaseRichInputFormat {
 
                         @Override
                         public void connectionLost(Throwable cause) {
-                            LOG.warn("connection lost and reconnect , e = {}", cause.getMessage());
+                            log.warn("connection lost and reconnect , e = {}", cause.getMessage());
 
                             if (client != null && client.isConnected()) {
                                 try {
                                     client.disconnect();
                                 } catch (MqttException e) {
-                                    LOG.error(e.getMessage());
+                                    log.error(e.getMessage());
                                 }
                             }
 
                             try {
                                 client = MqttConnectUtil.getMqttClient(emqxConfig, jobId);
                             } catch (Exception e) {
-                                LOG.error(
+                                log.error(
                                         e.getMessage()
                                                 + "\n"
                                                 + " can not reconnect success, please restart job!!!");
@@ -103,20 +103,20 @@ public class EmqxInputFormat extends BaseRichInputFormat {
                         @Override
                         public void messageArrived(String topic, MqttMessage message) {
                             String msg = new String(message.getPayload(), StandardCharsets.UTF_8);
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("msg = {}", msg);
+                            if (log.isDebugEnabled()) {
+                                log.debug("msg = {}", msg);
                             }
                             try {
                                 queue.put(msg);
                             } catch (InterruptedException e) {
-                                LOG.error(e.getMessage() + "\n" + msg);
+                                log.error(e.getMessage() + "\n" + msg);
                             }
                         }
 
                         @Override
                         public void deliveryComplete(IMqttDeliveryToken token) {
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("deliveryComplete = {}", token.isComplete());
+                            if (log.isDebugEnabled()) {
+                                log.debug("deliveryComplete = {}", token.isComplete());
                             }
                         }
                     });

@@ -20,12 +20,21 @@ package com.dtstack.chunjun.connector.rocketmq.config;
 
 import com.dtstack.chunjun.config.CommonConfig;
 
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.Serializable;
 import java.util.Locale;
 
+@Getter
+@Setter
+@ToString
+@Builder
 public class RocketMQConfig extends CommonConfig {
+
+    private static final long serialVersionUID = 3283705129428004165L;
 
     private String topic;
     private String nameserverAddress;
@@ -53,168 +62,6 @@ public class RocketMQConfig extends CommonConfig {
     private int persistConsumerOffsetInterval = 5000; // 5s
 
     private long partitionDiscoveryIntervalMs = 30000; // 30s
-
-    // producer
-
-    public String getAccessKey() {
-        return accessKey;
-    }
-
-    public void setAccessKey(String accessKey) {
-        this.accessKey = accessKey;
-    }
-
-    public String getSecretKey() {
-        return secretKey;
-    }
-
-    public void setSecretKey(String secretKey) {
-        this.secretKey = secretKey;
-    }
-
-    public long getPartitionDiscoveryIntervalMs() {
-        return partitionDiscoveryIntervalMs;
-    }
-
-    public void setPartitionDiscoveryIntervalMs(long partitionDiscoveryIntervalMs) {
-        this.partitionDiscoveryIntervalMs = partitionDiscoveryIntervalMs;
-    }
-
-    public long getStartMessageTimeStamp() {
-        return startMessageTimeStamp;
-    }
-
-    public void setStartMessageTimeStamp(long startMessageTimeStamp) {
-        this.startMessageTimeStamp = startMessageTimeStamp;
-    }
-
-    public long getStartTimeMs() {
-        return startTimeMs;
-    }
-
-    public void setStartTimeMs(long startTimeMs) {
-        this.startTimeMs = startTimeMs;
-    }
-
-    public long getEndTimeMs() {
-        return endTimeMs;
-    }
-
-    public void setEndTimeMs(long endTimeMs) {
-        this.endTimeMs = endTimeMs;
-    }
-
-    public int getFetchSize() {
-        return fetchSize;
-    }
-
-    public void setFetchSize(int fetchSize) {
-        this.fetchSize = fetchSize;
-    }
-
-    public int getHeartbeatBrokerInterval() {
-        return heartbeatBrokerInterval;
-    }
-
-    public void setHeartbeatBrokerInterval(int heartbeatBrokerInterval) {
-        this.heartbeatBrokerInterval = heartbeatBrokerInterval;
-    }
-
-    public String getAccessChannel() {
-        return accessChannel;
-    }
-
-    public void setAccessChannel(String accessChannel) {
-        this.accessChannel = accessChannel;
-    }
-
-    public String getUnitName() {
-        return unitName;
-    }
-
-    public void setUnitName(String unitName) {
-        this.unitName = unitName;
-    }
-
-    public int getPersistConsumerOffsetInterval() {
-        return persistConsumerOffsetInterval;
-    }
-
-    public void setPersistConsumerOffsetInterval(int persistConsumerOffsetInterval) {
-        this.persistConsumerOffsetInterval = persistConsumerOffsetInterval;
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
-    }
-
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
-
-    public String getNameserverAddress() {
-        return nameserverAddress;
-    }
-
-    public void setNameserverAddress(String nameserverAddress) {
-        this.nameserverAddress = nameserverAddress;
-    }
-
-    public String getConsumerGroup() {
-        return consumerGroup;
-    }
-
-    public void setConsumerGroup(String consumerGroup) {
-        this.consumerGroup = consumerGroup;
-    }
-
-    public StartMode getMode() {
-        return mode;
-    }
-
-    public void setMode(StartMode mode) {
-        this.mode = mode;
-    }
-
-    public long getStartMessageOffset() {
-        return startMessageOffset;
-    }
-
-    public void setStartMessageOffset(long startMessageOffset) {
-        this.startMessageOffset = startMessageOffset;
-    }
-
-    public String getTimeZone() {
-        return timeZone;
-    }
-
-    public void setTimeZone(String timeZone) {
-        this.timeZone = timeZone;
-    }
-
-    public String getEncoding() {
-        return encoding;
-    }
-
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
-    }
-
-    public String getFieldDelimiter() {
-        return fieldDelimiter;
-    }
-
-    public void setFieldDelimiter(String fieldDelimiter) {
-        this.fieldDelimiter = fieldDelimiter;
-    }
 
     public enum StartMode {
         /** Start from the earliest offset possible. */
@@ -250,119 +97,6 @@ public class RocketMQConfig extends CommonConfig {
                 default:
                     return UNKNOWN;
             }
-        }
-    }
-
-    public static class Builder implements Serializable {
-        private static final long serialVersionUID = 1L;
-        private final RocketMQConfig conf;
-
-        public Builder() {
-            this.conf = new RocketMQConfig();
-        }
-
-        public Builder setTopic(String topic) {
-            this.conf.setTopic(topic);
-            return this;
-        }
-
-        public Builder setNameserverAddress(String nameserverAddress) {
-            this.conf.setNameserverAddress(nameserverAddress);
-            return this;
-        }
-
-        public Builder setHeartbeatBrokerInterval(int heartbeatBrokerInterval) {
-            this.conf.setHeartbeatBrokerInterval(heartbeatBrokerInterval);
-            return this;
-        }
-
-        public Builder setAccessChannel(String accessChannel) {
-            this.conf.setAccessChannel(accessChannel);
-            return this;
-        }
-
-        public Builder setUnitName(String unitName) {
-            this.conf.setUnitName(unitName);
-            return this;
-        }
-
-        public Builder setTag(String tag) {
-            this.conf.setTag(tag);
-            return this;
-        }
-
-        public Builder setConsumerGroup(String consumerGroup) {
-            this.conf.setConsumerGroup(consumerGroup);
-            return this;
-        }
-
-        public Builder setMode(StartMode mode) {
-            this.conf.setMode(mode);
-            return this;
-        }
-
-        public Builder setStartMessageOffset(long startMessageOffset) {
-            this.conf.setStartMessageOffset(startMessageOffset);
-            return this;
-        }
-
-        public Builder setStartTimeMs(long startTimeMs) {
-            this.conf.setStartTimeMs(startTimeMs);
-            return this;
-        }
-
-        public Builder setEndTimeMs(long endTimeMs) {
-            this.conf.setEndTimeMs(endTimeMs);
-            return this;
-        }
-
-        public Builder setTimeZone(String timeZone) {
-            this.conf.setTimeZone(timeZone);
-            return this;
-        }
-
-        public Builder setEncoding(String encoding) {
-            this.conf.setEncoding(encoding);
-            return this;
-        }
-
-        public Builder setFieldDelimiter(String fieldDelimiter) {
-            this.conf.setFieldDelimiter(fieldDelimiter);
-            return this;
-        }
-
-        public Builder setPersistConsumerOffsetInterval(int persistConsumerOffsetInterval) {
-            this.conf.setPersistConsumerOffsetInterval(persistConsumerOffsetInterval);
-            return this;
-        }
-
-        public Builder setStartMessageTimeStamp(long startMessageTimeStamp) {
-            this.conf.setStartMessageTimeStamp(startMessageTimeStamp);
-            return this;
-        }
-
-        public Builder setFetchSize(int fetchSize) {
-            this.conf.setFetchSize(fetchSize);
-            return this;
-        }
-
-        public Builder setPartitionDiscoveryIntervalMs(long partitionDiscoveryIntervalMs) {
-            this.conf.setPartitionDiscoveryIntervalMs(partitionDiscoveryIntervalMs);
-            return this;
-        }
-
-        public Builder setAccessKey(String accessKey) {
-            this.conf.setAccessKey(accessKey);
-            return this;
-        }
-
-        public Builder setSecretKey(String secretKey) {
-            this.conf.setSecretKey(secretKey);
-            return this;
-        }
-
-        public RocketMQConfig build() {
-            return this.conf;
         }
     }
 }

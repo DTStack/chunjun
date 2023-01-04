@@ -26,7 +26,7 @@ import com.dtstack.chunjun.connector.mongodb.sink.MongodbOutputFormat;
 import com.dtstack.chunjun.connector.mongodb.sink.MongodbOutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
@@ -36,15 +36,15 @@ import org.apache.flink.types.RowKind;
 public class MongodbDynamicTableSink implements DynamicTableSink {
 
     private final MongoClientConfig mongoClientConfig;
-    private final TableSchema physicalSchema;
+    private final ResolvedSchema resolvedSchema;
     private final MongoWriteConfig mongoWriteConfig;
 
     public MongodbDynamicTableSink(
             MongoClientConfig mongoClientConfig,
-            TableSchema physicalSchema,
+            ResolvedSchema resolvedSchema,
             MongoWriteConfig mongoWriteConfig) {
         this.mongoClientConfig = mongoClientConfig;
-        this.physicalSchema = physicalSchema;
+        this.resolvedSchema = resolvedSchema;
         this.mongoWriteConfig = mongoWriteConfig;
     }
 
@@ -59,8 +59,8 @@ public class MongodbDynamicTableSink implements DynamicTableSink {
 
     @Override
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        String[] fieldNames = physicalSchema.getFieldNames();
+        final RowType rowType = (RowType) resolvedSchema.toPhysicalRowDataType().getLogicalType();
+        String[] fieldNames = resolvedSchema.getColumnNames().toArray(new String[0]);
         MongodbOutputFormatBuilder builder =
                 new MongodbOutputFormatBuilder(
                         null, mongoClientConfig, null, MongodbOutputFormat.WriteMode.INSERT);
@@ -77,7 +77,7 @@ public class MongodbDynamicTableSink implements DynamicTableSink {
 
     @Override
     public DynamicTableSink copy() {
-        return new MongodbDynamicTableSink(mongoClientConfig, physicalSchema, mongoWriteConfig);
+        return new MongodbDynamicTableSink(mongoClientConfig, resolvedSchema, mongoWriteConfig);
     }
 
     @Override

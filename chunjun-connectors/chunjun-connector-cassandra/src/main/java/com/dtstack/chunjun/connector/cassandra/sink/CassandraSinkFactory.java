@@ -58,7 +58,7 @@ public class CassandraSinkFactory extends SinkFactory {
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         CassandraOutputFormatBuilder builder = new CassandraOutputFormatBuilder();
 
-        builder.setSinkConf(sinkConfig);
+        builder.setSinkConfig(sinkConfig);
         List<FieldConfig> fieldList = sinkConfig.getColumn();
 
         final RowType rowType = TableUtil.createRowType(fieldList, getRawTypeConverter());

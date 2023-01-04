@@ -29,21 +29,15 @@ import org.apache.flink.table.types.logical.RowType;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/28
- */
 public class SolrConverterFactory {
 
     private final RowType rowType;
     private final List<String> fieldNames;
-    private final List<String> fieldTypes;
 
-    public SolrConverterFactory(SolrConf solrConf) {
+    public SolrConverterFactory(SolrConfig solrConfig) {
         fieldNames = new ArrayList<>();
-        fieldTypes = new ArrayList<>();
-        List<FieldConfig> fields = solrConf.getColumn();
+        List<String> fieldTypes = new ArrayList<>();
+        List<FieldConfig> fields = solrConfig.getColumn();
         for (FieldConfig field : fields) {
             fieldNames.add(field.getName());
             fieldTypes.add(field.getType());

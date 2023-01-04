@@ -24,6 +24,7 @@ import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
 public class Hive3InputFormatBuilder extends BaseRichInputFormatBuilder<BaseHdfsInputFormat> {
+
     BaseHdfsInputFormat inputFormat;
 
     public Hive3InputFormatBuilder(String fileType, boolean isHiveTransactionTable) {

@@ -27,8 +27,7 @@ import com.vesoft.nebula.client.graph.data.ResultSet;
 import com.vesoft.nebula.client.graph.exception.IOErrorException;
 import com.vesoft.nebula.client.graph.net.NebulaPool;
 import com.vesoft.nebula.client.graph.net.Session;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.util.Locale;
@@ -39,9 +38,10 @@ import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.CREATE_E
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.CREATE_VERTEX;
 import static com.dtstack.chunjun.connector.nebula.utils.NebulaConstant.NEBULA_PROP;
 
+@Slf4j
 public class NebulaSession implements Serializable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(NebulaSession.class);
+    private static final long serialVersionUID = -3626313757429372228L;
 
     private final NebulaConfig nebulaConfig;
 
@@ -53,12 +53,6 @@ public class NebulaSession implements Serializable {
         this.nebulaConfig = nebulaConfig;
     }
 
-    /**
-     * init nebula pool and session
-     *
-     * @return
-     * @throws Exception
-     */
     public void init() throws Exception {
         pool = new NebulaPool();
         NebulaPoolConfig nebulaPoolConfig = new NebulaPoolConfig();
@@ -85,14 +79,6 @@ public class NebulaSession implements Serializable {
         }
     }
 
-    /**
-     * execute ngql the parameters
-     *
-     * @param ngql
-     * @param params
-     * @return
-     * @throws IOErrorException
-     */
     public ResultSet executeWithParameter(String ngql, Map<String, Object> params)
             throws IOErrorException {
         return session.executeWithParameter(ngql, params);
@@ -129,24 +115,21 @@ public class NebulaSession implements Serializable {
                 String.format(
                         "CREATE SPACE IF NOT EXISTS `%s` (vid_type=%s);",
                         space, nebulaConfig.getVidType());
-        LOG.debug("ngql is : {}", statement);
-        ResultSet resultSet = session.execute(statement);
-        return resultSet;
+        log.debug("ngql is : {}", statement);
+        return session.execute(statement);
     }
 
     public ResultSet createSchema(String space, String schemaName) throws IOErrorException {
-        String statement = null;
+        String statement;
         String prop =
-                String.join(
-                        ",",
-                        nebulaConfig.getFields().stream()
-                                .map(
-                                        fieldConf ->
-                                                String.format(
-                                                        NEBULA_PROP,
-                                                        fieldConf.getName(),
-                                                        convertToNebulaType(fieldConf.getType())))
-                                .collect(Collectors.toList()));
+                nebulaConfig.getFields().stream()
+                        .map(
+                                fieldConf ->
+                                        String.format(
+                                                NEBULA_PROP,
+                                                fieldConf.getName(),
+                                                convertToNebulaType(fieldConf.getType())))
+                        .collect(Collectors.joining(","));
         switch (nebulaConfig.getSchemaType()) {
             case TAG:
             case VERTEX:
@@ -158,11 +141,10 @@ public class NebulaSession implements Serializable {
                 break;
             default:
                 throw new UnsupportedTypeException(
-                        "unsupport schema type: " + nebulaConfig.getSchemaType());
+                        "unsupported schema type: " + nebulaConfig.getSchemaType());
         }
-        LOG.debug("ngql is : {}", statement);
-        ResultSet resultSet = session.execute(String.format("use %s;%s;", space, statement));
-        return resultSet;
+        log.debug("ngql is : {}", statement);
+        return session.execute(String.format("use %s;%s;", space, statement));
     }
 
     private String convertToNebulaType(String type) {

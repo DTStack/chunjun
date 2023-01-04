@@ -27,6 +27,8 @@ import org.apache.flink.table.types.logical.LogicalType;
 
 public class FileRowConverter extends AbstractRowConverter<String, String, String, LogicalType> {
 
+    private static final long serialVersionUID = -3575052921856513308L;
+
     private final DeserializationSchema<RowData> valueDeserialization;
 
     public FileRowConverter(DeserializationSchema<RowData> valueDeserialization) {

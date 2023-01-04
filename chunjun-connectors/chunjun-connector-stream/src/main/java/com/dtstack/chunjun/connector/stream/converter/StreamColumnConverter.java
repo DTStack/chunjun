@@ -50,7 +50,8 @@ import java.util.stream.Collectors;
 public class StreamColumnConverter
         extends AbstractRowConverter<ColumnRowData, RowData, RowData, String> {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -3451666548578322227L;
+
     private static final AtomicLong id = new AtomicLong(0L);
 
     public StreamColumnConverter(CommonConfig commonConfig) {

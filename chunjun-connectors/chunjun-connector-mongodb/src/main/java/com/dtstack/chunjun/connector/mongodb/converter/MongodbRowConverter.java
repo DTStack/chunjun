@@ -47,6 +47,8 @@ import java.util.List;
 public final class MongodbRowConverter
         extends AbstractRowConverter<Document, Document, Document, LogicalType> {
 
+    private static final long serialVersionUID = -2683857781343809969L;
+
     private final List<MongoDeserializationConverter> toInternalConverters;
     private final List<MongoSerializationConverter> toExternalConverters;
     private final String[] fieldNames;

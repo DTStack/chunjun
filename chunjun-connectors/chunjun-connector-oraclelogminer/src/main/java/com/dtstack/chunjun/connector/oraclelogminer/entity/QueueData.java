@@ -19,31 +19,18 @@ package com.dtstack.chunjun.connector.oraclelogminer.entity;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
+
 import java.math.BigInteger;
-import java.util.StringJoiner;
 
+@Getter
+@AllArgsConstructor
+@ToString
 public class QueueData {
+
     private final BigInteger scn;
+
     private final RowData data;
-
-    public QueueData(BigInteger lsn, RowData data) {
-        this.scn = lsn;
-        this.data = data;
-    }
-
-    public BigInteger getScn() {
-        return scn;
-    }
-
-    public RowData getData() {
-        return data;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", QueueData.class.getSimpleName() + "[", "]")
-                .add("scn=" + scn)
-                .add("data=" + data)
-                .toString();
-    }
 }

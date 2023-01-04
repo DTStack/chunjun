@@ -45,6 +45,8 @@ import java.sql.Timestamp;
 
 public class Db2ColumnConverter extends JdbcColumnConverter {
 
+    private static final long serialVersionUID = -3154012344694748358L;
+
     public Db2ColumnConverter(RowType rowType, CommonConfig commonConfig) {
         super(rowType, commonConfig);
     }

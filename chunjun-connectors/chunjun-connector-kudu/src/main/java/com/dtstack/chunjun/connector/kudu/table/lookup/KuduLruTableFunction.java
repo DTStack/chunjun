@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.kudu.table.lookup;
 
 import com.dtstack.chunjun.connector.kudu.config.KuduCommonConfig;
-import com.dtstack.chunjun.connector.kudu.config.KuduLookupConf;
+import com.dtstack.chunjun.connector.kudu.config.KuduLookupConfig;
 import com.dtstack.chunjun.connector.kudu.util.KuduUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.enums.ECacheContentType;
@@ -34,6 +34,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.stumbleupon.async.Callback;
 import com.stumbleupon.async.Deferred;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kudu.ColumnSchema;
 import org.apache.kudu.Schema;
@@ -43,8 +44,6 @@ import org.apache.kudu.client.KuduPredicate;
 import org.apache.kudu.client.KuduTable;
 import org.apache.kudu.client.RowResult;
 import org.apache.kudu.client.RowResultIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -55,11 +54,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 public class KuduLruTableFunction extends AbstractLruTableFunction {
 
-    private static final long serialVersionUID = 1L;
-
-    private static final Logger LOG = LoggerFactory.getLogger(KuduLruTableFunction.class);
+    private static final long serialVersionUID = -4266958307581889540L;
 
     private AsyncKuduClient client;
 
@@ -67,7 +65,7 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
 
     private AsyncKuduScanner.AsyncKuduScannerBuilder scannerBuilder;
 
-    private final KuduLookupConf kuduLookupConf;
+    private final KuduLookupConfig kuduLookupConfig;
 
     private final String[] fieldNames;
 
@@ -77,12 +75,12 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
     private static final Long FETCH_SIZE = 1000L;
 
     public KuduLruTableFunction(
-            KuduLookupConf lookupConfig,
+            KuduLookupConfig lookupConfig,
             AbstractRowConverter<?, ?, ?, ?> rowConverter,
             String[] fieldNames,
             String[] keyNames) {
         super(lookupConfig, rowConverter);
-        this.kuduLookupConf = lookupConfig;
+        this.kuduLookupConfig = lookupConfig;
         this.fieldNames = fieldNames;
         this.keyNames = keyNames;
     }
@@ -126,7 +124,7 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
             try {
                 client.close();
             } catch (Exception e) {
-                LOG.error("Error while closing client.", e);
+                log.error("Error while closing client.", e);
             }
         }
 
@@ -137,9 +135,9 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
     private void getKudu() throws IOException {
         checkKuduTable();
         scannerBuilder = client.newScannerBuilder(kuduTable);
-        Integer batchSizeBytes = kuduLookupConf.getBatchSizeBytes();
-        Long limitNum = kuduLookupConf.getLimitNum();
-        Boolean isFaultTolerant = kuduLookupConf.getFaultTolerant();
+        Integer batchSizeBytes = kuduLookupConfig.getBatchSizeBytes();
+        Long limitNum = kuduLookupConfig.getLimitNum();
+        Boolean isFaultTolerant = kuduLookupConfig.getIsFaultTolerant();
 
         if (null == limitNum || limitNum <= 0) {
             scannerBuilder.limit(FETCH_SIZE);
@@ -169,9 +167,9 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
                             schema.getColumn((keyNames[keysList.indexOf(key)])),
                             Collections.singletonList(key)));
         }
-        Integer batchSizeBytes = kuduLookupConf.getBatchSizeBytes();
-        Long limitNum = kuduLookupConf.getLimitNum();
-        Boolean isFaultTolerant = kuduLookupConf.getFaultTolerant();
+        Integer batchSizeBytes = kuduLookupConfig.getBatchSizeBytes();
+        Long limitNum = kuduLookupConfig.getLimitNum();
+        Boolean isFaultTolerant = kuduLookupConfig.getIsFaultTolerant();
 
         if (Objects.isNull(limitNum) || limitNum <= 0) {
             scannerBuilder.limit(FETCH_SIZE);
@@ -193,15 +191,15 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
     private void checkKuduTable() throws IOException {
         try {
             if (Objects.isNull(kuduTable)) {
-                KuduCommonConfig commonConfig = kuduLookupConf.getCommonConf();
-                String tableName = kuduLookupConf.getTableName();
+                KuduCommonConfig commonConfig = kuduLookupConfig.getCommonConfig();
+                String tableName = kuduLookupConfig.getTableName();
                 client = KuduUtil.getAsyncKuduClient(commonConfig);
                 if (!client.syncClient().tableExists(tableName)) {
                     throw new IllegalArgumentException(
                             "Table Open Failed , please check table exists");
                 }
                 kuduTable = client.syncClient().openTable(tableName);
-                LOG.info("connect kudu is succeed!");
+                log.info("connect kudu is succeed!");
             }
         } catch (Exception e) {
             throw new IOException("kudu table error!", e);

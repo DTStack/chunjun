@@ -24,11 +24,10 @@ import com.dtstack.chunjun.connector.oraclelogminer.util.SqlUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -44,9 +43,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class LogMinerHelper {
-
-    public static Logger LOG = LoggerFactory.getLogger(LogMinerHelper.class);
 
     private final TransactionManager transactionManager;
     private final ExecutorService connectionExecutor;
@@ -89,7 +87,7 @@ public class LogMinerHelper {
                 new ThreadFactoryBuilder()
                         .setNameFormat("LogMinerConnection-pool-%d")
                         .setUncaughtExceptionHandler(
-                                (t, e) -> LOG.warn("LogMinerConnection run failed", e))
+                                (t, e) -> log.warn("LogMinerConnection run failed", e))
                         .build();
 
         connectionExecutor =
@@ -187,13 +185,13 @@ public class LogMinerHelper {
 
         // 如果当前currentConnection为空 且没有可加载的connection，则将第一个connection替换重新加载
         if (Objects.isNull(currentConnection) && CollectionUtils.isEmpty(needLoadList)) {
-            LOG.info(
+            log.info(
                     "reset activeConnectionList[0] a new connection,activeConnectionList is {}",
                     activeConnectionList);
             activeConnectionList.set(0, new LogMinerConnection(config, transactionManager));
             preLoad();
         }
-        LOG.info(
+        log.info(
                 "current load scnRange startSCN:{}, endSCN:{},currentReadEndScn:{},activeConnectionList:{}",
                 startScn,
                 endScn,
@@ -221,7 +219,7 @@ public class LogMinerHelper {
 
     /** connection重新加载 */
     public void restart(LogMinerConnection connection, Exception e) {
-        LOG.info(
+        log.info(
                 "restart connection, startScn: {},endScn: {}",
                 connection.startScn,
                 connection.endScn);
@@ -248,7 +246,7 @@ public class LogMinerHelper {
                 // 从读取redoLog切到归档日志时没有可读的日志文件，循环获取endScn
                 if (endScn.getLeft() == null) {
                     for (int i = 0; i < 10; i++) {
-                        LOG.info("restart connection but not find archive log, waiting.....");
+                        log.info("restart connection but not find archive log, waiting.....");
                         Thread.sleep(5000);
                         endScn = connection.getEndScn(startScn, new ArrayList<>(32), false);
                         if (endScn.getLeft() != null) {
@@ -345,7 +343,7 @@ public class LogMinerHelper {
         currentConnection = activeConnectionList.get(currentIndex);
         this.startScn = currentConnection.startScn;
         this.currentReadEndScn = currentConnection.endScn;
-        LOG.info(
+        log.info(
                 "after update currentConnection,currentIndex is {}, startScnOfCurrentConnection:{}, endScnOfCurrentConnection:{}, this.startScn:{},this.endScn:{},this.currentReadEndScn:{}",
                 currentIndex,
                 currentConnection.startScn,

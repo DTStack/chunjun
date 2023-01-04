@@ -25,6 +25,7 @@ import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
@@ -43,7 +44,9 @@ import java.util.List;
 import java.util.Map;
 
 /** The InputFormat Implementation used for HbaseReader */
+@Slf4j
 public class HBaseInputFormat extends BaseRichInputFormat {
+    private static final long serialVersionUID = -5932348809306160070L;
     protected Map<String, Object> hbaseConfig;
     protected final String tableName;
     protected String startRowkey;
@@ -72,7 +75,7 @@ public class HBaseInputFormat extends BaseRichInputFormat {
     public void openInputFormat() throws IOException {
         super.openInputFormat();
 
-        LOG.info("HbaseOutputFormat openInputFormat start");
+        log.info("HbaseOutputFormat openInputFormat start");
 
         this.scan = scanBuilder.buildScan();
         this.scan.setCaching(scanCacheSize);
@@ -85,7 +88,7 @@ public class HBaseInputFormat extends BaseRichInputFormat {
             }
         }
 
-        LOG.info("HbaseOutputFormat openInputFormat end");
+        log.info("HbaseOutputFormat openInputFormat end");
     }
 
     @Override
@@ -120,7 +123,7 @@ public class HBaseInputFormat extends BaseRichInputFormat {
             }
             resultSplits = doSplit(startRowkeyByte, endRowkeyByte, regionRanges);
 
-            LOG.info("HBaseReader split job into {} tasks.", resultSplits.size());
+            log.info("HBaseReader split job into {} tasks.", resultSplits.size());
             return resultSplits.toArray(new HBaseInputSplit[0]);
         } catch (Exception e) {
             throw new RuntimeException("Failed to split hbase table");

@@ -20,7 +20,8 @@ package com.dtstack.chunjun.connector.cassandra.config;
 
 import org.apache.flink.configuration.ReadableConfig;
 
-import java.util.StringJoiner;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import static com.dtstack.chunjun.connector.cassandra.optinos.CassandraCommonOptions.ASYNC_WRITE;
 import static com.dtstack.chunjun.connector.cassandra.optinos.CassandraCommonOptions.CLUSTER_NAME;
@@ -41,66 +42,38 @@ import static com.dtstack.chunjun.connector.cassandra.optinos.CassandraCommonOpt
 import static com.dtstack.chunjun.connector.cassandra.optinos.CassandraCommonOptions.USER_NAME;
 import static com.dtstack.chunjun.connector.cassandra.optinos.CassandraCommonOptions.USE_SSL;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class CassandraSinkConfig extends CassandraCommonConfig {
+
+    private static final long serialVersionUID = -8998387564774595834L;
 
     private boolean asyncWrite;
 
-    public boolean isAsyncWrite() {
-        return asyncWrite;
-    }
-
-    public void setAsyncWrite(boolean asyncWrite) {
-        this.asyncWrite = asyncWrite;
-    }
-
     public static CassandraSinkConfig from(ReadableConfig config) {
-        CassandraSinkConfig sinkConf = new CassandraSinkConfig();
+        CassandraSinkConfig sinkConfig = new CassandraSinkConfig();
 
-        sinkConf.setHost(config.get(HOST));
-        sinkConf.setPort(config.get(PORT));
-        sinkConf.setUserName(config.get(USER_NAME));
-        sinkConf.setPassword(config.get(PASSWORD));
-        sinkConf.setTableName(config.get(TABLE_NAME));
-        sinkConf.setKeyspaces(config.get(KEY_SPACES));
+        sinkConfig.setHost(config.get(HOST));
+        sinkConfig.setPort(config.get(PORT));
+        sinkConfig.setUserName(config.get(USER_NAME));
+        sinkConfig.setPassword(config.get(PASSWORD));
+        sinkConfig.setTableName(config.get(TABLE_NAME));
+        sinkConfig.setKeyspaces(config.get(KEY_SPACES));
 
-        sinkConf.setClusterName(config.get(CLUSTER_NAME));
-        sinkConf.setConsistency(config.get(CONSISTENCY));
-        sinkConf.setHostDistance(config.get(HOST_DISTANCE));
+        sinkConfig.setClusterName(config.get(CLUSTER_NAME));
+        sinkConfig.setConsistency(config.get(CONSISTENCY));
+        sinkConfig.setHostDistance(config.get(HOST_DISTANCE));
 
-        sinkConf.setAsyncWrite(config.get(ASYNC_WRITE));
-        sinkConf.setConnectTimeoutMillis(config.get(CONNECT_TIMEOUT_MILLISECONDS));
-        sinkConf.setCoreConnectionsPerHost(config.get(CORE_CONNECTIONS_PER_HOST));
-        sinkConf.setMaxQueueSize(config.get(MAX_QUEUE_SIZE));
-        sinkConf.setMaxConnectionsPerHost(config.get(MAX_CONNECTIONS__PER_HOST));
-        sinkConf.setMaxRequestsPerConnection(config.get(MAX_REQUESTS_PER_CONNECTION));
-        sinkConf.setPoolTimeoutMillis(config.get(POOL_TIMEOUT_MILLISECONDS));
-        sinkConf.setReadTimeoutMillis(config.get(READ_TIME_OUT_MILLISECONDS));
-        sinkConf.setUseSSL(config.get(USE_SSL));
+        sinkConfig.setAsyncWrite(config.get(ASYNC_WRITE));
+        sinkConfig.setConnectTimeoutMillis(config.get(CONNECT_TIMEOUT_MILLISECONDS));
+        sinkConfig.setCoreConnectionsPerHost(config.get(CORE_CONNECTIONS_PER_HOST));
+        sinkConfig.setMaxQueueSize(config.get(MAX_QUEUE_SIZE));
+        sinkConfig.setMaxConnectionsPerHost(config.get(MAX_CONNECTIONS__PER_HOST));
+        sinkConfig.setMaxRequestsPerConnection(config.get(MAX_REQUESTS_PER_CONNECTION));
+        sinkConfig.setPoolTimeoutMillis(config.get(POOL_TIMEOUT_MILLISECONDS));
+        sinkConfig.setReadTimeoutMillis(config.get(READ_TIME_OUT_MILLISECONDS));
+        sinkConfig.setUseSSL(config.get(USE_SSL));
 
-        return sinkConf;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", CassandraSinkConfig.class.getSimpleName() + "[", "]")
-                .add("asyncWrite=" + asyncWrite)
-                .add("host='" + host + "'")
-                .add("port=" + port)
-                .add("userName='" + userName + "'")
-                .add("password='" + password + "'")
-                .add("tableName='" + tableName + "'")
-                .add("keyspaces='" + keyspaces + "'")
-                .add("hostDistance='" + hostDistance + "'")
-                .add("useSSL=" + useSSL)
-                .add("clusterName='" + clusterName + "'")
-                .add("consistency='" + consistency + "'")
-                .add("coreConnectionsPerHost=" + coreConnectionsPerHost)
-                .add("maxConnectionsPerHost=" + maxConnectionsPerHost)
-                .add("maxRequestsPerConnection=" + maxRequestsPerConnection)
-                .add("maxQueueSize=" + maxQueueSize)
-                .add("readTimeoutMillis=" + readTimeoutMillis)
-                .add("connectTimeoutMillis=" + connectTimeoutMillis)
-                .add("poolTimeoutMillis=" + poolTimeoutMillis)
-                .toString();
+        return sinkConfig;
     }
 }

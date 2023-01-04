@@ -72,6 +72,13 @@
 			<version>${project.version}</version>
 		</dependency>
 
+		<!-- -->
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-ftp</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!--Test Connector End. Do not Add directly -->
 	</dependencies>
 </project>

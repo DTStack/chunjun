@@ -23,10 +23,11 @@
  */
 package com.dtstack.chunjun.connector.sqlservercdc.entity;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.StringJoiner;
+import lombok.Data;
 
+import java.util.List;
+
+@Data
 public class ChangeTable {
 
     private static final String CDC_SCHEMA = "cdc";
@@ -45,7 +46,6 @@ public class ChangeTable {
             Lsn startLsn,
             Lsn stopLsn,
             List<String> columnList) {
-        super();
         this.sourceTableId = sourceTableId;
         this.captureInstance = captureInstance;
         this.changeTableObjectId = changeTableObjectId;
@@ -57,72 +57,5 @@ public class ChangeTable {
                         ? new TableId(
                                 sourceTableId.getCatalogName(), CDC_SCHEMA, captureInstance + "_CT")
                         : null;
-    }
-
-    public String getCaptureInstance() {
-        return captureInstance;
-    }
-
-    public Lsn getStartLsn() {
-        return startLsn;
-    }
-
-    public Lsn getStopLsn() {
-        return stopLsn;
-    }
-
-    public void setStopLsn(Lsn stopLsn) {
-        this.stopLsn = stopLsn;
-    }
-
-    public TableId getSourceTableId() {
-        return sourceTableId;
-    }
-
-    public List<String> getColumnList() {
-        return columnList;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ChangeTable that = (ChangeTable) o;
-        return changeTableObjectId == that.changeTableObjectId
-                && Objects.equals(captureInstance, that.captureInstance)
-                && Objects.equals(sourceTableId, that.sourceTableId)
-                && Objects.equals(changeTableId, that.changeTableId)
-                && Objects.equals(startLsn, that.startLsn)
-                && Objects.equals(stopLsn, that.stopLsn)
-                && Objects.equals(columnList, that.columnList);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-                captureInstance,
-                sourceTableId,
-                changeTableId,
-                startLsn,
-                stopLsn,
-                columnList,
-                changeTableObjectId);
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", ChangeTable.class.getSimpleName() + "[", "]")
-                .add("captureInstance='" + captureInstance + "'")
-                .add("sourceTableId=" + sourceTableId)
-                .add("changeTableId=" + changeTableId)
-                .add("startLsn=" + startLsn)
-                .add("stopLsn=" + stopLsn)
-                .add("columnList=" + columnList)
-                .add("changeTableObjectId=" + changeTableObjectId)
-                .toString();
     }
 }

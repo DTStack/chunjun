@@ -161,7 +161,7 @@ public abstract class JdbcDynamicTableFactory
         jdbcConfig.setUsername(readableConfig.get(USERNAME));
         jdbcConfig.setPassword(readableConfig.get(PASSWORD));
 
-        jdbcConfig.setAllReplace(conf.getAllReplace());
+        jdbcConfig.setAllReplace(conf.isAllReplace());
         jdbcConfig.setBatchSize(readableConfig.get(SINK_BUFFER_FLUSH_MAX_ROWS));
         jdbcConfig.setFlushIntervalMills(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
         jdbcConfig.setParallelism(readableConfig.get(SINK_PARALLELISM));

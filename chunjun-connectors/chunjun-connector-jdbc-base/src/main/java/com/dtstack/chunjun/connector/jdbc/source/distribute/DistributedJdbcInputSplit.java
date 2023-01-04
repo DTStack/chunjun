@@ -20,11 +20,16 @@ package com.dtstack.chunjun.connector.jdbc.source.distribute;
 import com.dtstack.chunjun.connector.jdbc.config.DataSourceConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 
+import lombok.Getter;
+
 import java.util.List;
 
+@Getter
 public class DistributedJdbcInputSplit extends JdbcInputSplit {
 
-    private List<DataSourceConfig> sourceList;
+    private static final long serialVersionUID = 2553332495976709173L;
+
+    private final List<DataSourceConfig> sourceList;
 
     public DistributedJdbcInputSplit(
             int partitionNumber,
@@ -42,14 +47,6 @@ public class DistributedJdbcInputSplit extends JdbcInputSplit {
                 null,
                 splitStrategy,
                 isPolling);
-        this.sourceList = sourceList;
-    }
-
-    public List<DataSourceConfig> getSourceList() {
-        return sourceList;
-    }
-
-    public void setSourceList(List<DataSourceConfig> sourceList) {
         this.sourceList = sourceList;
     }
 }

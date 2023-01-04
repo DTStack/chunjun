@@ -36,11 +36,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @author: shifang
- * @description table sink
- * @date: 2021/9/15 下午5:48
- */
 public class HttpDynamicTableSink implements DynamicTableSink {
 
     private final TableSchema schema;

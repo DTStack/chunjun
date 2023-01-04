@@ -40,7 +40,8 @@ import com.dtstack.chunjun.util.TableUtil;
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.table.types.logical.RowType;
 
-import org.apache.commons.collections.MapUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.conf.Configuration;
@@ -71,8 +72,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.parquet.io.api.Binary;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -86,8 +85,8 @@ import java.util.Set;
 
 import static com.dtstack.chunjun.security.KerberosUtil.KRB_STR;
 
+@Slf4j
 public class Hive3Util {
-    private static final Logger LOG = LoggerFactory.getLogger(Hive3Util.class);
     public static final String NULL_VALUE = "\\N";
 
     private static final long NANO_SECONDS_PER_DAY = 86400_000_000_000L;
@@ -347,7 +346,7 @@ public class Hive3Util {
                                                 decimalInfo.getPrecision(),
                                                 decimalInfo.getScale()));
                     } catch (Exception e) {
-                        LOG.warn(
+                        log.warn(
                                 "can't create WritableHiveDecimalObjectInspector from {}",
                                 decimalInfo,
                                 e);
@@ -405,7 +404,7 @@ public class Hive3Util {
         try {
             findAllPartitionPath(paths, fileSystem, inputPath, pathFilter);
         } catch (IOException e) {
-            LOG.error(
+            log.error(
                     "retrieve all partition error, hdfs input path {},errMsg {}",
                     inputPath,
                     ExceptionUtil.getErrorMessage(e));
@@ -489,14 +488,14 @@ public class Hive3Util {
 
         try {
             String previousUserName = UserGroupInformation.getLoginUser().getUserName();
-            LOG.info(
+            log.info(
                     "Hadoop user from '{}' switch to '{}' with SIMPLE auth",
                     previousUserName,
                     hadoopUserName);
             UserGroupInformation ugi = UserGroupInformation.createRemoteUser(hadoopUserName);
             UserGroupInformation.setLoginUser(ugi);
         } catch (Exception e) {
-            LOG.warn("Set hadoop user name error:", e);
+            log.warn("Set hadoop user name error:", e);
         }
     }
 

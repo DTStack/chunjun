@@ -17,39 +17,54 @@
  */
 package com.dtstack.chunjun.config;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 
+@Data
 public class CommonConfig implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = -9090399188650317546L;
 
     /** 速率上限，0代表不限速 */
     private long speedBytes = 0;
+
     /** 容忍的最大脏数据条数 */
     private int errorRecord = 0;
+
     /** 容忍的最大脏数据比例，-1代表不校验比例 */
     private int errorPercentage = -1;
+
     /** 脏数据文件的绝对路径，支持本地和hdfs */
     private String dirtyDataPath;
+
     /** hdfs时，Hadoop的配置 */
     private Map<String, Object> dirtyDataHadoopConf;
+
     /** 脏数据对应的字段名称列表 */
     private List<String> fieldNameList = Collections.emptyList();
+
     /** 是否校验format */
     private boolean checkFormat = true;
+
     /** 并行度 */
     private Integer parallelism = 1;
+
     /** table field column conf */
     private List<FieldConfig> column;
+
     /** Number of batches written */
     private int batchSize = 1;
+
     /** Time when the timer is regularly written to the database */
     private long flushIntervalMills = 10000L;
+
     /** whether to execute ddlRowdata */
     private boolean executeDdlAble;
+
     /** sp path */
     private String savePointPath;
 
@@ -60,179 +75,11 @@ public class CommonConfig implements Serializable {
     private String metricPluginName;
 
     /** calculate rowData size */
-    private String rowSizeCalculatorType;
+    private String rowSizeCalculatorType = "objectSizeCalculator";
 
     /** two phase mode */
     private String semantic = "at-least-once";
 
     /** metrics plugin properties */
     private Map<String, Object> metricProps;
-
-    public String getSemantic() {
-        return semantic;
-    }
-
-    public void setSemantic(String semantic) {
-        this.semantic = semantic;
-    }
-
-    public String getMetricPluginRoot() {
-        return metricPluginRoot;
-    }
-
-    public void setMetricPluginRoot(String metricPluginRoot) {
-        this.metricPluginRoot = metricPluginRoot;
-    }
-
-    public String getMetricPluginName() {
-        return metricPluginName == null ? "prometheus" : metricPluginName;
-    }
-
-    public void setMetricPluginName(String metricPluginName) {
-        this.metricPluginName = metricPluginName;
-    }
-
-    public String getRowSizeCalculatorType() {
-        return rowSizeCalculatorType == null ? "objectSizeCalculator" : rowSizeCalculatorType;
-    }
-
-    public void setRowSizeCalculatorType(String rowSizeCalculatorType) {
-        this.rowSizeCalculatorType = rowSizeCalculatorType;
-    }
-
-    public Map<String, Object> getMetricProps() {
-        return metricProps;
-    }
-
-    public void setMetricProps(Map<String, Object> metricProps) {
-        this.metricProps = metricProps;
-    }
-
-    public long getSpeedBytes() {
-        return speedBytes;
-    }
-
-    public void setSpeedBytes(long speedBytes) {
-        this.speedBytes = speedBytes;
-    }
-
-    public int getErrorRecord() {
-        return errorRecord;
-    }
-
-    public void setErrorRecord(int errorRecord) {
-        this.errorRecord = errorRecord;
-    }
-
-    public int getErrorPercentage() {
-        return errorPercentage;
-    }
-
-    public void setErrorPercentage(int errorPercentage) {
-        this.errorPercentage = errorPercentage;
-    }
-
-    public String getDirtyDataPath() {
-        return dirtyDataPath;
-    }
-
-    public void setDirtyDataPath(String dirtyDataPath) {
-        this.dirtyDataPath = dirtyDataPath;
-    }
-
-    public Map<String, Object> getDirtyDataHadoopConf() {
-        return dirtyDataHadoopConf;
-    }
-
-    public void setDirtyDataHadoopConf(Map<String, Object> dirtyDataHadoopConf) {
-        this.dirtyDataHadoopConf = dirtyDataHadoopConf;
-    }
-
-    public List<String> getFieldNameList() {
-        return fieldNameList;
-    }
-
-    public void setFieldNameList(List<String> fieldNameList) {
-        this.fieldNameList = fieldNameList;
-    }
-
-    public boolean isCheckFormat() {
-        return checkFormat;
-    }
-
-    public void setCheckFormat(boolean checkFormat) {
-        this.checkFormat = checkFormat;
-    }
-
-    public Integer getParallelism() {
-        return parallelism;
-    }
-
-    public void setParallelism(Integer parallelism) {
-        this.parallelism = parallelism;
-    }
-
-    public List<FieldConfig> getColumn() {
-        return column;
-    }
-
-    public void setColumn(List<FieldConfig> column) {
-        this.column = column;
-    }
-
-    public int getBatchSize() {
-        return batchSize;
-    }
-
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
-    }
-
-    public long getFlushIntervalMills() {
-        return flushIntervalMills;
-    }
-
-    public void setFlushIntervalMills(long flushIntervalMills) {
-        this.flushIntervalMills = flushIntervalMills;
-    }
-
-    public String getSavePointPath() {
-        return savePointPath;
-    }
-
-    public void setSavePointPath(String savePointPath) {
-        this.savePointPath = savePointPath;
-    }
-
-    public boolean isExecuteDdlAble() {
-        return executeDdlAble;
-    }
-
-    public void setExecuteDdlAble(boolean executeDdlAble) {
-        this.executeDdlAble = executeDdlAble;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", CommonConfig.class.getSimpleName() + "[", "]")
-                .add("speedBytes=" + speedBytes)
-                .add("errorRecord=" + errorRecord)
-                .add("errorPercentage=" + errorPercentage)
-                .add("dirtyDataPath='" + dirtyDataPath + "'")
-                .add("dirtyDataHadoopConf=" + dirtyDataHadoopConf)
-                .add("fieldNameList=" + fieldNameList)
-                .add("checkFormat=" + checkFormat)
-                .add("parallelism=" + parallelism)
-                .add("column=" + column)
-                .add("batchSize=" + batchSize)
-                .add("flushIntervalMills=" + flushIntervalMills)
-                .add("executeDdlAble=" + executeDdlAble)
-                .add("savePointPath='" + savePointPath + "'")
-                .add("metricPluginRoot='" + metricPluginRoot + "'")
-                .add("metricPluginName='" + metricPluginName + "'")
-                .add("rowSizeCalculatorType='" + rowSizeCalculatorType + "'")
-                .add("semantic='" + semantic + "'")
-                .add("metricProps=" + metricProps)
-                .toString();
-    }
 }

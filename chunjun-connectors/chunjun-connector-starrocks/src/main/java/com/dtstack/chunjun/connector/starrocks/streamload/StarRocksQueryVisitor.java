@@ -22,8 +22,7 @@ import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.connection.StarRocksJdbcConnectionOptions;
 import com.dtstack.chunjun.connector.starrocks.connection.StarRocksJdbcConnectionProvider;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -35,11 +34,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class StarRocksQueryVisitor implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
-    private static final Logger LOG = LoggerFactory.getLogger(StarRocksQueryVisitor.class);
+    private static final long serialVersionUID = -6104517100465696782L;
 
     private final StarRocksJdbcConnectionProvider jdbcConnProvider;
     private final String database;
@@ -65,8 +63,8 @@ public class StarRocksQueryVisitor implements Serializable {
                 "select `COLUMN_NAME`, `COLUMN_KEY`, `DATA_TYPE`, `COLUMN_SIZE`, `DECIMAL_DIGITS` from `information_schema`.`COLUMNS` where `TABLE_SCHEMA`=? and `TABLE_NAME`=?;";
         List<Map<String, Object>> rows;
         try {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Executing query '%s'", query));
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Executing query '%s'", query));
             }
             rows = executeQuery(query, database, table);
         } catch (ClassNotFoundException se) {
@@ -82,15 +80,15 @@ public class StarRocksQueryVisitor implements Serializable {
         final String query = "select current_version() as ver;";
         List<Map<String, Object>> rows;
         try {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Executing query '%s'", query));
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Executing query '%s'", query));
             }
             rows = executeQuery(query);
             if (rows.isEmpty()) {
                 return "";
             }
             String version = rows.get(0).get("ver").toString();
-            LOG.info(String.format("StarRocks version: [%s].", version));
+            log.info(String.format("StarRocks version: [%s].", version));
             return version;
         } catch (ClassNotFoundException se) {
             throw new IllegalArgumentException("Failed to find jdbc driver." + se.getMessage(), se);

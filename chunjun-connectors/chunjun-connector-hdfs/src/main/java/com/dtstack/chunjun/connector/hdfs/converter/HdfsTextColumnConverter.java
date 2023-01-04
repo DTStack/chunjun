@@ -38,14 +38,19 @@ import com.dtstack.chunjun.util.DateUtil;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+@Slf4j
 public class HdfsTextColumnConverter
         extends AbstractRowConverter<RowData, RowData, String[], String> {
+
+    private static final long serialVersionUID = 1191849197062775272L;
 
     public HdfsTextColumnConverter(List<FieldConfig> fieldConfigList, HdfsConfig hdfsConfig) {
         super(fieldConfigList.size(), hdfsConfig);
@@ -112,7 +117,7 @@ public class HdfsTextColumnConverter
                 try {
                     return IDeserializationConverter.deserialize(val);
                 } catch (Exception e) {
-                    LOG.error("value [{}] convent failed ", val);
+                    log.error("value [{}] convent failed ", val);
                     throw e;
                 }
             }

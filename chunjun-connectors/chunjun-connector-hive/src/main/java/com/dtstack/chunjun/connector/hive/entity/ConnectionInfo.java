@@ -17,67 +17,19 @@
  */
 package com.dtstack.chunjun.connector.hive.entity;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Map;
-import java.util.StringJoiner;
 
+@Data
 public class ConnectionInfo implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 4839937403637202094L;
+
     private String jdbcUrl;
     private String username;
     private String password;
     private int timeout = 30000;
-    private Map<String, Object> hiveConf;
-
-    public String getJdbcUrl() {
-        return jdbcUrl;
-    }
-
-    public void setJdbcUrl(String jdbcUrl) {
-        this.jdbcUrl = jdbcUrl;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Map<String, Object> getHiveConf() {
-        return hiveConf;
-    }
-
-    public void setHiveConf(Map<String, Object> hiveConf) {
-        this.hiveConf = hiveConf;
-    }
-
-    public int getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", ConnectionInfo.class.getSimpleName() + "[", "]")
-                .add("jdbcUrl='" + jdbcUrl + "'")
-                .add("username='" + username + "'")
-                .add("password='" + password + "'")
-                .add("timeout=" + timeout)
-                .add("hiveConf=" + hiveConf)
-                .toString();
-    }
+    private Map<String, Object> hiveConfig;
 }

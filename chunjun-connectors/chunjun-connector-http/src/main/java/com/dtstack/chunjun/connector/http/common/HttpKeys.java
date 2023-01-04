@@ -17,10 +17,6 @@
  */
 package com.dtstack.chunjun.connector.http.common;
 
-/**
- * @author : shifang
- * @date : 2020/3/19
- */
 public class HttpKeys {
     public static final String KEY_HEADER = "header";
     public static final String KEY_BODY = "body";

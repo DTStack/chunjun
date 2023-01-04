@@ -20,18 +20,16 @@ package com.dtstack.chunjun.util;
 
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.telnet.TelnetClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class TelnetUtil {
-
-    protected static final Logger LOG = LoggerFactory.getLogger(TelnetUtil.class);
 
     private static final Pattern JDBC_PATTERN = Pattern.compile("(?<host>[^:@/]+):(?<port>\\d+).*");
     public static final String PHOENIX_PREFIX = "jdbc:phoenix";
@@ -69,7 +67,7 @@ public class TelnetUtil {
                             1000,
                             false);
         } catch (Exception e) {
-            LOG.warn("", e);
+            log.warn("", e);
         }
         return result;
     }

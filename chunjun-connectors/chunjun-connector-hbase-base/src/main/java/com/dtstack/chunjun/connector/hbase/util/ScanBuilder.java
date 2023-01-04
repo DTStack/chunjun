@@ -32,7 +32,7 @@ import java.util.Map;
 
 public class ScanBuilder implements Serializable {
 
-    private static final long serialVersionUID = 12L;
+    private static final long serialVersionUID = 6705547370155797433L;
 
     private final boolean isSync;
     private final HBaseTableSchema hBaseTableSchema;

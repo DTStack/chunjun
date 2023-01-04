@@ -31,17 +31,25 @@ import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("rawtypes")
+@Slf4j
 public class OceanBaseCdcInputFormat extends BaseRichInputFormat {
 
+    private static final long serialVersionUID = -6663342527040141383L;
+
     public transient LinkedBlockingDeque<RowData> queue;
+
     public volatile boolean running = false;
+
     public String safeTimestamp;
 
     private OceanBaseCdcConfig cdcConf;
+
     private AbstractCDCRowConverter rowConverter;
 
     private transient Thread cdcListenerThread;
@@ -58,11 +66,11 @@ public class OceanBaseCdcInputFormat extends BaseRichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) {
         if (inputSplit.getSplitNumber() != 0) {
-            LOG.info("openInternal split number: {} abort...", inputSplit.getSplitNumber());
+            log.info("openInternal split number: {} abort...", inputSplit.getSplitNumber());
             return;
         }
-        LOG.info("openInternal split number: {} start...", inputSplit.getSplitNumber());
-        LOG.info("cdcConf: {}", JsonUtil.toPrintJson(cdcConf));
+        log.info("openInternal split number: {} start...", inputSplit.getSplitNumber());
+        log.info("cdcConf: {}", JsonUtil.toPrintJson(cdcConf));
 
         queue = new LinkedBlockingDeque<>(1000);
 
@@ -71,7 +79,7 @@ public class OceanBaseCdcInputFormat extends BaseRichInputFormat {
         cdcListenerThread.start();
         running = true;
 
-        LOG.info("OceanBaseCdcInputFormat[{}]open: end", jobName);
+        log.info("OceanBaseCdcInputFormat[{}]open: end", jobName);
     }
 
     @Override
@@ -88,7 +96,7 @@ public class OceanBaseCdcInputFormat extends BaseRichInputFormat {
         try {
             rowData = queue.poll(100, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
+            log.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
             throw new ReadRecordException("takeEvent interrupted error", e);
         }
         return rowData;
@@ -102,7 +110,7 @@ public class OceanBaseCdcInputFormat extends BaseRichInputFormat {
                 cdcListenerThread.interrupt();
                 cdcListenerThread = null;
             }
-            LOG.warn("shutdown OceanBaseCdcInputFormat......");
+            log.warn("shutdown OceanBaseCdcInputFormat......");
         }
     }
 
@@ -119,7 +127,7 @@ public class OceanBaseCdcInputFormat extends BaseRichInputFormat {
         this.cdcConf = cdcConf;
     }
 
-    public AbstractCDCRowConverter getRowConverter() {
+    public AbstractCDCRowConverter getCdcRowConverter() {
         return rowConverter;
     }
 

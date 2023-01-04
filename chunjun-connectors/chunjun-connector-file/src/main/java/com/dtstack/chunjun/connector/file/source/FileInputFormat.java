@@ -26,6 +26,8 @@ import com.dtstack.chunjun.util.GsonUtil;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,7 +35,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class FileInputFormat extends BaseRichInputFormat {
+
+    private static final long serialVersionUID = -2810824870430405107L;
 
     private BaseFileConfig fileConfig;
 
@@ -65,7 +70,7 @@ public class FileInputFormat extends BaseRichInputFormat {
                 }
             }
         }
-        LOG.info("files = {}", GsonUtil.GSON.toJson(inputFiles));
+        log.info("files = {}", GsonUtil.GSON.toJson(inputFiles));
         int numSplits = (Math.min(inputFiles.size(), minNumSplits));
         FileInputSplit[] fileInputSplits = new FileInputSplit[numSplits];
         for (int index = 0; index < numSplits; ++index) {

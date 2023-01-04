@@ -18,50 +18,19 @@
 
 package com.dtstack.chunjun.config;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Map;
-import java.util.StringJoiner;
 
+@Data
 public class MetricPluginConfig implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 5001050285367059543L;
 
     private String pluginName = "prometheus";
 
     private String rowSizeCalculatorType = "objectSizeCalculator";
 
     private Map<String, Object> pluginProp;
-
-    public String getPluginName() {
-        return pluginName;
-    }
-
-    public void setPluginName(String pluginName) {
-        this.pluginName = pluginName;
-    }
-
-    public String getRowSizeCalculatorType() {
-        return rowSizeCalculatorType;
-    }
-
-    public void setRowSizeCalculatorType(String rowSizeCalculatorType) {
-        this.rowSizeCalculatorType = rowSizeCalculatorType;
-    }
-
-    public Map<String, Object> getPluginProp() {
-        return pluginProp;
-    }
-
-    public void setPluginProp(Map<String, Object> pluginProp) {
-        this.pluginProp = pluginProp;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", MetricPluginConfig.class.getSimpleName() + "[", "]")
-                .add("pluginName='" + pluginName + "'")
-                .add("rowSizeCalculatorType='" + rowSizeCalculatorType + "'")
-                .add("pluginProp=" + pluginProp)
-                .toString();
-    }
 }

@@ -31,6 +31,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
@@ -40,18 +41,16 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+@Slf4j
 public class HBaseAllTableFunction extends AbstractAllTableFunction {
 
-    private static final long serialVersionUID = 1L;
-    private static final Logger LOG = LoggerFactory.getLogger(HBaseAllTableFunction.class);
+    private static final long serialVersionUID = -4528928897188353663L;
     private Connection conn;
     private Table table;
     private ResultScanner resultScanner;
@@ -88,7 +87,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                         hbaseDomainConf.get(HBaseConfigUtils.KEY_HBASE_CLIENT_KERBEROS_PRINCIPAL);
                 String keytab = hbaseDomainConf.get(HBaseConfigUtils.KEY_HBASE_CLIENT_KEYTAB_FILE);
                 String krb5Conf = hbaseDomainConf.get(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF);
-                LOG.info("kerberos principal:{}，keytab:{}", principal, keytab);
+                log.info("kerberos principal:{}，keytab:{}", principal, keytab);
                 System.setProperty(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF, krb5Conf);
                 UserGroupInformation userGroupInformation =
                         KerberosUtil.loginAndReturnUgi(principal, keytab, krb5Conf);
@@ -100,7 +99,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                                                 return ConnectionFactory.createConnection(
                                                         hbaseDomainConf);
                                             } catch (IOException e) {
-                                                LOG.error(
+                                                log.error(
                                                         "Get connection fail with config:{}",
                                                         hbaseDomainConf);
                                                 throw new RuntimeException(e);
@@ -118,9 +117,9 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                 loadDataCount++;
             }
         } catch (IOException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         } finally {
-            LOG.info("load Data count: {}", loadDataCount);
+            log.info("load Data count: {}", loadDataCount);
             try {
                 if (null != conn) {
                     conn.close();
@@ -134,7 +133,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                     resultScanner.close();
                 }
             } catch (IOException e) {
-                LOG.error("", e);
+                log.error("", e);
             }
         }
     }
@@ -153,7 +152,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
         Map<Object, RowData> newCache = Maps.newConcurrentMap();
         loadData(newCache);
         cacheRef.set(newCache);
-        LOG.info(
+        log.info(
                 "----- " + lookupConfig.getTableName() + ": all cacheRef reload end:{}",
                 LocalDateTime.now());
     }

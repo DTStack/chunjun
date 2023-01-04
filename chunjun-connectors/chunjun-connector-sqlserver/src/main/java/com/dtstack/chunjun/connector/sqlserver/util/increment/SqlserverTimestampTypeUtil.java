@@ -31,6 +31,8 @@ import java.sql.SQLException;
 
 public class SqlserverTimestampTypeUtil extends KeyUtil<byte[], BigInteger> {
 
+    private static final long serialVersionUID = 3245211271408129356L;
+
     @Override
     public byte[] getSqlValueFromRs(ResultSet rs, int index) throws SQLException {
         return rs.getBytes(index);

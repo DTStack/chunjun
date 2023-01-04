@@ -17,28 +17,15 @@
  */
 package com.dtstack.chunjun.config;
 
-import java.io.Serializable;
-import java.util.StringJoiner;
+import lombok.Data;
 
+import java.io.Serializable;
+
+@Data
 public class TransformerConfig implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -270886466520708087L;
 
     /** 转换SQL */
     private String transformSql;
-
-    public String getTransformSql() {
-        return transformSql;
-    }
-
-    public void setTransformSql(String transformSql) {
-        this.transformSql = transformSql;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", TransformerConfig.class.getSimpleName() + "[", "]")
-                .add("transformSql='" + transformSql + "'")
-                .toString();
-    }
 }

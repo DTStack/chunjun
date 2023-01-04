@@ -36,9 +36,8 @@ import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.ConfigConstants;
 
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URL;
@@ -47,9 +46,8 @@ import java.util.List;
 import java.util.Map;
 
 /** Chunjun commandline Launcher */
+@Slf4j
 public class Launcher {
-    private static final Logger LOG = LoggerFactory.getLogger(Launcher.class);
-
     public static final String KEY_CHUNJUN_HOME = "CHUNJUN_HOME";
     public static final String KEY_FLINK_HOME = "FLINK_HOME";
     public static final String KEY_HADOOP_HOME = "HADOOP_HOME";
@@ -87,7 +85,7 @@ public class Launcher {
         List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(launcherOptions.getAddjar());
         ClassLoaderManager.loadExtraJar(jarUrlList, urlClassLoader);
         try (ClusterClient<?> client = clusterClientHelper.submit(jobDeployer)) {
-            LOG.info(client.getClusterId() + " submit successfully.");
+            log.info(client.getClusterId() + " submit successfully.");
         }
     }
 
@@ -188,7 +186,7 @@ public class Launcher {
     private static String getSystemProperty(String name) {
         String property = System.getenv(name);
         if (StringUtils.isEmpty(property)) {
-            property = System.getProperty(name);
+            return System.getProperty(name);
         }
 
         return property;

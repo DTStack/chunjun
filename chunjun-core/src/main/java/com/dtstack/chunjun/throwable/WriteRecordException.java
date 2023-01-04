@@ -21,6 +21,7 @@ package com.dtstack.chunjun.throwable;
 /** The Exception describing errors when writing a record */
 public class WriteRecordException extends Exception {
 
+    private static final long serialVersionUID = 6677007847273467127L;
     private final int colIndex;
     private final Object rowData;
 

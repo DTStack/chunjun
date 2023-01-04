@@ -32,8 +32,7 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,11 +42,10 @@ import java.util.Map;
 
 import static com.dtstack.chunjun.connector.cassandra.util.CassandraService.quoteColumn;
 
+@Slf4j
 public class CassandraAllTableFunction extends AbstractAllTableFunction {
 
-    private static final long serialVersionUID = 1L;
-
-    private static final Logger LOG = LoggerFactory.getLogger(CassandraAllTableFunction.class);
+    private static final long serialVersionUID = -7838106494289424452L;
 
     private final CassandraLookupConfig cassandraLookupConfig;
 
@@ -98,7 +96,7 @@ public class CassandraAllTableFunction extends AbstractAllTableFunction {
                 }
                 buildCache(oneRow, tmpCache);
             } catch (Exception e) {
-                LOG.error("", e);
+                log.error("", e);
             }
         }
     }

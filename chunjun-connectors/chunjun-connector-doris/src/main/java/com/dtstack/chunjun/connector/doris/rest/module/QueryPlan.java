@@ -18,54 +18,16 @@
 
 package com.dtstack.chunjun.connector.doris.rest.module;
 
+import lombok.Data;
+
 import java.util.Map;
-import java.util.Objects;
 
+@Data
 public class QueryPlan {
+
     private int status;
+
     private String opaqued_query_plan;
+
     private Map<String, Tablet> partitions;
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public String getOpaqued_query_plan() {
-        return opaqued_query_plan;
-    }
-
-    public void setOpaqued_query_plan(String opaqued_query_plan) {
-        this.opaqued_query_plan = opaqued_query_plan;
-    }
-
-    public Map<String, Tablet> getPartitions() {
-        return partitions;
-    }
-
-    public void setPartitions(Map<String, Tablet> partitions) {
-        this.partitions = partitions;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        QueryPlan queryPlan = (QueryPlan) o;
-        return status == queryPlan.status
-                && Objects.equals(opaqued_query_plan, queryPlan.opaqued_query_plan)
-                && Objects.equals(partitions, queryPlan.partitions);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(status, opaqued_query_plan, partitions);
-    }
 }

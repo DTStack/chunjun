@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.spliter;
 
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.extend.ftp.concurrent.ConcurrentFileSplit;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
@@ -30,7 +30,7 @@ import java.util.Locale;
 public class ConcurrentFileSplitFactory {
 
     public static ConcurrentFileSplit createConcurrentFileSplit(FtpConfig config) {
-        /** user defined */
+        // user defined
         String customSplitClassName = config.getCustomConcurrentFileSplitClassName();
         if (StringUtils.isNotBlank(customSplitClassName)) {
             try {
@@ -42,7 +42,7 @@ public class ConcurrentFileSplitFactory {
             }
         }
 
-        /** compress file */
+        /* compress file */
         String compressType = config.getCompressType();
         if (StringUtils.isNotBlank(compressType)) {
             if (compressType.toUpperCase(Locale.ENGLISH).equals("ZIP")) {
@@ -52,7 +52,7 @@ public class ConcurrentFileSplitFactory {
             }
         }
 
-        /** normal file, csv, excel, txt */
+        /* normal file, csv, excel, txt */
         String fileType = config.getFileType();
         switch (fileType.toUpperCase(Locale.ENGLISH)) {
             case "CSV":

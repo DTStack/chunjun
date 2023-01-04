@@ -43,6 +43,8 @@ import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.DEFAULT_COD
 public class EmqxColumnConverter
         extends AbstractRowConverter<String, Object, MqttMessage, LogicalType> {
 
+    private static final long serialVersionUID = -2424508439125862995L;
+
     /** emqx msg decode */
     private final IDecode decode;
     /** json Decoder */

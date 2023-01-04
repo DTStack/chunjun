@@ -44,12 +44,10 @@ public class ConnectionAdapter
     public ConnectionConfig deserialize(
             JsonElement json, Type typeOfT, JsonDeserializationContext context)
             throws JsonParseException {
-        // 指定包名+类名
-        String thePackage = "com.dtstack.chunjun.connector.jdbc.config." + className;
         try {
-            return context.deserialize(json, Class.forName(thePackage));
+            return context.deserialize(json, Class.forName(className));
         } catch (ClassNotFoundException e) {
-            throw new JsonParseException("Unknown element type: " + thePackage, e);
+            throw new JsonParseException("Unknown element type: " + className, e);
         }
     }
 

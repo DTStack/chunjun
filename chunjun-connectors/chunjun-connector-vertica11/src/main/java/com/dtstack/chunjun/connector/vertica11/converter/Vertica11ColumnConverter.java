@@ -44,6 +44,8 @@ import java.sql.Timestamp;
 
 public class Vertica11ColumnConverter extends JdbcColumnConverter {
 
+    private static final long serialVersionUID = -7293121043364365L;
+
     public Vertica11ColumnConverter(RowType rowType, CommonConfig commonConfig) {
         super(rowType, commonConfig);
     }

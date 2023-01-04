@@ -44,6 +44,8 @@ import java.util.Objects;
 public class RocketMQRowConverter
         extends AbstractRowConverter<byte[], byte[], Message, LogicalType> {
 
+    private static final long serialVersionUID = 7501509569174874833L;
+
     private final String encoding;
     private final String[] filedNames;
 

@@ -54,7 +54,7 @@ public class RedisRowConverter
         extends AbstractRowConverter<
                 Map<String, String>, Map<String, String>, JedisCommands, LogicalType> {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -276443152802654355L;
 
     private RedisConfig redisConfig;
 

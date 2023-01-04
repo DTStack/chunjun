@@ -25,6 +25,8 @@ import java.time.format.DateTimeFormatter;
 @Internal
 public abstract class AbstractTimeIndexGenerator extends IndexGeneratorBase {
 
+    private static final long serialVersionUID = -532680037665711932L;
+
     private final String dateTimeFormat;
     protected transient DateTimeFormatter dateTimeFormatter;
 

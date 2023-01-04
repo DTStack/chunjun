@@ -27,6 +27,7 @@ import com.dtstack.chunjun.util.SnowflakeIdWorker;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
@@ -41,8 +42,6 @@ import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -54,9 +53,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 public class LogParser {
-
-    public static Logger LOG = LoggerFactory.getLogger(LogParser.class);
 
     public static SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
 
@@ -137,10 +135,10 @@ public class LogParser {
                                 }
                             });
         } else {
-            LOG.error(
+            log.error(
                     "where is null when LogParser parse sqlRedo, sqlRedo = {}, update = {}",
                     sqlRedo,
-                    update.toString());
+                    update);
         }
     }
 
@@ -271,7 +269,7 @@ public class LogParser {
         try {
             stmt = CCJSqlParserUtil.parse(sqlRedo);
         } catch (JSQLParserException e) {
-            LOG.info("sqlRedo = {}", sqlRedo);
+            log.info("sqlRedo = {}", sqlRedo);
             stmt = CCJSqlParserUtil.parse(sqlRedo.replace("\\'", "\\ '"));
         }
 
@@ -288,7 +286,7 @@ public class LogParser {
 
         long ts = idWorker.nextId();
 
-        if (LOG.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             printDelay(pair.getScn(), ts, timestamp);
         }
 
@@ -312,6 +310,6 @@ public class LogParser {
 
         long opTime = timestamp.getTime();
 
-        LOG.debug("scn {} ,delay {} ms", scn, res - opTime);
+        log.debug("scn {} ,delay {} ms", scn, res - opTime);
     }
 }

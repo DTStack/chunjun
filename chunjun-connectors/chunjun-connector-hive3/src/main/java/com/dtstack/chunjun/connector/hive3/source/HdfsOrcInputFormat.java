@@ -53,6 +53,8 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
+    private static final long serialVersionUID = 5344370628109946753L;
+
     protected transient FileSystem fs;
 
     protected transient String[] fullColNames;

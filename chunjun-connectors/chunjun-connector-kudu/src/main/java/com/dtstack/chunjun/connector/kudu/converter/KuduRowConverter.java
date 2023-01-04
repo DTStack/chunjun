@@ -47,7 +47,7 @@ import java.util.List;
 public class KuduRowConverter
         extends AbstractRowConverter<RowResult, RowResult, Operation, LogicalType> {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -142881666054444897L;
 
     private final List<String> columnName;
 

@@ -25,8 +25,7 @@ package com.dtstack.chunjun.connector.sqlservercdc.entity;
 
 import com.dtstack.chunjun.connector.sqlservercdc.util.SqlServerCdcUtil;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -39,8 +38,8 @@ import java.util.StringJoiner;
  * this class is copied from (<a href="https://github.com/debezium/debezium">class from
  * debezium</a>).
  */
+@Slf4j
 public class ChangeTablePointer {
-    private static final Logger LOG = LoggerFactory.getLogger(ChangeTablePointer.class);
 
     private static final int COL_COMMIT_LSN = 1;
     private static final int COL_ROW_LSN = 2;
@@ -99,7 +98,7 @@ public class ChangeTablePointer {
                                 Lsn.valueOf(resultSet.getBytes(COL_COMMIT_LSN)),
                                 Lsn.valueOf(resultSet.getBytes(COL_ROW_LSN)));
         if (completed) {
-            LOG.debug("Closing result set of change tables for table {}", changeTable);
+            log.debug("Closing result set of change tables for table {}", changeTable);
             resultSet.close();
             statement.close();
         }

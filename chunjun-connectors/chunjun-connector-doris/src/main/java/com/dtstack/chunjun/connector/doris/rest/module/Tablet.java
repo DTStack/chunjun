@@ -18,46 +18,17 @@
 
 package com.dtstack.chunjun.connector.doris.rest.module;
 
+import lombok.Data;
+
 import java.util.List;
 import java.util.Objects;
 
+@Data
 public class Tablet {
     private List<String> routing;
     private int version;
     private long versionHash;
     private long schemaHash;
-
-    public List<String> getRouting() {
-        return routing;
-    }
-
-    public void setRouting(List<String> routing) {
-        this.routing = routing;
-    }
-
-    public int getVersion() {
-        return version;
-    }
-
-    public void setVersion(int version) {
-        this.version = version;
-    }
-
-    public long getVersionHash() {
-        return versionHash;
-    }
-
-    public void setVersionHash(long versionHash) {
-        this.versionHash = versionHash;
-    }
-
-    public long getSchemaHash() {
-        return schemaHash;
-    }
-
-    public void setSchemaHash(long schemaHash) {
-        this.schemaHash = schemaHash;
-    }
 
     @Override
     public boolean equals(Object o) {
