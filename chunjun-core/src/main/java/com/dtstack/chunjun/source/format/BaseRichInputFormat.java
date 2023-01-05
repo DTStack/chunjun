@@ -35,7 +35,6 @@ import com.dtstack.chunjun.util.DataSyncFactoryUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.JsonUtil;
 
-import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -69,7 +68,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     /** BaseRichInputFormat是否结束 */
-    @VisibleForTesting protected final AtomicBoolean isClosed = new AtomicBoolean(false);
+    protected final AtomicBoolean isClosed = new AtomicBoolean(false);
     /** 环境上下文 */
     protected StreamingRuntimeContext context;
     /** 任务名称 */
@@ -108,7 +107,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     /** BaseRichInputFormat是否已经初始化 */
     private boolean initialized = false;
 
-    @VisibleForTesting protected boolean useAbstractColumn;
+    protected boolean useAbstractColumn;
 
     @Override
     public final void configure(Configuration parameters) {
@@ -252,7 +251,6 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     }
 
     /** 更新任务执行时间指标 */
-    @VisibleForTesting
     protected void updateDuration() {
         if (durationCounter != null) {
             durationCounter.resetLocal();

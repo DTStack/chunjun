@@ -72,4 +72,16 @@ public class FtpOptions extends BaseFileOptions {
                     .stringType()
                     .defaultValue("PASV")
                     .withDescription("ftp connectPattern");
+
+    public static final ConfigOption<Boolean> isFirstLineHeader =
+            ConfigOptions.key("isFirstLineHeader")
+                    .booleanType()
+                    .defaultValue(true)
+                    .withDescription("FirstLineHeader");
+
+    public static final ConfigOption<String> FILE_TYPE =
+            ConfigOptions.key("fileType")
+                    .stringType()
+                    .defaultValue("TXT")
+                    .withDescription("FILE_TYPE");
 }

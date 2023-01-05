@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.environment;
 
-import org.apache.flink.annotation.Public;
 import org.apache.flink.api.common.InvalidProgramException;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.JobID;
@@ -56,7 +55,6 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * <p>When this environment is instantiated, it uses a default parallelism of {@code 1}. The default
  * parallelism can be set via {@link #setParallelism(int)}.
  */
-@Public
 public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
 
     private static final Logger LOG =

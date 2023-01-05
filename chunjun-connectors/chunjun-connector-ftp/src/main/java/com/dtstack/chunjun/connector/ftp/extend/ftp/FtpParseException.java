@@ -16,25 +16,29 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.client.excel;
+package com.dtstack.chunjun.connector.ftp.extend.ftp;
 
-import org.junit.Before;
-import org.junit.Test;
+import java.io.IOException;
 
-public class ExcelSubExceptionCarrierTest {
+public class FtpParseException extends IOException {
+    private String content;
 
-    private ExcelSubExceptionCarrier excelSubExceptionCarrierUnderTest;
-
-    @Before
-    public void setUp() {
-        excelSubExceptionCarrierUnderTest = new ExcelSubExceptionCarrier();
+    /**
+     * @param content 解析的内容
+     * @param errMsg 报错原因
+     * @param cause
+     */
+    public FtpParseException(String content, String errMsg, Throwable cause) {
+        super(errMsg, cause);
+        this.content = content;
     }
 
-    @Test(expected = RuntimeException.class)
-    public void setExcelSubExceptionCarrierUnderTest() throws Exception {
-        RuntimeException test = new RuntimeException("Test");
-        excelSubExceptionCarrierUnderTest.setThrowable(test);
+    public String getContent() {
+        return content;
+    }
 
-        throw excelSubExceptionCarrierUnderTest.getThrowable();
+    @Override
+    public String toString() {
+        return "FtpParseException{" + "content='" + content + '\'' + '}';
     }
 }

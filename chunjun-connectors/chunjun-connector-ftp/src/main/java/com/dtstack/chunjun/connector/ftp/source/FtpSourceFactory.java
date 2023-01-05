@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.connector.ftp.source;
 
-import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.ftp.conf.ConfigConstants;
 import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
@@ -35,18 +34,15 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class FtpSourceFactory extends SourceFactory {
 
-    private final FtpConfig ftpConfig;
+    private FtpConfig ftpConfig;
 
-    public FtpSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
-        super(syncConfig, env);
+    public FtpSourceFactory(SyncConfig syncConf, StreamExecutionEnvironment env) {
+        super(syncConf, env);
         ftpConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConfig.getReader().getParameter()), FtpConfig.class);
+                        JsonUtil.toJson(syncConf.getReader().getParameter()), FtpConfig.class);
 
         if (ftpConfig.getPort() == null) {
             ftpConfig.setDefaultPort();
@@ -56,6 +52,8 @@ public class FtpSourceFactory extends SourceFactory {
             String fieldDelimiter = StringUtil.convertRegularExpr(ftpConfig.getFieldDelimiter());
             ftpConfig.setFieldDelimiter(fieldDelimiter);
         }
+
+        ftpConfig.setColumn(syncConf.getReader().getFieldList());
         super.initCommonConf(ftpConfig);
     }
 
@@ -63,16 +61,6 @@ public class FtpSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         FtpInputFormatBuilder builder = new FtpInputFormatBuilder();
         builder.setFtpConfig(ftpConfig);
-        List<FieldConfig> fieldConfList =
-                ftpConfig.getColumn().stream()
-                        .peek(
-                                fieldConfig -> {
-                                    if (fieldConfig.getName() == null) {
-                                        fieldConfig.setName(String.valueOf(fieldConfig.getIndex()));
-                                    }
-                                })
-                        .collect(Collectors.toList());
-        ftpConfig.setColumn(fieldConfList);
         final RowType rowType =
                 TableUtil.createRowType(ftpConfig.getColumn(), getRawTypeConverter());
         builder.setRowConverter(new FtpColumnConverter(rowType, ftpConfig), useAbstractBaseColumn);

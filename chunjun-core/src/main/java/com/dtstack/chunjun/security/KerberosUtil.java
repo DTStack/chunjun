@@ -24,7 +24,6 @@ import com.dtstack.chunjun.util.FileSystemUtil;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.Md5Util;
 
-import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.cache.DistributedCache;
 
 import org.apache.commons.collections.MapUtils;
@@ -276,7 +275,6 @@ public class KerberosUtil {
         throw new RuntimeException("File[" + filePathOnSftp + "] not exist on sftp");
     }
 
-    @VisibleForTesting
     protected static String findPrincipalFromKeytab(String keytabFile) {
         KeyTab keyTab = KeyTab.getInstance(keytabFile);
         for (KeyTabEntry entry : keyTab.getEntries()) {
@@ -300,13 +298,11 @@ public class KerberosUtil {
         }
     }
 
-    @VisibleForTesting
     protected static boolean fileExists(String filePath) {
         File file = new File(filePath);
         return file.exists() && file.isFile();
     }
 
-    @VisibleForTesting
     protected static String createDir(String dir) {
         File file = new File(dir);
         if (file.exists()) {

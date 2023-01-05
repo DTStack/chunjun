@@ -22,7 +22,6 @@ import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.ReflectionUtils;
 
-import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.accumulators.StringifiedAccumulatorResult;
 import org.apache.flink.runtime.jobmaster.JobMasterGateway;
@@ -50,14 +49,14 @@ public class AccumulatorCollector {
 
     private static final String THREAD_NAME = "accumulator-collector-thread";
 
-    @VisibleForTesting protected static final int MAX_COLLECT_ERROR_TIMES = 100;
+    protected static final int MAX_COLLECT_ERROR_TIMES = 100;
     private long collectErrorTimes = 0;
 
     private JobMasterGateway gateway;
 
     private final long period;
 
-    @VisibleForTesting protected final ScheduledExecutorService scheduledExecutorService;
+    protected final ScheduledExecutorService scheduledExecutorService;
     private final Map<String, ValueAccumulator> valueAccumulatorMap;
 
     private String rdbMaxFuncValue = Metrics.MAX_VALUE_NONE;

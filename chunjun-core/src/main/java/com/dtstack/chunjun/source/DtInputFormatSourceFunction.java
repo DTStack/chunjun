@@ -22,7 +22,6 @@ import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
-import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.io.RichInputFormat;
 import org.apache.flink.api.common.state.ListState;
@@ -53,7 +52,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 /** A {@link SourceFunction} that reads data using an {@link InputFormat}. */
-@Internal
 public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<OUT>
         implements CheckpointedFunction {
     private static final long serialVersionUID = 1L;

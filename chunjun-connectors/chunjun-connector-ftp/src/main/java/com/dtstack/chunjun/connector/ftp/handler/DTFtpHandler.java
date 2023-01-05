@@ -16,19 +16,33 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.client.excel;
+package com.dtstack.chunjun.connector.ftp.handler;
 
-public class ExcelSubExceptionCarrier {
+import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.extend.ftp.IFtpHandler;
 
-    private Exception throwable;
+import java.io.IOException;
 
-    public ExcelSubExceptionCarrier() {}
+public interface DTFtpHandler extends IFtpHandler {
 
-    public Exception getThrowable() {
-        return throwable;
-    }
+    /**
+     * 登录服务器
+     *
+     * @param ftpConfig 连接配置
+     */
+    void loginFtpServer(FtpConfig ftpConfig);
 
-    public void setThrowable(Exception throwable) {
-        this.throwable = throwable;
-    }
+    /**
+     * 登出服务器
+     *
+     * @throws IOException logout error
+     */
+    void logoutFtpServer() throws IOException;
+
+    /**
+     * 关闭ftp输入流
+     *
+     * @throws IOException 文件句柄操作异常
+     */
+    void completePendingCommand() throws IOException;
 }
