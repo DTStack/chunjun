@@ -88,10 +88,12 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
                 LOG.info("write sql:{}", copySql);
             }
             checkUpsert();
-            if (jdbcDialect.dialectName().equals("PostgreSQL")) {
-                ((PostgresqlColumnConverter) rowConverter).setConnection((BaseConnection) dbConn);
+            if (rowConverter instanceof JdbcColumnConverter) {
+                if (jdbcDialect.dialectName().equals("PostgresSQL")) {
+                    ((PostgresqlColumnConverter) rowConverter).setConnection((BaseConnection) dbConn);
+                }
+                ((PostgresqlColumnConverter) rowConverter).setFieldTypeList(columnTypeList);
             }
-            ((PostgresqlColumnConverter) rowConverter).setFieldTypeList(columnTypeList);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("checkUpsert() failed.", sqe);
         }
