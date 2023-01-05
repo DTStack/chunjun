@@ -90,7 +90,8 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
             checkUpsert();
             if (rowConverter instanceof JdbcColumnConverter) {
                 if (jdbcDialect.dialectName().equals("PostgresSQL")) {
-                    ((PostgresqlColumnConverter) rowConverter).setConnection((BaseConnection) dbConn);
+                    ((PostgresqlColumnConverter) rowConverter)
+                            .setConnection((BaseConnection) dbConn);
                 }
                 ((PostgresqlColumnConverter) rowConverter).setFieldTypeList(columnTypeList);
             }
