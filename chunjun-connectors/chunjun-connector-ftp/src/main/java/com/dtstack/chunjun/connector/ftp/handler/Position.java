@@ -21,6 +21,7 @@ package com.dtstack.chunjun.connector.ftp.handler;
 import com.dtstack.chunjun.connector.ftp.extend.ftp.concurrent.FtpFileSplit;
 
 import java.io.Serializable;
+import java.util.StringJoiner;
 
 public class Position implements Serializable {
 
@@ -50,11 +51,9 @@ public class Position implements Serializable {
 
     @Override
     public String toString() {
-        return "Position{"
-                + "currentReadPosition="
-                + currentReadPosition
-                + ", fileSplit="
-                + fileSplit
-                + '}';
+        return new StringJoiner(", ", Position.class.getSimpleName() + "[", "]")
+                .add("currentReadPosition=" + currentReadPosition)
+                .add("fileSplit=" + fileSplit)
+                .toString();
     }
 }

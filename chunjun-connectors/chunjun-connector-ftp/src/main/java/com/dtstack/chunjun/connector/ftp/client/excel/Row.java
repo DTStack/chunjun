@@ -21,6 +21,7 @@ package com.dtstack.chunjun.connector.ftp.client.excel;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.StringJoiner;
 
 public class Row implements Serializable {
 
@@ -92,15 +93,11 @@ public class Row implements Serializable {
 
     @Override
     public String toString() {
-        return "Row{"
-                + "data="
-                + Arrays.toString(data)
-                + ", sheetIndex="
-                + sheetIndex
-                + ", rowIndex="
-                + rowIndex
-                + ", end="
-                + end
-                + '}';
+        return new StringJoiner(", ", Row.class.getSimpleName() + "[", "]")
+                .add("data=" + Arrays.toString(data))
+                .add("sheetIndex=" + sheetIndex)
+                .add("rowIndex=" + rowIndex)
+                .add("end=" + end)
+                .toString();
     }
 }

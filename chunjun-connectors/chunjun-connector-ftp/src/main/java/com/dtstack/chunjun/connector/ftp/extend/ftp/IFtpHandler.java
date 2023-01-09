@@ -23,7 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-public interface IFtpHandler {
+public interface IFtpHandler extends AutoCloseable {
 
     /**
      * 判断给定的目录是否存在
