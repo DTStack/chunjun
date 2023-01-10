@@ -29,6 +29,7 @@ import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.ClusterClientProvider;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.JobManagerOptions;
+import org.apache.flink.configuration.MemorySize;
 import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
@@ -182,20 +183,21 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
                 jobManagerMemoryMb =
                         Math.max(
                                 MIN_JM_MEMORY,
-                                ValueUtil.getInt(
-                                        conProp.getProperty(
-                                                JobManagerOptions.TOTAL_PROCESS_MEMORY.key())));
-                jobManagerMemoryMb = jobManagerMemoryMb >> 20;
+                                MemorySize.parse(
+                                                conProp.getProperty(
+                                                        JobManagerOptions.TOTAL_PROCESS_MEMORY
+                                                                .key()))
+                                        .getMebiBytes());
             }
             if (conProp.containsKey(TaskManagerOptions.TOTAL_PROCESS_MEMORY.key())) {
                 taskManagerMemoryMb =
                         Math.max(
                                 MIN_TM_MEMORY,
-                                ValueUtil.getInt(
-                                        conProp.getProperty(
-                                                TaskManagerOptions.TOTAL_PROCESS_MEMORY.key())));
-
-                taskManagerMemoryMb = taskManagerMemoryMb >> 20;
+                                MemorySize.parse(
+                                                conProp.getProperty(
+                                                        TaskManagerOptions.TOTAL_PROCESS_MEMORY
+                                                                .key()))
+                                        .getMebiBytes());
             }
             if (conProp.containsKey(NUM_TASK_SLOTS.key())) {
                 slotsPerTaskManager = ValueUtil.getInt(conProp.get(NUM_TASK_SLOTS.key()));
