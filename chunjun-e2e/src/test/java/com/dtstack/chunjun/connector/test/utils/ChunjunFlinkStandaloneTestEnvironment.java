@@ -34,7 +34,7 @@ import org.apache.flink.runtime.client.JobStatusMessage;
 import org.apache.flink.table.api.ValidationException;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

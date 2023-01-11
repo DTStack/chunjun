@@ -20,14 +20,10 @@ package com.dtstack.chunjun.connector.ftp.handler;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @author jiangbo
- * @date 2019/11/21
- */
 public class FtpHandlerFactory {
 
-    public static IFtpHandler createFtpHandler(String protocolStr) {
-        IFtpHandler ftpHandler;
+    public static DTFtpHandler createFtpHandler(String protocolStr) {
+        DTFtpHandler ftpHandler;
 
         Protocol protocol = Protocol.getByName(protocolStr);
         if (Protocol.SFTP.equals(protocol)) {
