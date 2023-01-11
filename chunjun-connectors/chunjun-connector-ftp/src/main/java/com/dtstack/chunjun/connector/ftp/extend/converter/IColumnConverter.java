@@ -16,25 +16,10 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.client.excel;
+package com.dtstack.chunjun.connector.ftp.extend.converter;
 
-import org.junit.Before;
-import org.junit.Test;
+import java.io.Serializable;
 
-public class ExcelSubExceptionCarrierTest {
-
-    private ExcelSubExceptionCarrier excelSubExceptionCarrierUnderTest;
-
-    @Before
-    public void setUp() {
-        excelSubExceptionCarrierUnderTest = new ExcelSubExceptionCarrier();
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void setExcelSubExceptionCarrierUnderTest() throws Exception {
-        RuntimeException test = new RuntimeException("Test");
-        excelSubExceptionCarrierUnderTest.setThrowable(test);
-
-        throw excelSubExceptionCarrierUnderTest.getThrowable();
-    }
+public interface IColumnConverter<T> extends Serializable {
+    T convert(Object source) throws Exception;
 }

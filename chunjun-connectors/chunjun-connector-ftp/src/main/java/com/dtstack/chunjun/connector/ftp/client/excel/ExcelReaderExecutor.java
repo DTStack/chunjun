@@ -23,7 +23,7 @@ import com.alibaba.excel.ExcelReader;
 public class ExcelReaderExecutor implements Runnable {
 
     private final ExcelReader reader;
-    private final ExcelSubExceptionCarrier ec;
+    private ExcelSubExceptionCarrier ec;
 
     public ExcelReaderExecutor(ExcelReader reader, ExcelSubExceptionCarrier ec) {
         this.reader = reader;
