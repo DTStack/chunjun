@@ -47,9 +47,9 @@ public class PostgresqlDialect implements JdbcDialect {
 
     private static final String DIALECT_NAME = "PostgreSQL";
     private static final String DRIVER = "org.postgresql.Driver";
-    private static final String URL_START = "jdbc:postgresql:";
+    public static final String URL_START = "jdbc:postgresql:";
 
-    private static final String COPY_SQL_TEMPL =
+    protected static final String COPY_SQL_TEMPL =
             "copy %s(%s) from stdin DELIMITER '%s' NULL as '%s'";
 
     @Override
@@ -140,15 +140,22 @@ public class PostgresqlDialect implements JdbcDialect {
     }
 
     public String getCopyStatement(
-            String tableName, String[] fields, String fieldDelimiter, String nullVal) {
+            String schemaName,
+            String tableName,
+            String[] fields,
+            String fieldDelimiter,
+            String nullVal) {
         String fieldsExpression =
                 Arrays.stream(fields).map(this::quoteIdentifier).collect(Collectors.joining(", "));
 
+        String tableLocation;
+        if (schemaName != null && !"".equals(schemaName.trim())) {
+            tableLocation = quoteIdentifier(schemaName) + "." + quoteIdentifier(tableName);
+        } else {
+            tableLocation = quoteIdentifier(tableName);
+        }
+
         return String.format(
-                COPY_SQL_TEMPL,
-                quoteIdentifier(tableName),
-                fieldsExpression,
-                fieldDelimiter,
-                nullVal);
+                COPY_SQL_TEMPL, tableLocation, fieldsExpression, fieldDelimiter, nullVal);
     }
 }
