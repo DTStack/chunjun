@@ -16,12 +16,15 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.format;
+package com.dtstack.chunjun.connector.ftp.iformat;
 
-import com.dtstack.chunjun.connector.ftp.client.File;
+import com.dtstack.chunjun.connector.ftp.extend.ftp.File;
+import com.dtstack.chunjun.connector.ftp.extend.ftp.IFormatConfig;
+import com.dtstack.chunjun.connector.ftp.extend.ftp.format.IFileReadFormat;
 
+import com.csvreader.CsvReader;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,35 +32,49 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Map;
 
-public class TextFileFormat implements IFileReadFormat {
+public class CsvFileFormat implements IFileReadFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TextFileFormat.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CsvFileFormat.class);
+    private CsvReader csvReader;
     private BufferedReader bufferedReader;
-    private String filedDelimiter;
-    private String line;
 
     @Override
     public void open(File file, InputStream inputStream, IFormatConfig config) throws IOException {
         LOG.info("open file : {}", file.getFileName());
-        this.bufferedReader =
+        bufferedReader =
                 new BufferedReader(new InputStreamReader(inputStream, config.getEncoding()));
-        this.filedDelimiter = config.getFieldDelimiter();
+        csvReader = new CsvReader(bufferedReader);
+        csvReader.setDelimiter(config.getFieldDelimiter().charAt(0));
+
+        if (MapUtils.isNotEmpty(config.getFileConfig())) {
+            Map<String, Object> csvConfig = config.getFileConfig();
+            // 是否跳过空行
+            csvReader.setSkipEmptyRecords(
+                    (Boolean) csvConfig.getOrDefault("skipEmptyRecords", true));
+            // 是否使用csv转义字符
+            csvReader.setUseTextQualifier(
+                    (Boolean) csvConfig.getOrDefault("useTextQualifier", true));
+            csvReader.setTrimWhitespace((Boolean) csvConfig.getOrDefault("trimWhitespace", false));
+            // 单列长度是否限制100000字符
+            csvReader.setSafetySwitch((Boolean) csvConfig.getOrDefault("safetySwitch", false));
+        }
     }
 
     @Override
     public boolean hasNext() throws IOException {
-        line = bufferedReader.readLine();
-        return line != null;
+        return csvReader.readRecord();
     }
 
     @Override
-    public String[] nextRecord() {
-        return StringUtils.splitByWholeSeparatorPreserveAllTokens(line, filedDelimiter);
+    public String[] nextRecord() throws IOException {
+        return csvReader.getValues();
     }
 
     @Override
     public void close() throws IOException {
+        csvReader.close();
         IOUtils.closeQuietly(bufferedReader);
     }
 }

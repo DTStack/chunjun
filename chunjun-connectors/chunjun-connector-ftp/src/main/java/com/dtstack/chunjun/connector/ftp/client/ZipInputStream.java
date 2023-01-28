@@ -29,13 +29,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 
-/** zip文件流 如果fileNameList不为空 只会读取fileNameList里的文件* */
 public class ZipInputStream extends InputStream {
     private static final Logger LOG = LoggerFactory.getLogger(ZipInputStream.class);
 
-    private java.util.zip.ZipInputStream zipInputStream;
+    private final java.util.zip.ZipInputStream zipInputStream;
+    private final List<String> fileNameList;
     private ZipEntry currentZipEntry;
-    private List<String> fileNameList;
 
     public ZipInputStream(InputStream in) {
         this.zipInputStream = new java.util.zip.ZipInputStream(in);

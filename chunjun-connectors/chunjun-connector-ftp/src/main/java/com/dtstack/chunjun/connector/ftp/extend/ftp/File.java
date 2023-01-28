@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.client;
+package com.dtstack.chunjun.connector.ftp.extend.ftp;
 
 import java.io.Serializable;
 import java.util.StringJoiner;

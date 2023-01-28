@@ -30,11 +30,6 @@ import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.data.RowData;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/06/19
- */
 public class FtpDynamicTableSink implements DynamicTableSink {
 
     private final TableSchema physicalSchema;

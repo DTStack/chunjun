@@ -18,6 +18,8 @@
 
 package com.dtstack.chunjun.connector.ftp.source;
 
+import com.dtstack.chunjun.connector.ftp.extend.ftp.concurrent.FtpFileSplit;
+
 import org.apache.flink.core.io.InputSplit;
 
 import java.util.ArrayList;

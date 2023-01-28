@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.ftp.format;
+package com.dtstack.chunjun.connector.ftp.iformat;
 
 import com.dtstack.chunjun.connector.ftp.enums.FileType;
+import com.dtstack.chunjun.connector.ftp.extend.ftp.format.IFileReadFormat;
 
 public class IFormatFactory {
 
@@ -36,7 +37,7 @@ public class IFormatFactory {
     }
 
     public static IFileReadFormat createCustom(String className) {
-        Class<?> userClass;
+        Class<?> userClass = null;
         try {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             userClass = classLoader.loadClass(className);
