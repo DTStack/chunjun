@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.postgresql.sink;
+package com.dtstack.chunjun.connector.greenplum.sink;
 
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
@@ -30,7 +30,6 @@ import com.dtstack.chunjun.throwable.WriteRecordException;
 
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.util.StringUtils;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.postgresql.copy.CopyManager;
@@ -43,20 +42,19 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * @program: ChunJun
- * @author: wuren
- * @create: 2021/08/12
+ * @program: flinkx
+ * @author: jier
  */
-public class PostgresOutputFormat extends JdbcOutputFormat {
+public class GreenplumOutputFormat extends JdbcOutputFormat {
 
     // pg 字符串里含有\u0000 会报错 ERROR: invalid byte sequence for encoding "UTF8": 0x00
     public static final String SPACE = "\u0000";
 
     private static final String LINE_DELIMITER = "\n";
     private CopyManager copyManager;
-    private boolean enableCopyMode = false;
+    private boolean disableCopyMode = false;
     private String copySql = "";
-    private static final String INSERT_SQL_MODE_TYPE = "copy";
+    public static final String INSERT_SQL_MODE_TYPE = "copy";
     private static final String DEFAULT_FIELD_DELIMITER = "\001";
 
     private static final String DEFAULT_NULL_VALUE = "\002";
@@ -69,8 +67,11 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
         super.openInternal(taskNumber, numTasks);
         try {
             // check is use copy mode for insert
-            enableCopyMode = INSERT_SQL_MODE_TYPE.equalsIgnoreCase(jdbcConf.getInsertSqlMode());
-            if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode()) && enableCopyMode) {
+            disableCopyMode =
+                    jdbcConf.getInsertSqlMode() != null
+                            && !INSERT_SQL_MODE_TYPE.equalsIgnoreCase(jdbcConf.getInsertSqlMode());
+            if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode()) && !disableCopyMode) {
+                LOG.info("will use copy mode");
                 copyManager = new CopyManager((BaseConnection) dbConn);
 
                 PostgresqlDialect pgDialect = (PostgresqlDialect) jdbcDialect;
@@ -79,22 +80,15 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
                                 jdbcConf.getSchema(),
                                 jdbcConf.getTable(),
                                 columnNameList.toArray(new String[0]),
-                                StringUtils.isNullOrWhitespaceOnly(jdbcConf.getFieldDelim().trim())
-                                        ? DEFAULT_FIELD_DELIMITER
-                                        : jdbcConf.getFieldDelim(),
-                                StringUtils.isNullOrWhitespaceOnly(jdbcConf.getNullDelim().trim())
-                                        ? DEFAULT_NULL_VALUE
-                                        : jdbcConf.getNullDelim());
+                                DEFAULT_FIELD_DELIMITER,
+                                DEFAULT_NULL_VALUE);
 
                 LOG.info("write sql:{}", copySql);
             }
             checkUpsert();
-            if (rowConverter instanceof JdbcColumnConverter) {
-                if (jdbcDialect.dialectName().equals("PostgresSQL")) {
-                    ((PostgresqlColumnConverter) rowConverter)
-                            .setConnection((BaseConnection) dbConn);
-                }
-                ((PostgresqlColumnConverter) rowConverter).setFieldTypeList(columnTypeList);
+            if (rowConverter instanceof PostgresqlColumnConverter
+                    && dbConn instanceof BaseConnection) {
+                ((PostgresqlColumnConverter) rowConverter).setConnection((BaseConnection) dbConn);
             }
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("checkUpsert() failed.", sqe);
@@ -103,7 +97,7 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(RowData row) throws WriteRecordException {
-        if (!enableCopyMode) {
+        if (disableCopyMode) {
             super.writeSingleRecordInternal(row);
         } else {
             if (rowConverter instanceof JdbcColumnConverter) {
@@ -117,9 +111,10 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
                         appendColumn(colRowData, index, rowStr, index == lastIndex);
                     }
                     String rowVal = copyModeReplace(rowStr.toString());
-                    ByteArrayInputStream bi =
-                            new ByteArrayInputStream(rowVal.getBytes(StandardCharsets.UTF_8));
-                    copyManager.copyIn(copySql, bi);
+                    try (ByteArrayInputStream bi =
+                            new ByteArrayInputStream(rowVal.getBytes(StandardCharsets.UTF_8))) {
+                        copyManager.copyIn(copySql, bi);
+                    }
                 } catch (Exception e) {
                     processWriteException(e, index, row);
                 }
@@ -131,7 +126,7 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        if (!enableCopyMode) {
+        if (disableCopyMode) {
             super.writeMultipleRecordsInternal();
         } else {
             if (rowConverter instanceof JdbcColumnConverter) {
@@ -147,12 +142,12 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
                     rowsStrBuilder.append(copyModeReplace(tempData)).append(LINE_DELIMITER);
                 }
                 String rowVal = rowsStrBuilder.toString();
-                ByteArrayInputStream bi =
-                        new ByteArrayInputStream(rowVal.getBytes(StandardCharsets.UTF_8));
-                copyManager.copyIn(copySql, bi);
-
-                if (checkpointEnabled && CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
-                    rowsOfCurrentTransaction += rows.size();
+                try (ByteArrayInputStream bi =
+                        new ByteArrayInputStream(rowVal.getBytes(StandardCharsets.UTF_8))) {
+                    copyManager.copyIn(copySql, bi);
+                    if (checkpointEnabled && CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
+                        rowsOfCurrentTransaction += rows.size();
+                    }
                 }
             } else {
                 throw new NoRestartException("copy mode only support data sync with out table");
@@ -164,19 +159,12 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
             ColumnRowData colRowData, int pos, StringBuilder rowStr, boolean isLast) {
         Object col = colRowData.getField(pos);
         if (col == null) {
-            rowStr.append(
-                    StringUtils.isNullOrWhitespaceOnly(jdbcConf.getNullDelim().trim())
-                            ? DEFAULT_NULL_VALUE
-                            : jdbcConf.getNullDelim());
-
+            rowStr.append(DEFAULT_NULL_VALUE);
         } else {
             rowStr.append(col);
         }
         if (!isLast) {
-            rowStr.append(
-                    StringUtils.isNullOrWhitespaceOnly(jdbcConf.getFieldDelim().trim())
-                            ? DEFAULT_FIELD_DELIMITER
-                            : jdbcConf.getFieldDelim());
+            rowStr.append(DEFAULT_FIELD_DELIMITER);
         }
     }
 

@@ -23,7 +23,6 @@ import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.vertica11.dialect.Vertica11Dialect;
 import com.dtstack.chunjun.enums.EWriteMode;
-import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.util.JsonUtil;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -39,9 +38,7 @@ public class Vertica11OutputFormat extends JdbcOutputFormat {
             dbConn = getConnection();
             // By default, transaction auto-commit is turned off, and transactions are manually
             // controlled
-            if (Semantic.EXACTLY_ONCE == semantic) {
-                dbConn.setAutoCommit(false);
-            }
+            dbConn.setAutoCommit(jdbcConf.isAutoCommit());
             if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
                 List<String> updateKey = jdbcConf.getUniqueKey();
                 if (CollectionUtils.isEmpty(updateKey)) {
