@@ -106,6 +106,10 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
     /** upsert 写数据库时，是否null覆盖原来的值 */
     protected boolean allReplace = false;
 
+    protected boolean isAutoCommit = false;
+
+    private boolean defineColumnTypeForStatement = false;
+
     public Boolean getInitReporter() {
         return initReporter;
     }
@@ -419,6 +423,14 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
         this.allReplace = allReplace;
     }
 
+    public boolean isAutoCommit() {
+        return isAutoCommit;
+    }
+
+    public boolean isDefineColumnTypeForStatement() {
+        return defineColumnTypeForStatement;
+    }
+
     public String getSplitStrategy() {
         return splitStrategy;
     }
@@ -485,9 +497,13 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
                 + increment
                 + ", polling="
                 + polling
+                + ", pollingFromMax="
+                + pollingFromMax
                 + ", increColumn='"
                 + increColumn
                 + '\''
+                + ", isOrderBy="
+                + isOrderBy
                 + ", increColumnIndex="
                 + increColumnIndex
                 + ", increColumnType='"
@@ -508,6 +524,8 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
                 + restoreColumnIndex
                 + ", useMaxFunc="
                 + useMaxFunc
+                + ", initReporter="
+                + initReporter
                 + ", mode='"
                 + mode
                 + '\''
@@ -521,6 +539,10 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
                 + updateKey
                 + ", allReplace="
                 + allReplace
+                + ", isAutoCommit="
+                + isAutoCommit
+                + ", defineColumnTypeForStatement="
+                + defineColumnTypeForStatement
                 + '}';
     }
 }

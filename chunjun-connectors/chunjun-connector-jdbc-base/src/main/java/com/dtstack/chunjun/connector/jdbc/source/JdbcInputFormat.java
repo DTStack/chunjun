@@ -707,12 +707,18 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             }
         } else {
             statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
+            if (jdbcConf.isDefineColumnTypeForStatement()
+                    && StringUtils.isBlank(jdbcConf.getCustomSql())) {
+                defineColumnType(statement);
+            }
             statement.setFetchSize(jdbcConf.getFetchSize());
             statement.setQueryTimeout(jdbcConf.getQueryTimeOut());
             resultSet = statement.executeQuery(jdbcConf.getQuerySql());
             hasNext = resultSet.next();
         }
     }
+
+    protected void defineColumnType(Statement statement) throws SQLException {}
 
     /** init prepareStatement */
     public void initPrepareStatement(String querySql) throws SQLException {

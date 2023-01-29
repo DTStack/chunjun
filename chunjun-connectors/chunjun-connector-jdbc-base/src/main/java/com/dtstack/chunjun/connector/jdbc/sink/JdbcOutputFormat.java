@@ -66,7 +66,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected JdbcDialect jdbcDialect;
 
     protected transient Connection dbConn;
-    protected boolean autoCommit = true;
 
     protected transient PreparedStmtProxy stmtProxy;
 
@@ -87,10 +86,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         try {
             dbConn = getConnection();
             // 默认关闭事务自动提交，手动控制事务
-            if (Semantic.EXACTLY_ONCE == semantic) {
-                autoCommit = false;
-                dbConn.setAutoCommit(autoCommit);
-            }
+            dbConn.setAutoCommit(jdbcConf.isAutoCommit());
             if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
                 List<String> updateKey = jdbcConf.getUniqueKey();
                 if (CollectionUtils.isEmpty(updateKey)) {
@@ -135,6 +131,11 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         int index = 0;
         try {
             stmtProxy.writeSingleRecordInternal(row);
+            if (Semantic.EXACTLY_ONCE == semantic) {
+                rowsOfCurrentTransaction += rows.size();
+            } else {
+                JdbcUtil.commit(dbConn);
+            }
         } catch (Exception e) {
             JdbcUtil.rollBack(dbConn);
             processWriteException(e, index, row);
@@ -164,6 +165,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             // 开启了cp，但是并没有使用2pc方式让下游数据可见
             if (Semantic.EXACTLY_ONCE == semantic) {
                 rowsOfCurrentTransaction += rows.size();
+            } else {
+                JdbcUtil.commit(dbConn);
             }
         } catch (Exception e) {
             LOG.warn(
@@ -216,7 +219,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     public void doCommit() throws SQLException {
         try {
-            if (!autoCommit) {
+            if (!jdbcConf.isAutoCommit()) {
                 dbConn.commit();
             }
             snapshotWriteCounter.add(rowsOfCurrentTransaction);
