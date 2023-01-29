@@ -31,40 +31,53 @@
 	<artifactId>chunjun-connector-iceberg</artifactId>
 	<name>ChunJun : Connectors : Iceberg</name>
 
-	<dependencies>
+	<properties>
+		<hadoop.version>2.7.5</hadoop.version>
+		<iceberg.version>0.13.1</iceberg.version>
+	</properties>
 
-		<!-- flink iceberg connector start  -->
-<!--		<dependency>-->
-<!--			<groupId>org.apache.iceberg</groupId>-->
-<!--			<artifactId>iceberg-flink-1.12</artifactId>-->
-<!--			<version>0.13.2</version>-->
-<!--			<exclusions>-->
-<!--				<exclusion>-->
-<!--					<artifactId>avro</artifactId>-->
-<!--					<groupId>org.apache.avro</groupId>-->
-<!--				</exclusion>-->
-<!--			</exclusions>-->
-<!--		</dependency>-->
+
+	<dependencies>
 		<dependency>
 			<groupId>org.apache.iceberg</groupId>
-			<artifactId>iceberg-flink-runtime-1.12</artifactId>
-			<version>0.13.2</version>
+			<artifactId>iceberg-flink-runtime-1.13</artifactId>
+			<version>${iceberg.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-hdfs</artifactId>
+				</exclusion>
+
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-common</artifactId>
+				</exclusion>
+
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-client</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
-<!--		<dependency>-->
-<!--			<groupId>org.apache.hadoop</groupId>-->
-<!--			<artifactId>hadoop-client</artifactId>-->
-<!--			<version>2.7.3</version>-->
-<!--			<exclusions>-->
-<!--				<exclusion>-->
-<!--					<artifactId>avro</artifactId>-->
-<!--					<groupId>org.apache.avro</groupId>-->
-<!--				</exclusion>-->
-<!--			</exclusions>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-hdfs</artifactId>
+			<version>${hadoop.version}</version>
+		</dependency>
 
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-common</artifactId>
+			<version>${hadoop.version}</version>
+		</dependency>
 
-		<!-- flink iceberg connector end  -->
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-client</artifactId>
+			<version>${hadoop.version}</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
