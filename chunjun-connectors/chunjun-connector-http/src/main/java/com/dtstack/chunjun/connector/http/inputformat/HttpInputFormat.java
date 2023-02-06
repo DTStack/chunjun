@@ -69,7 +69,8 @@ public class HttpInputFormat extends BaseRichInputFormat {
     @Override
     @SuppressWarnings("unchecked")
     protected void openInternal(InputSplit inputSplit) {
-        myHttpClient = new HttpClient(httpRestConfig, metaBodys, metaParams, metaHeaders);
+        myHttpClient =
+                new HttpClient(httpRestConfig, metaBodys, metaParams, metaHeaders, rowConverter);
         if (state != null) {
             myHttpClient.initPosition(state.getRequestParam(), state.getOriginResponseValue());
         }
@@ -96,14 +97,20 @@ public class HttpInputFormat extends BaseRichInputFormat {
                                 + value.getOriginResponseValue()
                                 + " job end");
             }
+            // finished 任务正常结束
+            if (value.getStatus() == 2) {
+                reachEnd = true;
+                return null;
+            }
+
             // todo 离线任务后期需要加上一个finished策略 这样就是代表任务正常结束 而不是异常stop
             state =
                     new ResponseValue(
-                            "",
+                            null,
                             HttpRequestParam.copy(value.getRequestParam()),
                             value.getOriginResponseValue());
             try {
-                return rowConverter.toInternal(value.getData());
+                return value.getData();
             } catch (Exception e) {
                 throw new ReadRecordException(e.getMessage(), e);
             }

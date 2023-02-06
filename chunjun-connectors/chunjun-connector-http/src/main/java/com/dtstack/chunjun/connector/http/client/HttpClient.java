@@ -21,6 +21,7 @@ import com.dtstack.chunjun.connector.http.common.ConstantValue;
 import com.dtstack.chunjun.connector.http.common.HttpRestConfig;
 import com.dtstack.chunjun.connector.http.common.HttpUtil;
 import com.dtstack.chunjun.connector.http.common.MetaParam;
+import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.GsonUtil;
 
@@ -41,6 +42,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static com.dtstack.chunjun.connector.http.common.ConstantValue.CSV_DECODE;
+import static com.dtstack.chunjun.connector.http.common.ConstantValue.TEXT_DECODE;
+import static com.dtstack.chunjun.connector.http.common.ConstantValue.XML_DECODE;
+
 /**
  * httpClient
  *
@@ -59,6 +64,8 @@ public class HttpClient {
     private boolean first;
 
     private final RestHandler restHandler;
+
+    protected final ResponseParse responseParse;
 
     private int requestRetryTime;
 
@@ -86,11 +93,14 @@ public class HttpClient {
 
     private boolean running;
 
+    protected long requestNumber;
+
     public HttpClient(
             HttpRestConfig httpRestConfig,
             List<MetaParam> originalBodyList,
             List<MetaParam> originalParamList,
-            List<MetaParam> originalHeaderList) {
+            List<MetaParam> originalHeaderList,
+            AbstractRowConverter converter) {
         this.restConfig = httpRestConfig;
         this.originalHeaderList = originalHeaderList;
         this.originalBodyList = originalBodyList;
@@ -102,14 +112,16 @@ public class HttpClient {
         this.queue = new LinkedBlockingQueue<>();
         this.scheduledExecutorService =
                 new ScheduledThreadPoolExecutor(1, r -> new Thread(r, THREAD_NAME));
-        this.httpClient = HttpUtil.getHttpsClient();
+        this.httpClient = HttpUtil.getHttpsClient((int) restConfig.getTimeOut());
         this.restHandler = new DefaultRestHandler();
+        this.responseParse = getResponseParse(converter);
 
         this.prevResponse = "";
         this.first = true;
         this.currentParam = new HttpRequestParam();
         this.reachEnd = false;
         this.requestRetryTime = 2;
+        this.requestNumber = 1;
     }
 
     public void start() {
@@ -172,6 +184,7 @@ public class HttpClient {
         doExecute(ConstantValue.REQUEST_RETRY_TIME);
         first = false;
         requestRetryTime = 3;
+        requestNumber++;
     }
 
     public void doExecute(int retryTime) {
@@ -192,6 +205,7 @@ public class HttpClient {
 
         // 执行请求
         String responseValue = null;
+        int responseStatus;
         try {
 
             HttpUriRequest request =
@@ -211,6 +225,7 @@ public class HttpClient {
             }
 
             responseValue = EntityUtils.toString(httpResponse.getEntity());
+            responseStatus = httpResponse.getStatusLine().getStatusCode();
         } catch (Throwable e) {
             // 只要本次请求中出现了异常 都会进行重试，如果重试次数达到了就真正结束任务
             LOG.warn(
@@ -244,27 +259,28 @@ public class HttpClient {
                     case ConstantValue.STRATEGY_STOP:
                         reachEnd = true;
                         running = false;
+                        // stop 此次请求数据有问题 任务直接异常结束
+                        processData(new ResponseValue(0, null, strategy.toString(), null, null));
                         break;
                     default:
                         break;
                 }
             }
 
-            ResponseValue value =
-                    restHandler.buildResponseValue(
-                            restConfig.getDecode(),
-                            responseValue,
-                            restConfig.getFields(),
-                            HttpRequestParam.copy(currentParam));
+            responseParse.parse(responseValue, responseStatus, HttpRequestParam.copy(currentParam));
+            while (responseParse.hasNext()) {
+                processData(responseParse.next());
+            }
+
+            if (-1 != restConfig.getCycles() && requestNumber >= restConfig.getCycles()) {
+                reachEnd = true;
+                running = false;
+            }
+
             if (reachEnd) {
                 // 如果结束了  需要告诉format 结束了
-                if (value.isNormal()) {
-                    value.setStatus(0);
-                    // 触发的策略信息返回上游
-                    value.setErrorMsg(strategy.toString());
-                }
+                processData(new ResponseValue(2, null, null, null, null));
             }
-            processData(value);
 
             prevParam = currentParam;
             prevResponse = responseValue;
@@ -318,6 +334,19 @@ public class HttpClient {
             scheduledExecutorService.shutdown();
         } catch (Exception e) {
             LOG.warn("close resource error,msg is " + ExceptionUtil.getErrorMessage(e));
+        }
+    }
+
+    protected ResponseParse getResponseParse(AbstractRowConverter converter) {
+        switch (restConfig.getDecode()) {
+            case CSV_DECODE:
+                return new CsvResponseParse(restConfig, converter);
+            case XML_DECODE:
+                return new XmlResponseParse(restConfig, converter);
+            case TEXT_DECODE:
+                return new TextResponseParse(restConfig, converter);
+            default:
+                return new JsonResponseParse(restConfig, converter);
         }
     }
 
