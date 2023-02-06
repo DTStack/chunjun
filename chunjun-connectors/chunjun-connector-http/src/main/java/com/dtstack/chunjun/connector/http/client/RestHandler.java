@@ -68,15 +68,4 @@ public interface RestHandler {
             Map<String, Object> prevResponseValue,
             HttpRestConfig restConfig,
             boolean first);
-
-    /**
-     * 根据返回的response 构建出ResponseValue * json格式 会指定字段解析
-     *
-     * @param decode 解析格式 json还是text
-     * @param responseValue 返回值
-     * @param fields 解析字段
-     * @return 返回值
-     */
-    ResponseValue buildResponseValue(
-            String decode, String responseValue, String fields, HttpRequestParam requestParam);
 }
