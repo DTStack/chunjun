@@ -72,6 +72,8 @@ public class HttpDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         options.add(HttpOptions.INTERVALTIME);
         options.add(HttpOptions.COLUMN);
         options.add(HttpOptions.DELAY);
+        options.add(HttpOptions.DATA_SUBJECT);
+        options.add(HttpOptions.CYCLES);
 
         return options;
     }
@@ -142,6 +144,8 @@ public class HttpDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         httpRestConfig.setUrl(config.get(HttpOptions.URL));
         httpRestConfig.setDecode(config.get(HttpOptions.DECODE));
         httpRestConfig.setRequestMode(config.get(HttpOptions.METHOD));
+        httpRestConfig.setDataSubject(config.get(HttpOptions.DATA_SUBJECT));
+        httpRestConfig.setCycles(config.get(HttpOptions.CYCLES));
         httpRestConfig.setParam(
                 gson.fromJson(
                         config.get(HttpOptions.PARAMS),
