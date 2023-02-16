@@ -73,6 +73,8 @@ public abstract class CustomReporter {
     /** upload metrics */
     public abstract void report();
 
+    public abstract void inputMetricReport(BaseMetric inputMetric);
+
     /** close metric report */
     public abstract void close();
 }

@@ -442,4 +442,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     public void setColumnTypeList(List<String> columnTypeList) {
         this.columnTypeList = columnTypeList;
     }
+
+    @Override
+    protected boolean useCustomReporter() {
+        return jdbcConf.getInitReporter();
+    }
 }

@@ -33,6 +33,7 @@ import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.factory.ChunJunThreadFactory;
 import com.dtstack.chunjun.metrics.AccumulatorCollector;
 import com.dtstack.chunjun.metrics.BaseMetric;
+import com.dtstack.chunjun.metrics.CustomReporter;
 import com.dtstack.chunjun.metrics.RowSizeCalculator;
 import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.sink.DirtyDataManager;
@@ -343,6 +344,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
         if (outputMetric != null) {
             outputMetric.waitForReportMetrics();
+            if (useCustomReporter()) {
+                CustomReporter customReporter =
+                        DataSyncFactoryUtil.discoverMetric(config, getRuntimeContext(), true);
+                customReporter.inputMetricReport(outputMetric);
+                customReporter.open();
+                customReporter.report();
+            }
         }
 
         if (dirtyDataManager != null) {
@@ -717,5 +725,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     public void setDdlConf(DDLConf ddlConf) {
         this.ddlConf = ddlConf;
+    }
+
+    protected boolean useCustomReporter() {
+        return false;
     }
 }
