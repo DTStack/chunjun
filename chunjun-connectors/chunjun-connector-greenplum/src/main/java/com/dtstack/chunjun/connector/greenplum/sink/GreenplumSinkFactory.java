@@ -28,11 +28,6 @@ import org.apache.commons.lang.StringUtils;
 
 import static com.dtstack.chunjun.connector.greenplum.sink.GreenplumOutputFormat.INSERT_SQL_MODE_TYPE;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class GreenplumSinkFactory extends JdbcSinkFactory {
 
     public GreenplumSinkFactory(SyncConf syncConf) {

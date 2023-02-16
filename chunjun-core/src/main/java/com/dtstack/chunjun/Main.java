@@ -52,6 +52,7 @@ import com.dtstack.chunjun.util.RealTimeDataSourceNameUtil;
 import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.api.common.JobExecutionResult;
+import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.runtime.jobgraph.SavepointConfigOptions;
@@ -143,6 +144,8 @@ public class Main {
         try {
             configStreamExecutionEnvironment(env, options, null);
             List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(options.getAddjar());
+            String runMode = options.getRunMode();
+            if ("batch".equalsIgnoreCase(runMode)) env.setRuntimeMode(RuntimeExecutionMode.BATCH);
             StatementSet statementSet = SqlParser.parseSql(job, jarUrlList, tableEnv);
             TableResult execute = statementSet.execute();
             if (env instanceof MyLocalStreamEnvironment) {
