@@ -93,120 +93,66 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     public static final int LOG_PRINT_INTERNAL = 2000;
 
-    /**
-     * 环境上下文
-     */
+    /** 环境上下文 */
     protected StreamingRuntimeContext context;
-    /**
-     * 是否开启了checkpoint
-     */
+    /** 是否开启了checkpoint */
     protected boolean checkpointEnabled;
 
-    /**
-     * 任务名称
-     */
+    /** 任务名称 */
     protected String jobName = "defaultJobName";
-    /**
-     * 任务id
-     */
+    /** 任务id */
     protected String jobId;
-    /**
-     * 任务索引id
-     */
+    /** 任务索引id */
     protected int taskNumber;
-    /**
-     * 子任务数量
-     */
+    /** 子任务数量 */
     protected int numTasks;
-    /**
-     * 任务开始时间, openInputFormat()开始计算
-     */
+    /** 任务开始时间, openInputFormat()开始计算 */
     protected long startTime;
 
     protected String formatId;
-    /**
-     * checkpoint状态缓存map
-     */
+    /** checkpoint状态缓存map */
     protected FormatState formatState;
 
-    /**
-     * 虽然开启cp，是否采用定时器和一定条数让下游数据可见。 EXACTLY_ONCE：否，遵循两阶段提交协议。 AT_LEAST_ONCE：是，只要数据条数或者到达定时时间即可见
-     */
+    /** 虽然开启cp，是否采用定时器和一定条数让下游数据可见。 EXACTLY_ONCE：否，遵循两阶段提交协议。 AT_LEAST_ONCE：是，只要数据条数或者到达定时时间即可见 */
     protected CheckpointingMode checkpointMode;
-    /**
-     * 定时提交数据服务
-     */
+    /** 定时提交数据服务 */
     protected transient ScheduledExecutorService scheduler;
-    /**
-     * 定时提交数据服务返回结果
-     */
+    /** 定时提交数据服务返回结果 */
     protected transient ScheduledFuture scheduledFuture;
-    /**
-     * 定时提交数据服务间隔时间，单位毫秒
-     */
+    /** 定时提交数据服务间隔时间，单位毫秒 */
     protected long flushIntervalMills;
-    /**
-     * 任务公共配置
-     */
+    /** 任务公共配置 */
     protected ChunJunCommonConf config;
-    /**
-     * BaseRichOutputFormat是否结束
-     */
+    /** BaseRichOutputFormat是否结束 */
     protected transient volatile boolean closed = false;
-    /**
-     * 批量提交条数
-     */
+    /** 批量提交条数 */
     protected int batchSize = 1;
-    /**
-     * 最新读取的数据
-     */
+    /** 最新读取的数据 */
     protected RowData lastRow = null;
 
-    /**
-     * 存储用于批量写入的数据
-     */
+    /** 存储用于批量写入的数据 */
     protected transient List<RowData> rows;
-    /**
-     * 数据类型转换器
-     */
+    /** 数据类型转换器 */
     protected AbstractRowConverter rowConverter;
-    /**
-     * 是否需要初始化脏数据和累加器，目前只有hive插件该参数设置为false
-     */
+    /** 是否需要初始化脏数据和累加器，目前只有hive插件该参数设置为false */
     protected boolean initAccumulatorAndDirty = true;
-    /**
-     * 脏数据管理器
-     */
+    /** 脏数据管理器 */
     protected DirtyDataManager dirtyDataManager;
-    /**
-     * 输出指标组
-     */
+    /** 输出指标组 */
     protected transient BaseMetric outputMetric;
-    /**
-     * cp和flush互斥条件
-     */
+    /** cp和flush互斥条件 */
     protected transient AtomicBoolean flushEnable;
-    /**
-     * 当前事务的条数
-     */
+    /** 当前事务的条数 */
     protected long rowsOfCurrentTransaction;
 
-    /**
-     * A collection of field names filled in user scripts with constants removed
-     */
+    /** A collection of field names filled in user scripts with constants removed */
     protected List<String> columnNameList = new ArrayList<>();
-    /**
-     * A collection of field types filled in user scripts with constants removed
-     */
+    /** A collection of field types filled in user scripts with constants removed */
     protected List<String> columnTypeList = new ArrayList<>();
 
-    /**
-     * 累加器收集器
-     */
+    /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
-    /**
-     * 对象大小计算器
-     */
+    /** 对象大小计算器 */
     protected RowSizeCalculator rowSizeCalculator;
 
     protected LongCounter bytesWriteCounter;
@@ -221,14 +167,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     protected Semantic semantic;
 
-    /**
-     * the manager of dirty data.
-     */
+    /** the manager of dirty data. */
     protected DirtyManager dirtyManager;
 
-    /**
-     * 是否执行ddl语句 *
-     */
+    /** 是否执行ddl语句 * */
     protected boolean executeDdlAble;
 
     protected DDLConf ddlConf;
@@ -237,8 +179,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     protected ExecutorService executorService;
 
-    @VisibleForTesting
-    protected boolean useAbstractColumn;
+    @VisibleForTesting protected boolean useAbstractColumn;
 
     private transient volatile Exception timerWriteException;
 
@@ -261,7 +202,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
      * 打开资源的前后做一些初始化操作
      *
      * @param taskNumber 任务索引id
-     * @param numTasks   子任务数量
+     * @param numTasks 子任务数量
      * @throws IOException
      */
     @Override
@@ -430,12 +371,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     }
 
     @Override
-    public void tryCleanupOnError() throws Exception {
-    }
+    public void tryCleanupOnError() throws Exception {}
 
-    /**
-     * 初始化累加器指标
-     */
+    /** 初始化累加器指标 */
     protected void initStatisticsAccumulator() {
         errCounter = context.getLongCounter(Metrics.NUM_ERRORS);
         nullErrCounter = context.getLongCounter(Metrics.NUM_NULL_ERRORS);
@@ -464,26 +402,20 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
                 this.dirtyManager.getFailedConsumedMetric());
     }
 
-    /**
-     * 初始化累加器收集器
-     */
+    /** 初始化累加器收集器 */
     private void initAccumulatorCollector() {
         accumulatorCollector = new AccumulatorCollector(context, Metrics.METRIC_SINK_LIST);
         accumulatorCollector.start();
     }
 
-    /**
-     * 初始化对象大小计算器
-     */
+    /** 初始化对象大小计算器 */
     protected void initRowSizeCalculator() {
         rowSizeCalculator =
                 RowSizeCalculator.getRowSizeCalculator(
                         config.getRowSizeCalculatorType(), useAbstractColumn);
     }
 
-    /**
-     * 从checkpoint状态缓存map中恢复上次任务的指标信息
-     */
+    /** 从checkpoint状态缓存map中恢复上次任务的指标信息 */
     private void initRestoreInfo() {
         if (formatState == null) {
             formatState = new FormatState(taskNumber, null);
@@ -502,9 +434,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         }
     }
 
-    /**
-     * Turn on timed submission,Each result table is opened separately
-     */
+    /** Turn on timed submission,Each result table is opened separately */
     private void initTimingSubmitTask() {
         if (batchSize > 1 && flushIntervalMills > 0) {
             LOG.info(
@@ -559,9 +489,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         }
     }
 
-    /**
-     * 数据批量写出
-     */
+    /** 数据批量写出 */
     protected synchronized void writeRecordInternal() {
         if (flushEnable.get()) {
             try {
@@ -592,7 +520,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     /**
      * 记录脏数据异常信息
      *
-     * @param pos     异常字段索引
+     * @param pos 异常字段索引
      * @param rowData 当前读取的数据
      * @return 脏数据异常信息记录
      */
@@ -602,9 +530,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
                 getClass().getName(), pos, rowData);
     }
 
-    /**
-     * 更新任务执行时间指标
-     */
+    /** 更新任务执行时间指标 */
     protected void updateDuration() {
         if (durationCounter != null) {
             durationCounter.resetLocal();
@@ -656,8 +582,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         }
     }
 
-    protected void preExecuteDdlRowData(DdlRowData rowData) throws Exception {
-    }
+    protected void preExecuteDdlRowData(DdlRowData rowData) throws Exception {}
 
     protected void executeDdlRowData(DdlRowData ddlRowData) throws Exception {
         throw new UnsupportedOperationException("not support execute ddlRowData");
@@ -668,8 +593,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
      *
      * @throws Exception
      */
-    protected void preCommit() throws Exception {
-    }
+    protected void preCommit() throws Exception {}
 
     /**
      * 写出单条数据
@@ -690,7 +614,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
      * 子类实现，打开资源
      *
      * @param taskNumber 通道索引
-     * @param numTasks   通道数量
+     * @param numTasks 通道数量
      * @throws IOException
      */
     protected abstract void openInternal(int taskNumber, int numTasks) throws IOException;
@@ -726,8 +650,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
      * @param checkpointId
      * @throws Exception
      */
-    public void commit(long checkpointId) throws Exception {
-    }
+    public void commit(long checkpointId) throws Exception {}
 
     /**
      * checkpoint失败时操作
@@ -754,8 +677,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
      * @param checkpointId
      * @throws Exception
      */
-    public void rollback(long checkpointId) throws Exception {
-    }
+    public void rollback(long checkpointId) throws Exception {}
 
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;
