@@ -88,6 +88,9 @@ public class Options {
     @OptionRequired(description = "file add to ship file")
     private String addShipfile;
 
+    @OptionRequired(description = "flink run mode")
+    private String runMode;
+
     private Configuration flinkConfiguration = null;
 
     public Configuration loadFlinkConfiguration() {
@@ -235,6 +238,14 @@ public class Options {
         this.jobType = jobType;
     }
 
+    public String getRunMode() {
+        return runMode;
+    }
+
+    public void setRunMode(String runMode) {
+        this.runMode = runMode;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", Options.class.getSimpleName() + "[", "]")
@@ -248,10 +259,12 @@ public class Options {
                 .add("flinkLibDir='" + flinkLibDir + "'")
                 .add("confProp='" + confProp + "'")
                 .add("p='" + p + "'")
+                .add("pj='" + pj + "'")
                 .add("pluginLoadMode='" + pluginLoadMode + "'")
                 .add("remoteChunJunDistDir='" + remoteChunJunDistDir + "'")
                 .add("addjar='" + addjar + "'")
                 .add("addShipfile='" + addShipfile + "'")
+                .add("runMode='" + runMode + "'")
                 .add("flinkConfiguration=" + flinkConfiguration)
                 .toString();
     }
