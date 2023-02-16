@@ -805,7 +805,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     /** 使用自定义的指标输出器把增量指标打到普罗米修斯 */
     @Override
     protected boolean useCustomReporter() {
-        return jdbcConf.isIncrement() && jdbcConf.getInitReporter();
+        // 配置了 reporter 就可以输入指标到外部系统, 如果不是增量, 增量指标也不会被输出
+        if (jdbcConf.getInitReporter()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /** 为了保证增量数据的准确性，指标输出失败时使任务失败 */

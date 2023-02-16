@@ -21,12 +21,19 @@ package com.dtstack.chunjun.metrics.mysql;
 import com.dtstack.chunjun.conf.MetricParam;
 import com.dtstack.chunjun.metrics.rdb.RdbReporter;
 
+import com.google.common.collect.Maps;
+
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author: shifang
  * @description mysql report
  * @date: 2021/6/28 下午5:09
  */
 public class MysqlReport extends RdbReporter {
+
+    private Map<String, List<String>> metricDimensionValues = Maps.newConcurrentMap();
 
     public MysqlReport(MetricParam metricParam) {
         super(metricParam);

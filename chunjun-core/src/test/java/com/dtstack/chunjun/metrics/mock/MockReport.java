@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.metrics.mock;
 
 import com.dtstack.chunjun.conf.MetricParam;
+import com.dtstack.chunjun.metrics.BaseMetric;
 import com.dtstack.chunjun.metrics.CustomReporter;
 
 import org.apache.flink.api.common.accumulators.Accumulator;
@@ -37,6 +38,9 @@ public class MockReport extends CustomReporter {
 
     @Override
     public void report() {}
+
+    @Override
+    public void inputMetricReport(BaseMetric inputMetric) {}
 
     @Override
     public void close() {}

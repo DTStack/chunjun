@@ -19,10 +19,12 @@
 package com.dtstack.chunjun.metrics.rdb;
 
 import com.dtstack.chunjun.conf.MetricParam;
+import com.dtstack.chunjun.metrics.BaseMetric;
 import com.dtstack.chunjun.metrics.CustomReporter;
 import com.dtstack.chunjun.util.JsonUtil;
 
 import org.apache.flink.api.common.accumulators.Accumulator;
+import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.runtime.metrics.groups.AbstractMetricGroup;
 import org.apache.flink.runtime.metrics.groups.FrontMetricGroup;
 import org.apache.flink.runtime.metrics.groups.ReporterScopedSettings;
@@ -139,6 +141,13 @@ public abstract class RdbReporter extends CustomReporter {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             closeResource(ps);
+        }
+    }
+
+    public void inputMetricReport(BaseMetric inputMetric) {
+        Map<String, LongCounter> metricCounters = inputMetric.getMetricCounters();
+        for (Map.Entry<String, LongCounter> metrics : metricCounters.entrySet()) {
+            registerMetric(metrics.getValue(), metrics.getKey());
         }
     }
 

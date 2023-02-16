@@ -238,6 +238,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         }
 
         if (useCustomReporter() && null != customReporter) {
+            customReporter.inputMetricReport(inputMetric);
             customReporter.report();
         }
 
