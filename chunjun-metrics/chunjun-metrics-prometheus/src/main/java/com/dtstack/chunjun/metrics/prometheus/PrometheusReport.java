@@ -20,6 +20,7 @@ package com.dtstack.chunjun.metrics.prometheus;
 
 import com.dtstack.chunjun.conf.MetricParam;
 import com.dtstack.chunjun.constants.Metrics;
+import com.dtstack.chunjun.metrics.BaseMetric;
 import com.dtstack.chunjun.metrics.CustomReporter;
 import com.dtstack.chunjun.metrics.SimpleAccumulatorGauge;
 
@@ -164,6 +165,9 @@ public class PrometheusReport extends CustomReporter {
             }
         }
     }
+
+    @Override
+    public void inputMetricReport(BaseMetric inputMetric) {}
 
     @Override
     public void close() {
