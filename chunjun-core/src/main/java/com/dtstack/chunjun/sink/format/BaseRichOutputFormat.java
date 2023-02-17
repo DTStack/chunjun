@@ -551,8 +551,12 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
                         "getFormatState:Start preCommit, rowsOfCurrentTransaction: {}",
                         rowsOfCurrentTransaction);
                 preCommit();
+                checkTimerWriteException();
             } catch (Exception e) {
                 LOG.error("preCommit error, e = {}", ExceptionUtil.getErrorMessage(e));
+                if (e instanceof NoRestartException) {
+                    throw e;
+                }
             } finally {
                 flushEnable.compareAndSet(true, false);
             }
