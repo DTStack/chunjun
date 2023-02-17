@@ -41,10 +41,6 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-/**
- * @program: flinkx
- * @author: jier
- */
 public class GreenplumOutputFormat extends JdbcOutputFormat {
 
     // pg 字符串里含有\u0000 会报错 ERROR: invalid byte sequence for encoding "UTF8": 0x00
