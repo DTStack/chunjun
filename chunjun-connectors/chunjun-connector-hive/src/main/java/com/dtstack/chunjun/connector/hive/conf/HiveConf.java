@@ -34,6 +34,7 @@ public class HiveConf extends HdfsConf {
     private String username;
     private String password;
     private String partitionType = "DAY";
+    private String partitionValue;
     private String partition = "pt";
     private String tablesColumn;
     private String distributeTable;
@@ -149,6 +150,14 @@ public class HiveConf extends HdfsConf {
         this.autoCreateTable = autoCreateTable;
     }
 
+    public String getPartitionValue() {
+        return partitionValue;
+    }
+
+    public void setPartitionValue(String partitionValue) {
+        this.partitionValue = partitionValue;
+    }
+
     @Override
     public String toString() {
         return "HiveConf{"
@@ -160,6 +169,9 @@ public class HiveConf extends HdfsConf {
                 + '\''
                 + ", password='"
                 + password
+                + '\''
+                + ", partitionValue='"
+                + partitionValue
                 + '\''
                 + ", partitionType='"
                 + partitionType

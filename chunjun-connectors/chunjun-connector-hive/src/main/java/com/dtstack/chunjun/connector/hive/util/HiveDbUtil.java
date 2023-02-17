@@ -38,6 +38,8 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -321,14 +323,23 @@ public class HiveDbUtil {
         Statement statement = null;
         try {
             statement = connection.createStatement();
-            statement.setQueryTimeout(connectionInfo.getTimeout());
+            // statement.setQueryTimeout(connectionInfo.getTimeout());
             executeSqlWithoutResultSet(statement, sql);
         } catch (Exception e) {
             throw new ChunJunRuntimeException(
-                    String.format("execute sql:%s, errorMessage:[%s]", sql, e.getMessage()));
+                    String.format(
+                            "execute sql:%s, errorMessage:[%s]",
+                            sql, getExceptionSrintStackTrace(e)));
         } finally {
             HiveDbUtil.closeDbResources(null, statement, null);
         }
+    }
+
+    public static String getExceptionSrintStackTrace(Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        return sw.toString();
     }
 
     private static void executeSqlWithoutResultSet(Statement stmt, String sql) throws SQLException {

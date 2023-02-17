@@ -256,7 +256,10 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
     private Pair<BaseHdfsOutputFormat, TableInfo> getHdfsOutputFormat(
             String tableName, RowData rowData, Map<String, Object> event) {
-        String partitionValue = partitionFormat.format(new Date());
+        String partitionValue = hiveConf.getPartitionValue();
+        if (StringUtils.isBlank(partitionValue)) {
+            partitionValue = partitionFormat.format(new Date());
+        }
         String partitionPath =
                 String.format(HiveUtil.PARTITION_TEMPLATE, hiveConf.getPartition(), partitionValue);
         String hiveTablePath = tableName + File.separatorChar + partitionPath;
