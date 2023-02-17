@@ -55,6 +55,7 @@ public class HttpColumnConverter
 
     public HttpColumnConverter(HttpRestConfig httpRestConfig) {
         this.httpRestConfig = httpRestConfig;
+        this.commonConf = httpRestConfig;
 
         // Only json need to extract the fields
         if (StringUtils.isNotBlank((httpRestConfig.getFields()))) {
