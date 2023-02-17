@@ -74,9 +74,7 @@ public class HttpRowConverter
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         List<String> columns = rowType.getFieldNames();
         for (int pos = 0; pos < columns.size(); pos++) {
-            Object value =
-                    MapUtil.getValueByKey(
-                            result, columns.get(pos), httpRestConfig.getFieldDelimiter());
+            Object value = MapUtil.getValueByKey(result, columns.get(pos), "");
             if (value instanceof LinkedTreeMap) {
                 value = value.toString();
             }
