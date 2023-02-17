@@ -18,12 +18,8 @@
 
 package com.dtstack.chunjun.throwable;
 
-import static com.dtstack.chunjun.util.DtStringUtil.addLineNumber;
+import static com.dtstack.chunjun.util.StringUtil.addLineNumber;
 
-/**
- * @author tiezhu
- * @since 2021/4/28 4:16 下午
- */
 public class ChunJunSqlParseException extends ChunJunRuntimeException {
 
     private static final long serialVersionUID = 140340324748507369L;

@@ -22,7 +22,6 @@ import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.chunjun.connector.sybase.dialect.SybaseDialect;
 
-/** @Author OT @Date 2022/6/16 15:25 @Version 1.0 */
 public class SybaseDynamicTableFactory extends JdbcDynamicTableFactory {
     private static final String IDENTIFIER = "sybase-x";
 

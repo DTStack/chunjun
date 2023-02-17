@@ -32,9 +32,9 @@ import java.util.StringJoiner;
 public class DorisHttpRowConverter
         extends AbstractRowConverter<RowData, RowData, StringJoiner, LogicalType> {
 
-    private static final long serialVersionUID = 2L;
-
     private static final String NULL_VALUE = "\\N";
+
+    private static final long serialVersionUID = -2636292632781799617L;
 
     public DorisHttpRowConverter(RowType rowType) {
         super(rowType);
@@ -49,7 +49,7 @@ public class DorisHttpRowConverter
     }
 
     @Override
-    public RowData toInternal(RowData input) throws Exception {
+    public RowData toInternal(RowData input) {
         return null;
     }
 

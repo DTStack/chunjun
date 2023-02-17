@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.doris.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.doris.converter.DorisRowTypeConverter;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
@@ -28,8 +28,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 public class DorisSourceFactory extends JdbcSourceFactory {
 
-    public DorisSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, new MysqlDialect());
+    public DorisSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env, new MysqlDialect());
     }
 
     @Override

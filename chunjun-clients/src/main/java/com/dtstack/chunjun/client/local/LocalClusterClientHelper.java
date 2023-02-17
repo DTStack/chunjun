@@ -23,14 +23,9 @@ import com.dtstack.chunjun.client.JobDeployer;
 
 import org.apache.flink.client.program.ClusterClient;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
-public class LocalClusterClientHelper implements ClusterClientHelper {
+public class LocalClusterClientHelper implements ClusterClientHelper<Void> {
     @Override
-    public ClusterClient submit(JobDeployer jobDeployer) throws Exception {
+    public ClusterClient<Void> submit(JobDeployer jobDeployer) throws Exception {
         String[] args = jobDeployer.getProgramArgs().toArray(new String[0]);
         Main.main(args);
         return null;

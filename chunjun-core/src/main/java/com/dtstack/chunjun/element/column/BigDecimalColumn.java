@@ -28,12 +28,9 @@ import java.util.Date;
 
 import static com.dtstack.chunjun.element.ClassSizeUtil.getStringSize;
 
-/**
- * Date: 2021/04/26 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class BigDecimalColumn extends AbstractBaseColumn {
+
+    private static final long serialVersionUID = 8849006021507991960L;
 
     public BigDecimalColumn(BigDecimal data) {
         this(data, data.toString());

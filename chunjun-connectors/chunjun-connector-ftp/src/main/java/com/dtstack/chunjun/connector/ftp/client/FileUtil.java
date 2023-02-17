@@ -18,11 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.client;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class FileUtil {
-    private static final Logger LOG = LoggerFactory.getLogger(FileUtil.class);
 
     public static String getFilename(String filepath) {
         String[] paths = filepath.split("/");

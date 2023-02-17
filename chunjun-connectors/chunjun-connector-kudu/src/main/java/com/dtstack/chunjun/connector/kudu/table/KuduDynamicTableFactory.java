@@ -18,19 +18,17 @@
 
 package com.dtstack.chunjun.connector.kudu.table;
 
-import com.dtstack.chunjun.connector.kudu.conf.KuduLookupConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduSinkConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduSourceConf;
+import com.dtstack.chunjun.connector.kudu.config.KuduLookupConfig;
+import com.dtstack.chunjun.connector.kudu.config.KuduSinkConfig;
+import com.dtstack.chunjun.connector.kudu.config.KuduSourceConfig;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -67,10 +65,6 @@ import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_MA
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_MAX_RETRIES;
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_PARALLELISM;
 
-/**
- * @author tiezhu
- * @since 2021/6/9 星期三
- */
 public class KuduDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     private static final String IDENTIFIER = "kudu-x";
@@ -84,12 +78,8 @@ public class KuduDynamicTableFactory implements DynamicTableSourceFactory, Dynam
 
         helper.validate();
 
-        TableSchema tableSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-
-        KuduSinkConf kuduSinkConf = KuduSinkConf.from(options);
-
-        return new KuduDynamicTableSink(kuduSinkConf, tableSchema);
+        return new KuduDynamicTableSink(
+                KuduSinkConfig.from(options), context.getCatalogTable().getResolvedSchema());
     }
 
     @Override
@@ -101,13 +91,11 @@ public class KuduDynamicTableFactory implements DynamicTableSourceFactory, Dynam
 
         helper.validate();
 
-        TableSchema tableSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        KuduSourceConfig kuduSourceConfig = KuduSourceConfig.from(options);
+        KuduLookupConfig kuduLookupConfig = KuduLookupConfig.from(options);
 
-        KuduSourceConf kuduSourceConf = KuduSourceConf.from(options);
-        KuduLookupConf kuduLookupConf = KuduLookupConf.from(options);
-
-        return new KuduDynamicTableSource(kuduSourceConf, kuduLookupConf, tableSchema);
+        return new KuduDynamicTableSource(
+                kuduSourceConfig, kuduLookupConfig, context.getCatalogTable().getResolvedSchema());
     }
 
     @Override

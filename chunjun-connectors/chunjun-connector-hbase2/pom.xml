@@ -24,12 +24,12 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.12-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-hbase2</artifactId>
-	<name>ChunJun : Connectors : HBase2</name>
+	<name>ChunJun : Connector : HBase2</name>
 
 	<properties>
 		<hbase.version>2.2.0</hbase.version>
@@ -40,7 +40,7 @@
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-connector-hbase-base</artifactId>
-			<version>1.12-SNAPSHOT</version>
+			<version>${revision}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>log4j-1.2-api</artifactId>
@@ -189,44 +189,12 @@
 						${basedir}/target/hbase-2/original-${project.artifactId}-${project.version}.jar
 					</outputFile>
 				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.apache.flink</groupId>
-						<artifactId>flink-connector-hbase-2.2_2.12</artifactId>
-						<version>1.12.2</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<!-- here the phase you need -->
-						<phase>package</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/connector/hbase2/"
-									  file="${basedir}/target/hbase-2/original-${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../${dist.dir}/connector/hbase2/original-${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/hbase2/${project.artifactId}.jar"/>
-								<delete>
-									<!--suppress UnresolvedMavenProperty -->
-									<fileset dir="${basedir}/../../${dist.dir}/connector/hbase2/"
-											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}.jar"/>
-								</delete>
-							</tasks>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
-
 		</plugins>
 	</build>
-
 </project>

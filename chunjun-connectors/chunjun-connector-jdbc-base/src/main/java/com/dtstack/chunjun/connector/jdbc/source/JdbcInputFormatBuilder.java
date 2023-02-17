@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -33,22 +33,15 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * The builder of JdbcInputFormat
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInputFormat> {
 
     public JdbcInputFormatBuilder(JdbcInputFormat format) {
         super(format);
     }
 
-    public void setJdbcConf(JdbcConf jdbcConf) {
-        super.setConfig(jdbcConf);
-        format.setJdbcConf(jdbcConf);
+    public void setJdbcConf(JdbcConfig jdbcConfig) {
+        super.setConfig(jdbcConfig);
+        format.setJdbcConf(jdbcConfig);
     }
 
     public void setJdbcDialect(JdbcDialect jdbcDialect) {
@@ -61,7 +54,7 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
 
     @Override
     protected void checkFormat() {
-        JdbcConf conf = format.getJdbcConf();
+        JdbcConfig conf = format.getJdbcConfig();
         StringBuilder sb = new StringBuilder(256);
         if (StringUtils.isBlank(conf.getUsername())) {
             sb.append("No username supplied;\n");
@@ -80,8 +73,8 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
             if (StringUtils.isBlank(conf.getSplitPk())) {
                 sb.append("Must specify the split column when the channel is greater than 1;\n");
             } else {
-                FieldConf field =
-                        FieldConf.getSameNameMetaColumn(conf.getColumn(), conf.getSplitPk());
+                FieldConfig field =
+                        FieldConfig.getSameNameMetaColumn(conf.getColumn(), conf.getSplitPk());
                 if (field == null) {
                     sb.append("split column must in columns;\n");
                 } else if (!ColumnType.isNumberType(field.getType())) {

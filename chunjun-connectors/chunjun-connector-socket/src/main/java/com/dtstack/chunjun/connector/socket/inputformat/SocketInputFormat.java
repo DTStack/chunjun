@@ -30,20 +30,20 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.SynchronousQueue;
 
-/**
- * 读取socket传入的数据
- *
- * @author kunni@dtstack.com
- */
+@Slf4j
 public class SocketInputFormat extends BaseRichInputFormat {
+
+    private static final long serialVersionUID = -5069890927073688651L;
 
     private SocketConfig socketConfig;
 
     protected DtSocketClient client;
+
     protected SynchronousQueue<RowData> queue;
 
     public static final String KEY_EXIT0 = "exit0 ";
@@ -55,10 +55,6 @@ public class SocketInputFormat extends BaseRichInputFormat {
         socketConfig.setPort(Integer.parseInt(hostPort[1]));
         this.socketConfig = socketConfig;
         super.config = socketConfig;
-    }
-
-    public SocketConfig getSocketConfig() {
-        return socketConfig;
     }
 
     @Override
@@ -92,7 +88,7 @@ public class SocketInputFormat extends BaseRichInputFormat {
                         new Exception("receive data error"));
             }
         } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted error: {}", ExceptionUtil.getErrorMessage(e));
+            log.error("takeEvent interrupted error: {}", ExceptionUtil.getErrorMessage(e));
             throw new ReadRecordException(row.toString(), e);
         }
         return row;

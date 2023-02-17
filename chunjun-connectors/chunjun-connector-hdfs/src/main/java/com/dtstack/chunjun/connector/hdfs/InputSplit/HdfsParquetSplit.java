@@ -19,29 +19,16 @@ package com.dtstack.chunjun.connector.hdfs.InputSplit;
 
 import org.apache.flink.core.io.InputSplit;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.util.List;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
+@Getter
+@AllArgsConstructor
 public class HdfsParquetSplit implements InputSplit {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 4038508961145626253L;
+
     private final int splitNumber;
     private final List<String> paths;
-
-    public HdfsParquetSplit(int splitNumber, List<String> paths) {
-        this.splitNumber = splitNumber;
-        this.paths = paths;
-    }
-
-    @Override
-    public int getSplitNumber() {
-        return splitNumber;
-    }
-
-    public List<String> getPaths() {
-        return paths;
-    }
 }

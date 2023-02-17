@@ -29,18 +29,9 @@ import org.apache.flink.table.types.logical.VarCharType;
 
 import java.util.Locale;
 
-/**
- * @program chunjun
- * @author: wuren
- * @create: 2021/04/22
- */
 public class PostgresqlRawTypeConverter {
 
-    /**
-     * inspired by Postgresql doc. https://www.postgresql.org/docs/current/datatype.html
-     *
-     * @param type
-     */
+    /** inspired by Postgresql doc. https://www.postgresql.org/docs/current/datatype.html */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
                 // Numeric Types
@@ -106,36 +97,6 @@ public class PostgresqlRawTypeConverter {
                 return DataTypes.ARRAY(new AtomicDataType(new VarCharType()));
             case "_FLOAT4":
                 return DataTypes.ARRAY(new AtomicDataType(new FloatType()));
-
-                // 以下类型无法支持
-                // Enumerated Types
-
-                // Geometric Types
-                //            case "POINT":
-                //            case "LINE":
-                //            case "LSEG":
-                //            case "BOX":
-                //            case "PATH":
-                //            case "POLYGON":
-                //            case "CIRCLE":
-
-                // Network Address Types
-
-                // Bit String Types
-                //            case "BIT":
-                //                return DataTypes.BOOLEAN();
-                //            case "BIT VARYING":
-                //                return DataTypes.STRING();
-                //
-                //            case "XML":
-                //                return DataTypes.STRING();
-                //
-                //                // JSON Types
-                //            case "JSON":
-                //            case "JSONB":
-                //            case "JSONPATH":
-                //                return DataTypes.STRING();
-
             default:
                 throw new UnsupportedTypeException(type);
         }

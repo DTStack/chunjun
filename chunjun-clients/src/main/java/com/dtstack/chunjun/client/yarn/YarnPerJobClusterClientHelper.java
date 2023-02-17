@@ -42,13 +42,12 @@ import org.apache.flink.yarn.configuration.YarnConfigOptions;
 import org.apache.flink.yarn.configuration.YarnConfigOptionsInternal;
 import org.apache.flink.yarn.configuration.YarnLogConfigUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,22 +59,14 @@ import java.util.Properties;
 
 import static org.apache.flink.configuration.TaskManagerOptions.NUM_TASK_SLOTS;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
-public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
-
-    private static final Logger LOG = LoggerFactory.getLogger(YarnPerJobClusterClientHelper.class);
+@Slf4j
+public class YarnPerJobClusterClientHelper implements ClusterClientHelper<ApplicationId> {
 
     public static final int MIN_JM_MEMORY = 1024;
     public static final int MIN_TM_MEMORY = 1024;
-    public static final String JOBMANAGER_MEMORY_MB = "jobmanager.memory.process.size";
-    public static final String TASKMANAGER_MEMORY_MB = "taskmanager.memory.process.size";
 
     @Override
-    public ClusterClient submit(JobDeployer jobDeployer) throws Exception {
+    public ClusterClient<ApplicationId> submit(JobDeployer jobDeployer) throws Exception {
         Options launcherOptions = jobDeployer.getLauncherOptions();
         String confProp = launcherOptions.getConfProp();
         if (StringUtils.isBlank(confProp)) {
@@ -91,16 +82,18 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
         SecurityUtils.install(new SecurityConfiguration(flinkConfig));
 
         ClusterSpecification clusterSpecification = createClusterSpecification(jobDeployer);
-        YarnClusterDescriptor descriptor =
-                createPerJobClusterDescriptor(launcherOptions, flinkConfig);
 
-        ClusterClientProvider<ApplicationId> provider =
-                descriptor.deployJobCluster(clusterSpecification, new JobGraph(), true);
-        String applicationId = provider.getClusterClient().getClusterId().toString();
-        String flinkJobId = clusterSpecification.getJobGraph().getJobID().toString();
-        LOG.info("deploy per_job with appId: {}}, jobId: {}", applicationId, flinkJobId);
+        try (YarnClusterDescriptor descriptor =
+                createPerJobClusterDescriptor(launcherOptions, flinkConfig)) {
+            ClusterClientProvider<ApplicationId> provider =
+                    descriptor.deployJobCluster(
+                            clusterSpecification, new JobGraph("chunjun"), true);
+            String applicationId = provider.getClusterClient().getClusterId().toString();
+            String flinkJobId = clusterSpecification.getJobGraph().getJobID().toString();
+            log.info("deploy per_job with appId: {}}, jobId: {}", applicationId, flinkJobId);
 
-        return provider.getClusterClient();
+            return provider.getClusterClient();
+        }
     }
 
     private YarnClusterDescriptor createPerJobClusterDescriptor(

@@ -21,7 +21,5 @@ package com.dtstack.chunjun.mapping;
 public enum Casing {
     UNCHANGE,
     UPPER,
-    LOWER;
-
-    private Casing() {}
+    LOWER,
 }

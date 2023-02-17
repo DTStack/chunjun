@@ -17,22 +17,22 @@
  */
 package com.dtstack.chunjun;
 
-import com.dtstack.chunjun.cdc.CdcConf;
+import com.dtstack.chunjun.cdc.CdcConfig;
 import com.dtstack.chunjun.cdc.RestorationFlatMap;
 import com.dtstack.chunjun.cdc.ddl.DdlConvent;
 import com.dtstack.chunjun.cdc.handler.CacheHandler;
 import com.dtstack.chunjun.cdc.handler.DDLHandler;
-import com.dtstack.chunjun.conf.OperatorConf;
-import com.dtstack.chunjun.conf.SpeedConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.OperatorConfig;
+import com.dtstack.chunjun.config.SpeedConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
 import com.dtstack.chunjun.enums.ClusterMode;
 import com.dtstack.chunjun.enums.EJobType;
 import com.dtstack.chunjun.environment.EnvFactory;
 import com.dtstack.chunjun.environment.MyLocalStreamEnvironment;
-import com.dtstack.chunjun.mapping.MappingConf;
+import com.dtstack.chunjun.mapping.MappingConfig;
 import com.dtstack.chunjun.mapping.NameMappingFlatMap;
 import com.dtstack.chunjun.options.OptionParser;
 import com.dtstack.chunjun.options.Options;
@@ -60,21 +60,19 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.api.Schema;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableResult;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.expressions.ApiExpressionUtils;
 import org.apache.flink.table.expressions.Expression;
-import org.apache.flink.table.expressions.ExpressionParser;
-import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.factories.TableFactoryService;
 import org.apache.flink.table.types.DataType;
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.net.URLDecoder;
@@ -84,30 +82,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
-/**
- * The main class entry
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+@Slf4j
 public class Main {
 
-    public static Logger LOG = LoggerFactory.getLogger(Main.class);
-
     public static void main(String[] args) throws Exception {
-        LOG.info("------------program params-------------------------");
-        Arrays.stream(args).forEach(arg -> LOG.info("{}", arg));
-        LOG.info("-------------------------------------------");
+        log.info("------------program params-------------------------");
+        Arrays.stream(args).forEach(arg -> log.info("{}", arg));
+        log.info("-------------------------------------------");
 
         Options options = new OptionParser(args).getOptions();
         String job = URLDecoder.decode(options.getJob(), StandardCharsets.UTF_8.name());
-        String replacedJob = JobUtil.replaceJobParameter(options.getP(), options.getPj(), job);
+        String replacedJob = JobUtil.replaceJobParameter(options.getP(), job);
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =
                 EnvFactory.createStreamTableEnvironment(env, confProperties, options.getJobName());
-        LOG.info(
+        log.info(
                 "Register to table configuration:{}",
                 tEnv.getConfig().getConfiguration().toString());
         switch (EJobType.getByName(options.getJobType())) {
@@ -124,18 +114,9 @@ public class Main {
                                 + "], jobType must in [SQL, SYNC].");
         }
 
-        LOG.info("program {} execution success", options.getJobName());
+        log.info("program {} execution success", options.getJobName());
     }
 
-    /**
-     * 执行sql 类型任务
-     *
-     * @param env
-     * @param tableEnv
-     * @param job
-     * @param options
-     * @throws Exception
-     */
     private static void exeSqlJob(
             StreamExecutionEnvironment env,
             StreamTableEnvironment tableEnv,
@@ -156,33 +137,21 @@ public class Main {
             }
         } catch (Exception e) {
             throw new ChunJunRuntimeException(e);
-        } finally {
-            FactoryUtil.getFactoryHelperThreadLocal().remove();
-            TableFactoryService.getFactoryHelperThreadLocal().remove();
         }
     }
 
-    /**
-     * 执行 数据同步类型任务
-     *
-     * @param env
-     * @param tableEnv
-     * @param job
-     * @param options
-     * @throws Exception
-     */
     private static void exeSyncJob(
             StreamExecutionEnvironment env,
             StreamTableEnvironment tableEnv,
             String job,
             Options options)
             throws Exception {
-        SyncConf config = parseConf(job, options);
+        SyncConfig config = parseConfig(job, options);
         configStreamExecutionEnvironment(env, options, config);
 
         SourceFactory sourceFactory = DataSyncFactoryUtil.discoverSource(config, env);
         DataStream<RowData> dataStreamSource = sourceFactory.createSource();
-        SpeedConf speed = config.getSpeed();
+        SpeedConfig speed = config.getSpeed();
         if (speed.getReaderChannel() > 0) {
             dataStreamSource =
                     ((DataStreamSource<RowData>) dataStreamSource)
@@ -194,13 +163,13 @@ public class Main {
         if (null != config.getCdcConf()
                 && (null != config.getCdcConf().getDdl()
                         && null != config.getCdcConf().getCache())) {
-            CdcConf cdcConf = config.getCdcConf();
-            DDLHandler ddlHandler = DataSyncFactoryUtil.discoverDdlHandler(cdcConf, config);
+            CdcConfig cdcConfig = config.getCdcConf();
+            DDLHandler ddlHandler = DataSyncFactoryUtil.discoverDdlHandler(cdcConfig, config);
 
-            CacheHandler cacheHandler = DataSyncFactoryUtil.discoverCacheHandler(cdcConf, config);
+            CacheHandler cacheHandler = DataSyncFactoryUtil.discoverCacheHandler(cdcConfig, config);
             dataStreamSource =
                     dataStreamSource.flatMap(
-                            new RestorationFlatMap(ddlHandler, cacheHandler, cdcConf));
+                            new RestorationFlatMap(ddlHandler, cacheHandler, cdcConfig));
         }
 
         DataStream<RowData> dataStream;
@@ -230,26 +199,23 @@ public class Main {
         }
     }
 
-    /**
-     * 将数据同步Stream 注册成table
-     *
-     * @param tableEnv
-     * @param config
-     * @param sourceDataStream
-     * @return
-     */
     private static DataStream<RowData> syncStreamToTable(
             StreamTableEnvironment tableEnv,
-            SyncConf config,
+            SyncConfig config,
             DataStream<RowData> sourceDataStream) {
-        String fieldNames =
-                String.join(ConstantValue.COMMA_SYMBOL, config.getReader().getFieldNameList());
-        List<Expression> expressionList = ExpressionParser.parseExpressionList(fieldNames);
-        Table sourceTable =
-                tableEnv.fromDataStream(
-                        sourceDataStream, expressionList.toArray(new Expression[0]));
+        List<String> fieldNameList = config.getReader().getFieldNameList();
+        Schema.Builder builder = Schema.newBuilder();
+        Expression[] expressions =
+                fieldNameList.stream()
+                        .map(ApiExpressionUtils::unresolvedRef)
+                        .toArray(Expression[]::new);
+        for (int i = 0; i < fieldNameList.size(); i++) {
+            builder.columnByExpression(fieldNameList.get(i), expressions[i]);
+        }
 
-        checkTableConf(config.getReader());
+        Table sourceTable = tableEnv.fromDataStream(sourceDataStream, builder.build());
+
+        checkTableConfig(config.getReader());
         tableEnv.createTemporaryView(config.getReader().getTable().getTableName(), sourceTable);
 
         String transformSql = config.getJob().getTransformer().getTransformSql();
@@ -262,23 +228,16 @@ public class Main {
         DataStream<RowData> dataStream =
                 tableEnv.toRetractStream(adaptTable, typeInformation).map(f -> f.f1);
 
-        checkTableConf(config.getWriter());
+        checkTableConfig(config.getWriter());
         tableEnv.createTemporaryView(config.getWriter().getTable().getTableName(), dataStream);
 
         return dataStream;
     }
 
-    /**
-     * 解析并设置job
-     *
-     * @param job
-     * @param options
-     * @return
-     */
-    public static SyncConf parseConf(String job, Options options) {
-        SyncConf config;
+    public static SyncConfig parseConfig(String job, Options options) {
+        SyncConfig config;
         try {
-            config = SyncConf.parseJob(job);
+            config = SyncConfig.parseJob(job);
 
             // 设置chunjun-dist的路径
             if (StringUtils.isNotBlank(options.getChunjunDistDir())) {
@@ -299,15 +258,8 @@ public class Main {
         return config;
     }
 
-    /**
-     * 配置StreamExecutionEnvironment
-     *
-     * @param env StreamExecutionEnvironment
-     * @param options options
-     * @param config ChunJunConf
-     */
     private static void configStreamExecutionEnvironment(
-            StreamExecutionEnvironment env, Options options, SyncConf config) {
+            StreamExecutionEnvironment env, Options options, SyncConfig config) {
 
         if (config != null) {
             PluginUtil.registerPluginUrlToCachedFile(options, config, env);
@@ -325,7 +277,7 @@ public class Main {
             factoryHelper.setPluginLoadMode(options.getPluginLoadMode());
             factoryHelper.setEnv(env);
             factoryHelper.setExecutionMode(options.getMode());
-            DirtyConf dirtyConf = DirtyConfUtil.parse(options);
+            DirtyConfig dirtyConfig = DirtyConfUtil.parse(options);
             // 注册core包
             if (ClusterMode.local.name().equalsIgnoreCase(options.getMode())) {
                 factoryHelper.registerCachedFile(
@@ -333,41 +285,33 @@ public class Main {
             }
 
             factoryHelper.registerCachedFile(
-                    dirtyConf.getType(),
+                    dirtyConfig.getType(),
                     Thread.currentThread().getContextClassLoader(),
                     ConstantValue.DIRTY_DATA_DIR_NAME);
             // TODO sql 支持restore.
-
-            FactoryUtil.setFactoryUtilHelp(factoryHelper);
-            TableFactoryService.setFactoryUtilHelp(factoryHelper);
         }
         PluginUtil.registerShipfileToCachedFile(options.getAddShipfile(), env);
     }
 
-    /**
-     * Check required config item.
-     *
-     * @param operatorConf
-     */
-    private static void checkTableConf(OperatorConf operatorConf) {
-        if (operatorConf.getTable() == null) {
-            throw new JobConfigException(operatorConf.getName(), "table", "is missing");
+    private static void checkTableConfig(OperatorConfig operatorConfig) {
+        if (operatorConfig.getTable() == null) {
+            throw new JobConfigException(operatorConfig.getName(), "table", "is missing");
         }
-        if (StringUtils.isEmpty(operatorConf.getTable().getTableName())) {
-            throw new JobConfigException(operatorConf.getName(), "table.tableName", "is missing");
+        if (StringUtils.isEmpty(operatorConfig.getTable().getTableName())) {
+            throw new JobConfigException(operatorConfig.getName(), "table.tableName", "is missing");
         }
     }
 
     private static DataStream<RowData> addMappingOperator(
-            SyncConf config, DataStream<RowData> dataStreamSource) {
+            SyncConfig config, DataStream<RowData> dataStreamSource) {
 
         String sourceName =
                 RealTimeDataSourceNameUtil.getDataSourceName(
                         PluginUtil.replaceReaderAndWriterSuffix(config.getReader().getName()));
         // if source is kafka, need to specify the data source in mappingConf
-        if (config.getNameMappingConf() != null
-                && StringUtils.isNotBlank(config.getNameMappingConf().getSourceName())) {
-            sourceName = config.getNameMappingConf().getSourceName();
+        if (config.getNameMappingConfig() != null
+                && StringUtils.isNotBlank(config.getNameMappingConfig().getSourceName())) {
+            sourceName = config.getNameMappingConfig().getSourceName();
         }
         // 如果是实时任务 则sourceName 会和脚本里的名称不一致 例如 oraclelogminer 会转为oracle，binlogreader转为mysql
         if (PluginUtil.replaceReaderAndWriterSuffix(config.getReader().getName())
@@ -380,18 +324,18 @@ public class Main {
         boolean ddlSkip = config.getReader().getBooleanVal("ddlSkip", true);
         boolean useDdlConvent =
                 !sourceName.equals(sinkName) && !ddlSkip
-                        || (config.getNameMappingConf() != null
-                                && config.getNameMappingConf().needReplaceMetaData());
+                        || (config.getNameMappingConfig() != null
+                                && config.getNameMappingConfig().needReplaceMetaData());
 
         if (useDdlConvent) {
             DdlConvent sourceDdlConvent = null;
             DdlConvent sinkDdlConvent = null;
-            MappingConf mappingConf = config.getNameMappingConf();
+            MappingConfig mappingConfig = config.getNameMappingConfig();
 
             try {
                 sourceDdlConvent =
                         DataSyncFactoryUtil.discoverDdlConventHandler(
-                                mappingConf, sourceName, config);
+                                mappingConfig, sourceName, config);
             } catch (Throwable e) {
                 // ignore
             }
@@ -402,7 +346,7 @@ public class Main {
                 try {
                     sinkDdlConvent =
                             DataSyncFactoryUtil.discoverDdlConventHandler(
-                                    mappingConf, sinkName, config);
+                                    mappingConfig, sinkName, config);
                 } catch (Throwable e) {
                     // ignore
                 }
@@ -410,7 +354,7 @@ public class Main {
 
             return dataStreamSource.flatMap(
                     new NameMappingFlatMap(
-                            mappingConf, useDdlConvent, sourceDdlConvent, sinkDdlConvent));
+                            mappingConfig, useDdlConvent, sourceDdlConvent, sinkDdlConvent));
         }
         return dataStreamSource;
     }

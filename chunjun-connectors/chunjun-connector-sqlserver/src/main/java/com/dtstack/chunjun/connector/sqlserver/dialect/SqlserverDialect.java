@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.sqlserver.dialect;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -27,11 +27,11 @@ import com.dtstack.chunjun.connector.jdbc.util.key.DateTypeUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.NumericTypeUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.TimestampTypeUtil;
-import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverJtdsColumnConverter;
 import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverJtdsRawTypeConverter;
-import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftColumnConverter;
+import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverJtdsSyncConverter;
 import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftRawTypeConverter;
-import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftRowConverter;
+import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftSqlConverter;
+import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftSyncConverter;
 import com.dtstack.chunjun.connector.sqlserver.util.increment.SqlserverTimestampTypeUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -42,6 +42,7 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import io.vertx.core.json.JsonArray;
+import lombok.NoArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -55,13 +56,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Company：www.dtstack.com
- *
- * @author shitou
- * @date 2021/5/17 11:24
- */
+@NoArgsConstructor
 public class SqlserverDialect implements JdbcDialect {
+
+    private static final long serialVersionUID = 6935413064547142101L;
 
     private static final String SET_IDENTITY_INSERT_ON_SQL =
             "IF OBJECTPROPERTY(OBJECT_ID('%s'),'TableHasIdentity')=1 BEGIN SET IDENTITY_INSERT %s ON  END";
@@ -72,8 +70,6 @@ public class SqlserverDialect implements JdbcDialect {
     private boolean withNoLock;
 
     private boolean useJtdsDriver;
-
-    public SqlserverDialect() {}
 
     public SqlserverDialect(boolean withNoLock, boolean useJtdsDriver) {
         this.withNoLock = withNoLock;
@@ -115,17 +111,17 @@ public class SqlserverDialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
         if (useJtdsDriver) {
-            return new SqlserverJtdsColumnConverter(rowType, commonConf);
+            return new SqlserverJtdsSyncConverter(rowType, commonConfig);
         }
-        return new SqlserverMicroSoftColumnConverter(rowType, commonConf);
+        return new SqlserverMicroSoftSyncConverter(rowType, commonConfig);
     }
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
             getRowConverter(RowType rowType) {
-        return new SqlserverMicroSoftRowConverter(rowType);
+        return new SqlserverMicroSoftSqlConverter(rowType);
     }
 
     @Override

@@ -23,12 +23,12 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.12-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-elasticsearch-base</artifactId>
-	<name>ChunJun : Connectors : ElasticSearch base</name>
+	<name>ChunJun : Connector : ElasticSearch base</name>
 	<properties>
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
@@ -37,7 +37,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-connector-elasticsearch-base_${scala.binary.version}</artifactId>
+			<artifactId>flink-connector-elasticsearch-base</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 	</dependencies>

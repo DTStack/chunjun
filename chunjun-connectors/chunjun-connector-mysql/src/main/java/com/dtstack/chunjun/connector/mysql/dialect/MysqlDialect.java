@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.mysql.dialect;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.mysql.converter.MysqlRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -30,12 +30,9 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * @program: ChunJun
- * @author: wuren
- * @create: 2021/03/17
- */
 public class MysqlDialect implements JdbcDialect {
+
+    private static final long serialVersionUID = 4607084579671405838L;
 
     @Override
     public String dialectName() {
@@ -123,7 +120,7 @@ public class MysqlDialect implements JdbcDialect {
     }
 
     @Override
-    public Function<JdbcConf, Tuple3<String, String, String>> getTableIdentify() {
+    public Function<JdbcConfig, Tuple3<String, String, String>> getTableIdentify() {
         return conf -> Tuple3.of(conf.getSchema(), null, conf.getTable());
     }
 }

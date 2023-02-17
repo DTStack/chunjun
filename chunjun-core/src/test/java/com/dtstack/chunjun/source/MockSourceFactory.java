@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -27,8 +27,8 @@ import org.apache.flink.table.data.RowData;
 
 public class MockSourceFactory extends SourceFactory {
 
-    protected MockSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
+    protected MockSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env);
     }
 
     @Override

@@ -27,8 +27,10 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 
-/** @author liuliu 2022/1/12 */
 public class SqlDateColumn extends AbstractBaseColumn {
+
+    private static final long serialVersionUID = -4116800816554801948L;
+
     public SqlDateColumn(Date data) {
         super(data, 8);
     }

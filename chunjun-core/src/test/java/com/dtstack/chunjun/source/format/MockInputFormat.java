@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.source.format;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -30,7 +30,13 @@ import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.metrics.CharacterFilter;
+import org.apache.flink.metrics.Counter;
+import org.apache.flink.metrics.Gauge;
+import org.apache.flink.metrics.Histogram;
+import org.apache.flink.metrics.Meter;
 import org.apache.flink.metrics.MetricGroup;
+import org.apache.flink.metrics.groups.OperatorIOMetricGroup;
+import org.apache.flink.metrics.groups.OperatorMetricGroup;
 import org.apache.flink.runtime.clusterframework.types.ResourceProfile;
 import org.apache.flink.runtime.execution.Environment;
 import org.apache.flink.runtime.jobgraph.OperatorID;
@@ -40,7 +46,6 @@ import org.apache.flink.runtime.metrics.MetricRegistry;
 import org.apache.flink.runtime.metrics.NoOpMetricRegistry;
 import org.apache.flink.runtime.metrics.dump.QueryScopeInfo;
 import org.apache.flink.runtime.metrics.groups.AbstractMetricGroup;
-import org.apache.flink.runtime.metrics.groups.MetricGroupTest;
 import org.apache.flink.runtime.operators.testutils.MockEnvironment;
 import org.apache.flink.runtime.operators.testutils.MockEnvironmentBuilder;
 import org.apache.flink.runtime.operators.testutils.MockInputSplitProvider;
@@ -51,6 +56,7 @@ import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.RowData;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -80,9 +86,9 @@ public class MockInputFormat extends BaseRichInputFormat {
                                         new TestingJobMasterGatewayBuilder().build()))
                         .build();
         setRuntimeContext(new MockRuntimeContext(environment));
-        ChunJunCommonConf chunJunCommonConf = new ChunJunCommonConf();
-        chunJunCommonConf.setMetricPluginName("mock");
-        setConfig(chunJunCommonConf);
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setMetricPluginName("mock");
+        setConfig(commonConfig);
     }
 
     @Override
@@ -156,10 +162,69 @@ public class MockInputFormat extends BaseRichInputFormat {
         }
 
         @Override
-        public MetricGroup getMetricGroup() {
+        public OperatorMetricGroup getMetricGroup() {
             MetricRegistry registry = NoOpMetricRegistry.INSTANCE;
-            return new MockMetricGroup(
-                    registry, new MetricGroupTest.DummyAbstractMetricGroup(registry), "root");
+            return new OperatorMetricGroup() {
+                @Override
+                public OperatorIOMetricGroup getIOMetricGroup() {
+                    return null;
+                }
+
+                @Override
+                public Counter counter(String s) {
+                    return null;
+                }
+
+                @Override
+                public <C extends Counter> C counter(String s, C c) {
+                    return null;
+                }
+
+                @Override
+                public <T, G extends Gauge<T>> G gauge(String s, G g) {
+                    return null;
+                }
+
+                @Override
+                public <H extends Histogram> H histogram(String s, H h) {
+                    return null;
+                }
+
+                @Override
+                public <M extends Meter> M meter(String s, M m) {
+                    return null;
+                }
+
+                @Override
+                public MetricGroup addGroup(String s) {
+                    return null;
+                }
+
+                @Override
+                public MetricGroup addGroup(String s, String s1) {
+                    return null;
+                }
+
+                @Override
+                public String[] getScopeComponents() {
+                    return new String[0];
+                }
+
+                @Override
+                public Map<String, String> getAllVariables() {
+                    return null;
+                }
+
+                @Override
+                public String getMetricIdentifier(String s) {
+                    return null;
+                }
+
+                @Override
+                public String getMetricIdentifier(String s, CharacterFilter characterFilter) {
+                    return null;
+                }
+            };
         }
     }
 
@@ -212,12 +277,14 @@ public class MockInputFormat extends BaseRichInputFormat {
                     new String[] {"/tmp/dir"},
                     Time.of(5000, TimeUnit.MILLISECONDS),
                     Time.of(60000, TimeUnit.MILLISECONDS),
+                    null,
                     new Configuration(),
                     true,
                     "/tmp/dir/log/temp.log",
                     "/tmp/dir/log/stdout.log",
                     "/tmp/dir/log",
                     "",
+                    new File("/tmp/dir/"),
                     new RetryingRegistrationConfiguration(
                             20L, 1000L, 15000L, // make sure that we timeout in case of an error
                             15000L));

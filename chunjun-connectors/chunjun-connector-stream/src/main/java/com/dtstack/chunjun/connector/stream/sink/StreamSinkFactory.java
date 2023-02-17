@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.stream.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.stream.conf.StreamConf;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.stream.config.StreamConfig;
 import com.dtstack.chunjun.connector.stream.converter.StreamColumnConverter;
 import com.dtstack.chunjun.connector.stream.converter.StreamRawTypeConverter;
 import com.dtstack.chunjun.connector.stream.converter.StreamRowConverter;
@@ -34,34 +34,30 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
-/**
- * Date: 2021/04/07 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class StreamSinkFactory extends SinkFactory {
 
-    private final StreamConf streamConf;
+    private final StreamConfig streamConfig;
 
-    public StreamSinkFactory(SyncConf config) {
+    public StreamSinkFactory(SyncConfig config) {
         super(config);
-        streamConf =
+        streamConfig =
                 GsonUtil.GSON.fromJson(
-                        GsonUtil.GSON.toJson(config.getWriter().getParameter()), StreamConf.class);
-        streamConf.setColumn(config.getWriter().getFieldList());
-        super.initCommonConf(streamConf);
+                        GsonUtil.GSON.toJson(config.getWriter().getParameter()),
+                        StreamConfig.class);
+        streamConfig.setColumn(config.getWriter().getFieldList());
+        super.initCommonConf(streamConfig);
     }
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
-        builder.setStreamConf(streamConf);
+        builder.setStreamConfig(streamConfig);
         AbstractRowConverter converter;
         if (useAbstractBaseColumn) {
-            converter = new StreamColumnConverter(streamConf);
+            converter = new StreamColumnConverter(streamConfig);
         } else {
             final RowType rowType =
-                    TableUtil.createRowType(streamConf.getColumn(), getRawTypeConverter());
+                    TableUtil.createRowType(streamConfig.getColumn(), getRawTypeConverter());
             converter = new StreamRowConverter(rowType);
         }
 

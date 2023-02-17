@@ -22,23 +22,20 @@ import com.dtstack.chunjun.connector.ftp.extend.ftp.concurrent.FtpFileSplit;
 
 import org.apache.flink.core.io.InputSplit;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class FtpInputSplit implements InputSplit {
 
-    private List<FtpFileSplit> fileSplits = new ArrayList<>();
+    private static final long serialVersionUID = 3420162941987964041L;
+
+    private final List<FtpFileSplit> fileSplits = new ArrayList<>();
 
     @Override
     public int getSplitNumber() {
         return 0;
-    }
-
-    public List<FtpFileSplit> getFileSplits() {
-        return fileSplits;
-    }
-
-    public void setFileSplits(List<FtpFileSplit> fileSplits) {
-        this.fileSplits = fileSplits;
     }
 }

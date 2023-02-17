@@ -28,6 +28,7 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.hadoop.fs.Path;
@@ -38,12 +39,9 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Date: 2021/06/09 Company: www.dtstack.com
- *
- * @author tudou
- */
+@Slf4j
 public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
+    private static final long serialVersionUID = -5004066346338703715L;
 
     private static final int NEWLINE = 10;
     private transient OutputStream stream;
@@ -71,7 +69,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
                 }
             }
             currentFileIndex++;
-            LOG.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
+            log.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
         } catch (IOException e) {
             throw new ChunJunRuntimeException(
                     Hive3Util.parseErrorMsg(null, ExceptionUtil.getErrorMessage(e)), e);
@@ -80,7 +78,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public void flushDataInternal() {
-        LOG.info(
+        log.info(
                 "Close current text stream, write data size:[{}]",
                 SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
 
@@ -99,7 +97,6 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void writeSingleRecordToFile(RowData rowData) throws WriteRecordException {
         if (stream == null) {
             nextBlock();
@@ -110,10 +107,10 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
         } catch (Exception e) {
             throw new WriteRecordException("can't parse rowData", e, -1, rowData);
         }
-        String line = String.join(hdfsConf.getFieldDelimiter(), result);
+        String line = String.join(hdfsConfig.getFieldDelimiter(), result);
 
         try {
-            byte[] bytes = line.getBytes(hdfsConf.getEncoding());
+            byte[] bytes = line.getBytes(hdfsConfig.getEncoding());
             this.stream.write(bytes);
             this.stream.write(NEWLINE);
             rowsOfCurrentBlock++;
@@ -145,6 +142,6 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public CompressType getCompressType() {
-        return CompressType.getByTypeAndFileType(hdfsConf.getCompress(), FileType.TEXT.name());
+        return CompressType.getByTypeAndFileType(hdfsConfig.getCompress(), FileType.TEXT.name());
     }
 }

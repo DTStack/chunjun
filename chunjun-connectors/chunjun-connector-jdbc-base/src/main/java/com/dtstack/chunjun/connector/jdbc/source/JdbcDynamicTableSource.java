@@ -18,21 +18,22 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.chunjun.connector.jdbc.lookup.JdbcLruTableFunction;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.enums.CacheType;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
-import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
+import com.dtstack.chunjun.table.connector.source.ParallelAsyncLookupFunctionProvider;
+import com.dtstack.chunjun.table.connector.source.ParallelLookupFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
-import com.dtstack.chunjun.table.connector.source.ParallelTableFunctionProvider;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.Column;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
@@ -41,7 +42,6 @@ import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushD
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
 import org.apache.commons.lang3.StringUtils;
@@ -56,22 +56,22 @@ import java.util.stream.Collectors;
 public class JdbcDynamicTableSource
         implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
-    protected final JdbcConf jdbcConf;
-    protected final LookupConf lookupConf;
+    protected final JdbcConfig jdbcConfig;
+    protected final LookupConfig lookupConfig;
     protected final String dialectName;
     protected final JdbcDialect jdbcDialect;
     protected final JdbcInputFormatBuilder builder;
-    protected TableSchema physicalSchema;
+    protected ResolvedSchema resolvedSchema;
 
     public JdbcDynamicTableSource(
-            JdbcConf jdbcConf,
-            LookupConf lookupConf,
-            TableSchema physicalSchema,
+            JdbcConfig jdbcConfig,
+            LookupConfig lookupConfig,
+            ResolvedSchema resolvedSchema,
             JdbcDialect jdbcDialect,
             JdbcInputFormatBuilder builder) {
-        this.jdbcConf = jdbcConf;
-        this.lookupConf = lookupConf;
-        this.physicalSchema = physicalSchema;
+        this.jdbcConfig = jdbcConfig;
+        this.lookupConfig = lookupConfig;
+        this.resolvedSchema = resolvedSchema;
         this.jdbcDialect = jdbcDialect;
         this.dialectName = jdbcDialect.dialectName();
         this.builder = builder;
@@ -84,110 +84,115 @@ public class JdbcDynamicTableSource
             int[] innerKeyArr = context.getKeys()[i];
             Preconditions.checkArgument(
                     innerKeyArr.length == 1, "JDBC only support non-nested look up keys");
-            keyNames[i] = physicalSchema.getFieldNames()[innerKeyArr[0]];
+            keyNames[i] = resolvedSchema.getColumnNames().get(innerKeyArr[0]);
         }
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
+        final RowType rowType =
+                InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType())
+                        .toRowType();
 
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
-            return ParallelTableFunctionProvider.of(
+        if (lookupConfig.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+            return ParallelLookupFunctionProvider.of(
                     new JdbcAllTableFunction(
-                            jdbcConf,
+                            jdbcConfig,
                             jdbcDialect,
-                            lookupConf,
-                            physicalSchema.getFieldNames(),
+                            lookupConfig,
+                            resolvedSchema.getColumnNames().toArray(new String[0]),
                             keyNames,
                             rowType),
-                    lookupConf.getParallelism());
+                    lookupConfig.getParallelism());
         }
-        return ParallelAsyncTableFunctionProvider.of(
+        return ParallelAsyncLookupFunctionProvider.of(
                 new JdbcLruTableFunction(
-                        jdbcConf,
+                        jdbcConfig,
                         jdbcDialect,
-                        lookupConf,
-                        physicalSchema.getFieldNames(),
+                        lookupConfig,
+                        resolvedSchema.getColumnNames().toArray(new String[0]),
                         keyNames,
                         rowType),
-                lookupConf.getParallelism());
+                lookupConfig.getParallelism());
     }
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
+        TypeInformation<RowData> typeInformation =
+                InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType());
 
         JdbcInputFormatBuilder builder = this.builder;
-        String[] fieldNames = physicalSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        for (int i = 0; i < fieldNames.length; i++) {
-            FieldConf field = new FieldConf();
-            field.setName(fieldNames[i]);
-            field.setType(rowType.getTypeAt(i).asSummaryString());
-            field.setIndex(i);
+        List<Column> columns = resolvedSchema.getColumns();
+        List<FieldConfig> columnList = new ArrayList<>(columns.size());
+        for (Column column : columns) {
+            FieldConfig field = new FieldConfig();
+            field.setName(column.getName());
+            field.setType(column.getDataType().getLogicalType().asSummaryString());
+            field.setIndex(columns.indexOf(column));
             columnList.add(field);
         }
-        jdbcConf.setColumn(columnList);
+        jdbcConfig.setColumn(columnList);
 
         // TODO sql任务使用增量同步或者间隔轮询时暂不支持增量指标写入外部存储，暂时设置为false
-        jdbcConf.setInitReporter(false);
+        jdbcConfig.setInitReporter(false);
 
         KeyUtil<?, BigInteger> restoreKeyUtil = null;
         KeyUtil<?, BigInteger> splitKeyUtil = null;
         KeyUtil<?, BigInteger> incrementKeyUtil = null;
 
         // init restore info
-        String restoreColumn = jdbcConf.getRestoreColumn();
+        String restoreColumn = jdbcConfig.getRestoreColumn();
         if (StringUtils.isNotBlank(restoreColumn)) {
-            FieldConf fieldConf =
-                    FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), restoreColumn);
-            if (fieldConf != null) {
-                jdbcConf.setRestoreColumnIndex(fieldConf.getIndex());
-                jdbcConf.setRestoreColumnType(fieldConf.getType());
-                restoreKeyUtil = jdbcDialect.initKeyUtil(fieldConf.getName(), fieldConf.getType());
+            FieldConfig fieldConfig =
+                    FieldConfig.getSameNameMetaColumn(jdbcConfig.getColumn(), restoreColumn);
+            if (fieldConfig != null) {
+                jdbcConfig.setRestoreColumnIndex(fieldConfig.getIndex());
+                jdbcConfig.setRestoreColumnType(fieldConfig.getType());
+                restoreKeyUtil =
+                        jdbcDialect.initKeyUtil(fieldConfig.getName(), fieldConfig.getType());
             } else {
                 throw new IllegalArgumentException("unknown restore column name: " + restoreColumn);
             }
         }
 
         // init splitInfo
-        String splitPk = jdbcConf.getSplitPk();
+        String splitPk = jdbcConfig.getSplitPk();
         if (StringUtils.isNotBlank(splitPk)) {
-            FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), splitPk);
-            if (fieldConf != null) {
-                jdbcConf.setSplitPk(fieldConf.getName());
-                splitKeyUtil = jdbcDialect.initKeyUtil(fieldConf.getName(), fieldConf.getType());
+            FieldConfig fieldConfig =
+                    FieldConfig.getSameNameMetaColumn(jdbcConfig.getColumn(), splitPk);
+            if (fieldConfig != null) {
+                jdbcConfig.setSplitPk(fieldConfig.getName());
+                splitKeyUtil =
+                        jdbcDialect.initKeyUtil(fieldConfig.getName(), fieldConfig.getType());
             }
         }
 
         // init incrementInfo
-        String incrementColumn = jdbcConf.getIncreColumn();
+        String incrementColumn = jdbcConfig.getIncreColumn();
         if (StringUtils.isNotBlank(incrementColumn)) {
-            FieldConf fieldConf =
-                    FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), incrementColumn);
+            FieldConfig fieldConfig =
+                    FieldConfig.getSameNameMetaColumn(jdbcConfig.getColumn(), incrementColumn);
             int index;
             String name;
             String type;
-            if (fieldConf != null) {
-                index = fieldConf.getIndex();
-                name = fieldConf.getName();
-                type = fieldConf.getType();
+            if (fieldConfig != null) {
+                index = fieldConfig.getIndex();
+                name = fieldConfig.getName();
+                type = fieldConfig.getType();
                 incrementKeyUtil = jdbcDialect.initKeyUtil(name, type);
             } else {
                 throw new IllegalArgumentException(
                         "unknown increment column name: " + incrementColumn);
             }
-            jdbcConf.setIncreColumn(name);
-            jdbcConf.setIncreColumnType(type);
-            jdbcConf.setIncreColumnIndex(index);
+            jdbcConfig.setIncreColumn(name);
+            jdbcConfig.setIncreColumnType(type);
+            jdbcConfig.setIncreColumnIndex(index);
 
-            jdbcConf.setRestoreColumn(name);
-            jdbcConf.setRestoreColumnIndex(index);
-            jdbcConf.setRestoreColumnType(type);
+            jdbcConfig.setRestoreColumn(name);
+            jdbcConfig.setRestoreColumnIndex(index);
+            jdbcConfig.setRestoreColumnType(type);
             restoreKeyUtil = incrementKeyUtil;
 
-            if (StringUtils.isBlank(jdbcConf.getSplitPk())) {
+            if (StringUtils.isBlank(jdbcConfig.getSplitPk())) {
                 splitKeyUtil = incrementKeyUtil;
-                jdbcConf.setSplitPk(name);
+                jdbcConfig.setSplitPk(name);
             }
         }
 
@@ -196,16 +201,21 @@ public class JdbcDynamicTableSource
         builder.setIncrementKeyUtil(incrementKeyUtil);
 
         builder.setColumnNameList(
-                jdbcConf.getColumn().stream().map(FieldConf::getName).collect(Collectors.toList()));
+                jdbcConfig.getColumn().stream()
+                        .map(FieldConfig::getName)
+                        .collect(Collectors.toList()));
 
         builder.setJdbcDialect(jdbcDialect);
-        builder.setJdbcConf(jdbcConf);
-        builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
+        builder.setJdbcConf(jdbcConfig);
+        builder.setRowConverter(
+                jdbcDialect.getRowConverter(
+                        InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType())
+                                .toRowType()));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
                 false,
-                jdbcConf.getParallelism());
+                jdbcConfig.getParallelism());
     }
 
     @Override
@@ -220,14 +230,9 @@ public class JdbcDynamicTableSource
     }
 
     @Override
-    public void applyProjection(int[][] projectedFields) {
-        this.physicalSchema = TableSchemaUtils.projectSchema(physicalSchema, projectedFields);
-    }
-
-    @Override
     public DynamicTableSource copy() {
         return new JdbcDynamicTableSource(
-                jdbcConf, lookupConf, physicalSchema, jdbcDialect, builder);
+                jdbcConfig, lookupConfig, resolvedSchema, jdbcDialect, builder);
     }
 
     @Override
@@ -244,14 +249,14 @@ public class JdbcDynamicTableSource
             return false;
         }
         JdbcDynamicTableSource that = (JdbcDynamicTableSource) o;
-        return Objects.equals(jdbcConf, that.jdbcConf)
-                && Objects.equals(lookupConf, that.lookupConf)
-                && Objects.equals(physicalSchema, that.physicalSchema)
+        return Objects.equals(jdbcConfig, that.jdbcConfig)
+                && Objects.equals(lookupConfig, that.lookupConfig)
+                && Objects.equals(resolvedSchema, that.resolvedSchema)
                 && Objects.equals(dialectName, that.dialectName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(jdbcConf, lookupConf, physicalSchema, dialectName);
+        return Objects.hash(jdbcConfig, lookupConfig, resolvedSchema, dialectName);
     }
 }

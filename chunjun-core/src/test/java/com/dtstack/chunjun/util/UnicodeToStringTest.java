@@ -22,10 +22,6 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * @author liuche
- * @date 2022/8/26 14:39
- */
 public class UnicodeToStringTest {
 
     @Test

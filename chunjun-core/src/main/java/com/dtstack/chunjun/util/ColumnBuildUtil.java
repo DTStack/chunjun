@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.util;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
@@ -28,11 +28,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author chuixue
- * @create 2021-07-05 14:54
- * @description
- */
 public class ColumnBuildUtil {
 
     /**
@@ -43,7 +38,7 @@ public class ColumnBuildUtil {
      * @param fullColumnTypeList fullColumnTypeList
      */
     public static Pair<List<String>, List<String>> handleColumnList(
-            List<FieldConf> fieldList,
+            List<FieldConfig> fieldList,
             List<String> fullColumnList,
             List<String> fullColumnTypeList) {
         if (fieldList.size() == 1
@@ -54,13 +49,13 @@ public class ColumnBuildUtil {
         List<String> columnNameList = new ArrayList<>(fieldList.size());
         List<String> columnTypeList = new ArrayList<>(fieldList.size());
 
-        for (FieldConf fieldConf : fieldList) {
-            if (fieldConf.getValue() == null) {
+        for (FieldConfig fieldConfig : fieldList) {
+            if (fieldConfig.getValue() == null) {
                 boolean find = false;
-                String name = fieldConf.getName();
+                String name = fieldConfig.getName();
                 if (fullColumnList.size() == 0) {
                     columnNameList.add(name);
-                    columnTypeList.add(fieldConf.getType());
+                    columnTypeList.add(fieldConfig.getType());
                     find = true;
                 }
                 for (int i = 0; i < fullColumnList.size(); i++) {

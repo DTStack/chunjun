@@ -19,18 +19,19 @@
 package com.dtstack.chunjun.connector.hbase.table.lookup;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseSerde;
 import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
 import com.dtstack.chunjun.connector.hbase.util.HBaseHelper;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.security.KerberosUtil;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
@@ -40,18 +41,16 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+@Slf4j
 public class HBaseAllTableFunction extends AbstractAllTableFunction {
 
-    private static final long serialVersionUID = 1L;
-    private static final Logger LOG = LoggerFactory.getLogger(HBaseAllTableFunction.class);
+    private static final long serialVersionUID = -4528928897188353663L;
     private Connection conn;
     private Table table;
     private ResultScanner resultScanner;
@@ -59,14 +58,14 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
     private final HBaseTableSchema hbaseTableSchema;
     private transient HBaseSerde serde;
     private final String nullStringLiteral;
-    private final HBaseConf hBaseConf;
+    private final HBaseConfig hBaseConfig;
 
     public HBaseAllTableFunction(
-            LookupConf lookupConf, HBaseTableSchema hbaseTableSchema, HBaseConf hBaseConf) {
-        super(null, null, lookupConf, null);
+            LookupConfig lookupConfig, HBaseTableSchema hbaseTableSchema, HBaseConfig hBaseConfig) {
+        super(null, null, lookupConfig, null);
         this.hbaseTableSchema = hbaseTableSchema;
-        this.hBaseConf = hBaseConf;
-        this.nullStringLiteral = hBaseConf.getNullStringLiteral();
+        this.hBaseConfig = hBaseConfig;
+        this.nullStringLiteral = hBaseConfig.getNullStringLiteral();
     }
 
     @Override
@@ -78,7 +77,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
     @Override
     protected void loadData(Object cacheRef) {
         Configuration hbaseDomainConf = new Configuration();
-        for (Map.Entry<String, Object> entry : hBaseConf.getHbaseConfig().entrySet()) {
+        for (Map.Entry<String, Object> entry : hBaseConfig.getHbaseConfig().entrySet()) {
             hbaseDomainConf.set(entry.getKey(), entry.getValue().toString());
         }
         int loadDataCount = 0;
@@ -88,7 +87,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                         hbaseDomainConf.get(HBaseConfigUtils.KEY_HBASE_CLIENT_KERBEROS_PRINCIPAL);
                 String keytab = hbaseDomainConf.get(HBaseConfigUtils.KEY_HBASE_CLIENT_KEYTAB_FILE);
                 String krb5Conf = hbaseDomainConf.get(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF);
-                LOG.info("kerberos principal:{}，keytab:{}", principal, keytab);
+                log.info("kerberos principal:{}，keytab:{}", principal, keytab);
                 System.setProperty(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF, krb5Conf);
                 UserGroupInformation userGroupInformation =
                         KerberosUtil.loginAndReturnUgi(principal, keytab, krb5Conf);
@@ -100,7 +99,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                                                 return ConnectionFactory.createConnection(
                                                         hbaseDomainConf);
                                             } catch (IOException e) {
-                                                LOG.error(
+                                                log.error(
                                                         "Get connection fail with config:{}",
                                                         hbaseDomainConf);
                                                 throw new RuntimeException(e);
@@ -118,9 +117,9 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                 loadDataCount++;
             }
         } catch (IOException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         } finally {
-            LOG.info("load Data count: {}", loadDataCount);
+            log.info("load Data count: {}", loadDataCount);
             try {
                 if (null != conn) {
                     conn.close();
@@ -134,7 +133,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                     resultScanner.close();
                 }
             } catch (IOException e) {
-                LOG.error("", e);
+                log.error("", e);
             }
         }
     }
@@ -153,23 +152,8 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
         Map<Object, RowData> newCache = Maps.newConcurrentMap();
         loadData(newCache);
         cacheRef.set(newCache);
-        LOG.info(
-                "----- " + lookupConf.getTableName() + ": all cacheRef reload end:{}",
+        log.info(
+                "----- " + lookupConfig.getTableName() + ": all cacheRef reload end:{}",
                 LocalDateTime.now());
-    }
-
-    /**
-     * The invoke entry point of lookup function.
-     *
-     * @param keys the lookup key. Currently only support single rowkey.
-     */
-    @Override
-    public void eval(Object... keys) {
-        Map<Object, RowData> cache = (Map<Object, RowData>) cacheRef.get();
-        RowData rowData = cache.get(keys[0]);
-        if (rowData == null) {
-            return;
-        }
-        collect(rowData);
     }
 }

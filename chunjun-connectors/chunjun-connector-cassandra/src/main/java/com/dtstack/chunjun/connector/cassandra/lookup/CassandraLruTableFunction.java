@@ -18,15 +18,15 @@
 
 package com.dtstack.chunjun.connector.cassandra.lookup;
 
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraCommonConf;
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraLookupConf;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraCommonConfig;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraLookupConfig;
 import com.dtstack.chunjun.connector.cassandra.util.CassandraService;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
 import com.dtstack.chunjun.lookup.cache.CacheMissVal;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
@@ -44,9 +44,8 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,17 +56,12 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.dtstack.chunjun.connector.cassandra.util.CassandraService.quoteColumn;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
+@Slf4j
 public class CassandraLruTableFunction extends AbstractLruTableFunction {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -8674524807253535362L;
 
-    private static final Logger LOG = LoggerFactory.getLogger(CassandraLruTableFunction.class);
-
-    private final CassandraLookupConf cassandraLookupConf;
+    private final CassandraLookupConfig cassandraLookupConfig;
 
     private transient Cluster cluster;
 
@@ -78,12 +72,12 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
     private final String[] keyNames;
 
     public CassandraLruTableFunction(
-            LookupConf lookupConf,
+            LookupConfig lookupConfig,
             AbstractRowConverter<?, ?, ?, ?> rowConverter,
             String[] fieldNames,
             String[] keyNames) {
-        super(lookupConf, rowConverter);
-        this.cassandraLookupConf = (CassandraLookupConf) lookupConf;
+        super(lookupConfig, rowConverter);
+        this.cassandraLookupConfig = (CassandraLookupConfig) lookupConfig;
         this.fieldNames = fieldNames;
         this.keyNames = keyNames;
     }
@@ -92,7 +86,7 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
     public void open(FunctionContext context) throws Exception {
         super.open(context);
 
-        cluster = CassandraService.cluster(cassandraLookupConf.getCommonConf());
+        cluster = CassandraService.cluster(cassandraLookupConfig.getCommonConfig());
         session = cluster.connectAsync();
     }
 
@@ -104,9 +98,9 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
             return;
         }
 
-        CassandraCommonConf commonConf = cassandraLookupConf.getCommonConf();
-        String keyspaces = commonConf.getKeyspaces();
-        String tableName = commonConf.getTableName();
+        CassandraCommonConfig commonConfig = cassandraLookupConfig.getCommonConfig();
+        String keyspaces = commonConfig.getKeyspaces();
+        String tableName = commonConfig.getTableName();
 
         List<String> quotedColumnNameList = new ArrayList<>();
         Arrays.stream(fieldNames).forEach(name -> quotedColumnNameList.add(quoteColumn(name)));
@@ -144,7 +138,7 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
                                     rowList.add(row);
                                 } catch (Exception e) {
                                     // todo 这里需要抽样打印
-                                    LOG.error("error:{}\n data:{}", e.getMessage(), line);
+                                    log.error("error:{}\n data:{}", e.getMessage(), line);
                                 }
                             }
                             future.complete(rowList);
@@ -165,7 +159,7 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
 
                     @Override
                     public void onFailure(Throwable t) {
-                        LOG.error("Failed to query the data.", t);
+                        log.error("Failed to query the data.", t);
                         cluster.closeAsync();
                         future.completeExceptionally(t);
                     }
@@ -173,8 +167,7 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
     }
 
     @Override
-    public void close() throws Exception {
-        super.close();
+    public void close() {
         if (cluster != null && !cluster.isClosed()) {
             cluster.close();
         }

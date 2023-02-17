@@ -24,14 +24,12 @@ import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.streaming.connectors.rabbitmq.common.RMQConnectionConfig;
-import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.format.DecodingFormat;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.factories.DeserializationFormatFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -54,7 +52,6 @@ import static com.dtstack.chunjun.connector.rabbitmq.options.RabbitmqOptions.USE
 import static com.dtstack.chunjun.connector.rabbitmq.options.RabbitmqOptions.VIRTUAL_HOST;
 import static org.apache.flink.table.factories.FactoryUtil.FORMAT;
 
-/** @Author OT @Date 2022/7/9 */
 public class RabbitmqDynamicTableFactory implements DynamicTableSourceFactory {
     private static final String IDENTIFIER = "rabbitmq-x";
 
@@ -68,11 +65,12 @@ public class RabbitmqDynamicTableFactory implements DynamicTableSourceFactory {
         DecodingFormat<DeserializationSchema<RowData>> messageDecodingFormat =
                 getMessageDecodingFormat(helper);
         RMQConnectionConfig rmqConnectionConfig = createRabbitmqConfig(config);
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
         return new RabbitmqDynamicTableSource(
-                physicalSchema, config, rmqConnectionConfig, messageDecodingFormat);
+                context.getCatalogTable().getResolvedSchema(),
+                config,
+                rmqConnectionConfig,
+                messageDecodingFormat);
     }
 
     @Override
@@ -82,7 +80,7 @@ public class RabbitmqDynamicTableFactory implements DynamicTableSourceFactory {
 
     @Override
     public Set<ConfigOption<?>> requiredOptions() {
-        Set<ConfigOption<?>> requiredOptions = new HashSet();
+        Set<ConfigOption<?>> requiredOptions = new HashSet<>();
         requiredOptions.add(HOST);
         requiredOptions.add(PORT);
         requiredOptions.add(USERNAME);
@@ -94,7 +92,7 @@ public class RabbitmqDynamicTableFactory implements DynamicTableSourceFactory {
 
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
-        Set<ConfigOption<?>> optionalOptions = new HashSet();
+        Set<ConfigOption<?>> optionalOptions = new HashSet<>();
         optionalOptions.add(NETWORK_RECOVERY_INTERVAL);
         optionalOptions.add(AUTOMATIC_RECOVERY);
         optionalOptions.add(TOPOLOGY_RECOVERY);

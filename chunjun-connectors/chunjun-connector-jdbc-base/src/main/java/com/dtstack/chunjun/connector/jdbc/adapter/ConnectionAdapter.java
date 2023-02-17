@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.jdbc.adapter;
 
-import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
+import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -30,37 +30,30 @@ import com.google.gson.JsonSerializer;
 
 import java.lang.reflect.Type;
 
-/**
- * Date: 2021/02/18 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class ConnectionAdapter
-        implements JsonSerializer<ConnectionConf>, JsonDeserializer<ConnectionConf> {
+        implements JsonSerializer<ConnectionConfig>, JsonDeserializer<ConnectionConfig> {
 
     /** ReaderConnection or WriterConnection */
-    private String className;
+    private final String className;
 
     public ConnectionAdapter(String className) {
         this.className = className;
     }
 
     @Override
-    public ConnectionConf deserialize(
+    public ConnectionConfig deserialize(
             JsonElement json, Type typeOfT, JsonDeserializationContext context)
             throws JsonParseException {
-        // 指定包名+类名
-        String thePackage = "com.dtstack.chunjun.connector.jdbc.conf." + className;
         try {
-            return context.deserialize(json, Class.forName(thePackage));
+            return context.deserialize(json, Class.forName(className));
         } catch (ClassNotFoundException e) {
-            throw new JsonParseException("Unknown element type: " + thePackage, e);
+            throw new JsonParseException("Unknown element type: " + className, e);
         }
     }
 
     @Override
     public JsonElement serialize(
-            ConnectionConf src, Type typeOfSrc, JsonSerializationContext context) {
+            ConnectionConfig src, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject result = new JsonObject();
         result.add("type", new JsonPrimitive(src.getClass().getSimpleName()));
         result.add("properties", context.serialize(src, src.getClass()));

@@ -25,11 +25,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * @program: ChunJun
- * @author: wuren
- * @create: 2021/04/14
- */
 public class MysqlCdcRawTypeConverter {
 
     /**
@@ -72,6 +67,13 @@ public class MysqlCdcRawTypeConverter {
             case "CHAR":
             case "VARCHAR":
             case "STRING":
+            case "TINYTEXT":
+            case "TEXT":
+            case "MEDIUMTEXT":
+            case "LONGTEXT":
+            case "JSON":
+            case "ENUM":
+            case "SET":
                 return DataTypes.STRING();
             case "DATE":
                 return DataTypes.DATE();
@@ -86,22 +88,10 @@ public class MysqlCdcRawTypeConverter {
             case "BLOB":
             case "MEDIUMBLOB":
             case "LONGBLOB":
-                return DataTypes.BYTES();
-            case "TINYTEXT":
-            case "TEXT":
-            case "MEDIUMTEXT":
-            case "LONGTEXT":
-                return DataTypes.STRING();
             case "BINARY":
             case "VARBINARY":
-                // BYTES 底层调用的是VARBINARY最大长度
-                return DataTypes.BYTES();
-            case "JSON":
-                return DataTypes.STRING();
-            case "ENUM":
-            case "SET":
-                return DataTypes.STRING();
             case "GEOMETRY":
+                // BYTES 底层调用的是VARBINARY最大长度
                 return DataTypes.BYTES();
 
             default:

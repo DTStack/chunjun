@@ -1,9 +1,0 @@
-.no-transition {
-  transition: all 0s !important;
-}
-.no-transition::before {
-  transition: all 0s !important;
-}
-.no-transition::after {
-  transition: all 0s !important;
-}

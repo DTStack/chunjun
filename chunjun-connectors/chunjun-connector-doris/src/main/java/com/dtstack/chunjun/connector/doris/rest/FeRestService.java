@@ -19,8 +19,8 @@
 package com.dtstack.chunjun.connector.doris.rest;
 
 import com.dtstack.chunjun.connector.doris.exception.DorisConnectFailedException;
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
-import com.dtstack.chunjun.connector.doris.options.LoadConf;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
+import com.dtstack.chunjun.connector.doris.options.LoadConfig;
 import com.dtstack.chunjun.connector.doris.rest.module.Backend;
 import com.dtstack.chunjun.connector.doris.rest.module.BackendRow;
 import com.dtstack.chunjun.connector.doris.rest.module.PartitionDefinition;
@@ -31,6 +31,7 @@ import com.dtstack.chunjun.connector.doris.rest.module.Tablet;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -39,8 +40,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -71,11 +70,13 @@ import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_TABLET
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.ILLEGAL_ARGUMENT_MESSAGE;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.SHOULD_NOT_HAPPEN_MESSAGE;
 
+@Slf4j
 public class FeRestService implements Serializable {
+
+    private static final long serialVersionUID = -6189182707302660584L;
 
     public static final int REST_RESPONSE_STATUS_OK = 200;
     public static final int REST_RESPONSE_CODE_OK = 0;
-    private static final Logger LOG = LoggerFactory.getLogger(FeRestService.class);
     private static final String REST_RESPONSE_BE_ROWS_KEY = "rows";
     private static final String API_PREFIX = "/api";
     private static final String SCHEMA = "_schema";
@@ -91,22 +92,22 @@ public class FeRestService implements Serializable {
      * @return Doris FE response in json string
      * @throws DorisConnectFailedException throw when cannot connect to Doris FE
      */
-    private static String send(DorisConf options, HttpRequestBase request)
+    private static String send(DorisConfig options, HttpRequestBase request)
             throws DorisConnectFailedException {
-        LoadConf loadConf = options.getLoadConf();
+        LoadConfig loadConfig = options.getLoadConfig();
         int connectTimeout =
-                loadConf.getRequestConnectTimeoutMs() == null
+                loadConfig.getRequestConnectTimeoutMs() == null
                         ? DORIS_REQUEST_CONNECT_TIMEOUT_MS_DEFAULT
-                        : loadConf.getRequestConnectTimeoutMs();
+                        : loadConfig.getRequestConnectTimeoutMs();
         int socketTimeout =
-                loadConf.getRequestReadTimeoutMs() == null
+                loadConfig.getRequestReadTimeoutMs() == null
                         ? DORIS_REQUEST_READ_TIMEOUT_MS_DEFAULT
-                        : loadConf.getRequestReadTimeoutMs();
+                        : loadConfig.getRequestReadTimeoutMs();
         int retries =
-                loadConf.getRequestRetries() == null
+                loadConfig.getRequestRetries() == null
                         ? DORIS_REQUEST_RETRIES_DEFAULT
-                        : loadConf.getRequestRetries();
-        LOG.trace(
+                        : loadConfig.getRequestRetries();
+        log.trace(
                 "connect timeout set to '{}'. socket timeout set to '{}'. retries set to '{}'.",
                 connectTimeout,
                 socketTimeout,
@@ -119,7 +120,7 @@ public class FeRestService implements Serializable {
                         .build();
 
         request.setConfig(requestConfig);
-        LOG.info(
+        log.info(
                 "Send request to Doris FE '{}' with user '{}'.",
                 request.getURI(),
                 options.getUsername());
@@ -127,7 +128,7 @@ public class FeRestService implements Serializable {
         int statusCode = -1;
 
         for (int attempt = 0; attempt < retries; attempt++) {
-            LOG.debug("Attempt {} to request {}.", attempt, request.getURI());
+            log.debug("Attempt {} to request {}.", attempt, request.getURI());
             try {
                 String response;
                 if (request instanceof HttpGet) {
@@ -141,11 +142,11 @@ public class FeRestService implements Serializable {
                             getConnectionPost(
                                     request, options.getUsername(), options.getPassword());
                 }
-                LOG.warn(
+                log.warn(
                         "Failed to get response from Doris FE {}, http code is {}",
                         request.getURI(),
                         statusCode);
-                LOG.debug(
+                log.debug(
                         String.format(
                                 "Success get response from Doris FE: %s, response is: %s.",
                                 request.getURI(), response));
@@ -160,11 +161,11 @@ public class FeRestService implements Serializable {
                 }
             } catch (IOException e) {
                 ex = e;
-                LOG.warn(CONNECT_FAILED_MESSAGE, request.getURI(), e);
+                log.warn(CONNECT_FAILED_MESSAGE, request.getURI(), e);
             }
         }
 
-        LOG.error(CONNECT_FAILED_MESSAGE, request.getURI(), ex);
+        log.error(CONNECT_FAILED_MESSAGE, request.getURI(), ex);
         throw new DorisConnectFailedException(
                 options.getUsername(), request.getURI().toString(), ex);
     }
@@ -211,7 +212,7 @@ public class FeRestService implements Serializable {
 
     private static String parseResponse(HttpURLConnection connection) throws IOException {
         if (connection.getResponseCode() != HttpStatus.SC_OK) {
-            LOG.warn(
+            log.warn(
                     "Failed to get response from Doris  {}, http code is {}",
                     connection.getURL(),
                     connection.getResponseCode());
@@ -237,14 +238,14 @@ public class FeRestService implements Serializable {
      * @throws IllegalArgumentException table identifier is illegal
      */
     static String[] parseIdentifier(String tableIdentifier) throws IllegalArgumentException {
-        LOG.trace("Parse identifier '{}'.", tableIdentifier);
+        log.trace("Parse identifier '{}'.", tableIdentifier);
         if (StringUtils.isEmpty(tableIdentifier)) {
-            LOG.error(ILLEGAL_ARGUMENT_MESSAGE, "table.identifier", tableIdentifier);
+            log.error(ILLEGAL_ARGUMENT_MESSAGE, "table.identifier", tableIdentifier);
             throw new IllegalArgumentException("table.identifier: " + tableIdentifier);
         }
         String[] identifier = tableIdentifier.split("\\.");
         if (identifier.length != 2) {
-            LOG.error(ILLEGAL_ARGUMENT_MESSAGE, "table.identifier", tableIdentifier);
+            log.error(ILLEGAL_ARGUMENT_MESSAGE, "table.identifier", tableIdentifier);
             throw new IllegalArgumentException("table.identifier: " + tableIdentifier);
         }
         return identifier;
@@ -258,9 +259,9 @@ public class FeRestService implements Serializable {
      * @throws IllegalArgumentException fe nodes is illegal
      */
     static String randomEndpoint(List<String> feNodes) throws IllegalArgumentException {
-        LOG.trace("Parse feNodes '{}'.", feNodes);
+        log.trace("Parse feNodes '{}'.", feNodes);
         if (feNodes.isEmpty()) {
-            LOG.error(ILLEGAL_ARGUMENT_MESSAGE, "feNodes", feNodes);
+            log.error(ILLEGAL_ARGUMENT_MESSAGE, "feNodes", feNodes);
             throw new IllegalArgumentException("feNodes: " + feNodes);
         }
         Collections.shuffle(feNodes);
@@ -274,11 +275,11 @@ public class FeRestService implements Serializable {
      * @return the chosen one Doris BE node
      * @throws IllegalArgumentException BE nodes is illegal
      */
-    public static String randomBackend(DorisConf options) throws IOException {
+    public static String randomBackend(DorisConfig options) throws IOException {
         List<BackendRow> backends = getBackends(options);
-        LOG.trace("Parse beNodes '{}'.", backends);
+        log.trace("Parse beNodes '{}'.", backends);
         if (backends == null || backends.isEmpty()) {
-            LOG.error(ILLEGAL_ARGUMENT_MESSAGE, "beNodes", backends);
+            log.error(ILLEGAL_ARGUMENT_MESSAGE, "beNodes", backends);
             throw new IllegalArgumentException("beNodes: " + backends);
         }
         Collections.shuffle(backends);
@@ -293,13 +294,13 @@ public class FeRestService implements Serializable {
      * @return the chosen one Doris BE node
      * @throws IllegalArgumentException BE nodes is illegal
      */
-    static List<BackendRow> getBackends(DorisConf options) throws IOException {
+    static List<BackendRow> getBackends(DorisConfig options) throws IOException {
         List<String> feNodes = options.getFeNodes();
         String feNode = randomEndpoint(feNodes);
         String beUrl = "http://" + feNode + BACKENDS;
         HttpGet httpGet = new HttpGet(beUrl);
         String response = send(options, httpGet);
-        LOG.info("Backend Info:{}", response);
+        log.info("Backend Info:{}", response);
         return parseBackend(response);
     }
 
@@ -310,27 +311,27 @@ public class FeRestService implements Serializable {
             backend = mapper.readValue(response, Backend.class);
         } catch (JsonParseException e) {
             String errMsg = "Doris BE's response is not a json. res: " + response;
-            LOG.error(errMsg, e);
+            log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         } catch (JsonMappingException e) {
             String errMsg = "Doris BE's response cannot map to schema. res: " + response;
-            LOG.error(errMsg, e);
+            log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         } catch (IOException e) {
             String errMsg = "Parse Doris BE's response to json failed. res: " + response;
-            LOG.error(errMsg, e);
+            log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }
 
         if (backend == null) {
-            LOG.error(SHOULD_NOT_HAPPEN_MESSAGE);
+            log.error(SHOULD_NOT_HAPPEN_MESSAGE);
             throw new RuntimeException("This exception is unsupported. Check the code.");
         }
         List<BackendRow> backendRows =
                 backend.getRows().stream()
                         .filter(BackendRow::getAlive)
                         .collect(Collectors.toList());
-        LOG.debug("Parsing schema result is '{}'.", backendRows);
+        log.debug("Parsing schema result is '{}'.", backendRows);
         return backendRows;
     }
 
@@ -341,7 +342,7 @@ public class FeRestService implements Serializable {
      * @return uri string
      * @throws IllegalArgumentException throw when configuration is illegal
      */
-    static String getUriStr(DorisConf options) throws IllegalArgumentException {
+    static String getUriStr(DorisConfig options) throws IllegalArgumentException {
         return "http://"
                 + randomEndpoint(options.getFeNodes())
                 + API_PREFIX
@@ -359,11 +360,11 @@ public class FeRestService implements Serializable {
      * @return Doris table schema
      * @throws RuntimeException throw when discover failed
      */
-    public static Schema getSchema(DorisConf options) throws RuntimeException {
-        LOG.trace("Finding schema.");
+    public static Schema getSchema(DorisConfig options) throws RuntimeException {
+        log.trace("Finding schema.");
         HttpGet httpGet = new HttpGet(getUriStr(options) + SCHEMA);
         String response = send(options, httpGet);
-        LOG.debug("Find schema response is '{}'.", response);
+        log.debug("Find schema response is '{}'.", response);
         return parseSchema(response);
     }
 
@@ -375,36 +376,36 @@ public class FeRestService implements Serializable {
      * @throws RuntimeException throw when translate failed
      */
     public static Schema parseSchema(String response) throws RuntimeException {
-        LOG.trace("Parse response '{}' to schema.", response);
+        log.trace("Parse response '{}' to schema.", response);
         ObjectMapper mapper = new ObjectMapper();
         Schema schema;
         try {
             schema = mapper.readValue(response, Schema.class);
         } catch (JsonParseException e) {
             String errMsg = "Doris FE's response is not a json. res: " + response;
-            LOG.error(errMsg, e);
+            log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         } catch (JsonMappingException e) {
             String errMsg = "Doris FE's response cannot map to schema. res: " + response;
-            LOG.error(errMsg, e);
+            log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         } catch (IOException e) {
             String errMsg = "Parse Doris FE's response to json failed. res: " + response;
-            LOG.error(errMsg, e);
+            log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }
 
         if (schema == null) {
-            LOG.error(SHOULD_NOT_HAPPEN_MESSAGE);
+            log.error(SHOULD_NOT_HAPPEN_MESSAGE);
             throw new RuntimeException("This exception is unsupported. Check the code.");
         }
 
         if (schema.getStatus() != REST_RESPONSE_STATUS_OK) {
             String errMsg = "Doris FE's response is not OK, status is " + schema.getStatus();
-            LOG.error(errMsg);
+            log.error(errMsg);
             throw new RuntimeException(errMsg);
         }
-        LOG.debug(String.format("Parsing schema result is '%s'.", schema));
+        log.debug(String.format("Parsing schema result is '%s'.", schema));
         return schema;
     }
 
@@ -415,11 +416,11 @@ public class FeRestService implements Serializable {
      * @return an list of Doris RDD partitions
      * @throws RuntimeException throw when find partition failed
      */
-    public static List<PartitionDefinition> findPartitions(DorisConf options)
+    public static List<PartitionDefinition> findPartitions(DorisConfig options)
             throws RuntimeException {
-        LoadConf loadConf = options.getLoadConf();
+        LoadConfig loadConfig = options.getLoadConfig();
         String readFields =
-                StringUtils.isBlank(loadConf.getReadFields()) ? "*" : loadConf.getReadFields();
+                StringUtils.isBlank(loadConfig.getReadFields()) ? "*" : loadConfig.getReadFields();
         String sql =
                 "select "
                         + readFields
@@ -428,21 +429,21 @@ public class FeRestService implements Serializable {
                         + "`.`"
                         + options.getDatabase()
                         + "`";
-        if (!StringUtils.isEmpty(loadConf.getFilterQuery())) {
-            sql += " where " + loadConf.getFilterQuery();
+        if (!StringUtils.isEmpty(loadConfig.getFilterQuery())) {
+            sql += " where " + loadConfig.getFilterQuery();
         }
-        LOG.debug("Query SQL Sending to Doris FE is: '{}'.", sql);
+        log.debug("Query SQL Sending to Doris FE is: '{}'.", sql);
 
         HttpPost httpPost = new HttpPost(getUriStr(options) + QUERY_PLAN);
         String entity = "{\"sql\": \"" + sql + "\"}";
-        LOG.debug("Post body Sending to Doris FE is: '{}'.", entity);
+        log.debug("Post body Sending to Doris FE is: '{}'.", entity);
         StringEntity stringEntity = new StringEntity(entity, StandardCharsets.UTF_8);
         stringEntity.setContentEncoding("UTF-8");
         stringEntity.setContentType("application/json");
         httpPost.setEntity(stringEntity);
 
         String resStr = send(options, httpPost);
-        LOG.debug("Find partition response is '{}'.", resStr);
+        log.debug("Find partition response is '{}'.", resStr);
         QueryPlan queryPlan = getQueryPlan(resStr);
         Map<String, List<Long>> be2Tablets = selectBeForTablet(queryPlan);
         return tabletsMapToPartition(
@@ -467,29 +468,29 @@ public class FeRestService implements Serializable {
             queryPlan = mapper.readValue(response, QueryPlan.class);
         } catch (JsonParseException e) {
             String errMsg = "Doris FE's response is not a json. res: " + response;
-            LOG.error(errMsg, e);
+            log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         } catch (JsonMappingException e) {
             String errMsg = "Doris FE's response cannot map to schema. res: " + response;
-            LOG.error(errMsg, e);
+            log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         } catch (IOException e) {
             String errMsg = "Parse Doris FE's response to json failed. res: " + response;
-            LOG.error(errMsg, e);
+            log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }
 
         if (queryPlan == null) {
-            LOG.error(SHOULD_NOT_HAPPEN_MESSAGE);
+            log.error(SHOULD_NOT_HAPPEN_MESSAGE);
             throw new RuntimeException("This exception is unsupported. Check the code.");
         }
 
         if (queryPlan.getStatus() != REST_RESPONSE_STATUS_OK) {
             String errMsg = "Doris FE's response is not OK, status is " + queryPlan.getStatus();
-            LOG.error(errMsg);
+            log.error(errMsg);
             throw new RuntimeException(errMsg);
         }
-        LOG.debug("Parsing partition result is '{}'.", queryPlan);
+        log.debug("Parsing partition result is '{}'.", queryPlan);
         return queryPlan;
     }
 
@@ -503,21 +504,21 @@ public class FeRestService implements Serializable {
     static Map<String, List<Long>> selectBeForTablet(QueryPlan queryPlan) throws RuntimeException {
         Map<String, List<Long>> be2Tablets = new HashMap<>();
         for (Map.Entry<String, Tablet> part : queryPlan.getPartitions().entrySet()) {
-            LOG.debug("Parse tablet info: '{}'.", part);
+            log.debug("Parse tablet info: '{}'.", part);
             long tabletId;
             try {
                 tabletId = Long.parseLong(part.getKey());
             } catch (NumberFormatException e) {
                 String errMsg = "Parse tablet id '" + part.getKey() + "' to long failed.";
-                LOG.error(errMsg, e);
+                log.error(errMsg, e);
                 throw new RuntimeException(errMsg, e);
             }
             String target = null;
             int tabletCount = Integer.MAX_VALUE;
             for (String candidate : part.getValue().getRouting()) {
-                LOG.trace("Evaluate Doris BE '{}' to tablet '{}'.", candidate, tabletId);
+                log.trace("Evaluate Doris BE '{}' to tablet '{}'.", candidate, tabletId);
                 if (!be2Tablets.containsKey(candidate)) {
-                    LOG.debug("Choice a new Doris BE '{}' for tablet '{}'.", candidate, tabletId);
+                    log.debug("Choice a new Doris BE '{}' for tablet '{}'.", candidate, tabletId);
                     List<Long> tablets = new ArrayList<>();
                     be2Tablets.put(candidate, tablets);
                     target = candidate;
@@ -526,7 +527,7 @@ public class FeRestService implements Serializable {
                     if (be2Tablets.get(candidate).size() < tabletCount) {
                         target = candidate;
                         tabletCount = be2Tablets.get(candidate).size();
-                        LOG.debug(
+                        log.debug(
                                 "Current candidate Doris BE to tablet '{}' is '{}' with tablet count {}.",
                                 tabletId,
                                 target,
@@ -536,11 +537,11 @@ public class FeRestService implements Serializable {
             }
             if (target == null) {
                 String errMsg = "Cannot choice Doris BE for tablet " + tabletId;
-                LOG.error(errMsg);
+                log.error(errMsg);
                 throw new RuntimeException(errMsg);
             }
 
-            LOG.debug("Choice Doris BE '{}' for tablet '{}'.", target, tabletId);
+            log.debug("Choice Doris BE '{}' for tablet '{}'.", target, tabletId);
             be2Tablets.get(target).add(tabletId);
         }
         return be2Tablets;
@@ -549,23 +550,23 @@ public class FeRestService implements Serializable {
     /**
      * tablet count limit for one Doris RDD partition
      *
-     * @param loadConf configuration of request
+     * @param loadConfig configuration of request
      * @return tablet count limit
      */
-    static int tabletCountLimitForOnePartition(LoadConf loadConf) {
+    static int tabletCountLimitForOnePartition(LoadConfig loadConfig) {
         int tabletsSize = DORIS_TABLET_SIZE_DEFAULT;
-        if (loadConf.getRequestTabletSize() != null) {
-            tabletsSize = loadConf.getRequestTabletSize();
+        if (loadConfig.getRequestTabletSize() != null) {
+            tabletsSize = loadConfig.getRequestTabletSize();
         }
         if (tabletsSize < DORIS_TABLET_SIZE_MIN) {
-            LOG.warn(
+            log.warn(
                     "{} is less than {}, set to default value {}.",
                     DORIS_TABLET_SIZE,
                     DORIS_TABLET_SIZE_MIN,
                     DORIS_TABLET_SIZE_MIN);
             tabletsSize = DORIS_TABLET_SIZE_MIN;
         }
-        LOG.debug("Tablet size is set to {}.", tabletsSize);
+        log.debug("Tablet size is set to {}.", tabletsSize);
         return tabletsSize;
     }
 
@@ -581,16 +582,16 @@ public class FeRestService implements Serializable {
      * @throws IllegalArgumentException throw when translate failed
      */
     static List<PartitionDefinition> tabletsMapToPartition(
-            DorisConf options,
+            DorisConfig options,
             Map<String, List<Long>> be2Tablets,
             String opaquedQueryPlan,
             String database,
             String table)
             throws IllegalArgumentException {
-        int tabletsSize = tabletCountLimitForOnePartition(options.getLoadConf());
+        int tabletsSize = tabletCountLimitForOnePartition(options.getLoadConfig());
         List<PartitionDefinition> partitions = new ArrayList<>();
         for (Map.Entry<String, List<Long>> beInfo : be2Tablets.entrySet()) {
-            LOG.debug("Generate partition with beInfo: '{}'.", beInfo);
+            log.debug("Generate partition with beInfo: '{}'.", beInfo);
             HashSet<Long> tabletSet = new HashSet<>(beInfo.getValue());
             beInfo.getValue().clear();
             beInfo.getValue().addAll(tabletSet);
@@ -613,7 +614,7 @@ public class FeRestService implements Serializable {
                                 beInfo.getKey(),
                                 partitionTablets,
                                 opaquedQueryPlan);
-                LOG.debug("Generate one PartitionDefinition '{}'.", partitionDefinition);
+                log.debug("Generate one PartitionDefinition '{}'.", partitionDefinition);
                 partitions.add(partitionDefinition);
             }
         }

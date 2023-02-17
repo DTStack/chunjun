@@ -18,14 +18,13 @@
 
 package com.dtstack.chunjun.connector.saphana.dialect;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.chunjun.connector.saphana.converter.SaphanaColumnConverter;
 import com.dtstack.chunjun.connector.saphana.converter.SaphanaRawTypeConverter;
+import com.dtstack.chunjun.connector.saphana.converter.SaphanaSyncConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
-import com.dtstack.chunjun.enums.EDatabaseType;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -39,16 +38,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class SaphanaDialect implements JdbcDialect {
+
+    private static final long serialVersionUID = 3485113286486596308L;
 
     @Override
     public String dialectName() {
-        return EDatabaseType.SapHana.name();
+        return "SapHana";
     }
 
     @Override
@@ -115,8 +111,8 @@ public class SaphanaDialect implements JdbcDialect {
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
-        return new SaphanaColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new SaphanaSyncConverter(rowType, commonConfig);
     }
 
     @Override

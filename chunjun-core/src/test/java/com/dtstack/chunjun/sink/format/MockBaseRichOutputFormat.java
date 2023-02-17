@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.sink.format;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.source.format.MockInputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 
@@ -52,9 +52,9 @@ public class MockBaseRichOutputFormat extends BaseRichOutputFormat {
                                         new TestingJobMasterGatewayBuilder().build()))
                         .build();
         setRuntimeContext(new MockInputFormat.MockRuntimeContext(environment));
-        ChunJunCommonConf chunJunCommonConf = new ChunJunCommonConf();
-        chunJunCommonConf.setMetricPluginName("mock");
-        setConfig(chunJunCommonConf);
+        CommonConfig commonConfig = new CommonConfig();
+        commonConfig.setMetricPluginName("mock");
+        setConfig(commonConfig);
     }
 
     @Override

@@ -18,23 +18,13 @@
 
 package com.dtstack.chunjun.source.format;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-/**
- * Abstract specification for all the InputFormatBuilder implementation
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+/** Abstract specification for all the InputFormatBuilder implementation */
 public abstract class BaseRichInputFormatBuilder<T extends BaseRichInputFormat> {
-
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     protected T format;
 
@@ -42,7 +32,7 @@ public abstract class BaseRichInputFormatBuilder<T extends BaseRichInputFormat> 
         this.format = format;
     }
 
-    public void setConfig(ChunJunCommonConf config) {
+    public void setConfig(CommonConfig config) {
         format.setConfig(config);
     }
 

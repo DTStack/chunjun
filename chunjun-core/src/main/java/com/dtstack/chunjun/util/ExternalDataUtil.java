@@ -1,5 +1,3 @@
-package com.dtstack.chunjun.util;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,6 +16,8 @@ package com.dtstack.chunjun.util;
  * limitations under the License.
  */
 
+package com.dtstack.chunjun.util;
+
 import org.apache.flink.table.data.ArrayData;
 import org.apache.flink.table.data.MapData;
 import org.apache.flink.table.data.RowData;
@@ -35,11 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author: gaoasi
- * @email: aschaser@163,com
- * @date: 2022/10/25 7:00 下午
- */
 public class ExternalDataUtil {
 
     public static void arrayDataToExternal(LogicalType type, Object[] to, ArrayData from) {

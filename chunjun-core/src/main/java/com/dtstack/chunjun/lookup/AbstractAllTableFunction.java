@@ -20,23 +20,27 @@ package com.dtstack.chunjun.lookup;
 
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.factory.ChunJunThreadFactory;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
-import org.apache.flink.table.functions.TableFunction;
+import org.apache.flink.table.functions.LookupFunction;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -45,13 +49,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-/**
- * @author chuixue
- * @create 2021-04-09 14:30
- * @description
- */
-public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractAllTableFunction.class);
+@Slf4j
+public abstract class AbstractAllTableFunction extends LookupFunction {
+
+    private static final long serialVersionUID = 5565390751716048922L;
     /** 和维表join字段的名称 */
     protected final String[] keyNames;
     /** 缓存 */
@@ -59,21 +60,42 @@ public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
     /** 定时加载 */
     private ScheduledExecutorService es;
     /** 维表配置 */
-    protected final LookupConf lookupConf;
+    protected final LookupConfig lookupConfig;
     /** 字段名称 */
     protected final String[] fieldsName;
     /** 数据类型转换器 */
     protected final AbstractRowConverter rowConverter;
 
+    protected final RowData.FieldGetter[] fieldGetters;
+
     public AbstractAllTableFunction(
             String[] fieldNames,
             String[] keyNames,
-            LookupConf lookupConf,
+            LookupConfig lookupConfig,
             AbstractRowConverter rowConverter) {
         this.keyNames = keyNames;
-        this.lookupConf = lookupConf;
+        this.lookupConfig = lookupConfig;
         this.fieldsName = fieldNames;
         this.rowConverter = rowConverter;
+        this.fieldGetters = new RowData.FieldGetter[keyNames.length];
+        List<Pair<LogicalType, Integer>> fieldTypeAndPositionOfKeyField =
+                getFieldTypeAndPositionOfKeyField(keyNames, rowConverter.getRowType());
+        for (int i = 0; i < fieldTypeAndPositionOfKeyField.size(); i++) {
+            Pair<LogicalType, Integer> typeAndPosition = fieldTypeAndPositionOfKeyField.get(i);
+            fieldGetters[i] =
+                    RowData.createFieldGetter(
+                            typeAndPosition.getLeft(), typeAndPosition.getRight());
+        }
+    }
+
+    protected List<Pair<LogicalType, Integer>> getFieldTypeAndPositionOfKeyField(
+            String[] keyNames, RowType rowType) {
+        List<Pair<LogicalType, Integer>> typeAndPosition = Lists.newLinkedList();
+        for (int i = 0; i < keyNames.length; i++) {
+            LogicalType type = rowType.getTypeAt(rowType.getFieldIndex(keyNames[i]));
+            typeAndPosition.add(Pair.of(type, i));
+        }
+        return typeAndPosition;
     }
 
     /** 初始化加载数据库中数据 */
@@ -94,8 +116,8 @@ public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
         }
 
         cacheRef.set(newCache);
-        LOG.info(
-                "----- " + lookupConf.getTableName() + ": all cacheRef reload end:{}",
+        log.info(
+                "----- " + lookupConfig.getTableName() + ": all cacheRef reload end:{}",
                 LocalDateTime.now());
     }
 
@@ -110,14 +132,14 @@ public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
     public void open(FunctionContext context) throws Exception {
         super.open(context);
         initCache();
-        LOG.info("----- all cacheRef init end-----");
+        log.info("----- all cacheRef init end-----");
 
         // start reload cache thread
         es = new ScheduledThreadPoolExecutor(1, new ChunJunThreadFactory("cache-all-reload"));
         es.scheduleAtFixedRate(
                 this::reloadCache,
-                lookupConf.getPeriod(),
-                lookupConf.getPeriod(),
+                lookupConfig.getPeriod(),
+                lookupConfig.getPeriod(),
                 TimeUnit.MILLISECONDS);
     }
 
@@ -143,16 +165,24 @@ public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
     /**
      * 每条数据都会进入该方法
      *
-     * @param keys 维表join key的值
+     * @param keyRow 维表join key的值
      */
-    public void eval(Object... keys) {
-        String cacheKey = Arrays.stream(keys).map(String::valueOf).collect(Collectors.joining("_"));
+    @Override
+    public Collection<RowData> lookup(RowData keyRow) throws IOException {
+        List<String> dataList = Lists.newLinkedList();
+        List<RowData> hitRowData = Lists.newArrayList();
+        for (int i = 0; i < keyRow.getArity(); i++) {
+            dataList.add(String.valueOf(fieldGetters[i].getFieldOrNull(keyRow)));
+        }
+        String cacheKey = String.join("_", dataList);
         List<Map<String, Object>> cacheList =
                 ((Map<String, List<Map<String, Object>>>) (cacheRef.get())).get(cacheKey);
         // 有数据才往下发，(左/内)连接flink会做相应的处理
         if (!CollectionUtils.isEmpty(cacheList)) {
-            cacheList.forEach(one -> collect(fillData(one)));
+            cacheList.forEach(one -> hitRowData.add(fillData(one)));
         }
+
+        return hitRowData;
     }
 
     public RowData fillData(Object sideInput) {

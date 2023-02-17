@@ -18,18 +18,16 @@
 
 package com.dtstack.chunjun.connector.jdbc.lookup;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
-import org.apache.flink.annotation.Internal;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.types.logical.RowType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -39,32 +37,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * A lookup function for {@link }.
- *
- * @author chuixue
- */
-@Internal
+/** A lookup function for jdbc. */
+@Slf4j
 public class JdbcAllTableFunction extends AbstractAllTableFunction {
 
-    private static final long serialVersionUID = 1L;
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcAllTableFunction.class);
+    private static final long serialVersionUID = 6804288488095569311L;
+
     protected final JdbcDialect jdbcDialect;
-    private final JdbcConf jdbcConf;
+    private final JdbcConfig jdbcConfig;
     private final String query;
 
     public JdbcAllTableFunction(
-            JdbcConf jdbcConf,
+            JdbcConfig jdbcConfig,
             JdbcDialect jdbcDialect,
-            LookupConf lookupConf,
+            LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
-        super(fieldNames, keyNames, lookupConf, jdbcDialect.getRowConverter(rowType));
-        this.jdbcConf = jdbcConf;
+        super(fieldNames, keyNames, lookupConfig, jdbcDialect.getRowConverter(rowType));
+        this.jdbcConfig = jdbcConfig;
         this.query =
                 jdbcDialect.getSelectFromStatement(
-                        jdbcConf.getSchema(), jdbcConf.getTable(), fieldNames, new String[] {});
+                        jdbcConfig.getSchema(), jdbcConfig.getTable(), fieldNames, new String[] {});
         this.jdbcDialect = jdbcDialect;
     }
 
@@ -75,35 +69,28 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
         Connection connection = null;
 
         try {
-            connection = JdbcUtil.getConnection(jdbcConf, jdbcDialect);
+            connection = JdbcUtil.getConnection(jdbcConfig, jdbcDialect);
             queryAndFillData(tmpCache, connection);
         } catch (Exception e) {
-            LOG.error("", e);
+            log.error("", e);
             throw new RuntimeException(e);
         } finally {
             if (connection != null) {
                 try {
                     connection.close();
                 } catch (SQLException e) {
-                    LOG.error("", e);
+                    log.error("", e);
                 }
             }
         }
     }
 
-    /**
-     * fill data
-     *
-     * @param tmpCache
-     * @param connection
-     * @throws SQLException
-     */
     protected void queryAndFillData(
             Map<String, List<Map<String, Object>>> tmpCache, Connection connection)
             throws SQLException {
         // load data from table
         Statement statement = connection.createStatement();
-        statement.setFetchSize(lookupConf.getFetchSize());
+        statement.setFetchSize(lookupConfig.getFetchSize());
         ResultSet resultSet = statement.executeQuery(query);
 
         while (resultSet.next()) {
@@ -117,7 +104,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
                 }
                 buildCache(oneRow, tmpCache);
             } catch (Exception e) {
-                LOG.error("", e);
+                log.error("", e);
             }
         }
     }

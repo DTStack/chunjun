@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.mongodb.datasync;
 
-import com.dtstack.chunjun.connector.mongodb.conf.MongoClientConf;
+import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
 
 import com.mongodb.MongoClientURI;
 import com.mongodb.ServerAddress;
@@ -28,38 +28,34 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/24
- */
 public class MongoClientConfFactory {
 
     private static final String HOST_SPLIT_REGEX = ",\\s*";
     private static final Pattern HOST_PORT_PATTERN = Pattern.compile("(?<host>.*):(?<port>\\d+)*");
     private static final Integer DEFAULT_PORT = 27017;
 
-    public static MongoClientConf createMongoClientConf(MongodbDataSyncConf mongodbDataSyncConf) {
-        MongoClientConf mongoClientConf = new MongoClientConf();
-        mongoClientConf.setUri(mongodbDataSyncConf.getUrl());
-        mongoClientConf.setUsername(mongodbDataSyncConf.getUsername());
-        mongoClientConf.setPassword(mongodbDataSyncConf.getPassword());
-        mongoClientConf.setCollection(mongodbDataSyncConf.getCollectionName());
+    public static MongoClientConfig createMongoClientConf(
+            MongodbDataSyncConfig mongodbDataSyncConfig) {
+        MongoClientConfig mongoClientConfig = new MongoClientConfig();
+        mongoClientConfig.setUri(mongodbDataSyncConfig.getUrl());
+        mongoClientConfig.setUsername(mongodbDataSyncConfig.getUsername());
+        mongoClientConfig.setPassword(mongodbDataSyncConfig.getPassword());
+        mongoClientConfig.setCollection(mongodbDataSyncConfig.getCollectionName());
 
-        mongoClientConf.setDatabase(mongodbDataSyncConf.getDatabase());
-        if (mongodbDataSyncConf.getUrl() != null) {
-            MongoClientURI clientUri = new MongoClientURI(mongodbDataSyncConf.getUrl());
-            mongoClientConf.setDatabase(clientUri.getDatabase());
+        mongoClientConfig.setDatabase(mongodbDataSyncConfig.getDatabase());
+        if (mongodbDataSyncConfig.getUrl() != null) {
+            MongoClientURI clientUri = new MongoClientURI(mongodbDataSyncConfig.getUrl());
+            mongoClientConfig.setDatabase(clientUri.getDatabase());
         }
 
-        if (mongodbDataSyncConf.getHostPorts() != null) {
-            mongoClientConf.setServerAddresses(
-                    parseServerAddress(mongodbDataSyncConf.getHostPorts()));
+        if (mongodbDataSyncConfig.getHostPorts() != null) {
+            mongoClientConfig.setServerAddresses(
+                    parseServerAddress(mongodbDataSyncConfig.getHostPorts()));
         }
-        mongoClientConf.setAuthenticationMechanism(
-                mongodbDataSyncConf.getAuthenticationMechanism());
-        mongoClientConf.setConnectionConfig(mongodbDataSyncConf.getMongodbConfig());
-        return mongoClientConf;
+        mongoClientConfig.setAuthenticationMechanism(
+                mongodbDataSyncConfig.getAuthenticationMechanism());
+        mongoClientConfig.setMongodbClientOptions(mongodbDataSyncConfig.getMongodbConfig());
+        return mongoClientConfig;
     }
 
     /** parse server address from hostPorts string */

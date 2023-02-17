@@ -18,14 +18,14 @@
 
 package com.dtstack.chunjun.connector.oracle.dialect;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.NumericTypeUtil;
-import com.dtstack.chunjun.connector.oracle.converter.OracleColumnConverter;
 import com.dtstack.chunjun.connector.oracle.converter.OracleRawTypeConverter;
-import com.dtstack.chunjun.connector.oracle.converter.OracleRowConverter;
+import com.dtstack.chunjun.connector.oracle.converter.OracleSqlConverter;
+import com.dtstack.chunjun.connector.oracle.converter.OracleSyncConverter;
 import com.dtstack.chunjun.connector.oracle.util.increment.OracleTimestampTypeUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -45,12 +45,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class OracleDialect implements JdbcDialect {
+
+    private static final long serialVersionUID = -1304861371329709477L;
 
     @Override
     public String dialectName() {
@@ -123,13 +120,13 @@ public class OracleDialect implements JdbcDialect {
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
             getRowConverter(RowType rowType) {
-        return new OracleRowConverter(rowType);
+        return new OracleSqlConverter(rowType);
     }
 
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
-        return new OracleColumnConverter(rowType, commonConf);
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new OracleSyncConverter(rowType, commonConfig);
     }
 
     /** build select sql , such as (SELECT ? "A",? "B" FROM DUAL) */

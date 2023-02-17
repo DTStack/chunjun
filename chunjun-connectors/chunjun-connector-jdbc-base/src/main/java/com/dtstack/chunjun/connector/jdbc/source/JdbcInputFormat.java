@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.jdbc.source;
 
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
@@ -37,6 +37,7 @@ import com.dtstack.chunjun.util.GsonUtil;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -54,20 +55,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-/**
- * InputFormat for reading data from a database and generate Rows.
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+/** InputFormat for reading data from a database and generate Rows. */
+@Slf4j
 public class JdbcInputFormat extends BaseRichInputFormat {
 
-    public static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2776268462929827L;
+
     protected static final int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
     protected static int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
 
-    protected JdbcConf jdbcConf;
+    protected JdbcConfig jdbcConfig;
     protected JdbcDialect jdbcDialect;
 
     protected transient Connection dbConn;
@@ -96,7 +93,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         this.currentJdbcInputSplit = (JdbcInputSplit) inputSplit;
         initMetric(currentJdbcInputSplit);
         if (!canReadData(currentJdbcInputSplit)) {
-            LOG.warn(
+            log.warn(
                     "Not read data when the start location are equal to end location, start = {}, end = {}",
                     currentJdbcInputSplit.getStartLocation(),
                     currentJdbcInputSplit.getEndLocation());
@@ -110,11 +107,13 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             dbConn.setAutoCommit(false);
 
             querySQL = buildQuerySql(currentJdbcInputSplit);
-            jdbcConf.setQuerySql(querySQL);
+            jdbcConfig.setQuerySql(querySQL);
             executeQuery(currentJdbcInputSplit.getStartLocation());
             // 增量任务
             needUpdateEndLocation =
-                    jdbcConf.isIncrement() && !jdbcConf.isPolling() && !jdbcConf.isUseMaxFunc();
+                    jdbcConfig.isIncrement()
+                            && !jdbcConfig.isPolling()
+                            && !jdbcConfig.isUseMaxFunc();
         } catch (SQLException se) {
             String expMsg = se.getMessage();
             expMsg = querySQL == null ? expMsg : expMsg + "\n querySQL: " + querySQL;
@@ -124,20 +123,20 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) {
-        if (minNumSplits != jdbcConf.getParallelism()) {
+        if (minNumSplits != jdbcConfig.getParallelism()) {
             throw new ChunJunRuntimeException(
                     String.format(
-                            "numTaskVertices is [%s], but parallelism in jdbcConf is [%s]",
-                            minNumSplits, jdbcConf.getParallelism()));
+                            "numTaskVertices is [%s], but parallelism in jdbcConfig is [%s]",
+                            minNumSplits, jdbcConfig.getParallelism()));
         }
 
-        if (jdbcConf.getParallelism() > 1
-                && StringUtils.equalsIgnoreCase("range", jdbcConf.getSplitStrategy())) {
+        if (jdbcConfig.getParallelism() > 1
+                && StringUtils.equalsIgnoreCase("range", jdbcConfig.getSplitStrategy())) {
             // splitStrategy = range
             return createSplitsInternalBySplitRange(minNumSplits);
         } else {
             // default,splitStrategy = mod
-            return createSplitsInternalBySplitMod(minNumSplits, jdbcConf.getStartLocation());
+            return createSplitsInternalBySplitMod(minNumSplits, jdbcConfig.getStartLocation());
         }
     }
 
@@ -145,10 +144,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     public JdbcInputSplit[] createSplitsInternalBySplitMod(int minNumSplits, String startLocation) {
         JdbcInputSplit[] splits = new JdbcInputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
-            splits[i] = new JdbcInputSplit(i, minNumSplits, i, "mod", jdbcConf.isPolling());
+            splits[i] = new JdbcInputSplit(i, minNumSplits, i, "mod", jdbcConfig.isPolling());
         }
         JdbcUtil.setStarLocationForSplits(splits, startLocation);
-        LOG.info("createInputSplitsInternal success, splits is {}", GsonUtil.GSON.toJson(splits));
+        log.info("createInputSplitsInternal success, splits is {}", GsonUtil.GSON.toJson(splits));
         return splits;
     }
 
@@ -159,7 +158,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         } else {
             if (currentJdbcInputSplit.isPolling()) {
                 try {
-                    TimeUnit.MILLISECONDS.sleep(jdbcConf.getPollingInterval());
+                    TimeUnit.MILLISECONDS.sleep(jdbcConfig.getPollingInterval());
                     // 间隔轮询检测数据库连接是否断开，超时时间三秒，断开后自动重连
                     if (!dbConn.isValid(3)) {
                         dbConn = getConnection();
@@ -168,8 +167,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                             String message =
                                     String.format(
                                             "cannot connect to %s, username = %s, please check %s is available.",
-                                            jdbcConf.getJdbcUrl(),
-                                            jdbcConf.getUsername(),
+                                            jdbcConfig.getJdbcUrl(),
+                                            jdbcConfig.getUsername(),
                                             jdbcDialect.dialectName());
                             throw new ChunJunRuntimeException(message);
                         }
@@ -179,7 +178,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     queryForPolling(restoreKeyUtil.transToLocationValue(state).toString());
                     return false;
                 } catch (InterruptedException e) {
-                    LOG.warn(
+                    log.warn(
                             "interrupted while waiting for polling, e = {}",
                             ExceptionUtil.getErrorMessage(e));
                 } catch (SQLException e) {
@@ -187,7 +186,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     String message =
                             String.format(
                                     "error to execute sql = %s, startLocation = %s, e = %s",
-                                    jdbcConf.getQuerySql(),
+                                    jdbcConfig.getQuerySql(),
                                     state,
                                     ExceptionUtil.getErrorMessage(e));
                     throw new ChunJunRuntimeException(message, e);
@@ -208,12 +207,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (needUpdateEndLocation) {
                 BigInteger location =
                         incrementKeyUtil.getLocationValueFromRs(
-                                resultSet, jdbcConf.getIncreColumnIndex() + 1);
+                                resultSet, jdbcConfig.getIncreColumnIndex() + 1);
                 endLocationAccumulator.add(location);
-                LOG.debug("update endLocationAccumulator, current Location = {}", location);
+                log.debug("update endLocationAccumulator, current Location = {}", location);
             }
-            if (jdbcConf.getRestoreColumnIndex() > -1) {
-                state = resultSet.getObject(jdbcConf.getRestoreColumnIndex() + 1);
+            if (jdbcConfig.getRestoreColumnIndex() > -1) {
+                state = resultSet.getObject(jdbcConfig.getRestoreColumnIndex() + 1);
             }
             return finalRowData;
         } catch (Exception se) {
@@ -222,7 +221,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             try {
                 hasNext = resultSet.next();
             } catch (SQLException e) {
-                LOG.error("can not read next record", e);
+                log.error("can not read next record", e);
                 hasNext = false;
             }
         }
@@ -246,20 +245,20 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @param inputSplit 数据分片
      */
     protected void initMetric(InputSplit inputSplit) {
-        if (!jdbcConf.isIncrement()) {
+        if (!jdbcConfig.isIncrement()) {
             return;
         }
         // 初始化增量、轮询字段类型
-        type = ColumnType.fromString(jdbcConf.getIncreColumnType());
+        type = ColumnType.fromString(jdbcConfig.getIncreColumnType());
         startLocationAccumulator = new BigIntegerAccumulator();
         endLocationAccumulator = new BigIntegerAccumulator();
         JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
 
         // get maxValue in task to avoid timeout in SourceFactory
-        if ((jdbcConf.isPolling() && jdbcConf.isPollingFromMax())
-                || (!jdbcConf.isPolling() && jdbcConf.isUseMaxFunc())) {
+        if ((jdbcConfig.isPolling() && jdbcConfig.isPollingFromMax())
+                || (!jdbcConfig.isPolling() && jdbcConfig.isUseMaxFunc())) {
             String maxValue = getMaxValue(inputSplit);
-            if (jdbcConf.isPolling()) {
+            if (jdbcConfig.isPolling()) {
                 ((JdbcInputSplit) inputSplit).setStartLocation(maxValue);
             } else {
                 ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
@@ -331,50 +330,50 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             long startTime = System.currentTimeMillis();
 
             String queryMaxValueSql;
-            if (StringUtils.isNotEmpty(jdbcConf.getCustomSql())) {
+            if (StringUtils.isNotEmpty(jdbcConfig.getCustomSql())) {
                 queryMaxValueSql =
                         String.format(
                                 "select max(%s.%s) as max_value from ( %s ) %s",
                                 JdbcUtil.TEMPORARY_TABLE_NAME,
-                                jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
-                                jdbcConf.getCustomSql(),
+                                jdbcDialect.quoteIdentifier(jdbcConfig.getIncreColumn()),
+                                jdbcConfig.getCustomSql(),
                                 JdbcUtil.TEMPORARY_TABLE_NAME);
             } else {
                 queryMaxValueSql =
                         String.format(
                                 "select max(%s) as max_value from %s",
-                                jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
-                                jdbcDialect.quoteIdentifier(jdbcConf.getTable()));
+                                jdbcDialect.quoteIdentifier(jdbcConfig.getIncreColumn()),
+                                jdbcDialect.quoteIdentifier(jdbcConfig.getTable()));
             }
 
             String startSql =
                     buildStartLocationSql(
-                            jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
-                            jdbcConf.getStartLocation(),
-                            jdbcConf.isUseMaxFunc(),
-                            jdbcConf.isPolling());
+                            jdbcDialect.quoteIdentifier(jdbcConfig.getIncreColumn()),
+                            jdbcConfig.getStartLocation(),
+                            jdbcConfig.isUseMaxFunc(),
+                            jdbcConfig.isPolling());
             if (StringUtils.isNotEmpty(startSql)) {
                 queryMaxValueSql += " where " + startSql;
             }
 
-            LOG.info(String.format("Query max value sql is '%s'", queryMaxValueSql));
+            log.info(String.format("Query max value sql is '%s'", queryMaxValueSql));
 
             conn = getConnection();
             st = conn.createStatement(resultSetType, resultSetConcurrency);
-            st.setQueryTimeout(jdbcConf.getQueryTimeOut());
+            st.setQueryTimeout(jdbcConfig.getQueryTimeOut());
             rs = st.executeQuery(queryMaxValueSql);
             if (rs.next()) {
                 maxValue = incrementKeyUtil.getLocationValueFromRs(rs, "max_value").toString();
             }
 
-            LOG.info(
+            log.info(
                     String.format(
                             "Takes [%s] milliseconds to get the maximum value [%s]",
                             System.currentTimeMillis() - startTime, maxValue));
 
             return maxValue;
         } catch (Throwable e) {
-            throw new RuntimeException("Get max value from " + jdbcConf.getTable() + " error", e);
+            throw new RuntimeException("Get max value from " + jdbcConfig.getTable() + " error", e);
         } finally {
             JdbcUtil.closeDbResources(rs, st, conn, false);
         }
@@ -393,12 +392,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         try {
             long startTime = System.currentTimeMillis();
 
-            String querySplitRangeSql = SqlUtil.buildQuerySplitRangeSql(jdbcConf, jdbcDialect);
-            LOG.info(String.format("Query SplitRange sql is '%s'", querySplitRangeSql));
+            String querySplitRangeSql = SqlUtil.buildQuerySplitRangeSql(jdbcConfig, jdbcDialect);
+            log.info(String.format("Query SplitRange sql is '%s'", querySplitRangeSql));
 
             conn = getConnection();
             st = conn.createStatement(resultSetType, resultSetConcurrency);
-            st.setQueryTimeout(jdbcConf.getQueryTimeOut());
+            st.setQueryTimeout(jdbcConfig.getQueryTimeOut());
             rs = st.executeQuery(querySplitRangeSql);
             if (rs.next()) {
                 splitPkRange =
@@ -407,7 +406,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                                 String.valueOf(rs.getObject("max_value")));
             }
 
-            LOG.info(
+            log.info(
                     String.format(
                             "Takes [%s] milliseconds to get the SplitRange value [%s]",
                             System.currentTimeMillis() - startTime, splitPkRange));
@@ -415,7 +414,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             return splitPkRange;
         } catch (Throwable e) {
             throw new ChunJunRuntimeException(
-                    "Get SplitRange value from " + jdbcConf.getTable() + " error", e);
+                    "Get SplitRange value from " + jdbcConfig.getTable() + " error", e);
         } finally {
             JdbcUtil.closeDbResources(rs, st, conn, false);
         }
@@ -429,7 +428,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      */
     protected boolean canReadData(JdbcInputSplit jdbcInputSplit) {
         // 只排除增量同步
-        if (!jdbcConf.isIncrement() || currentJdbcInputSplit.isPolling()) {
+        if (!jdbcConfig.isIncrement() || currentJdbcInputSplit.isPolling()) {
             return true;
         }
 
@@ -453,17 +452,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
         buildLocationFilter(jdbcInputSplit, whereList);
 
-        if (StringUtils.isNotBlank(jdbcConf.getWhere())) {
-            whereList.add(jdbcConf.getWhere());
+        if (StringUtils.isNotBlank(jdbcConfig.getWhere())) {
+            whereList.add(jdbcConfig.getWhere());
         }
         String querySql;
 
         querySql = buildQuerySqlBySplit(jdbcInputSplit, whereList);
 
-        if (!jdbcConf.isPolling()) {
-            querySql = querySql + SqlUtil.buildOrderSql(jdbcConf, jdbcDialect, "ASC");
+        if (!jdbcConfig.isPolling()) {
+            querySql = querySql + SqlUtil.buildOrderSql(jdbcConfig, jdbcDialect, "ASC");
         }
-        LOG.info("Executing sql is: '{}'", querySql);
+        log.info("Executing sql is: '{}'", querySql);
         return querySql;
     }
 
@@ -519,10 +518,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      */
     protected void queryForPolling(String startLocation) throws SQLException {
         // 每隔五分钟打印一次，(当前时间 - 任务开始时间) % 300秒 <= 一个间隔轮询周期
-        if ((System.currentTimeMillis() - startTime) % 300000 <= jdbcConf.getPollingInterval()) {
-            LOG.info("polling startLocation = {}", startLocation);
+        if ((System.currentTimeMillis() - startTime) % 300000 <= jdbcConfig.getPollingInterval()) {
+            log.info("polling startLocation = {}", startLocation);
         } else {
-            LOG.debug("polling startLocation = {}", startLocation);
+            log.debug("polling startLocation = {}", startLocation);
         }
 
         incrementKeyUtil.setPsWithLocationStr(ps, 1, startLocation);
@@ -532,10 +531,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     /** 构建基于startLocation&endLocation的过滤条件 * */
     protected void buildLocationFilter(JdbcInputSplit jdbcInputSplit, List<String> whereList) {
-        if (formatState.getState() != null && StringUtils.isNotBlank(jdbcConf.getRestoreColumn())) {
+        if (formatState.getState() != null
+                && StringUtils.isNotBlank(jdbcConfig.getRestoreColumn())) {
             if (StringUtils.isNotBlank(String.valueOf(formatState.getState()))) {
-                LOG.info("restore from checkpoint with state{}", formatState.getState());
-                if (jdbcConf.isIncrement()) {
+                log.info("restore from checkpoint with state{}", formatState.getState());
+                if (jdbcConfig.isIncrement()) {
                     jdbcInputSplit.setStartLocation(
                             incrementKeyUtil
                                     .transToLocationValue(formatState.getState())
@@ -543,32 +543,32 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 }
                 whereList.add(
                         buildFilterSql(
-                                jdbcConf.getCustomSql(),
+                                jdbcConfig.getCustomSql(),
                                 ">",
-                                jdbcDialect.quoteIdentifier(jdbcConf.getRestoreColumn()),
+                                jdbcDialect.quoteIdentifier(jdbcConfig.getRestoreColumn()),
                                 jdbcInputSplit.isPolling(),
                                 restoreKeyUtil.transToStatementValue(formatState.getState())));
             }
-        } else if (jdbcConf.isIncrement()) {
+        } else if (jdbcConfig.isIncrement()) {
             String startLocation = jdbcInputSplit.getStartLocation();
             if (StringUtils.isNotBlank(startLocation)) {
-                String operator = jdbcConf.isUseMaxFunc() ? " >= " : " > ";
+                String operator = jdbcConfig.isUseMaxFunc() ? " >= " : " > ";
                 whereList.add(
                         buildFilterSql(
-                                jdbcConf.getCustomSql(),
+                                jdbcConfig.getCustomSql(),
                                 operator,
-                                jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
+                                jdbcDialect.quoteIdentifier(jdbcConfig.getIncreColumn()),
                                 jdbcInputSplit.isPolling(),
                                 incrementKeyUtil.transLocationStrToStatementValue(
                                         jdbcInputSplit.getStartLocation())));
             }
             if (StringUtils.isNotBlank(jdbcInputSplit.getEndLocation())) {
-                String operator = jdbcConf.isUseMaxFunc() ? " < " : " <= ";
+                String operator = jdbcConfig.isUseMaxFunc() ? " < " : " <= ";
                 whereList.add(
                         buildFilterSql(
-                                jdbcConf.getCustomSql(),
+                                jdbcConfig.getCustomSql(),
                                 operator,
-                                jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
+                                jdbcDialect.quoteIdentifier(jdbcConfig.getIncreColumn()),
                                 false,
                                 incrementKeyUtil.transLocationStrToStatementValue(
                                         jdbcInputSplit.getEndLocation())));
@@ -579,7 +579,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     /** create querySql for inputSplit * */
     protected String buildQuerySqlBySplit(JdbcInputSplit jdbcInputSplit, List<String> whereList) {
         return SqlUtil.buildQuerySqlBySplit(
-                jdbcConf, jdbcDialect, whereList, columnNameList, jdbcInputSplit);
+                jdbcConfig, jdbcDialect, whereList, columnNameList, jdbcInputSplit);
     }
 
     /** create split for rangeSplitStrategy */
@@ -592,20 +592,20 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             left = new BigDecimal(splitKeyUtil.transToLocationValue(splitRangeFromDb.getLeft()));
             right = new BigDecimal(splitKeyUtil.transToLocationValue(splitRangeFromDb.getRight()));
             splits.addAll(createRangeSplits(left, right, minNumSplits));
-            if (jdbcConf.isPolling()) {
+            if (jdbcConfig.isPolling()) {
                 // rangeSplit in polling mode,range first then mod.we need to change the last range
                 // shard here to <= endLocationOfSplit
                 splits.get(splits.size() - 1).setRangeEndLocationOperator(" <= ");
             }
         }
         // create modSplit for polling
-        if (jdbcConf.isPolling()) {
+        if (jdbcConfig.isPolling()) {
             splits.addAll(
                     Arrays.asList(
                             createSplitsInternalBySplitMod(
-                                    jdbcConf.getParallelism(),
+                                    jdbcConfig.getParallelism(),
                                     right == null
-                                            ? jdbcConf.getStartLocation()
+                                            ? jdbcConfig.getStartLocation()
                                             : String.valueOf(right))));
         }
         // Reverse,when pollingMode configures rangeStrategy, be sure to do rangeSplit first, then
@@ -619,7 +619,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         BigDecimal endAndStartGap = right.subtract(left);
         if (endAndStartGap.compareTo(BigDecimal.ZERO) < 0) return new ArrayList<>();
         JdbcInputSplit[] splits;
-        LOG.info("create splitsInternal,the splitKey range is {} --> {}", left, right);
+        log.info("create splitsInternal,the splitKey range is {} --> {}", left, right);
         BigDecimal remainder = endAndStartGap.remainder(new BigDecimal(minNumSplits));
         endAndStartGap = endAndStartGap.subtract(remainder);
         BigDecimal step = endAndStartGap.divide(new BigDecimal(minNumSplits));
@@ -646,7 +646,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             // incrementalMode,The final rangeSplit scope is splitPk >= start
             // pollingMode,The final rangeSplit scope is splitPk >= start and splitPk < =end
             if (i == minNumSplits - 1) {
-                if (jdbcConf.isPolling()) {
+                if (jdbcConfig.isPolling()) {
                     end = right;
                 } else {
                     end = null;
@@ -657,7 +657,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                             i,
                             minNumSplits,
                             i,
-                            jdbcConf.getStartLocation(),
+                            jdbcConfig.getStartLocation(),
                             null,
                             splitKeyUtil.transLocationStrToStatementValue(start.toString()),
                             Objects.isNull(end)
@@ -683,37 +683,37 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 queryPollingWithOutStartLocation();
                 // Concatenated sql statement for next polling query
                 StringBuilder builder = new StringBuilder(128);
-                builder.append(jdbcConf.getQuerySql());
-                if (jdbcConf.getQuerySql().contains("WHERE")) {
+                builder.append(jdbcConfig.getQuerySql());
+                if (jdbcConfig.getQuerySql().contains("WHERE")) {
                     builder.append(" AND ");
                 } else {
                     builder.append(" WHERE ");
                 }
-                builder.append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
+                builder.append(jdbcDialect.quoteIdentifier(jdbcConfig.getIncreColumn()))
                         .append(" > ?")
-                        .append(SqlUtil.buildOrderSql(jdbcConf, jdbcDialect, "ASC"));
-                jdbcConf.setQuerySql(builder.toString());
-                initPrepareStatement(jdbcConf.getQuerySql());
-                LOG.info("update querySql, sql = {}", jdbcConf.getQuerySql());
+                        .append(SqlUtil.buildOrderSql(jdbcConfig, jdbcDialect, "ASC"));
+                jdbcConfig.setQuerySql(builder.toString());
+                initPrepareStatement(jdbcConfig.getQuerySql());
+                log.info("update querySql, sql = {}", jdbcConfig.getQuerySql());
             } else {
                 // if the job have startLocation
                 // sql will be like "select ... from ... where increColumn > ?"
-                jdbcConf.setQuerySql(
-                        jdbcConf.getQuerySql()
-                                + SqlUtil.buildOrderSql(jdbcConf, jdbcDialect, "ASC"));
-                initPrepareStatement(jdbcConf.getQuerySql());
+                jdbcConfig.setQuerySql(
+                        jdbcConfig.getQuerySql()
+                                + SqlUtil.buildOrderSql(jdbcConfig, jdbcDialect, "ASC"));
+                initPrepareStatement(jdbcConfig.getQuerySql());
                 queryForPolling(startLocation);
                 state = restoreKeyUtil.transLocationStrToSqlValue(startLocation);
             }
         } else {
             statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
-            if (jdbcConf.isDefineColumnTypeForStatement()
-                    && StringUtils.isBlank(jdbcConf.getCustomSql())) {
+            if (jdbcConfig.isDefineColumnTypeForStatement()
+                    && StringUtils.isBlank(jdbcConfig.getCustomSql())) {
                 defineColumnType(statement);
             }
-            statement.setFetchSize(jdbcConf.getFetchSize());
-            statement.setQueryTimeout(jdbcConf.getQueryTimeOut());
-            resultSet = statement.executeQuery(jdbcConf.getQuerySql());
+            statement.setFetchSize(jdbcConfig.getFetchSize());
+            statement.setQueryTimeout(jdbcConfig.getQueryTimeOut());
+            resultSet = statement.executeQuery(jdbcConfig.getQuerySql());
             hasNext = resultSet.next();
         }
     }
@@ -723,9 +723,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     /** init prepareStatement */
     public void initPrepareStatement(String querySql) throws SQLException {
         ps = dbConn.prepareStatement(querySql, resultSetType, resultSetConcurrency);
-        ps.setFetchSize(jdbcConf.getFetchSize());
-        ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
+        ps.setFetchSize(jdbcConfig.getFetchSize());
+        ps.setQueryTimeout(jdbcConfig.getQueryTimeOut());
     }
+
     /**
      * polling mode first query when startLocation is not set
      *
@@ -734,14 +735,14 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected void queryPollingWithOutStartLocation() throws SQLException {
         // add order by to query SQL avoid duplicate data
         initPrepareStatement(
-                jdbcConf.getQuerySql() + SqlUtil.buildOrderSql(jdbcConf, jdbcDialect, "ASC"));
+                jdbcConfig.getQuerySql() + SqlUtil.buildOrderSql(jdbcConfig, jdbcDialect, "ASC"));
         resultSet = ps.executeQuery();
         hasNext = resultSet.next();
 
         try {
             // 间隔轮询一直循环，直到查询到数据库中的数据为止
             while (!hasNext) {
-                TimeUnit.MILLISECONDS.sleep(jdbcConf.getPollingInterval());
+                TimeUnit.MILLISECONDS.sleep(jdbcConfig.getPollingInterval());
                 resultSet.close();
                 // 如果事务不提交 就会导致数据库即使插入数据 也无法读到数据
                 dbConn.commit();
@@ -749,15 +750,15 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 hasNext = resultSet.next();
                 // 每隔五分钟打印一次，(当前时间 - 任务开始时间) % 300秒 <= 一个间隔轮询周期
                 if ((System.currentTimeMillis() - startTime) % 300000
-                        <= jdbcConf.getPollingInterval()) {
-                    LOG.info(
+                        <= jdbcConfig.getPollingInterval()) {
+                    log.info(
                             "no record matched condition in database, execute query sql = {}, startLocation = {}",
-                            jdbcConf.getQuerySql(),
+                            jdbcConfig.getQuerySql(),
                             endLocationAccumulator.getLocalValue());
                 }
             }
         } catch (InterruptedException e) {
-            LOG.warn(
+            log.warn(
                     "interrupted while waiting for polling, e = {}",
                     ExceptionUtil.getErrorMessage(e));
         }
@@ -799,13 +800,13 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @return connection
      */
     protected Connection getConnection() throws SQLException {
-        return JdbcUtil.getConnection(jdbcConf, jdbcDialect);
+        return JdbcUtil.getConnection(jdbcConfig, jdbcDialect);
     }
 
     /** 使用自定义的指标输出器把增量指标打到普罗米修斯 */
     @Override
     protected boolean useCustomReporter() {
-        return jdbcConf.isIncrement() && jdbcConf.getInitReporter();
+        return jdbcConfig.isIncrement() && jdbcConfig.getInitReporter();
     }
 
     /** 为了保证增量数据的准确性，指标输出失败时使任务失败 */
@@ -814,12 +815,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         return true;
     }
 
-    public JdbcConf getJdbcConf() {
-        return jdbcConf;
+    public JdbcConfig getJdbcConfig() {
+        return jdbcConfig;
     }
 
-    public void setJdbcConf(JdbcConf jdbcConf) {
-        this.jdbcConf = jdbcConf;
+    public void setJdbcConf(JdbcConfig jdbcConfig) {
+        this.jdbcConfig = jdbcConfig;
     }
 
     public JdbcDialect getJdbcDialect() {

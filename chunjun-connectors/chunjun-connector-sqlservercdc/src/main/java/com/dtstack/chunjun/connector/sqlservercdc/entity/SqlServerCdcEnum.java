@@ -22,11 +22,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * Date: 2019/12/05 Company: www.dtstack.com
- *
- * @author tudou
- */
 public enum SqlServerCdcEnum {
 
     /** 操作未知 */
@@ -42,8 +37,8 @@ public enum SqlServerCdcEnum {
 
     UPDATE(5, "update");
 
-    public int code;
-    public String name;
+    public final int code;
+    public final String name;
 
     SqlServerCdcEnum(int code, String name) {
         this.code = code;

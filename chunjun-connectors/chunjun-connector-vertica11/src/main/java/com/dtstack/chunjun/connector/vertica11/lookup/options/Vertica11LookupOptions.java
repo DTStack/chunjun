@@ -24,7 +24,6 @@ import com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/** @author menghan on 2022/7/25. */
 public class Vertica11LookupOptions extends JdbcLookupOptions {
 
     // vertx config options

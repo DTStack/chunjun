@@ -20,16 +20,14 @@ package com.dtstack.chunjun.cdc.exception;
 
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class LogExceptionHandler implements Thread.UncaughtExceptionHandler {
-
-    private static final Logger LOG = LoggerFactory.getLogger(LogExceptionHandler.class);
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-        LOG.error(
+        log.error(
                 String.format(
                         "An error occurred during the sending data. thread name : [%s]",
                         t.getName()),

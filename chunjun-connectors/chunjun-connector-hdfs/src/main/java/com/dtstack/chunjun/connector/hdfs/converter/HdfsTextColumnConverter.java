@@ -17,8 +17,8 @@
  */
 package com.dtstack.chunjun.connector.hdfs.converter;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -38,24 +38,24 @@ import com.dtstack.chunjun.util.DateUtil;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Date: 2021/06/16 Company: www.dtstack.com
- *
- * @author tudou
- */
+@Slf4j
 public class HdfsTextColumnConverter
         extends AbstractRowConverter<RowData, RowData, String[], String> {
 
-    public HdfsTextColumnConverter(List<FieldConf> fieldConfList, HdfsConf hdfsConf) {
-        super(fieldConfList.size(), hdfsConf);
-        for (int i = 0; i < fieldConfList.size(); i++) {
-            String type = fieldConfList.get(i).getType();
+    private static final long serialVersionUID = 1191849197062775272L;
+
+    public HdfsTextColumnConverter(List<FieldConfig> fieldConfigList, HdfsConfig hdfsConfig) {
+        super(fieldConfigList.size(), hdfsConfig);
+        for (FieldConfig fieldConfig : fieldConfigList) {
+            String type = fieldConfig.getType();
             int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
             int right = type.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
             if (left > 0 && right > 0) {
@@ -74,11 +74,11 @@ public class HdfsTextColumnConverter
         ColumnRowData row = new ColumnRowData(input.getArity());
         if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
-            List<FieldConf> fieldConfList = commonConf.getColumn();
+            List<FieldConfig> fieldConfigList = commonConfig.getColumn();
             for (int i = 0; i < input.getArity(); i++) {
                 row.addField(
                         assembleFieldProps(
-                                fieldConfList.get(i),
+                                fieldConfigList.get(i),
                                 (AbstractBaseColumn)
                                         toInternalConverters
                                                 .get(i)
@@ -96,7 +96,7 @@ public class HdfsTextColumnConverter
     @Override
     @SuppressWarnings("unchecked")
     public String[] toExternal(RowData rowData, String[] data) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, data);
         }
         return data;
@@ -117,7 +117,7 @@ public class HdfsTextColumnConverter
                 try {
                     return IDeserializationConverter.deserialize(val);
                 } catch (Exception e) {
-                    LOG.error("value [{}] convent failed ", val);
+                    log.error("value [{}] convent failed ", val);
                     throw e;
                 }
             }

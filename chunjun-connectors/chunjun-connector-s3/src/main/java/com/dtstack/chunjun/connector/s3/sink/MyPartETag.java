@@ -19,18 +19,18 @@
 package com.dtstack.chunjun.connector.s3.sink;
 
 import com.amazonaws.services.s3.model.PartETag;
+import lombok.Data;
 
 import java.io.Serializable;
 
-/** @author jier */
+@Data
 public class MyPartETag implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = 7290638689818873135L;
 
     private int partNumber;
 
     private String eTag;
-
-    public MyPartETag() {}
 
     public MyPartETag(PartETag partETag) {
         this.partNumber = partETag.getPartNumber();
@@ -39,26 +39,5 @@ public class MyPartETag implements Serializable {
 
     public PartETag genPartETag() {
         return new PartETag(this.partNumber, this.eTag);
-    }
-
-    public int getPartNumber() {
-        return partNumber;
-    }
-
-    public void setPartNumber(int partNumber) {
-        this.partNumber = partNumber;
-    }
-
-    public String geteTag() {
-        return eTag;
-    }
-
-    public void seteTag(String eTag) {
-        this.eTag = eTag;
-    }
-
-    @Override
-    public String toString() {
-        return partNumber + "$" + eTag;
     }
 }

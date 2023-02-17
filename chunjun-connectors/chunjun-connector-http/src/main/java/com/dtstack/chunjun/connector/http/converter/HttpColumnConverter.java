@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.http.converter;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.http.common.HttpRestConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -42,16 +42,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * @author shifang
- * @create 2021-06-07 15:51
- * @description
- */
 public class HttpColumnConverter
         extends AbstractRowConverter<Map<String, Object>, Object, Map<String, Object>, String> {
 
-    /** restapi Conf */
-    private HttpRestConfig httpRestConfig;
+    private static final long serialVersionUID = -7759259374957914968L;
+
+    /** restapi Config */
+    private final HttpRestConfig httpRestConfig;
 
     public HttpColumnConverter(HttpRestConfig httpRestConfig) {
         this.httpRestConfig = httpRestConfig;
@@ -80,7 +77,7 @@ public class HttpColumnConverter
         ColumnRowData row;
 
         if (toInternalConverters != null && toInternalConverters.size() > 0) {
-            List<FieldConf> fieldConfList = commonConf.getColumn();
+            List<FieldConfig> fieldConfList = commonConfig.getColumn();
             // 同步任务配置了field参数(对应的类型转换都是string) 需要对每个字段进行类型转换
             row = new ColumnRowData(toInternalConverters.size());
             for (int i = 0; i < toInternalConverters.size(); i++) {
@@ -106,8 +103,7 @@ public class HttpColumnConverter
     }
 
     @Override
-    public Map<String, Object> toExternal(RowData rowData, Map<String, Object> output)
-            throws Exception {
+    public Map<String, Object> toExternal(RowData rowData, Map<String, Object> output) {
         return null;
     }
 

@@ -19,12 +19,14 @@
 package com.dtstack.chunjun.restore.mysql;
 
 import com.dtstack.chunjun.cdc.DdlRowData;
-import com.dtstack.chunjun.cdc.conf.DDLConf;
+import com.dtstack.chunjun.cdc.config.DDLConfig;
 import com.dtstack.chunjun.cdc.ddl.DdlRowDataConvented;
 import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
 import com.dtstack.chunjun.cdc.handler.DDLHandler;
 import com.dtstack.chunjun.restore.mysql.datasource.DruidDataSourceManager;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
+
+import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
 
@@ -50,7 +52,10 @@ import static com.dtstack.chunjun.restore.mysql.constant.SqlConstants.TABLE_NAME
 import static com.dtstack.chunjun.restore.mysql.constant.SqlConstants.UPDATE_DDL_CHANGE;
 import static com.dtstack.chunjun.restore.mysql.constant.SqlConstants.UPDATE_DDL_CHANGE_DATABASE_NULLABLE;
 
+@Slf4j
 public class MysqlDDLHandler extends DDLHandler {
+
+    private static final long serialVersionUID = -282909536908351475L;
 
     private static final String MYSQL_DRIVER_NAME = "com.mysql.jdbc.Driver";
 
@@ -69,8 +74,8 @@ public class MysqlDDLHandler extends DDLHandler {
     private transient PreparedStatement deleteChangedDDLStatement;
     private transient PreparedStatement deleteChangedDDLStatementDataBaseNullAbleStatement;
 
-    public MysqlDDLHandler(DDLConf ddlConf) {
-        super(ddlConf);
+    public MysqlDDLHandler(DDLConfig ddlConfig) {
+        super(ddlConfig);
     }
 
     @Override
@@ -117,7 +122,7 @@ public class MysqlDDLHandler extends DDLHandler {
             executeQuery(blockChangedIdentifiers, findDDLChangeStatement);
         } catch (SQLException e) {
             // TODO
-            LOG.error("Can not find ddl-changed.", e);
+            log.error("Can not find ddl-changed.", e);
         }
 
         return blockChangedIdentifiers;
@@ -130,7 +135,7 @@ public class MysqlDDLHandler extends DDLHandler {
             executeQuery(ddlUnchanged, findDDLUnchangedStatement);
         } catch (SQLException e) {
             // TODO
-            LOG.error("Can not find ddl-unchanged.", e);
+            log.error("Can not find ddl-unchanged.", e);
         }
         return ddlUnchanged;
     }
@@ -180,14 +185,14 @@ public class MysqlDDLHandler extends DDLHandler {
 
             insertDDLChangeStatement.execute();
 
-            if (LOG.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 String messageTemplate = "Insert ddl change succeed. Data = %s";
-                LOG.debug(String.format(messageTemplate, data));
+                log.debug(String.format(messageTemplate, data));
             }
             return true;
         } catch (Throwable e) {
             // TODO 异常优化
-            LOG.warn("Insert DDL Data failed. ", e);
+            log.warn("Insert DDL Data failed. ", e);
             throw new ChunJunRuntimeException("Insert DDL Data failed. ", e);
         }
     }

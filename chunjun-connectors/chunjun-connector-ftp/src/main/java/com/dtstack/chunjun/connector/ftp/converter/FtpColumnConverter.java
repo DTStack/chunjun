@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.converter;
 
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -48,6 +48,8 @@ import java.util.List;
 
 public class FtpColumnConverter
         extends AbstractRowConverter<RowData, RowData, String, LogicalType> {
+
+    private static final long serialVersionUID = -2759374929827259886L;
 
     private final FtpConfig ftpConfig;
 
@@ -90,7 +92,7 @@ public class FtpColumnConverter
         StringBuilder sb = new StringBuilder(128);
 
         List<String> columnData = new ArrayList<>(ftpConfig.getColumn().size());
-        for (int index = 0; index < toExternalConverters.size(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, columnData);
             if (index != 0) {
                 sb.append(ftpConfig.getFieldDelimiter());

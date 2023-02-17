@@ -18,50 +18,47 @@
 
 package com.dtstack.chunjun.connector.s3.source;
 
-import com.dtstack.chunjun.conf.RestoreConf;
-import com.dtstack.chunjun.conf.SpeedConf;
-import com.dtstack.chunjun.connector.s3.conf.S3Conf;
+import com.dtstack.chunjun.config.RestoreConfig;
+import com.dtstack.chunjun.config.SpeedConfig;
+import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * build S3InputFormat{@link S3InputFormat} and check S3Config{@link S3Conf}
- *
- * @author jier
- */
-public class S3InputFormatBuilder extends BaseRichInputFormatBuilder {
-    private SpeedConf speedConf;
+@Slf4j
+public class S3InputFormatBuilder extends BaseRichInputFormatBuilder<S3InputFormat> {
+    private SpeedConfig speedConfig;
 
     public S3InputFormatBuilder(S3InputFormat format) {
         super(format);
     }
 
-    public void setS3Conf(S3Conf s3Conf) {
-        super.setConfig(s3Conf);
-        ((S3InputFormat) format).setS3Conf(s3Conf);
+    public void setS3Conf(S3Config s3Config) {
+        super.setConfig(s3Config);
+        format.setS3Conf(s3Config);
     }
 
     @Override
     protected void checkFormat() {
         StringBuilder sb = new StringBuilder(256);
-        S3InputFormat s3InputFormat = (S3InputFormat) format;
-        S3Conf s3Config = (S3Conf) s3InputFormat.getConfig();
+        S3InputFormat s3InputFormat = format;
+        S3Config s3Config = (S3Config) s3InputFormat.getConfig();
         if (StringUtils.isBlank(s3Config.getBucket())) {
-            LOG.info("bucket was not supplied separately.");
+            log.info("bucket was not supplied separately.");
             sb.append("bucket was not supplied separately;\n");
         }
         if (StringUtils.isBlank(s3Config.getAccessKey())) {
-            LOG.info("accessKey was not supplied separately.");
+            log.info("accessKey was not supplied separately.");
             sb.append("accessKey was not supplied separately;\n");
         }
         if (StringUtils.isBlank(s3Config.getSecretKey())) {
-            LOG.info("secretKey was not supplied separately.");
+            log.info("secretKey was not supplied separately.");
             sb.append("secretKey was not supplied separately;\n");
         }
         if (CollectionUtils.isEmpty(s3Config.getObjects())) {
-            LOG.info("objects was not supplied separately.");
+            log.info("objects was not supplied separately.");
             sb.append("objects was not supplied separately;\n");
         }
         if (sb.length() > 0) {
@@ -69,15 +66,15 @@ public class S3InputFormatBuilder extends BaseRichInputFormatBuilder {
         }
     }
 
-    public SpeedConf getSpeedConf() {
-        return speedConf;
+    public SpeedConfig getSpeedConf() {
+        return speedConfig;
     }
 
-    public void setSpeedConf(SpeedConf speedConf) {
-        this.speedConf = speedConf;
+    public void setSpeedConf(SpeedConfig speedConfig) {
+        this.speedConfig = speedConfig;
     }
 
-    public void setRestoreConf(RestoreConf restoreConf) {
+    public void setRestoreConf(RestoreConfig restoreConf) {
         ((S3InputFormat) format).setRestoreConf(restoreConf);
     }
 }

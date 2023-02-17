@@ -17,17 +17,16 @@
  */
 package com.dtstack.chunjun.connector.hive.entity;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
+@Data
 public class TableInfo implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -6132395514376772629L;
+
     private List<String> columnNameList;
     private List<String> columnTypeList;
     private String createTableSql;
@@ -49,109 +48,7 @@ public class TableInfo implements Serializable {
         columnTypeList.add(columnType);
     }
 
-    public List<String> getColumnNameList() {
-        return columnNameList;
-    }
-
-    public void setColumnNameList(List<String> columnNameList) {
-        this.columnNameList = columnNameList;
-    }
-
-    public List<String> getColumnTypeList() {
-        return columnTypeList;
-    }
-
-    public void setColumnTypeList(List<String> columnTypeList) {
-        this.columnTypeList = columnTypeList;
-    }
-
-    public String getCreateTableSql() {
-        return createTableSql;
-    }
-
-    public void setCreateTableSql(String createTableSql) {
-        this.createTableSql = createTableSql;
-    }
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-
-    public String getTablePath() {
-        return tablePath;
-    }
-
-    public void setTablePath(String tablePath) {
-        this.tablePath = tablePath;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String getStore() {
-        return store;
-    }
-
-    public void setStore(String store) {
-        this.store = store;
-    }
-
-    public String getDelimiter() {
-        return delimiter;
-    }
-
-    public void setDelimiter(String delimiter) {
-        this.delimiter = delimiter;
-    }
-
-    public List<String> getPartitionList() {
-        return partitionList;
-    }
-
-    public void setPartitionList(List<String> partitionList) {
-        this.partitionList = partitionList;
-    }
-
     public void addPartition(String partitionField) {
         this.partitionList.add(partitionField);
-    }
-
-    @Override
-    public String toString() {
-        return "TableInfo{"
-                + "columnNameList="
-                + columnNameList
-                + ", columnTypeList="
-                + columnTypeList
-                + ", createTableSql='"
-                + createTableSql
-                + '\''
-                + ", tableName='"
-                + tableName
-                + '\''
-                + ", tablePath='"
-                + tablePath
-                + '\''
-                + ", path='"
-                + path
-                + '\''
-                + ", store='"
-                + store
-                + '\''
-                + ", delimiter='"
-                + delimiter
-                + '\''
-                + ", partitionList="
-                + partitionList
-                + '}';
     }
 }

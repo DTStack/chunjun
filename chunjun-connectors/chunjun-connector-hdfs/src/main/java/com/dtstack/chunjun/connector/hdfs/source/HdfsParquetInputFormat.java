@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hdfs.InputSplit.HdfsParquetSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.enums.ColumnType;
@@ -33,6 +33,7 @@ import org.apache.flink.table.data.RowData;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -58,17 +59,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
+@Slf4j
 public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
 
     private static final int JULIAN_EPOCH_OFFSET_DAYS = 2440588;
     private static final long MILLIS_IN_DAY = TimeUnit.DAYS.toMillis(1);
     private static final long NANOS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
     private static final int TIMESTAMP_BINARY_LENGTH = 12;
+    private static final long serialVersionUID = 8835924162626158151L;
 
     private transient Group currentLine;
     private transient ParquetReader<Group> currentFileReader;
@@ -82,7 +80,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         List<String> pathList = Lists.newArrayList();
         Path inputPath = new Path(tableLocation);
 
-        if (fs.isFile(inputPath)) {
+        if (fs.getFileStatus(inputPath).isFile()) {
             pathList.add(tableLocation);
             return pathList;
         }
@@ -98,14 +96,14 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
     @Override
     public InputSplit[] createHdfsSplit(int minNumSplits) {
         List<String> allFilePaths;
-        HdfsPathFilter pathFilter = new HdfsPathFilter(hdfsConf.getFilterRegex());
+        HdfsPathFilter pathFilter = new HdfsPathFilter(hdfsConfig.getFilterRegex());
 
         try (FileSystem fs =
                 FileSystemUtil.getFileSystem(
-                        hdfsConf.getHadoopConfig(),
-                        hdfsConf.getDefaultFS(),
+                        hdfsConfig.getHadoopConfig(),
+                        hdfsConfig.getDefaultFS(),
                         PluginUtil.createDistributedCacheFromContextClassLoader())) {
-            allFilePaths = getAllPartitionPath(hdfsConf.getPath(), fs, pathFilter);
+            allFilePaths = getAllPartitionPath(hdfsConfig.getPath(), fs, pathFilter);
         } catch (Exception e) {
             throw new ChunJunRuntimeException(e);
         }
@@ -157,7 +155,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
             setMetaColumns();
             return true;
         }
-        for (; currentFileIndex <= currentSplitFilePaths.size() - 1; ) {
+        while (currentFileIndex <= currentSplitFilePaths.size() - 1) {
             if (openKerberos) {
                 ugi.doAs(
                         (PrivilegedAction<Object>)
@@ -192,14 +190,14 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                         getTypeName(type.asPrimitiveType().getPrimitiveTypeName().getMethod));
             }
 
-            for (FieldConf fieldConf : hdfsConf.getColumn()) {
-                String name = fieldConf.getName();
+            for (FieldConfig fieldConfig : hdfsConfig.getColumn()) {
+                String name = fieldConfig.getName();
                 if (StringUtils.isNotBlank(name)) {
                     name = name.toUpperCase();
                     if (fullColNames.contains(name)) {
-                        fieldConf.setIndex(fullColNames.indexOf(name));
+                        fieldConfig.setIndex(fullColNames.indexOf(name));
                     } else {
-                        fieldConf.setIndex(-1);
+                        fieldConfig.setIndex(-1);
                     }
                 }
             }
@@ -218,11 +216,6 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                         });
     }
 
-    /**
-     * open next hdfs file for reading
-     *
-     * @throws IOException
-     */
     private void nextFile() throws IOException {
         Path path = new Path(currentSplitFilePaths.get(currentFileIndex));
         findCurrentPartition(path);
@@ -235,7 +228,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
     @Override
     @SuppressWarnings("unchecked")
     public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
-        List<FieldConf> fieldConfList = hdfsConf.getColumn();
+        List<FieldConfig> fieldConfList = hdfsConfig.getColumn();
         GenericRowData genericRowData;
         if (fieldConfList.size() == 1
                 && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())) {
@@ -247,14 +240,14 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         } else {
             genericRowData = new GenericRowData(fieldConfList.size());
             for (int i = 0; i < fieldConfList.size(); i++) {
-                FieldConf fieldConf = fieldConfList.get(i);
+                FieldConfig fieldConfig = fieldConfList.get(i);
                 Object obj = null;
-                if (fieldConf.getValue() != null) {
-                    obj = fieldConf.getValue();
-                } else if (fieldConf.getIndex() != null
-                        && fieldConf.getIndex() < fullColNames.size()) {
-                    if (currentLine.getFieldRepetitionCount(fieldConf.getIndex()) > 0) {
-                        obj = getData(currentLine, fieldConf.getType(), fieldConf.getIndex());
+                if (fieldConfig.getValue() != null) {
+                    obj = fieldConfig.getValue();
+                } else if (fieldConfig.getIndex() != null
+                        && fieldConfig.getIndex() < fullColNames.size()) {
+                    if (currentLine.getFieldRepetitionCount(fieldConfig.getIndex()) > 0) {
+                        obj = getData(currentLine, fieldConfig.getType(), fieldConfig.getIndex());
                     }
                 }
 
@@ -353,7 +346,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                     break;
             }
         } catch (Exception e) {
-            LOG.error("error to get data from parquet group.", e);
+            log.error("error to get data from parquet group.", e);
         }
 
         return data;
@@ -406,10 +399,6 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         return typeName;
     }
 
-    /**
-     * @param timestampBinary
-     * @return
-     */
     private long getTimestampMillis(Binary timestampBinary) {
         if (timestampBinary.length() != TIMESTAMP_BINARY_LENGTH) {
             return 0;

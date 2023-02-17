@@ -18,16 +18,21 @@
 
 package com.dtstack.chunjun.connector.http.common;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("all")
-public class HttpWriterConfig extends ChunJunCommonConf {
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class HttpWriterConfig extends CommonConfig {
+
+    private static final long serialVersionUID = -4857855624602773618L;
 
     protected String url;
 
@@ -47,85 +52,5 @@ public class HttpWriterConfig extends ChunJunCommonConf {
 
     protected Map<String, Object> formatBody = Maps.newHashMap();
 
-    public int getDelay() {
-        return delay;
-    }
-
-    public void setDelay(int delay) {
-        this.delay = delay;
-    }
-
-    public Boolean getAssert() {
-        return isAssert;
-    }
-
-    public void setAssert(Boolean anAssert) {
-        isAssert = anAssert;
-    }
-
-    public Map<String, String> getHeader() {
-        return header;
-    }
-
-    public void setHeader(Map<String, String> header) {
-        this.header = header;
-    }
-
-    public Map<String, Object> getBody() {
-        return body;
-    }
-
-    public void setBody(Map<String, Object> body) {
-        this.body = body;
-    }
-
     protected List<String> columns = Lists.newArrayList();
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getMethod() {
-        return method;
-    }
-
-    public void setMethod(String method) {
-        this.method = method;
-    }
-
-    public Map<String, Object> getParams() {
-        return params;
-    }
-
-    public void setParams(Map<String, Object> params) {
-        this.params = params;
-    }
-
-    public Map<String, String> getFormatHeader() {
-        return formatHeader;
-    }
-
-    public void setFormatHeader(Map<String, String> formatHeader) {
-        this.formatHeader = formatHeader;
-    }
-
-    public Map<String, Object> getFormatBody() {
-        return formatBody;
-    }
-
-    public void setFormatBody(Map<String, Object> formatBody) {
-        this.formatBody = formatBody;
-    }
-
-    public List<String> getColumns() {
-        return columns;
-    }
-
-    public void setColumns(List<String> columns) {
-        this.columns = columns;
-    }
 }

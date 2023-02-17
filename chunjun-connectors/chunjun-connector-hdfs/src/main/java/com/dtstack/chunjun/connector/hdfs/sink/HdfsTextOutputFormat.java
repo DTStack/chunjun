@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hdfs.enums.CompressType;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
@@ -28,6 +28,7 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.hadoop.fs.Path;
@@ -35,12 +36,9 @@ import org.apache.hadoop.fs.Path;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/**
- * Date: 2021/06/09 Company: www.dtstack.com
- *
- * @author tudou
- */
+@Slf4j
 public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
+    private static final long serialVersionUID = 3593076392791803459L;
 
     private static final int NEWLINE = 10;
     private transient OutputStream stream;
@@ -68,7 +66,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
                 }
             }
             currentFileIndex++;
-            LOG.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
+            log.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
         } catch (IOException e) {
             throw new ChunJunRuntimeException(
                     HdfsUtil.parseErrorMsg(null, ExceptionUtil.getErrorMessage(e)), e);
@@ -77,7 +75,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public void flushDataInternal() {
-        LOG.info(
+        log.info(
                 "Close current text stream, write data size:[{}]",
                 SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
 
@@ -101,7 +99,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
         if (stream == null) {
             nextBlock();
         }
-        String[] data = new String[hdfsConf.getColumn().size()];
+        String[] data = new String[hdfsConfig.getColumn().size()];
         try {
             data = (String[]) rowConverter.toExternal(rowData, data);
         } catch (Exception e) {
@@ -109,14 +107,14 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
         }
 
         String[] result = new String[fullColumnNameList.size()];
-        for (int i = 0; i < hdfsConf.getColumn().size(); i++) {
-            FieldConf fieldConf = hdfsConf.getColumn().get(i);
-            result[fieldConf.getIndex()] = data[i];
+        for (int i = 0; i < hdfsConfig.getColumn().size(); i++) {
+            FieldConfig fieldConfig = hdfsConfig.getColumn().get(i);
+            result[fieldConfig.getIndex()] = data[i];
         }
-        String line = String.join(hdfsConf.getFieldDelimiter(), result);
+        String line = String.join(hdfsConfig.getFieldDelimiter(), result);
 
         try {
-            byte[] bytes = line.getBytes(hdfsConf.getEncoding());
+            byte[] bytes = line.getBytes(hdfsConfig.getEncoding());
             this.stream.write(bytes);
             this.stream.write(NEWLINE);
             rowsOfCurrentBlock++;
@@ -148,6 +146,6 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public CompressType getCompressType() {
-        return CompressType.getByTypeAndFileType(hdfsConf.getCompress(), FileType.TEXT.name());
+        return CompressType.getByTypeAndFileType(hdfsConfig.getCompress(), FileType.TEXT.name());
     }
 }

@@ -20,7 +20,7 @@ package com.dtstack.chunjun.ddl.convent.mysql.util;
 
 import com.dtstack.chunjun.cdc.EventType;
 import com.dtstack.chunjun.cdc.ddl.ColumnType;
-import com.dtstack.chunjun.cdc.ddl.ColumnTypeConvent;
+import com.dtstack.chunjun.cdc.ddl.ColumnTypeConvert;
 import com.dtstack.chunjun.cdc.ddl.CustomColumnType;
 import com.dtstack.chunjun.cdc.ddl.definition.ColumnDefinition;
 import com.dtstack.chunjun.cdc.ddl.definition.ColumnOperator;
@@ -50,7 +50,7 @@ import com.dtstack.chunjun.ddl.convent.mysql.parse.enums.AlterTableTargetTypeEnu
 import com.dtstack.chunjun.ddl.convent.mysql.parse.enums.ReferenceOptionEnums;
 import com.dtstack.chunjun.ddl.convent.mysql.parse.enums.ReferenceSituationEnum;
 import com.dtstack.chunjun.ddl.convent.mysql.parse.enums.SqlConstraintSpec;
-import com.dtstack.chunjun.ddl.parse.type.SqlTypeConventedNameSpec;
+import com.dtstack.chunjun.ddl.parse.type.SqlTypeConvertedNameSpec;
 import com.dtstack.chunjun.ddl.parse.util.SqlNodeUtil;
 import com.dtstack.chunjun.mapping.MappingRule;
 
@@ -73,11 +73,11 @@ import static com.dtstack.chunjun.ddl.convent.mysql.parse.enums.AlterTableTarget
 
 public class SqlNodeParseUtil {
     public static ColumnDefinition parseColumn(
-            SqlGeneralColumn column, ColumnTypeConvent columnTypeConvent) {
+            SqlGeneralColumn column, ColumnTypeConvert columnTypeConvert) {
         String columnTypeName = column.type.getTypeName().toString();
         ColumnType columnType;
-        if (!(column.type.getTypeNameSpec() instanceof SqlTypeConventedNameSpec)) {
-            columnType = columnTypeConvent.conventDataSourceTypeToColumnType(columnTypeName);
+        if (!(column.type.getTypeNameSpec() instanceof SqlTypeConvertedNameSpec)) {
+            columnType = columnTypeConvert.conventDataSourceTypeToColumnType(columnTypeName);
         } else {
             columnType = new CustomColumnType(columnTypeName);
         }
@@ -299,7 +299,7 @@ public class SqlNodeParseUtil {
                         new ConstraintOperator(
                                 EventType.DROP_CONSTRAINT,
                                 drop.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                                SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                                SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                         drop.tableIdentifier),
                                 new ConstraintDefinition(
                                         name,
@@ -315,7 +315,7 @@ public class SqlNodeParseUtil {
                         new ConstraintOperator(
                                 EventType.DROP_CONSTRAINT,
                                 drop.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                                SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                                SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                         drop.tableIdentifier),
                                 new ForeignKeyDefinition(name, null, null, null, null, null, null));
                 break;
@@ -325,7 +325,7 @@ public class SqlNodeParseUtil {
                         new IndexOperator(
                                 EventType.DROP_INDEX,
                                 drop.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                                SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                                SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                         drop.tableIdentifier),
                                 new IndexDefinition(null, name, null, null, null),
                                 null);
@@ -335,7 +335,7 @@ public class SqlNodeParseUtil {
                         new ColumnOperator(
                                 EventType.DROP_COLUMN,
                                 drop.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                                SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                                SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                         drop.tableIdentifier),
                                 Collections.singletonList(
                                         new ColumnDefinition(
@@ -360,7 +360,7 @@ public class SqlNodeParseUtil {
                 return new ColumnOperator(
                         EventType.ALTER_COLUMN,
                         sqlAlterTableAlterColumn.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                        SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                        SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                 sqlAlterTableAlterColumn.tableIdentifier),
                         Collections.singletonList(
                                 new ColumnDefinition(
@@ -383,7 +383,7 @@ public class SqlNodeParseUtil {
                 return new ColumnOperator(
                         EventType.ALTER_COLUMN,
                         sqlAlterTableAlterColumn.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                        SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                        SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                 sqlAlterTableAlterColumn.tableIdentifier),
                         Collections.singletonList(
                                 new ColumnDefinition(
@@ -411,7 +411,7 @@ public class SqlNodeParseUtil {
 
     public static List<ColumnOperator> parseSqlAlterTableChangeColumn(
             SqlAlterTableChangeColumn sqlAlterTableChangeColumn,
-            ColumnTypeConvent columnTypeConvent) {
+            ColumnTypeConvert columnTypeConvert) {
         SqlGeneralColumn column = (SqlGeneralColumn) sqlAlterTableChangeColumn.column;
 
         // modify column操作
@@ -420,9 +420,9 @@ public class SqlNodeParseUtil {
                     new ColumnOperator(
                             EventType.ALTER_COLUMN,
                             sqlAlterTableChangeColumn.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                            SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                            SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                     sqlAlterTableChangeColumn.tableIdentifier),
-                            Collections.singletonList(parseColumn(column, columnTypeConvent)),
+                            Collections.singletonList(parseColumn(column, columnTypeConvert)),
                             false,
                             false,
                             null));
@@ -432,7 +432,7 @@ public class SqlNodeParseUtil {
                     new ColumnOperator(
                             EventType.RENAME_COLUMN,
                             sqlAlterTableChangeColumn.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                            SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                            SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                     sqlAlterTableChangeColumn.tableIdentifier),
                             Collections.singletonList(
                                     new ColumnDefinition(
@@ -454,9 +454,9 @@ public class SqlNodeParseUtil {
                     new ColumnOperator(
                             EventType.ALTER_COLUMN,
                             sqlAlterTableChangeColumn.toSqlString(MysqlSqlDialect.DEFAULT).getSql(),
-                            SqlNodeUtil.conventSqlIdentifierToTableIdentifier(
+                            SqlNodeUtil.convertSqlIdentifierToTableIdentifier(
                                     sqlAlterTableChangeColumn.tableIdentifier),
-                            Collections.singletonList(parseColumn(column, columnTypeConvent)),
+                            Collections.singletonList(parseColumn(column, columnTypeConvert)),
                             false,
                             false,
                             null));
@@ -466,15 +466,15 @@ public class SqlNodeParseUtil {
     public static String parseColumnDefinitionToString(
             ColumnDefinition columnDefinition,
             SqlDialect sqlDialect,
-            ColumnTypeConvent columnTypeConvent) {
+            ColumnTypeConvert columnTypeConvert) {
         StringBuilder sb = new StringBuilder(256);
         String typeName =
-                columnTypeConvent.conventColumnTypeToDatSourceType(columnDefinition.getType());
+                columnTypeConvert.conventColumnTypeToDatSourceType(columnDefinition.getType());
         sb.append(sqlDialect.quoteIdentifier(columnDefinition.getName()))
                 .append(" ")
                 .append(typeName);
         ColumnTypeDesc columnTypeDesc =
-                columnTypeConvent.getColumnTypeDesc(columnDefinition.getType());
+                columnTypeConvert.getColumnTypeDesc(columnDefinition.getType());
         Integer precision = columnDefinition.getPrecision();
         if (precision != null) {
             if (columnTypeDesc != null) {
@@ -495,15 +495,15 @@ public class SqlNodeParseUtil {
             }
 
         } else if (null != columnTypeDesc) {
-            if (columnTypeDesc.getDefaultConventPrecision() != null) {
-                sb.append("(").append(columnTypeDesc.getDefaultConventPrecision());
-                if (columnTypeDesc.getDefaultConventScale(
-                                columnTypeDesc.getDefaultConventPrecision())
+            if (columnTypeDesc.getDefaultConvertPrecision() != null) {
+                sb.append("(").append(columnTypeDesc.getDefaultConvertPrecision());
+                if (columnTypeDesc.getDefaultConvertScale(
+                                columnTypeDesc.getDefaultConvertPrecision())
                         != null) {
                     sb.append(",")
                             .append(
-                                    columnTypeDesc.getDefaultConventScale(
-                                            columnTypeDesc.getDefaultConventPrecision()));
+                                    columnTypeDesc.getDefaultConvertScale(
+                                            columnTypeDesc.getDefaultConvertPrecision()));
                 }
                 sb.append(")");
             }
@@ -679,7 +679,7 @@ public class SqlNodeParseUtil {
             List<IndexDefinition> indexList,
             List<ConstraintDefinition> constraintList,
             SqlDialect sqlDialect,
-            ColumnTypeConvent columnTypeConvent) {
+            ColumnTypeConvert columnTypeConvert) {
         if (CollectionUtils.isEmpty(columnList)
                 && CollectionUtils.isEmpty(indexList)
                 && CollectionUtils.isEmpty(constraintList)) {
@@ -694,7 +694,7 @@ public class SqlNodeParseUtil {
                     i ->
                             strings.add(
                                     parseColumnDefinitionToString(
-                                            i, sqlDialect, columnTypeConvent)));
+                                            i, sqlDialect, columnTypeConvert)));
         }
 
         if (CollectionUtils.isNotEmpty(indexList)) {
@@ -736,18 +736,18 @@ public class SqlNodeParseUtil {
     public static SqlIdentifier replaceTableIdentifier(
             SqlIdentifier sqlIdentifier, MappingRule nameMapping) {
         TableIdentifier tableIdentifier =
-                SqlNodeUtil.conventSqlIdentifierToTableIdentifier(sqlIdentifier);
+                SqlNodeUtil.convertSqlIdentifierToTableIdentifier(sqlIdentifier);
         TableIdentifier tableIdentifierConvent =
                 nameMapping.tableIdentifierMapping(tableIdentifier);
         tableIdentifierConvent = nameMapping.casingTableIdentifier(tableIdentifierConvent);
-        return SqlNodeUtil.conventTableIdentifierToSqlIdentifier(tableIdentifierConvent);
+        return SqlNodeUtil.convertTableIdentifierToSqlIdentifier(tableIdentifierConvent);
     }
 
     public static SqlIdentifier replaceTableIdentifier(
             TableIdentifier tableIdentifier, MappingRule nameMapping) {
         TableIdentifier tableIdentifierConvent =
                 nameMapping.tableIdentifierMapping(tableIdentifier);
-        return SqlNodeUtil.conventTableIdentifierToSqlIdentifier(tableIdentifierConvent);
+        return SqlNodeUtil.convertTableIdentifierToSqlIdentifier(tableIdentifierConvent);
     }
 
     public static DataSourceFunction dataSourceFunction(String functionName) {

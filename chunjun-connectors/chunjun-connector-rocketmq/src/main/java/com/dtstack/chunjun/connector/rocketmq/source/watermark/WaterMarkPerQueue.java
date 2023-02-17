@@ -22,6 +22,7 @@ import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -54,11 +55,9 @@ public class WaterMarkPerQueue {
 
     @Override
     public String toString() {
-        return "WaterMarkPerQueue{"
-                + "maxEventTimeTable="
-                + maxEventTimeTable
-                + ", maxOutOfOrderness="
-                + maxOutOfOrderness
-                + '}';
+        return new StringJoiner(", ", WaterMarkPerQueue.class.getSimpleName() + "[", "]")
+                .add("maxEventTimeTable=" + maxEventTimeTable)
+                .add("maxOutOfOrderness=" + maxOutOfOrderness)
+                .toString();
     }
 }

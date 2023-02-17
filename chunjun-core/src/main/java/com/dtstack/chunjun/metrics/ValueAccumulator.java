@@ -19,29 +19,14 @@ package com.dtstack.chunjun.metrics;
 
 import org.apache.flink.api.common.accumulators.LongCounter;
 
-/**
- * Date: 2021/05/18 Company: www.dtstack.com
- *
- * @author tudou
- */
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
+@AllArgsConstructor
+@Getter
+@Setter
 public class ValueAccumulator {
     private final LongCounter local;
     private long global;
-
-    public ValueAccumulator(long global, LongCounter local) {
-        this.global = global;
-        this.local = local;
-    }
-
-    public long getGlobal() {
-        return global;
-    }
-
-    public void setGlobal(long global) {
-        this.global = global;
-    }
-
-    public LongCounter getLocal() {
-        return local;
-    }
 }

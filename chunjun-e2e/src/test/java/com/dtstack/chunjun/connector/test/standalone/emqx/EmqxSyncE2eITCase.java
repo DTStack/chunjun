@@ -22,12 +22,11 @@ import com.dtstack.chunjun.connector.containers.emqx.EmqxContainer;
 import com.dtstack.chunjun.connector.entity.JobAccumulatorResult;
 import com.dtstack.chunjun.connector.test.utils.ChunjunFlinkStandaloneTestEnvironment;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.lifecycle.Startables;
 
@@ -35,9 +34,8 @@ import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.stream.Stream;
 
+@Slf4j
 public class EmqxSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
-
-    private static final Logger LOG = LoggerFactory.getLogger(EmqxSyncE2eITCase.class);
 
     protected static final String emqxImageName = "emqx-e2e-stream";
 
@@ -48,18 +46,18 @@ public class EmqxSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
         emqxContainer
                 .withNetwork(NETWORK)
                 .withNetworkAliases(emqxImageName)
-                .withLogConsumer(new Slf4jLogConsumer(LOG))
+                .withLogConsumer(new Slf4jLogConsumer(log))
                 .dependsOn(flinkStandaloneContainer);
     }
 
     @Before
     public void before() throws Exception {
         super.before();
-        LOG.info("Starting emqx containers...");
+        log.info("Starting emqx containers...");
         initContainer();
         Startables.deepStart(Stream.of(emqxContainer)).join();
         Thread.sleep(5000);
-        LOG.info("emqx Containers are started.");
+        log.info("emqx Containers are started.");
     }
 
     @After

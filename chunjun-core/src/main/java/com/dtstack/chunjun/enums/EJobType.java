@@ -20,11 +20,6 @@ package com.dtstack.chunjun.enums;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @author chuixue
- * @create 2021-04-20 15:36
- * @description
- */
 public enum EJobType {
     /** sql job */
     SQL(0, "sql"),

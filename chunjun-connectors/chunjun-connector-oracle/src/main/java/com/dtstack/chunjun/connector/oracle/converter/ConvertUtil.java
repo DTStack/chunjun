@@ -24,11 +24,6 @@ import java.io.Reader;
 import java.sql.Clob;
 import java.sql.SQLException;
 
-/**
- * @author: shifang
- * @description convert oracle special data type
- * @date: 2021/11/17 上午11:07
- */
 public class ConvertUtil {
 
     public static byte[] toByteArray(BLOB fromBlob) throws SQLException {
@@ -39,11 +34,11 @@ public class ConvertUtil {
     }
 
     public static String convertClob(Clob clob) throws SQLException, IOException {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         try (Reader r = clob.getCharacterStream()) {
             int ch;
             while ((ch = r.read()) != -1) {
-                buffer.append("" + (char) ch);
+                buffer.append((char) ch);
             }
         }
         clob.free();

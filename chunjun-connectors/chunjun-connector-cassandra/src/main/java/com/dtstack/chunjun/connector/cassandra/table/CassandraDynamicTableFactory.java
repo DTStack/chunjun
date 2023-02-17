@@ -18,21 +18,21 @@
 
 package com.dtstack.chunjun.connector.cassandra.table;
 
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraLookupConf;
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraSinkConf;
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraSourceConf;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraLookupConfig;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraSinkConfig;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraSourceConfig;
 import com.dtstack.chunjun.connector.cassandra.sink.CassandraDynamicTableSink;
 import com.dtstack.chunjun.connector.cassandra.source.CassandraDynamicTableSource;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
+import org.apache.flink.table.types.DataType;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -78,10 +78,6 @@ import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_IN
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_MAX_RETRIES;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraDynamicTableFactory
         implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
@@ -99,12 +95,12 @@ public class CassandraDynamicTableFactory
         helper.validate();
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+        DataType dataType = context.getPhysicalRowDataType();
 
-        CassandraSinkConf sinkConf = CassandraSinkConf.from(config);
+        CassandraSinkConfig sinkConf = CassandraSinkConfig.from(config);
 
-        return new CassandraDynamicTableSink(sinkConf, physicalSchema);
+        return new CassandraDynamicTableSink(sinkConf, resolvedSchema, dataType);
     }
 
     @Override
@@ -116,14 +112,14 @@ public class CassandraDynamicTableFactory
 
         helper.validate();
 
-        TableSchema tableSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+        DataType dataType = context.getPhysicalRowDataType();
 
-        CassandraSourceConf cassandraSourceConf = CassandraSourceConf.from(options);
-        CassandraLookupConf cassandraLookupConf = CassandraLookupConf.from(options);
+        CassandraSourceConfig cassandraSourceConf = CassandraSourceConfig.from(options);
+        CassandraLookupConfig cassandraLookupConfig = CassandraLookupConfig.from(options);
 
         return new CassandraDynamicTableSource(
-                cassandraSourceConf, cassandraLookupConf, tableSchema);
+                cassandraSourceConf, cassandraLookupConfig, resolvedSchema, dataType);
     }
 
     @Override

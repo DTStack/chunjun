@@ -18,11 +18,12 @@
 
 package com.dtstack.chunjun.connector.binlog.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.binlog.conf.BinlogConf;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.binlog.config.BinlogConfig;
 import com.dtstack.chunjun.connector.binlog.converter.BinlogColumnConverter;
 import com.dtstack.chunjun.connector.binlog.converter.BinlogRowConverter;
 import com.dtstack.chunjun.connector.binlog.converter.MysqlBinlogRawTypeConverter;
+import com.dtstack.chunjun.connector.binlog.format.TimestampFormat;
 import com.dtstack.chunjun.connector.binlog.inputformat.BinlogInputFormatBuilder;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -30,7 +31,6 @@ import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
 
-import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
@@ -38,30 +38,30 @@ import org.apache.flink.table.types.logical.RowType;
 
 public class BinlogSourceFactory extends SourceFactory {
 
-    private final BinlogConf binlogConf;
+    private final BinlogConfig binlogConfig;
 
-    public BinlogSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
+    public BinlogSourceFactory(SyncConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        binlogConf =
+        binlogConfig =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(config.getReader().getParameter()), BinlogConf.class);
-        binlogConf.setColumn(config.getReader().getFieldList());
-        super.initCommonConf(binlogConf);
+                        JsonUtil.toJson(config.getReader().getParameter()), BinlogConfig.class);
+        binlogConfig.setColumn(config.getReader().getFieldList());
+        super.initCommonConf(binlogConfig);
     }
 
     @Override
     public DataStream<RowData> createSource() {
         BinlogInputFormatBuilder builder = new BinlogInputFormatBuilder();
-        builder.setBinlogConf(binlogConf);
+        builder.setBinlogConf(binlogConfig);
         AbstractCDCRowConverter rowConverter;
         if (useAbstractBaseColumn) {
             rowConverter =
-                    new BinlogColumnConverter(binlogConf.isPavingData(), binlogConf.isSplit());
+                    new BinlogColumnConverter(binlogConfig.isPavingData(), binlogConfig.isSplit());
         } else {
             final RowType rowType =
-                    TableUtil.createRowType(binlogConf.getColumn(), getRawTypeConverter());
+                    TableUtil.createRowType(binlogConfig.getColumn(), getRawTypeConverter());
             TimestampFormat format =
-                    "sql".equalsIgnoreCase(binlogConf.getTimestampFormat())
+                    "sql".equalsIgnoreCase(binlogConfig.getTimestampFormat())
                             ? TimestampFormat.SQL
                             : TimestampFormat.ISO_8601;
             rowConverter = new BinlogRowConverter(rowType, format);

@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hdfs.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hdfs.InputSplit.HdfsTextInputSplit;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -40,12 +40,9 @@ import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.util.List;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsTextInputFormat extends BaseHdfsInputFormat {
+
+    private static final long serialVersionUID = -1740154546581800492L;
 
     @Override
     public InputSplit[] createHdfsSplit(int minNumSplits) throws IOException {
@@ -53,7 +50,7 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
         org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(
                 hadoopJobConf, HdfsPathFilter.class);
 
-        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(hadoopJobConf, hdfsConf.getPath());
+        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(hadoopJobConf, hdfsConfig.getPath());
         TextInputFormat inputFormat = new TextInputFormat();
 
         // 是否在MapReduce中递归遍历Input目录
@@ -96,12 +93,6 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
         }
     }
 
-    /**
-     * init Hdfs Text Reader
-     *
-     * @param inputSplit
-     * @throws IOException
-     */
     private void initHdfsTextReader(InputSplit inputSplit) throws IOException {
         HdfsTextInputSplit hdfsTextInputSplit = (HdfsTextInputSplit) inputSplit;
         org.apache.hadoop.mapred.InputSplit fileSplit = hdfsTextInputSplit.getTextSplit();
@@ -121,12 +112,12 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
                             ((Text) value).getBytes(),
                             0,
                             ((Text) value).getLength(),
-                            hdfsConf.getEncoding());
+                            hdfsConfig.getEncoding());
             String[] fields =
                     StringUtils.splitByWholeSeparatorPreserveAllTokens(
-                            line, hdfsConf.getFieldDelimiter());
+                            line, hdfsConfig.getFieldDelimiter());
 
-            List<FieldConf> fieldConfList = hdfsConf.getColumn();
+            List<FieldConfig> fieldConfList = hdfsConfig.getColumn();
             GenericRowData genericRowData;
             if (fieldConfList.size() == 1
                     && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())) {
@@ -137,13 +128,13 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
             } else {
                 genericRowData = new GenericRowData(fieldConfList.size());
                 for (int i = 0; i < fieldConfList.size(); i++) {
-                    FieldConf fieldConf = fieldConfList.get(i);
+                    FieldConfig fieldConfig = fieldConfList.get(i);
                     Object value = null;
-                    if (fieldConf.getValue() != null) {
-                        value = fieldConf.getValue();
-                    } else if (fieldConf.getIndex() != null
-                            && fieldConf.getIndex() < fields.length) {
-                        String strVal = fields[fieldConf.getIndex()];
+                    if (fieldConfig.getValue() != null) {
+                        value = fieldConfig.getValue();
+                    } else if (fieldConfig.getIndex() != null
+                            && fieldConfig.getIndex() < fields.length) {
+                        String strVal = fields[fieldConfig.getIndex()];
                         if (!HdfsUtil.NULL_VALUE.equals(strVal)) {
                             value = strVal;
                         }

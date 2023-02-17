@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.http.client;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.http.common.HttpRestConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.util.GsonUtil;
@@ -31,7 +31,7 @@ import java.util.Map;
 
 public abstract class ResponseParse {
     protected final HttpRestConfig config;
-    protected final List<FieldConf> columns;
+    protected final List<FieldConfig> columns;
     protected final AbstractRowConverter converter;
 
     public ResponseParse(HttpRestConfig config, AbstractRowConverter converter) {
@@ -54,9 +54,9 @@ public abstract class ResponseParse {
      * @param columns 指定字段
      */
     protected LinkedHashMap<String, Object> buildResponseByKey(
-            Map<String, Object> map, List<FieldConf> columns, String nested) {
+            Map<String, Object> map, List<FieldConfig> columns, String nested) {
         LinkedHashMap<String, Object> filedValue = new LinkedHashMap<>(columns.size() << 2);
-        for (FieldConf key : columns) {
+        for (FieldConfig key : columns) {
             if (null != key.getValue()) {
                 filedValue.put(key.getName(), key.getValue());
             } else {
@@ -68,9 +68,9 @@ public abstract class ResponseParse {
     }
 
     protected LinkedHashMap<String, Object> buildResponseByKey(
-            Map<String, Object> map, List<FieldConf> columns, boolean useNullReplaceNotExists) {
+            Map<String, Object> map, List<FieldConfig> columns, boolean useNullReplaceNotExists) {
         LinkedHashMap<String, Object> filedValue = new LinkedHashMap<>(columns.size() << 2);
-        for (FieldConf key : columns) {
+        for (FieldConfig key : columns) {
             if (null != key.getValue()) {
                 filedValue.put(key.getName(), key.getValue());
             } else {

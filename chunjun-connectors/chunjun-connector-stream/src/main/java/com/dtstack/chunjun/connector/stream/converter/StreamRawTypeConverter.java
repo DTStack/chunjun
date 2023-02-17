@@ -25,11 +25,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * @author wuren
- * @program chunjun
- * @create 2021/05/24
- */
 public class StreamRawTypeConverter {
 
     public static DataType apply(String type) throws UnsupportedTypeException {
@@ -53,12 +48,6 @@ public class StreamRawTypeConverter {
                 return DataTypes.DOUBLE();
             case "DECIMAL":
                 return DataTypes.DECIMAL(38, 18);
-            case "STRING":
-            case "VARCHAR":
-            case "CHAR":
-            case "CHARACTER":
-                return DataTypes.STRING();
-
             case "DATE":
                 return DataTypes.DATE();
             case "TIME":

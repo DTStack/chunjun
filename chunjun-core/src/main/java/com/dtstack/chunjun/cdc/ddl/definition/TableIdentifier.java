@@ -64,7 +64,11 @@ public class TableIdentifier implements Serializable {
         }
 
         if (Objects.nonNull(table)) {
-            builder.append(split).append(table);
+            if (builder.length() > 0) {
+                builder.append(split).append(table);
+            } else {
+                builder.append(table);
+            }
         }
         return builder.toString();
     }

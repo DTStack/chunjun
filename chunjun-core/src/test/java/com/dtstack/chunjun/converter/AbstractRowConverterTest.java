@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.converter;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 
 import org.apache.flink.table.data.RowData;
@@ -57,25 +57,25 @@ class AbstractRowConverterTest {
     @Test
     @DisplayName("can't parse date")
     void assembleFieldPropsWhenValueIsNotBlankThenReturnStringColumn() {
-        FieldConf fieldConf = mock(FieldConf.class);
-        when(fieldConf.getValue()).thenReturn("value");
-        when(fieldConf.getType()).thenReturn("string");
-        when(fieldConf.getFormat()).thenReturn("format");
+        FieldConfig fieldConfig = mock(FieldConfig.class);
+        when(fieldConfig.getValue()).thenReturn("value");
+        when(fieldConfig.getType()).thenReturn("string");
+        when(fieldConfig.getFormat()).thenReturn("format");
 
         AbstractBaseColumn baseColumn = mock(AbstractBaseColumn.class);
         assertThrows(
                 RuntimeException.class,
-                () -> rowConverter.assembleFieldProps(fieldConf, baseColumn));
+                () -> rowConverter.assembleFieldProps(fieldConfig, baseColumn));
     }
 
     @Test
     @DisplayName("Should return stringcolumn when the value is blank and format is not blank")
     void assembleFieldPropsWhenValueIsBlankAndFormatIsNotBlankThenReturnStringColumn() {
-        FieldConf fieldConf = mock(FieldConf.class);
-        when(fieldConf.getValue()).thenReturn("");
-        when(fieldConf.getFormat()).thenReturn("yyyy-MM-dd HH:mm:ss");
+        FieldConfig fieldConfig = mock(FieldConfig.class);
+        when(fieldConfig.getValue()).thenReturn("");
+        when(fieldConfig.getFormat()).thenReturn("yyyy-MM-dd HH:mm:ss");
         AbstractBaseColumn baseColumn = mock(AbstractBaseColumn.class);
-        AbstractBaseColumn result = rowConverter.assembleFieldProps(fieldConf, baseColumn);
+        AbstractBaseColumn result = rowConverter.assembleFieldProps(fieldConfig, baseColumn);
         assertNotNull(result);
     }
 
@@ -119,19 +119,19 @@ class AbstractRowConverterTest {
     @Test
     @DisplayName("Should set the commonconf when the commonconf is not null")
     void setCommonConfWhenCommonConfIsNotNull() {
-        ChunJunCommonConf commonConf = new ChunJunCommonConf();
-        rowConverter.setCommonConf(commonConf);
+        CommonConfig commonConfig = new CommonConfig();
+        rowConverter.setCommonConfig(commonConfig);
 
-        assertEquals(commonConf, rowConverter.getCommonConf());
+        assertEquals(commonConfig, rowConverter.getCommonConfig());
     }
 
     @Test
     @DisplayName("Should not set the commonconf when the commonconf is null")
     void setCommonConfWhenCommonConfIsNull() {
 
-        rowConverter.setCommonConf(null);
+        rowConverter.setCommonConfig(null);
 
-        assertNull(rowConverter.getCommonConf());
+        assertNull(rowConverter.getCommonConfig());
     }
 
     @Test

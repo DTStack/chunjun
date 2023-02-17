@@ -30,7 +30,7 @@ public class ColumnOperator extends DdlOperator {
     /** 修改表路径 * */
     private final TableIdentifier tableIdentifier;
     /** 增加的字段信息 * */
-    private final List<ColumnDefinition> columns;
+    private List<ColumnDefinition> columns;
 
     private final Boolean dropDefault;
 
@@ -59,6 +59,10 @@ public class ColumnOperator extends DdlOperator {
 
     public TableIdentifier getTableIdentifier() {
         return tableIdentifier;
+    }
+
+    public void setColumns(List<ColumnDefinition> columns) {
+        this.columns = columns;
     }
 
     public List<ColumnDefinition> getColumns() {
@@ -119,5 +123,55 @@ public class ColumnOperator extends DdlOperator {
                 + sql
                 + '\''
                 + '}';
+    }
+
+    public static class Builder {
+        private EventType type = null;
+        private String sql = null;
+        private TableIdentifier tableIdentifier = null;
+        private List<ColumnDefinition> columns = null;
+        private Boolean dropDefault = null;
+        private Boolean setDefault = null;
+        private String newName = null;
+
+        public Builder type(EventType type) {
+            this.type = type;
+            return this;
+        }
+
+        public Builder sql(String sql) {
+            this.sql = sql;
+            return this;
+        }
+
+        public Builder tableIdentifier(TableIdentifier tableIdentifier) {
+            this.tableIdentifier = tableIdentifier;
+            return this;
+        }
+
+        public Builder columns(List<ColumnDefinition> columns) {
+            this.columns = columns;
+            return this;
+        }
+
+        public Builder dropDefault(Boolean dropDefault) {
+            this.dropDefault = dropDefault;
+            return this;
+        }
+
+        public Builder setDefault(Boolean setDefault) {
+            this.setDefault = setDefault;
+            return this;
+        }
+
+        public Builder newName(String newName) {
+            this.newName = newName;
+            return this;
+        }
+
+        public ColumnOperator build() {
+            return new ColumnOperator(
+                    type, sql, tableIdentifier, columns, dropDefault, setDefault, newName);
+        }
     }
 }

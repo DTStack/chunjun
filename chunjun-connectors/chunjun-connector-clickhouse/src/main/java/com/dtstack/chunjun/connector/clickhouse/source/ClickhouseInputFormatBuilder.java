@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.clickhouse.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -37,34 +37,28 @@ public class ClickhouseInputFormatBuilder extends JdbcInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        JdbcConf conf = format.getJdbcConf();
+        JdbcConfig config = format.getJdbcConfig();
         StringBuilder sb = new StringBuilder(256);
-        // userName and password is nullable
-        //        if (StringUtils.isBlank(conf.getUsername())) {
-        //            sb.append("No username supplied;\n");
-        //        }
-        //        if (StringUtils.isBlank(conf.getPassword())) {
-        //            sb.append("No password supplied;\n");
-        //        }
-        if (StringUtils.isBlank(conf.getJdbcUrl())) {
+
+        if (StringUtils.isBlank(config.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }
-        if (conf.isIncrement()) {
-            if (StringUtils.isBlank(conf.getIncreColumn())) {
+        if (config.isIncrement()) {
+            if (StringUtils.isBlank(config.getIncreColumn())) {
                 sb.append("increColumn can't be empty when increment is true;\n");
             }
-            conf.setSplitPk(conf.getIncreColumn());
-            if (conf.getParallelism() > 1) {
-                conf.setSplitStrategy("mod");
+            config.setSplitPk(config.getIncreColumn());
+            if (config.getParallelism() > 1) {
+                config.setSplitStrategy("mod");
             }
         }
 
-        if (conf.getParallelism() > 1) {
-            if (StringUtils.isBlank(conf.getSplitPk())) {
+        if (config.getParallelism() > 1) {
+            if (StringUtils.isBlank(config.getSplitPk())) {
                 sb.append("Must specify the split column when the channel is greater than 1;\n");
             } else {
-                FieldConf field =
-                        FieldConf.getSameNameMetaColumn(conf.getColumn(), conf.getSplitPk());
+                FieldConfig field =
+                        FieldConfig.getSameNameMetaColumn(config.getColumn(), config.getSplitPk());
                 if (field == null) {
                     sb.append("split column must in columns;\n");
                 } else if (!ColumnType.isNumberType(field.getType())) {
@@ -73,22 +67,22 @@ public class ClickhouseInputFormatBuilder extends JdbcInputFormatBuilder {
             }
         }
 
-        if (StringUtils.isNotBlank(conf.getStartLocation())) {
-            String[] startLocations = conf.getStartLocation().split(ConstantValue.COMMA_SYMBOL);
-            if (startLocations.length != 1 && startLocations.length != conf.getParallelism()) {
+        if (StringUtils.isNotBlank(config.getStartLocation())) {
+            String[] startLocations = config.getStartLocation().split(ConstantValue.COMMA_SYMBOL);
+            if (startLocations.length != 1 && startLocations.length != config.getParallelism()) {
                 sb.append("startLocations is ")
                         .append(Arrays.toString(startLocations))
                         .append(", length = [")
                         .append(startLocations.length)
                         .append("], but the channel is [")
-                        .append(conf.getParallelism())
+                        .append(config.getParallelism())
                         .append("];\n");
             }
         }
         try {
-            Semantic.getByName(conf.getSemantic());
+            Semantic.getByName(config.getSemantic());
         } catch (Exception e) {
-            sb.append(String.format("unsupported semantic type %s", conf.getSemantic()));
+            sb.append(String.format("unsupported semantic type %s", config.getSemantic()));
         }
 
         if (sb.length() > 0) {

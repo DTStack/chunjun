@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.cassandra.converter;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -48,16 +48,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraColumnConverter
         extends AbstractRowConverter<ResultSet, Row, BoundStatement, String> {
 
-    private final List<FieldConf> fieldConfList;
+    private static final long serialVersionUID = 9079536637671380594L;
 
-    public CassandraColumnConverter(RowType rowType, List<FieldConf> fieldConfList) {
+    private final List<FieldConfig> fieldConfList;
+
+    public CassandraColumnConverter(RowType rowType, List<FieldConfig> fieldConfList) {
         super(rowType);
         this.fieldConfList = fieldConfList;
         for (int i = 0; i < rowType.getFieldCount(); i++) {
@@ -102,7 +100,7 @@ public class CassandraColumnConverter
     @Override
     @SuppressWarnings("unchecked")
     public BoundStatement toExternal(RowData rowData, BoundStatement statement) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, statement);
         }
         return statement;

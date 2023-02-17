@@ -37,11 +37,6 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Metaparam 工具类
- *
- * @author shifang@dtstack.com
- */
 public class MetaparamUtils {
     public static Pattern valueExpression =
             Pattern.compile(
@@ -119,7 +114,7 @@ public class MetaparamUtils {
                     param.setKey(key);
                     // nest为空 代表不知道表达式的key是否需要切割 有可能是异常策略转换的metaparam
                     if (null != nest) {
-                        param.setNest(nest);
+                        param.setIsNest(nest);
                     }
 
                     if (requestParam.containsKey(param, restConfig.getFieldDelimiter())) {
@@ -128,7 +123,7 @@ public class MetaparamUtils {
                                         requestParam.getValue(
                                                 param, restConfig.getFieldDelimiter()));
                     } else {
-                        param.setNest(true);
+                        param.setIsNest(true);
                         // 没找到 就代表动态参数指定的key不存在 直接报错
                         if (null != nest
                                 || !requestParam.containsKey(

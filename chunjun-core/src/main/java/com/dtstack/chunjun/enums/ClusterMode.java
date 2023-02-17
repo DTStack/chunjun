@@ -20,47 +20,35 @@ package com.dtstack.chunjun.enums;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * This class defines three running mode of ChunJun
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+/** This class defines three running mode of ChunJun */
 public enum ClusterMode {
+    /** Applications executed in the local-test */
+    localTest(),
 
     /** Applications executed in the local */
-    local(0, "local"),
+    local(),
 
     /** Applications executed in the standalone */
-    standalone(1, "standalone"),
+    standalone(),
 
     /** Applications executed in the yarn session */
-    yarnSession(2, "yarn-session"),
+    yarnSession(),
 
     /** Applications executed in the yarn perjob */
-    yarnPerJob(3, "yarn-per-job"),
+    yarnPerJob(),
 
     /** Applications executed in the yarn application */
-    yarnApplication(4, "yarn-application"),
+    yarnApplication(),
 
     /** Applications executed in the kubernetes session */
-    kubernetesSession(5, "kubernetes-session"),
+    kubernetesSession(),
 
     /** Applications executed in the kubernetes perjob */
-    kubernetesPerJob(6, "kubernetes-per-job"),
+    kubernetesPerJob(),
 
     /** Applications executed in the kubernetes application */
-    kubernetesApplication(7, "kubernetes-application");
-
-    private int type;
-
-    private String name;
-
-    ClusterMode(int type, String name) {
-        this.type = type;
-        this.name = name;
-    }
+    kubernetesApplication(),
+    ;
 
     public static ClusterMode getByName(String name) {
         if (StringUtils.isBlank(name)) {
@@ -83,6 +71,8 @@ public enum ClusterMode {
                 return kubernetesPerJob;
             case "kubernetes-application":
                 return kubernetesApplication;
+            case "local-test":
+                return localTest;
             default:
                 return local;
         }

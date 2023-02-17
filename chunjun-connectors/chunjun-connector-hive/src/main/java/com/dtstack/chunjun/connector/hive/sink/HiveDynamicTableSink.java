@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.hive.sink;
 
-import com.dtstack.chunjun.connector.hive.conf.HiveConf;
+import com.dtstack.chunjun.connector.hive.config.HiveConfig;
 import com.dtstack.chunjun.connector.hive.util.HiveUtil;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
@@ -26,18 +26,13 @@ import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HiveDynamicTableSink implements DynamicTableSink {
 
-    private final HiveConf hiveConf;
+    private final HiveConfig config;
     private final TableSchema tableSchema;
 
-    public HiveDynamicTableSink(HiveConf hiveConf, TableSchema tableSchema) {
-        this.hiveConf = hiveConf;
+    public HiveDynamicTableSink(HiveConfig config, TableSchema tableSchema) {
+        this.config = config;
         this.tableSchema = tableSchema;
     }
 
@@ -50,20 +45,20 @@ public class HiveDynamicTableSink implements DynamicTableSink {
     @SuppressWarnings("all")
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
         HiveOutputFormatBuilder builder = new HiveOutputFormatBuilder();
-        hiveConf.setTableInfos(
+        config.setTableInfos(
                 HiveUtil.formatHiveTableInfo(
-                        hiveConf.getTablesColumn(),
-                        hiveConf.getPartition(),
-                        hiveConf.getFieldDelimiter(),
-                        hiveConf.getFileType()));
-        builder.setHiveConf(hiveConf);
+                        config.getTablesColumn(),
+                        config.getPartition(),
+                        config.getFieldDelimiter(),
+                        config.getFileType()));
+        builder.setHiveConf(config);
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction(builder.finish()), hiveConf.getParallelism());
+                new DtOutputFormatSinkFunction(builder.finish()), config.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new HiveDynamicTableSink(hiveConf, tableSchema);
+        return new HiveDynamicTableSink(config, tableSchema);
     }
 
     @Override

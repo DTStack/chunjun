@@ -56,27 +56,22 @@ import java.util.Random;
 
 import static java.time.temporal.ChronoField.MILLI_OF_DAY;
 
-/**
- * @author chuixue
- * @create 2021-04-10 11:39
- * @description 数据类型转换器
- */
 public class StreamRowConverter
         extends AbstractRowConverter<RowData, RowData, RowData, LogicalType> {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 6652637680662065910L;
 
-    private Random random = new Random();
+    private final Random random = new Random();
 
     public StreamRowConverter(RowType rowType) {
         super(rowType);
         List<RowType.RowField> fields = rowType.getFields();
-        for (int i = 0; i < fields.size(); i++) {
+        for (RowType.RowField field : fields) {
             toInternalConverters.add(
-                    wrapIntoNullableInternalConverter(createInternalConverter(fields.get(i))));
+                    wrapIntoNullableInternalConverter(createInternalConverter(field)));
             toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fields.get(i)), fields.get(i).getType()));
+                            createExternalConverter(field), field.getType()));
         }
     }
 
@@ -105,7 +100,7 @@ public class StreamRowConverter
 
     @Override
     public RowData toExternal(RowData rowData, RowData output) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, output);
         }
         return output;

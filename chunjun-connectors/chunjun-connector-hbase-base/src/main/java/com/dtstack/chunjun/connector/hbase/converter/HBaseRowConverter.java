@@ -40,6 +40,8 @@ import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getPr
 
 public class HBaseRowConverter
         extends AbstractRowConverter<Result, RowData, Mutation, LogicalType> {
+    private static final long serialVersionUID = -8935215591844851238L;
+
     private static final int MIN_TIMESTAMP_PRECISION = 0;
     private static final int MAX_TIMESTAMP_PRECISION = 3;
     private static final int MIN_TIME_PRECISION = 0;
@@ -135,7 +137,7 @@ public class HBaseRowConverter
     }
 
     @Override
-    public Mutation toExternal(RowData rowData, Mutation output) throws Exception {
+    public Mutation toExternal(RowData rowData, Mutation output) {
         if (serde == null) {
             this.serde = new HBaseSerde(schema, nullStringLiteral);
         }
@@ -148,7 +150,7 @@ public class HBaseRowConverter
     }
 
     @Override
-    public RowData toInternalLookup(RowData input) throws Exception {
+    public RowData toInternalLookup(RowData input) {
         return input;
     }
 }

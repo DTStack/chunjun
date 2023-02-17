@@ -25,11 +25,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * @author shifang
- * @program ChunJun
- * @create 2021/05/24
- */
 public class SqlServerCdcRawTypeConverter {
 
     /**

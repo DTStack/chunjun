@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.doris.source;
 
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 
@@ -34,7 +34,7 @@ public class DorisInputFormatBuilder extends JdbcInputFormatBuilder {
     @Override
     protected void checkFormat() {
         DorisInputFormat format = (DorisInputFormat) this.format;
-        DorisConf config = format.getDorisConf();
+        DorisConfig config = format.getDorisConfig();
         List<String> feNodes = config.getFeNodes();
         String url = config.getUrl();
 

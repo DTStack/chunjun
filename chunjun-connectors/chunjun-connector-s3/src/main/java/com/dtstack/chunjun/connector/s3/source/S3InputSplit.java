@@ -20,24 +20,16 @@ package com.dtstack.chunjun.connector.s3.source;
 
 import org.apache.flink.core.io.GenericInputSplit;
 
-import java.util.ArrayList;
+import lombok.Getter;
+
 import java.util.List;
 
-/**
- * splits {@link S3InputSplit#splits} contains all s3 objects instead of a part of all s3 objects
- *
- * @author jier
- */
+@Getter
 public class S3InputSplit extends GenericInputSplit {
 
     private static final long serialVersionUID = 8350870573057970895L;
 
-    private List<String> splits;
-
-    public S3InputSplit(int partitionNumber, int totalNumberOfPartitions) {
-        super(partitionNumber, totalNumberOfPartitions);
-        this.splits = new ArrayList<>();
-    }
+    private final List<String> splits;
 
     /**
      * Creates a generic input split with the given split number.
@@ -48,17 +40,5 @@ public class S3InputSplit extends GenericInputSplit {
     public S3InputSplit(int partitionNumber, int totalNumberOfPartitions, List<String> splits) {
         super(partitionNumber, totalNumberOfPartitions);
         this.splits = splits;
-    }
-
-    public List<String> getSplits() {
-        return splits;
-    }
-
-    public void setSplits(List<String> splits) {
-        this.splits = splits;
-    }
-
-    public void addSplit(String split) {
-        splits.add(split);
     }
 }

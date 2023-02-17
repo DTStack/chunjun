@@ -18,16 +18,15 @@
 
 package com.dtstack.chunjun.connector.vertica11.sink;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.chunjun.connector.vertica11.dialect.Vertica11Dialect;
 
-/** @author menghan on 2022/7/4. */
 public class Vertica11SinkFactory extends JdbcSinkFactory {
 
-    public Vertica11SinkFactory(SyncConf syncConf) {
-        super(syncConf, new Vertica11Dialect());
+    public Vertica11SinkFactory(SyncConfig syncConfig) {
+        super(syncConfig, new Vertica11Dialect());
     }
 
     @Override

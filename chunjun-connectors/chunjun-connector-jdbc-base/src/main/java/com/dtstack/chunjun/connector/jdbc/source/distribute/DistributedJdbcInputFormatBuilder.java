@@ -17,34 +17,29 @@
  */
 package com.dtstack.chunjun.connector.jdbc.source.distribute;
 
-import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
-import com.dtstack.chunjun.connector.jdbc.conf.DataSourceConf;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
+import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
+import com.dtstack.chunjun.connector.jdbc.config.DataSourceConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
-/**
- * Date: 2022/01/12 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class DistributedJdbcInputFormatBuilder extends JdbcInputFormatBuilder {
 
     public DistributedJdbcInputFormatBuilder(DistributedJdbcInputFormat format) {
         super(format);
     }
 
-    public void setSourceList(List<DataSourceConf> sourceList) {
+    public void setSourceList(List<DataSourceConfig> sourceList) {
         DistributedJdbcInputFormat format = (DistributedJdbcInputFormat) this.format;
         format.setSourceList(sourceList);
     }
 
     @Override
     protected void checkFormat() {
-        JdbcConf conf = format.getJdbcConf();
+        JdbcConfig conf = format.getJdbcConfig();
         StringBuilder sb = new StringBuilder(256);
         boolean hasGlobalAccountInfo =
                 !StringUtils.isBlank(conf.getUsername())
@@ -58,21 +53,21 @@ public class DistributedJdbcInputFormatBuilder extends JdbcInputFormatBuilder {
             sb.append("JDBC distribute plugin not support restore from failed state;\n");
         }
 
-        for (ConnectionConf connectionConf : conf.getConnection()) {
+        for (ConnectionConfig connectionConfig : conf.getConnection()) {
             boolean hasNoAccountInfoInConnectionConf =
-                    StringUtils.isBlank(connectionConf.getUsername())
-                            || StringUtils.isBlank(connectionConf.getPassword());
+                    StringUtils.isBlank(connectionConfig.getUsername())
+                            || StringUtils.isBlank(connectionConfig.getPassword());
             if (hasNoAccountInfoInConnectionConf && !hasGlobalAccountInfo) {
                 sb.append(
                         "Must specify a global account or specify an account for each data source;\n");
             }
 
-            if (connectionConf.getTable() == null || connectionConf.getTable().size() == 0) {
+            if (connectionConfig.getTable() == null || connectionConfig.getTable().size() == 0) {
                 sb.append("Table name cannot be empty;\n");
             }
 
-            if (connectionConf.obtainJdbcUrl() == null
-                    || connectionConf.obtainJdbcUrl().length() == 0) {
+            if (connectionConfig.obtainJdbcUrl() == null
+                    || connectionConfig.obtainJdbcUrl().length() == 0) {
                 sb.append("JDBC url cannot be empty;\n");
             }
         }

@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class StarRocksStreamLoadFailedException extends IOException {
 
-    static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -4707212838644923864L;
 
     private final Map<String, Object> response;
     private boolean reCreateLabel;

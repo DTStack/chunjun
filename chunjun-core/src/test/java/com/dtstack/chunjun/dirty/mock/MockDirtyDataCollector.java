@@ -18,13 +18,13 @@
 
 package com.dtstack.chunjun.dirty.mock;
 
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.consumer.DirtyDataCollector;
 import com.dtstack.chunjun.dirty.impl.DirtyDataEntry;
 
 public class MockDirtyDataCollector extends DirtyDataCollector {
     @Override
-    protected void init(DirtyConf conf) {}
+    protected void init(DirtyConfig conf) {}
 
     @Override
     protected void consume(DirtyDataEntry dirty) throws Exception {}

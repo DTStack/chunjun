@@ -21,24 +21,10 @@ package com.dtstack.chunjun.util;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-/**
- * Date: 2019/4/22 Company: www.dtstack.com
- *
- * @author xuchao
- */
 public class ReflectionUtils {
-
-    /**
-     * get declaredMethod util find
-     *
-     * @param object
-     * @param methodName
-     * @param parameterTypes
-     * @return
-     */
     public static Method getDeclaredMethod(
             Object object, String methodName, Class<?>... parameterTypes) {
-        Method method = null;
+        Method method;
 
         for (Class<?> clazz = object.getClass();
                 clazz != Object.class;
@@ -51,19 +37,11 @@ public class ReflectionUtils {
                 // do nothing then can get method from super Class
             }
         }
-
         return null;
     }
 
-    /**
-     * 循环向上转型, 获取对象的 DeclaredField
-     *
-     * @param object : 子类对象
-     * @param fieldName : 父类中的属性名
-     * @return 父类中的属性对象
-     */
     public static Field getDeclaredField(Object object, String fieldName) {
-        Field field = null;
+        Field field;
 
         Class<?> clazz = object.getClass();
 
@@ -75,7 +53,6 @@ public class ReflectionUtils {
                 // do nothing then can get field from super Class
             }
         }
-
         return null;
     }
 }

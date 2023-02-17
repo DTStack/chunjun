@@ -20,11 +20,6 @@ package com.dtstack.chunjun.lookup.cache;
 
 import com.dtstack.chunjun.enums.ECacheContentType;
 
-/**
- * Reason: Date: 2018/9/10 Company: www.dtstack.com
- *
- * @author xuchao
- */
 public class CacheObj {
 
     private ECacheContentType type;

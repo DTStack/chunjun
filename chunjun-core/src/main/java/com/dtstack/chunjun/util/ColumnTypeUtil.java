@@ -20,10 +20,6 @@ package com.dtstack.chunjun.util;
 
 import java.util.Objects;
 
-/**
- * @author jiangbo
- * @date 2019/9/2
- */
 public class ColumnTypeUtil {
 
     public static final String TYPE_NAME = "decimal";
@@ -62,8 +58,8 @@ public class ColumnTypeUtil {
     }
 
     public static class DecimalInfo {
-        private int precision;
-        private int scale;
+        private final int precision;
+        private final int scale;
 
         public DecimalInfo(int precision, int scale) {
             this.precision = precision;

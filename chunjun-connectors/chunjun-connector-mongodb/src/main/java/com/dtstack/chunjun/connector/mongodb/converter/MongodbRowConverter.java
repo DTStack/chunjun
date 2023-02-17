@@ -44,13 +44,10 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/21
- */
 public final class MongodbRowConverter
         extends AbstractRowConverter<Document, Document, Document, LogicalType> {
+
+    private static final long serialVersionUID = -2683857781343809969L;
 
     private final List<MongoDeserializationConverter> toInternalConverters;
     private final List<MongoSerializationConverter> toExternalConverters;
@@ -71,7 +68,7 @@ public final class MongodbRowConverter
         }
     }
 
-    protected MongoDeserializationConverter wrapIntoNullableInternalConverter(
+    private MongoDeserializationConverter wrapIntoNullableInternalConverter(
             MongoDeserializationConverter deserializationConverter) {
         return val -> {
             if (val == null) {
@@ -82,7 +79,7 @@ public final class MongodbRowConverter
         };
     }
 
-    protected MongoSerializationConverter wrapIntoNullableMongodbExternalConverter(
+    private MongoSerializationConverter wrapIntoNullableMongodbExternalConverter(
             MongoSerializationConverter serializationConverter, LogicalType type) {
         return (val, index, key, document) -> {
             if (val == null
@@ -115,7 +112,7 @@ public final class MongodbRowConverter
 
     @Override
     public Document toExternal(RowData rowData, Document document) {
-        for (int pos = 0; pos < rowData.getArity(); pos++) {
+        for (int pos = 0; pos < fieldTypes.length; pos++) {
             toExternalConverters.get(pos).serialize(rowData, pos, fieldNames[pos], document);
         }
         return document;
@@ -181,7 +178,7 @@ public final class MongodbRowConverter
         }
     }
 
-    protected MongoSerializationConverter createMongodbExternalConverter(LogicalType type) {
+    private MongoSerializationConverter createMongodbExternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
             case BOOLEAN:
                 return (val, index, key, document) -> document.append(key, val.getBoolean(index));

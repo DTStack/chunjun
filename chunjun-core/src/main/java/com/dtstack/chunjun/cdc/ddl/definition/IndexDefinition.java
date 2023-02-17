@@ -80,6 +80,10 @@ public class IndexDefinition {
             this(name, null);
         }
 
+        public void setName(String name) {
+            this.name = name;
+        }
+
         public String getName() {
             return name;
         }
@@ -104,5 +108,60 @@ public class IndexDefinition {
     @Override
     public int hashCode() {
         return Objects.hash(indexType, indexName, comment, columns, isVisiable);
+    }
+
+    @Override
+    public String toString() {
+        return "IndexDefinition{"
+                + "indexType="
+                + indexType
+                + ", indexName='"
+                + indexName
+                + '\''
+                + ", comment='"
+                + comment
+                + '\''
+                + ", columns="
+                + columns
+                + ", isVisiable="
+                + isVisiable
+                + '}';
+    }
+
+    public static class Builder {
+        private IndexType indexType;
+        private String indexName = null;
+        private String comment = null;
+        private List<ColumnInfo> columns = null;
+        private Boolean isVisiable = false;
+
+        public Builder indexType(IndexType indexType) {
+            this.indexType = indexType;
+            return this;
+        }
+
+        public Builder indexName(String indexName) {
+            this.indexName = indexName;
+            return this;
+        }
+
+        public Builder comment(String comment) {
+            this.comment = comment;
+            return this;
+        }
+
+        public Builder columns(List<ColumnInfo> columns) {
+            this.columns = columns;
+            return this;
+        }
+
+        public Builder visiable(Boolean visiable) {
+            isVisiable = visiable;
+            return this;
+        }
+
+        public IndexDefinition build() {
+            return new IndexDefinition(indexType, indexName, comment, columns, isVisiable);
+        }
     }
 }

@@ -24,12 +24,16 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.12-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-oraclelogminer</artifactId>
-	<name>ChunJun : Connectors : Oracle LogMiner</name>
+	<name>ChunJun : Connector : Oracle LogMiner</name>
+
+	<properties>
+		<connector.dir>oraclelogminer</connector.dir>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -41,17 +45,8 @@
 		<dependency>
 			<groupId>com.github.jsqlparser</groupId>
 			<artifactId>jsqlparser</artifactId>
-			<version>3.2</version>
+			<version>4.5</version>
 		</dependency>
-
-
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-json</artifactId>
-			<version>${flink.version}</version>
-			<scope>provided</scope>
-		</dependency>
-
 
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
@@ -111,30 +106,8 @@
 			</plugin>
 
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<!-- here the phase you need -->
-						<phase>package</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/connector/oraclelogminer"
-									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../${dist.dir}/connector/oraclelogminer/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/oraclelogminer/${project.artifactId}.jar"/>
-								<delete>
-									<fileset dir="${basedir}/../../${dist.dir}/connector/oraclelogminer/"
-											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}.jar"/>
-								</delete>
-							</tasks>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -28,8 +28,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/** @author liuliu 2022/6/22 */
 public class NumericTypeUtil extends KeyUtil<Long, BigInteger> {
+
+    private static final long serialVersionUID = -8216714135018785606L;
 
     @Override
     public Long getSqlValueFromRs(ResultSet rs, int index) throws SQLException {

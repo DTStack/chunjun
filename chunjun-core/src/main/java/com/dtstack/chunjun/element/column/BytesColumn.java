@@ -27,12 +27,10 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/**
- * Date: 2021/04/27 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class BytesColumn extends AbstractBaseColumn {
+
+    private static final long serialVersionUID = 1358912196298267067L;
+
     private String encoding = StandardCharsets.UTF_8.name();
 
     public BytesColumn(byte[] data) {

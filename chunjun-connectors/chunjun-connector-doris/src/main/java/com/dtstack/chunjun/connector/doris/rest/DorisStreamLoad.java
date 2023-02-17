@@ -18,10 +18,11 @@
 
 package com.dtstack.chunjun.connector.doris.rest;
 
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
+import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.doris.rest.module.RespContent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.http.HttpEntity;
@@ -33,8 +34,6 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -53,9 +52,10 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class DorisStreamLoad implements Serializable {
+    private static final long serialVersionUID = 4973667902656840946L;
 
-    private static final Logger LOG = LoggerFactory.getLogger(DorisStreamLoad.class);
     private static final ObjectMapper OM = new ObjectMapper();
     private static final List<String> DORIS_SUCCESS_STATUS =
             new ArrayList<>(Arrays.asList("Success", "Publish Timeout"));
@@ -63,9 +63,9 @@ public class DorisStreamLoad implements Serializable {
     private final String authEncoding;
     private final Properties streamLoadProp;
     private String hostPort;
-    private DorisConf options;
+    private DorisConfig options;
 
-    public DorisStreamLoad(DorisConf options) {
+    public DorisStreamLoad(DorisConfig options) {
         this.options = options;
         this.authEncoding =
                 Base64.getEncoder()
@@ -79,7 +79,7 @@ public class DorisStreamLoad implements Serializable {
         this.hostPort = hostPort;
     }
 
-    public void setOptions(DorisConf options) {
+    public void setOptions(DorisConfig options) {
         this.options = options;
     }
 
@@ -149,7 +149,7 @@ public class DorisStreamLoad implements Serializable {
     public void replaceBackend() throws IOException {
         String backend = getBackend();
         this.setHostPort(backend);
-        LOG.info("replace backend node to {}", backend);
+        log.info("replace backend node to {}", backend);
     }
 
     private String getBackend() throws IOException {
@@ -157,7 +157,7 @@ public class DorisStreamLoad implements Serializable {
             // get be url from fe
             return FeRestService.randomBackend(options);
         } catch (IOException e) {
-            LOG.error("get backends info fail");
+            log.error("get backends info fail");
             throw new IOException(e);
         }
     }
@@ -176,7 +176,7 @@ public class DorisStreamLoad implements Serializable {
         String json = OM.writeValueAsString(carrier.getInsertContent());
         String mergeConditions = carrier.getDeleteContent();
         LoadResponse loadResponse = loadBatch(columnNames, json, mergeConditions, loadUrlStr);
-        LOG.debug("StreamLoad Response:{}", loadResponse);
+        log.debug("StreamLoad Response:{}", loadResponse);
         if (loadResponse.status != 200) {
             throw new ConnectException("stream load error, detail : " + loadResponse);
         } else {
@@ -205,7 +205,7 @@ public class DorisStreamLoad implements Serializable {
             return new LoadResponse(status, entity != null ? EntityUtils.toString(entity) : "");
         } catch (Exception e) {
             String err = "failed to load audit via AuditLoader plugin with label: " + label;
-            LOG.warn(err, e);
+            log.warn(err, e);
             return new LoadResponse(-1, err);
         }
     }
@@ -245,7 +245,7 @@ public class DorisStreamLoad implements Serializable {
                 return respContent.toString();
             }
         } catch (IOException e) {
-            LOG.warn("Get detail error message failed. Error Url: " + respContent.getErrorURL());
+            log.warn("Get detail error message failed. Error Url: " + respContent.getErrorURL());
             return respContent.getMessage();
         }
     }

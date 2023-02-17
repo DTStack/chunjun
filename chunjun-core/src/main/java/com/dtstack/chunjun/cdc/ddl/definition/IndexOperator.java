@@ -77,4 +77,59 @@ public class IndexOperator extends DdlOperator {
     public int hashCode() {
         return Objects.hash(tableIdentifier, index);
     }
+
+    @Override
+    public String toString() {
+        return "IndexOperator{"
+                + "tableIdentifier="
+                + tableIdentifier
+                + ", index="
+                + index
+                + ", newName='"
+                + newName
+                + '\''
+                + ", type="
+                + type
+                + ", sql='"
+                + sql
+                + '\''
+                + '}';
+    }
+
+    public static class Builder {
+        private EventType type = null;
+        private String sql = null;
+        private TableIdentifier tableIdentifier = null;
+        private IndexDefinition index = null;
+        private String newName = null;
+
+        public Builder type(EventType type) {
+            this.type = type;
+            return this;
+        }
+
+        public Builder sql(String sql) {
+            this.sql = sql;
+            return this;
+        }
+
+        public Builder tableIdentifier(TableIdentifier tableIdentifier) {
+            this.tableIdentifier = tableIdentifier;
+            return this;
+        }
+
+        public Builder index(IndexDefinition index) {
+            this.index = index;
+            return this;
+        }
+
+        public Builder newName(String newName) {
+            this.newName = newName;
+            return this;
+        }
+
+        public IndexOperator build() {
+            return new IndexOperator(type, sql, tableIdentifier, index, newName);
+        }
+    }
 }

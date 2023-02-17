@@ -17,11 +17,6 @@
  */
 package com.dtstack.chunjun.connector.hive.enums;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
 public enum PartitionEnum {
     /** 天分区 */
     DAY("DAY"),

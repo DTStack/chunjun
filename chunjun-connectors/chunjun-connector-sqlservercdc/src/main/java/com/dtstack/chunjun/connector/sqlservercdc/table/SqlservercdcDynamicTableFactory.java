@@ -17,29 +17,21 @@
  */
 package com.dtstack.chunjun.connector.sqlservercdc.table;
 
-import com.dtstack.chunjun.connector.sqlservercdc.conf.SqlServerCdcConf;
+import com.dtstack.chunjun.connector.sqlservercdc.config.SqlServerCdcConfig;
 import com.dtstack.chunjun.connector.sqlservercdc.options.SqlServerCdcOptions;
 import com.dtstack.chunjun.connector.sqlservercdc.source.SqlServerCdcDynamicTableSource;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.formats.json.JsonOptions;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Date: 2021/04/27 Company: www.dtstack.com
- *
- * @author shifang
- */
-@SuppressWarnings("all")
 public class SqlservercdcDynamicTableFactory implements DynamicTableSourceFactory {
     public static final String IDENTIFIER = "sqlservercdc-x";
 
@@ -65,7 +57,7 @@ public class SqlservercdcDynamicTableFactory implements DynamicTableSourceFactor
         options.add(SqlServerCdcOptions.CAT);
         options.add(SqlServerCdcOptions.LSN);
         options.add(SqlServerCdcOptions.POLLINTERVAL);
-        options.add(JsonOptions.TIMESTAMP_FORMAT);
+        options.add(SqlServerCdcOptions.TIMESTAMP_FORMAT);
         return options;
     }
 
@@ -80,12 +72,11 @@ public class SqlservercdcDynamicTableFactory implements DynamicTableSourceFactor
         helper.validate();
 
         // 3.
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        SqlServerCdcConf serverCdcConf = getSqlServerCdcConf(config);
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+        SqlServerCdcConfig serverCdcConf = getSqlServerCdcConf(config);
 
         return new SqlServerCdcDynamicTableSource(
-                physicalSchema, serverCdcConf, JsonOptions.getTimestampFormat(config));
+                resolvedSchema, serverCdcConf, SqlServerCdcOptions.getTimestampFormat(config));
     }
 
     /**
@@ -94,20 +85,20 @@ public class SqlservercdcDynamicTableFactory implements DynamicTableSourceFactor
      * @param config BinlogConf
      * @return
      */
-    private SqlServerCdcConf getSqlServerCdcConf(ReadableConfig config) {
-        SqlServerCdcConf sqlServerCdcConf = new SqlServerCdcConf();
-        sqlServerCdcConf.setUsername(config.get(SqlServerCdcOptions.USERNAME));
-        sqlServerCdcConf.setPassword(config.get(SqlServerCdcOptions.PASSWORD));
-        sqlServerCdcConf.setUrl(config.get(SqlServerCdcOptions.JDBC_URL));
-        sqlServerCdcConf.setPollInterval(config.get(SqlServerCdcOptions.POLLINTERVAL));
-        sqlServerCdcConf.setCat(config.get(SqlServerCdcOptions.CAT));
-        sqlServerCdcConf.setPavingData(true);
-        sqlServerCdcConf.setDatabaseName(config.get(SqlServerCdcOptions.DATABASE));
-        sqlServerCdcConf.setTableList(Arrays.asList(config.get(SqlServerCdcOptions.TABLE)));
-        sqlServerCdcConf.setAutoCommit(config.get(SqlServerCdcOptions.AUTO_COMMIT));
-        sqlServerCdcConf.setAutoResetConnection(
+    private SqlServerCdcConfig getSqlServerCdcConf(ReadableConfig config) {
+        SqlServerCdcConfig sqlServerCdcConfig = new SqlServerCdcConfig();
+        sqlServerCdcConfig.setUsername(config.get(SqlServerCdcOptions.USERNAME));
+        sqlServerCdcConfig.setPassword(config.get(SqlServerCdcOptions.PASSWORD));
+        sqlServerCdcConfig.setUrl(config.get(SqlServerCdcOptions.JDBC_URL));
+        sqlServerCdcConfig.setPollInterval(config.get(SqlServerCdcOptions.POLLINTERVAL));
+        sqlServerCdcConfig.setCat(config.get(SqlServerCdcOptions.CAT));
+        sqlServerCdcConfig.setPavingData(true);
+        sqlServerCdcConfig.setDatabaseName(config.get(SqlServerCdcOptions.DATABASE));
+        sqlServerCdcConfig.setTableList(Arrays.asList(config.get(SqlServerCdcOptions.TABLE)));
+        sqlServerCdcConfig.setAutoCommit(config.get(SqlServerCdcOptions.AUTO_COMMIT));
+        sqlServerCdcConfig.setAutoResetConnection(
                 config.get(SqlServerCdcOptions.AUTO_RESET_CONNECTION));
 
-        return sqlServerCdcConf;
+        return sqlServerCdcConfig;
     }
 }

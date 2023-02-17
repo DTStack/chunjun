@@ -18,11 +18,12 @@
 
 package com.dtstack.chunjun.connector.oceanbasecdc.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.oceanbasecdc.conf.OceanBaseCdcConf;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.oceanbasecdc.config.OceanBaseCdcConfig;
 import com.dtstack.chunjun.connector.oceanbasecdc.converter.OceanBaseCdcColumnConverter;
 import com.dtstack.chunjun.connector.oceanbasecdc.converter.OceanBaseCdcRawTypeConverter;
 import com.dtstack.chunjun.connector.oceanbasecdc.converter.OceanBaseCdcRowConverter;
+import com.dtstack.chunjun.connector.oceanbasecdc.format.TimestampFormat;
 import com.dtstack.chunjun.connector.oceanbasecdc.inputformat.OceanBaseCdcInputFormatBuilder;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
@@ -30,7 +31,6 @@ import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
 
-import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
@@ -39,13 +39,14 @@ import org.apache.flink.table.types.logical.RowType;
 @SuppressWarnings("rawtypes")
 public class OceanbasecdcSourceFactory extends SourceFactory {
 
-    private final OceanBaseCdcConf cdcConf;
+    private final OceanBaseCdcConfig cdcConf;
 
-    public OceanbasecdcSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
+    public OceanbasecdcSourceFactory(SyncConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         cdcConf =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(config.getReader().getParameter()), OceanBaseCdcConf.class);
+                        JsonUtil.toJson(config.getReader().getParameter()),
+                        OceanBaseCdcConfig.class);
         cdcConf.setColumn(config.getReader().getFieldList());
         super.initCommonConf(cdcConf);
     }

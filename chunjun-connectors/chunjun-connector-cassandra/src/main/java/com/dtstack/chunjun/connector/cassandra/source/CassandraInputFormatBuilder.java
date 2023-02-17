@@ -18,30 +18,26 @@
 
 package com.dtstack.chunjun.connector.cassandra.source;
 
-import com.dtstack.chunjun.connector.cassandra.conf.CassandraSourceConf;
+import com.dtstack.chunjun.connector.cassandra.config.CassandraSourceConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.chunjun.throwable.NoRestartException;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @author tiezhu
- * @since 2021/6/21 星期一
- */
 public class CassandraInputFormatBuilder extends BaseRichInputFormatBuilder<CassandraInputFormat> {
 
     public CassandraInputFormatBuilder() {
         super(new CassandraInputFormat());
     }
 
-    public void setSourceConf(CassandraSourceConf sourceConf) {
+    public void setSourceConf(CassandraSourceConfig sourceConf) {
         super.setConfig(sourceConf);
-        format.setSourceConf(sourceConf);
+        format.setSourceConfig(sourceConf);
     }
 
     @Override
     protected void checkFormat() {
-        CassandraSourceConf sourceConf = format.getSourceConf();
+        CassandraSourceConfig sourceConf = format.getSourceConfig();
 
         StringBuilder stringBuilder = new StringBuilder(256);
 

@@ -47,13 +47,10 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Date: 2021/06/16 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsParquetRowConverter
         extends AbstractRowConverter<RowData, RowData, Group, LogicalType> {
+
+    private static final long serialVersionUID = -4819153961537643326L;
 
     private List<String> columnNameList;
 
@@ -91,7 +88,7 @@ public class HdfsParquetRowConverter
     @Override
     @SuppressWarnings("unchecked")
     public Group toExternal(RowData rowData, Group group) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
+        for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, group);
         }
         return group;

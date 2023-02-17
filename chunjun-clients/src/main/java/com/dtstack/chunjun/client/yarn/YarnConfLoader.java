@@ -24,14 +24,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 
 import java.io.File;
-import java.util.Iterator;
 import java.util.Map;
 
-/**
- * load yarn conf from specify dir Date: 2018/11/17 Company: www.dtstack.com
- *
- * @author xuchao
- */
+/** load yarn conf from specify dir */
 public class YarnConfLoader {
 
     public static YarnConfiguration getYarnConf(String yarnConfDir) {
@@ -44,12 +39,8 @@ public class YarnConfLoader {
                 File[] xmlFileList =
                         new File(yarnConfDir)
                                 .listFiles(
-                                        (dir1, name) -> {
-                                            if (name.endsWith(ConstantValue.FILE_SUFFIX_XML)) {
-                                                return true;
-                                            }
-                                            return false;
-                                        });
+                                        (dir1, name) ->
+                                                name.endsWith(ConstantValue.FILE_SUFFIX_XML));
 
                 if (xmlFileList != null) {
                     for (File xmlFile : xmlFileList) {
@@ -62,15 +53,13 @@ public class YarnConfLoader {
             throw new RuntimeException(e);
         }
 
-        haYarnConf(yarnConf);
+        setHaYarnConf(yarnConf);
         return yarnConf;
     }
 
     /** deal yarn HA conf */
-    private static Configuration haYarnConf(Configuration yarnConf) {
-        Iterator<Map.Entry<String, String>> iterator = yarnConf.iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, String> entry = iterator.next();
+    private static void setHaYarnConf(Configuration yarnConf) {
+        for (Map.Entry<String, String> entry : yarnConf) {
             String key = entry.getKey();
             String value = entry.getValue();
             if (key.startsWith("yarn.resourcemanager.hostname.")) {
@@ -81,6 +70,5 @@ public class YarnConfLoader {
                 }
             }
         }
-        return yarnConf;
     }
 }

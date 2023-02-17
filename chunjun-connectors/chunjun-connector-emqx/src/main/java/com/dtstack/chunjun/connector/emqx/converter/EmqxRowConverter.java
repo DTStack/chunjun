@@ -29,13 +29,10 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.nio.charset.StandardCharsets;
 
-/**
- * @author chuixue
- * @create 2021-06-02 09:34
- * @description
- */
 public class EmqxRowConverter
         extends AbstractRowConverter<String, Object, MqttMessage, LogicalType> {
+
+    private static final long serialVersionUID = -7956302669069858454L;
 
     /** DeserializationSchema Instead of source */
     private DeserializationSchema<RowData> valueDeserialization;
@@ -56,7 +53,7 @@ public class EmqxRowConverter
     }
 
     @Override
-    public MqttMessage toExternal(RowData rowData, MqttMessage output) throws Exception {
+    public MqttMessage toExternal(RowData rowData, MqttMessage output) {
         final byte[] valueSerialized = valueSerialization.serialize(rowData);
         output.setPayload(valueSerialized);
         return output;

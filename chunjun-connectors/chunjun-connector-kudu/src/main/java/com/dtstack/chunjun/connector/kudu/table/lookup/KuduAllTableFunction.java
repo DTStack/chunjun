@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.kudu.table.lookup;
 
-import com.dtstack.chunjun.connector.kudu.conf.KuduCommonConf;
-import com.dtstack.chunjun.connector.kudu.conf.KuduLookupConf;
+import com.dtstack.chunjun.connector.kudu.config.KuduCommonConfig;
+import com.dtstack.chunjun.connector.kudu.config.KuduLookupConfig;
 import com.dtstack.chunjun.connector.kudu.util.KuduUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
@@ -28,41 +28,37 @@ import com.dtstack.chunjun.util.ThreadUtil;
 import org.apache.flink.table.data.GenericRowData;
 
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kudu.client.KuduClient;
 import org.apache.kudu.client.KuduException;
 import org.apache.kudu.client.KuduScanner;
 import org.apache.kudu.client.KuduTable;
 import org.apache.kudu.client.RowResult;
 import org.apache.kudu.client.RowResultIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * @author tiezhu
- * @since 2021/6/16 星期三
- */
+@Slf4j
 public class KuduAllTableFunction extends AbstractAllTableFunction {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KuduAllTableFunction.class);
+    private static final long serialVersionUID = 7111000413256579328L;
 
-    private final KuduLookupConf kuduLookupConf;
+    private final KuduLookupConfig kuduLookupConfig;
 
     private KuduClient client;
 
     private KuduTable table;
 
     public KuduAllTableFunction(
-            KuduLookupConf kuduLookupConf,
+            KuduLookupConfig kuduLookupConfig,
             AbstractRowConverter<?, ?, ?, ?> rowConverter,
             String[] fieldNames,
             String[] keyNames) {
-        super(fieldNames, keyNames, kuduLookupConf, rowConverter);
-        this.kuduLookupConf = kuduLookupConf;
+        super(fieldNames, keyNames, kuduLookupConfig, rowConverter);
+        this.kuduLookupConfig = kuduLookupConfig;
     }
 
     @Override
@@ -70,7 +66,7 @@ public class KuduAllTableFunction extends AbstractAllTableFunction {
     protected void loadData(Object cacheRef) {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
-        KuduScanner scanner = getKuduScannerWithRetry(kuduLookupConf);
+        KuduScanner scanner = getKuduScannerWithRetry(kuduLookupConfig);
         // load data from table
         if (Objects.isNull(scanner)) {
             throw new NullPointerException("kudu scanner is null");
@@ -95,7 +91,7 @@ public class KuduAllTableFunction extends AbstractAllTableFunction {
                     buildCache(oneRow, tmpCache);
                 }
             } catch (Exception e) {
-                LOG.error("", e);
+                log.error("", e);
             }
         }
 
@@ -106,22 +102,22 @@ public class KuduAllTableFunction extends AbstractAllTableFunction {
         try {
             scanner.close();
         } catch (KuduException ke) {
-            LOG.error("", ke);
+            log.error("", ke);
         }
     }
 
-    private KuduScanner getKuduScannerWithRetry(KuduLookupConf kuduLookupConf) {
-        KuduCommonConf commonConf = kuduLookupConf.getCommonConf();
+    private KuduScanner getKuduScannerWithRetry(KuduLookupConfig kuduLookupConfig) {
+        KuduCommonConfig commonConfig = kuduLookupConfig.getCommonConfig();
         String connInfo =
                 "kuduMasters:"
-                        + commonConf.getMasters()
+                        + commonConfig.getMasters()
                         + ";tableName:"
-                        + kuduLookupConf.getTableName();
+                        + kuduLookupConfig.getTableName();
         for (int i = 0; i < 3; i++) {
             try {
                 if (Objects.isNull(client)) {
-                    String tableName = kuduLookupConf.getTableName();
-                    client = KuduUtil.getKuduClient(commonConf);
+                    String tableName = kuduLookupConfig.getTableName();
+                    client = KuduUtil.getKuduClient(commonConfig);
                     if (!client.tableExists(tableName)) {
                         throw new IllegalArgumentException(
                                 "Table Open Failed , please check table exists");
@@ -130,10 +126,10 @@ public class KuduAllTableFunction extends AbstractAllTableFunction {
                 }
 
                 KuduScanner.KuduScannerBuilder tokenBuilder = client.newScannerBuilder(table);
-                return buildScanner(tokenBuilder, kuduLookupConf);
+                return buildScanner(tokenBuilder, kuduLookupConfig);
             } catch (Exception e) {
-                LOG.error("connect kudu is error:" + e.getMessage());
-                LOG.error("connInfo\n " + connInfo);
+                log.error("connect kudu is error:" + e.getMessage());
+                log.error("connInfo\n " + connInfo);
                 ThreadUtil.sleepMilliseconds(5);
             }
         }
@@ -142,13 +138,13 @@ public class KuduAllTableFunction extends AbstractAllTableFunction {
 
     /**
      * @param scannerBuilder 创建AsyncKuduScanner对象
-     * @param kuduLookupConf Kudu lookup configuration
+     * @param kuduLookupConfig Kudu lookup configuration
      * @return kudu scanner
      */
     private KuduScanner buildScanner(
-            KuduScanner.KuduScannerBuilder scannerBuilder, KuduLookupConf kuduLookupConf) {
-        Integer batchSizeBytes = kuduLookupConf.getBatchSizeBytes();
-        Boolean isFaultTolerant = kuduLookupConf.getFaultTolerant();
+            KuduScanner.KuduScannerBuilder scannerBuilder, KuduLookupConfig kuduLookupConfig) {
+        Integer batchSizeBytes = kuduLookupConfig.getBatchSizeBytes();
+        Boolean isFaultTolerant = kuduLookupConfig.getIsFaultTolerant();
 
         return scannerBuilder
                 .batchSizeBytes(batchSizeBytes)
@@ -167,7 +163,7 @@ public class KuduAllTableFunction extends AbstractAllTableFunction {
                 client.close();
             }
         } catch (Exception e) {
-            LOG.error("Error while closing client.", e);
+            log.error("Error while closing client.", e);
         }
     }
 }

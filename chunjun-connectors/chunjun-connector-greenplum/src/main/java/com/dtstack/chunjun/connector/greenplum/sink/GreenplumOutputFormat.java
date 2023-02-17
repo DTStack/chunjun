@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.greenplum.sink;
 
-import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
+import com.dtstack.chunjun.connector.jdbc.converter.JdbcSyncConverter;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.chunjun.connector.postgresql.converter.PostgresqlColumnConverter;
+import com.dtstack.chunjun.connector.postgresql.converter.PostgresqlSyncConverter;
 import com.dtstack.chunjun.connector.postgresql.dialect.PostgresqlDialect;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -31,6 +31,7 @@ import com.dtstack.chunjun.throwable.WriteRecordException;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
@@ -41,12 +42,16 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+@Slf4j
 public class GreenplumOutputFormat extends JdbcOutputFormat {
+
+    private static final long serialVersionUID = 7702931490291846181L;
 
     // pg 字符串里含有\u0000 会报错 ERROR: invalid byte sequence for encoding "UTF8": 0x00
     public static final String SPACE = "\u0000";
 
     private static final String LINE_DELIMITER = "\n";
+
     private CopyManager copyManager;
     private boolean disableCopyMode = false;
     private String copySql = "";
@@ -64,27 +69,29 @@ public class GreenplumOutputFormat extends JdbcOutputFormat {
         try {
             // check is use copy mode for insert
             disableCopyMode =
-                    jdbcConf.getInsertSqlMode() != null
-                            && !INSERT_SQL_MODE_TYPE.equalsIgnoreCase(jdbcConf.getInsertSqlMode());
-            if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode()) && !disableCopyMode) {
-                LOG.info("will use copy mode");
+                    jdbcConfig.getInsertSqlMode() != null
+                            && !INSERT_SQL_MODE_TYPE.equalsIgnoreCase(
+                                    jdbcConfig.getInsertSqlMode());
+            if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConfig.getMode())
+                    && !disableCopyMode) {
+                log.info("will use copy mode");
                 copyManager = new CopyManager((BaseConnection) dbConn);
 
                 PostgresqlDialect pgDialect = (PostgresqlDialect) jdbcDialect;
                 copySql =
                         pgDialect.getCopyStatement(
-                                jdbcConf.getSchema(),
-                                jdbcConf.getTable(),
+                                jdbcConfig.getSchema(),
+                                jdbcConfig.getTable(),
                                 columnNameList.toArray(new String[0]),
                                 DEFAULT_FIELD_DELIMITER,
                                 DEFAULT_NULL_VALUE);
 
-                LOG.info("write sql:{}", copySql);
+                log.info("write sql:{}", copySql);
             }
             checkUpsert();
-            if (rowConverter instanceof PostgresqlColumnConverter
+            if (rowConverter instanceof PostgresqlSyncConverter
                     && dbConn instanceof BaseConnection) {
-                ((PostgresqlColumnConverter) rowConverter).setConnection((BaseConnection) dbConn);
+                ((PostgresqlSyncConverter) rowConverter).setConnection((BaseConnection) dbConn);
             }
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("checkUpsert() failed.", sqe);
@@ -96,7 +103,7 @@ public class GreenplumOutputFormat extends JdbcOutputFormat {
         if (disableCopyMode) {
             super.writeSingleRecordInternal(row);
         } else {
-            if (rowConverter instanceof JdbcColumnConverter) {
+            if (rowConverter instanceof JdbcSyncConverter) {
                 ColumnRowData colRowData = (ColumnRowData) row;
                 // write with copy
                 int index = 0;
@@ -125,7 +132,7 @@ public class GreenplumOutputFormat extends JdbcOutputFormat {
         if (disableCopyMode) {
             super.writeMultipleRecordsInternal();
         } else {
-            if (rowConverter instanceof JdbcColumnConverter) {
+            if (rowConverter instanceof JdbcSyncConverter) {
                 StringBuilder rowsStrBuilder = new StringBuilder(128);
                 for (RowData row : rows) {
                     ColumnRowData colRowData = (ColumnRowData) row;
@@ -201,13 +208,13 @@ public class GreenplumOutputFormat extends JdbcOutputFormat {
      * @throws SQLException
      */
     public void checkUpsert() throws SQLException {
-        if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())) {
+        if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConfig.getMode())) {
             try (Connection connection = getConnection()) {
 
                 // 效验版本
                 String databaseProductVersion =
                         connection.getMetaData().getDatabaseProductVersion();
-                LOG.info("source version is {}", databaseProductVersion);
+                log.info("source version is {}", databaseProductVersion);
                 String[] split = databaseProductVersion.split("\\.");
                 // 10.1.12
                 if (split.length > 2) {

@@ -18,14 +18,14 @@
 
 package com.dtstack.chunjun.connector.http.client;
 
+import lombok.Data;
+
 import java.io.Serializable;
 
-/**
- * 返回结果处理策略
- *
- * @author dujie
- */
+@Data
 public class Strategy implements Serializable {
+
+    private static final long serialVersionUID = 7110071787749968168L;
 
     /** param */
     private String key;
@@ -34,43 +34,4 @@ public class Strategy implements Serializable {
 
     /** way */
     private String handle;
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public String getHandle() {
-        return handle;
-    }
-
-    public void setHandle(String handle) {
-        this.handle = handle;
-    }
-
-    @Override
-    public String toString() {
-        return "Strategy{"
-                + "key='"
-                + key
-                + '\''
-                + ", value='"
-                + value
-                + '\''
-                + ", handle='"
-                + handle
-                + '\''
-                + '}';
-    }
 }

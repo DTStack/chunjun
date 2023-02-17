@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.emqx.table;
 
-import com.dtstack.chunjun.connector.emqx.conf.EmqxConf;
+import com.dtstack.chunjun.connector.emqx.config.EmqxConfig;
 import com.dtstack.chunjun.connector.emqx.sink.EmqxDynamicTableSink;
 import com.dtstack.chunjun.connector.emqx.source.EmqxDynamicTableSource;
 
@@ -26,7 +26,7 @@ import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.format.DecodingFormat;
 import org.apache.flink.table.connector.format.EncodingFormat;
@@ -39,7 +39,6 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.factories.SerializationFormatFactory;
 import org.apache.flink.table.types.DataType;
-import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.types.RowKind;
 
 import java.util.HashSet;
@@ -55,11 +54,6 @@ import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.TOPIC;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.USERNAME;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.connectRetryTimes;
 
-/**
- * @author chuixue
- * @create 2021-06-01 20:04
- * @description
- */
 public class EmqxDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     /** 通过该值查找具体插件 */
@@ -76,13 +70,12 @@ public class EmqxDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         helper.validate();
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
         final EncodingFormat<SerializationSchema<RowData>> valueEncodingFormat =
                 getValueEncodingFormat(helper);
 
         return new EmqxDynamicTableSink(
-                physicalSchema,
+                resolvedSchema,
                 getEmqxConf(config),
                 new EncodingFormatWrapper(valueEncodingFormat));
     }
@@ -98,13 +91,12 @@ public class EmqxDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         helper.validate();
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
         // 加载json format，目前只支持json格式
         final DecodingFormat<DeserializationSchema<RowData>> valueDecodingFormat =
                 getValueDecodingFormat(helper);
 
-        return new EmqxDynamicTableSource(physicalSchema, getEmqxConf(config), valueDecodingFormat);
+        return new EmqxDynamicTableSource(resolvedSchema, getEmqxConf(config), valueDecodingFormat);
     }
 
     @Override
@@ -132,15 +124,15 @@ public class EmqxDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         return optionalOptions;
     }
 
-    private EmqxConf getEmqxConf(ReadableConfig readableConfig) {
-        EmqxConf emqxConf = new EmqxConf();
-        emqxConf.setBroker(readableConfig.get(BROKER));
-        emqxConf.setTopic(readableConfig.get(TOPIC));
-        emqxConf.setUsername(readableConfig.get(USERNAME));
-        emqxConf.setPassword(readableConfig.get(PASSWORD));
-        emqxConf.setCleanSession(readableConfig.get(ISCLEANSESSION));
-        emqxConf.setQos(readableConfig.get(QOS));
-        return emqxConf;
+    private EmqxConfig getEmqxConf(ReadableConfig readableConfig) {
+        EmqxConfig emqxConfig = new EmqxConfig();
+        emqxConfig.setBroker(readableConfig.get(BROKER));
+        emqxConfig.setTopic(readableConfig.get(TOPIC));
+        emqxConfig.setUsername(readableConfig.get(USERNAME));
+        emqxConfig.setPassword(readableConfig.get(PASSWORD));
+        emqxConfig.setCleanSession(readableConfig.get(ISCLEANSESSION));
+        emqxConfig.setQos(readableConfig.get(QOS));
+        return emqxConfig;
     }
 
     private static DecodingFormat<DeserializationSchema<RowData>> getValueDecodingFormat(

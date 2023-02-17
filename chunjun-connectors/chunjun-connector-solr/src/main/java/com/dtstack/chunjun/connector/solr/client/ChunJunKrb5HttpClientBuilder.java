@@ -47,13 +47,6 @@ import java.lang.invoke.MethodHandles;
 import java.security.Principal;
 import java.util.Locale;
 
-/**
- * 修改 Krb5HttpClientBuilder使之不依赖 java.security.auth.login.config 环境变量
- *
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/11
- */
 public class ChunJunKrb5HttpClientBuilder extends Krb5HttpClientBuilder {
 
     public static final String SOLR_KERBEROS_JAAS_APPNAME = "solr.kerberos.jaas.appname";
@@ -138,14 +131,11 @@ public class ChunJunKrb5HttpClientBuilder extends Krb5HttpClientBuilder {
                             SolrPortAwareCookieSpecFactory cookieFactory =
                                     new SolrPortAwareCookieSpecFactory();
 
-                            Lookup<CookieSpecProvider> cookieRegistry =
-                                    RegistryBuilder.<CookieSpecProvider>create()
-                                            .register(
-                                                    SolrPortAwareCookieSpecFactory.POLICY_NAME,
-                                                    cookieFactory)
-                                            .build();
-
-                            return cookieRegistry;
+                            return RegistryBuilder.<CookieSpecProvider>create()
+                                    .register(
+                                            SolrPortAwareCookieSpecFactory.POLICY_NAME,
+                                            cookieFactory)
+                                    .build();
                         });
 
                 builder.setDefaultCredentialsProvider(

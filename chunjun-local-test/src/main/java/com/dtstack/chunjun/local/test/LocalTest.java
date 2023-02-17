@@ -20,9 +20,8 @@ package com.dtstack.chunjun.local.test;
 import com.dtstack.chunjun.Main;
 import com.dtstack.chunjun.util.GsonUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -33,13 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-/** @author jiangbo */
+@Slf4j
 public class LocalTest {
 
-    public static Logger LOG = LoggerFactory.getLogger(LocalTest.class);
-
     public static void main(String[] args) throws Exception {
-        LOG.warn("-----");
         Properties confProperties = new Properties();
         //        confProperties.setProperty("flink.checkpoint.interval", "30000");
         //        confProperties.setProperty("state.backend","ROCKSDB");
@@ -47,14 +43,15 @@ public class LocalTest {
         //        confProperties.setProperty("state.checkpoints.dir", "file:///ck");
         String userDir = System.getProperty("user.dir");
 
-        String jobPath = userDir + "/chunjun-examples/json/stream/stream.json";
-        String chunjunDistDir = userDir + "/start-chunjun-dist";
+        String jobPath =
+                "/Users/wtz/project_place/chunjun/chunjun-local-test/src/main/resources/task/test.sql";
+        String chunjunDistDir = userDir + "/chunjun-dist";
         String s = "";
 
         // 任务配置参数
         List<String> argsList = new ArrayList<>();
         argsList.add("-mode");
-        argsList.add("local");
+        argsList.add("localTest");
         // 替换脚本中的值
         // argsList.add("-p");
         // argsList.add("$aa=aaa, $bb=bbb");
@@ -71,26 +68,26 @@ public class LocalTest {
             // StringBuilder stringBuilder = new StringBuilder();
             // stringBuilder
             //        .append("{")
-            //        .append("\"start-chunjun.dirty-data.output-type\":\"print\"")
+            //        .append("\"chunjun.dirty-data.output-type\":\"print\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.max-rows\":\"1000\"")
+            //        .append("\"chunjun.dirty-data.max-rows\":\"1000\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.max-collect-failed-rows\":\"100\"")
+            //        .append("\"chunjun.dirty-data.max-collect-failed-rows\":\"100\"")
             //        .append(", ")
             //
-            // .append("\"start-chunjun.dirty-data.jdbc.url\":\"jdbc:mysql://localhost:3306/tiezhu\"")
+            // .append("\"chunjun.dirty-data.jdbc.url\":\"jdbc:mysql://localhost:3306/tiezhu\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.jdbc.username\":\"root\"")
+            //        .append("\"chunjun.dirty-data.jdbc.username\":\"root\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.jdbc.password\":\"abc123\"")
+            //        .append("\"chunjun.dirty-data.jdbc.password\":\"abc123\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.jdbc.database\":\"tiezhu\"")
+            //        .append("\"chunjun.dirty-data.jdbc.database\":\"tiezhu\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.jdbc.table\":\"chunjun_dirty_data\"")
+            //        .append("\"chunjun.dirty-data.jdbc.table\":\"chunjun_dirty_data\"")
             //        .append(",")
-            //        .append("\"start-chunjun.dirty-data.jdbc.batch-size\":\"10\"")
+            //        .append("\"chunjun.dirty-data.jdbc.batch-size\":\"10\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.log.print-interval\":\"10\"")
+            //        .append("\"chunjun.dirty-data.log.print-interval\":\"10\"")
             //        .append("}");
             // argsList.add(stringBuilder.toString());
             argsList.add(GsonUtil.GSON.toJson(confProperties));
@@ -103,37 +100,39 @@ public class LocalTest {
             //            argsList.add("/opt/dtstack/flink-1.12.2/conf/");
             argsList.add("-jobName");
             argsList.add("flinkStreamSQLLocalTest");
-            argsList.add("-chunjunDistDir");
-            argsList.add(chunjunDistDir);
-            argsList.add("-remoteChunJunDistDir");
-            argsList.add(chunjunDistDir);
+            // argsList.add("-chunjunDistDir");
+            // argsList.add(chunjunDistDir);
+            // argsList.add("-remoteChunJunDistDir");
+            // argsList.add(chunjunDistDir);
             argsList.add("-pluginLoadMode");
             argsList.add("LocalTest");
+            // argsList.add("-addjar");
+            // argsList.add(GsonUtil.GSON.toJson(Collections.singleton("/opt/temp/aa.jar")));
             // argsList.add("-confProp");
             //// 脏数据相关配置信息
             // StringBuilder stringBuilder = new StringBuilder();
             // stringBuilder
             //        .append("{")
-            //        .append("\"start-chunjun.dirty-data.output-type\":\"mysql\"")
+            //        .append("\"chunjun.dirty-data.output-type\":\"mysql\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.max-rows\":\"1000\"")
+            //        .append("\"chunjun.dirty-data.max-rows\":\"1000\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.max-collect-failed-rows\":\"100\"")
+            //        .append("\"chunjun.dirty-data.max-collect-failed-rows\":\"100\"")
             //        .append(", ")
             //
-            // .append("\"start-chunjun.dirty-data.jdbc.url\":\"jdbc:mysql://localhost:3306/tiezhu\"")
+            // .append("\"chunjun.dirty-data.jdbc.url\":\"jdbc:mysql://localhost:3306/tiezhu\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.jdbc.username\":\"root\"")
+            //        .append("\"chunjun.dirty-data.jdbc.username\":\"root\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.jdbc.password\":\"abc123\"")
+            //        .append("\"chunjun.dirty-data.jdbc.password\":\"abc123\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.jdbc.database\":\"tiezhu\"")
+            //        .append("\"chunjun.dirty-data.jdbc.database\":\"tiezhu\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.jdbc.table\":\"chunjun_dirty_data\"")
+            //        .append("\"chunjun.dirty-data.jdbc.table\":\"chunjun_dirty_data\"")
             //        .append(",")
-            //        .append("\"start-chunjun.dirty-data.jdbc.batch-size\":\"10\"")
+            //        .append("\"chunjun.dirty-data.jdbc.batch-size\":\"10\"")
             //        .append(", ")
-            //        .append("\"start-chunjun.dirty-data.log.print-interval\":\"10\"")
+            //        .append("\"chunjun.dirty-data.log.print-interval\":\"10\"")
             //        .append("}");
             // argsList.add(stringBuilder.toString());
             // argsList.add("-confProp");
@@ -178,7 +177,7 @@ public class LocalTest {
             byte[] array = Files.readAllBytes(Paths.get(sqlPath));
             return new String(array, StandardCharsets.UTF_8);
         } catch (IOException ioe) {
-            LOG.error("Can not get the job info !!!", ioe);
+            log.error("Can not get the job info !!!", ioe);
             throw new RuntimeException(ioe);
         }
     }

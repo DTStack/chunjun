@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>chunjun</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.12-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -34,6 +34,7 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<executions>
 					<execution>
@@ -44,13 +45,13 @@
 							<goal>run</goal>
 						</goals>
 						<configuration>
-							<tasks>
+							<target>
 								<copy todir="${basedir}/../${dist.dir}/docker-build">
 									<fileset dir="${basedir}/docker-build/">
 										<include name="*"/>
 									</fileset>
 								</copy>
-							</tasks>
+							</target>
 						</configuration>
 					</execution>
 				</executions>

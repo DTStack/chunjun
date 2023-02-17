@@ -44,53 +44,53 @@ create table if not exists test
 
 INSERT INTO chunjun.test (id, name, idcard, birthday, mobile, email, gender, create_time, type_smallint, type_mediumint,
                           type_bigint, type_decimal, type_float, type_double, type_text)
-VALUES (1, 'zhang1', '1', '2022-08-12', '13022539328', 'zhang3@dtstack.com', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
+VALUES (1, 'zhang1', '1', '2022-08-12', '13022539328', 'zhang3@chunjun', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
         1, '1');
 INSERT INTO chunjun.test (id, name, idcard, birthday, mobile, email, gender, create_time, type_smallint, type_mediumint,
                           type_bigint, type_decimal, type_float, type_double, type_text)
-VALUES (2, 'zhang2', '2', '2022-08-12', '13022539328', 'zhang3@dtstack.com', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
+VALUES (2, 'zhang2', '2', '2022-08-12', '13022539328', 'zhang3@chunjun', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
         1, '1');
 INSERT INTO chunjun.test (id, name, idcard, birthday, mobile, email, gender, create_time, type_smallint, type_mediumint,
                           type_bigint, type_decimal, type_float, type_double, type_text)
-VALUES (3, 'zhang3', '3', '2022-08-12', '13022539328', 'zhang3@dtstack.com', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
+VALUES (3, 'zhang3', '3', '2022-08-12', '13022539328', 'zhang3@chunjun', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
         1, '1');
 INSERT INTO chunjun.test (id, name, idcard, birthday, mobile, email, gender, create_time, type_smallint, type_mediumint,
                           type_bigint, type_decimal, type_float, type_double, type_text)
-VALUES (4, 'zhang4', '4', '2022-08-12', '13022539328', 'zhang3@dtstack.com', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
+VALUES (4, 'zhang4', '4', '2022-08-12', '13022539328', 'zhang3@chunjun', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
         1, '1');
 INSERT INTO chunjun.test (id, name, idcard, birthday, mobile, email, gender, create_time, type_smallint, type_mediumint,
                           type_bigint, type_decimal, type_float, type_double, type_text)
-VALUES (5, 'zhang5', '5', '2022-08-12', '13022539328', 'zhang3@dtstack.com', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
+VALUES (5, 'zhang5', '5', '2022-08-12', '13022539328', 'zhang3@chunjun', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
         1, '1');
 INSERT INTO chunjun.test (id, name, idcard, birthday, mobile, email, gender, create_time, type_smallint, type_mediumint,
                           type_bigint, type_decimal, type_float, type_double, type_text)
-VALUES (6, 'zhang6', '6', '2022-08-12', '13022539328', 'zhang3@dtstack.com', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
+VALUES (6, 'zhang6', '6', '2022-08-12', '13022539328', 'zhang3@chunjun', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
         1, '1');
 INSERT INTO chunjun.test (id, name, idcard, birthday, mobile, email, gender, create_time, type_smallint, type_mediumint,
                           type_bigint, type_decimal, type_float, type_double, type_text)
-VALUES (7, 'zhang7', '7', '2022-08-12', '13022539328', 'zhang3@dtstack.com', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
+VALUES (7, 'zhang7', '7', '2022-08-12', '13022539328', 'zhang3@chunjun', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
         1, '1');
 INSERT INTO chunjun.test (id, name, idcard, birthday, mobile, email, gender, create_time, type_smallint, type_mediumint,
                           type_bigint, type_decimal, type_float, type_double, type_text)
-VALUES (8, 'zhang8', '8', '2022-08-12', '13022539328', 'zhang3@dtstack.com', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
+VALUES (8, 'zhang8', '8', '2022-08-12', '13022539328', 'zhang3@chunjun', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
         1, '1');
 INSERT INTO chunjun.test (id, name, idcard, birthday, mobile, email, gender, create_time, type_smallint, type_mediumint,
                           type_bigint, type_decimal, type_float, type_double, type_text)
-VALUES (9, 'zhang9', '9', '2022-08-12', '13022539328', 'zhang3@dtstack.com', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
+VALUES (9, 'zhang9', '9', '2022-08-12', '13022539328', 'zhang3@chunjun', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00, 1,
         1, '1');
 INSERT INTO chunjun.test (id, name, idcard, birthday, mobile, email, gender, create_time, type_smallint, type_mediumint,
                           type_bigint, type_decimal, type_float, type_double, type_text)
-VALUES (10, 'zhang10', '10', '2022-08-12', '13022539328', 'zhang3@dtstack.com', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00,
+VALUES (10, 'zhang10', '10', '2022-08-12', '13022539328', 'zhang3@chunjun', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00,
         1,
         1, '1');
 INSERT INTO chunjun.test (id, name, idcard, birthday, mobile, email, gender, create_time, type_smallint, type_mediumint,
                           type_bigint, type_decimal, type_float, type_double, type_text)
-VALUES (11, 'zhang11', '11', '2022-08-12', '13022539328', 'zhang3@dtstack.com', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00,
+VALUES (11, 'zhang11', '11', '2022-08-12', '13022539328', 'zhang3@chunjun', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00,
         1,
         1, '1');
 INSERT INTO chunjun.test (id, name, idcard, birthday, mobile, email, gender, create_time, type_smallint, type_mediumint,
                           type_bigint, type_decimal, type_float, type_double, type_text)
-VALUES (12, 'zhang12', '12', '2022-08-12', '13022539328', 'zhang3@dtstack.com', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00,
+VALUES (12, 'zhang12', '12', '2022-08-12', '13022539328', 'zhang3@chunjun', 1, '2022-08-12 11:20:15', 1, 1, 1, 1.00,
         1,
         1, '1');
 

@@ -24,59 +24,44 @@ import com.dtstack.chunjun.enums.CacheType;
 import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.lookup.cache.AbstractSideCache;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
-import com.dtstack.chunjun.lookup.cache.LRUSideCache;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
-import com.dtstack.chunjun.util.ReflectionUtils;
+import com.dtstack.chunjun.lookup.cache.LRUCache;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
-import org.apache.flink.annotation.VisibleForTesting;
-import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.runtime.execution.SuppressRestartsException;
-import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
-import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
-import org.apache.flink.streaming.runtime.tasks.ProcessingTimeService;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.functions.AsyncTableFunction;
+import org.apache.flink.table.functions.AsyncLookupFunction;
 import org.apache.flink.table.functions.FunctionContext;
 
 import com.google.common.collect.Lists;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
-/**
- * @author chuixue
- * @create 2021-04-09 14:40
- * @description
- */
-public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowData> {
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractLruTableFunction.class);
+@Slf4j
+public abstract class AbstractLruTableFunction extends AsyncLookupFunction {
+
+    private static final long serialVersionUID = 8054577160378024212L;
     /** 指标 */
     protected transient Counter parseErrorRecords;
     /** 缓存 */
     protected AbstractSideCache sideCache;
     /** 维表配置 */
-    protected LookupConf lookupConf;
-    /** 运行环境 */
-    private RuntimeContext runtimeContext;
+    protected LookupConfig lookupConfig;
     /** 数据类型转换器 */
     protected final AbstractRowConverter rowConverter;
 
     private static final int TIMEOUT_LOG_FLUSH_NUM = 10;
     private int timeOutNum = 0;
 
-    public AbstractLruTableFunction(LookupConf lookupConf, AbstractRowConverter rowConverter) {
-        this.lookupConf = lookupConf;
+    public AbstractLruTableFunction(LookupConfig lookupConfig, AbstractRowConverter rowConverter) {
+        this.lookupConfig = lookupConfig;
         this.rowConverter = rowConverter;
     }
 
@@ -87,24 +72,20 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
         initCache();
         initMetric(context);
 
-        Field field = FunctionContext.class.getDeclaredField("context");
-        field.setAccessible(true);
-        runtimeContext = (RuntimeContext) field.get(context);
-
-        LOG.info("async dim table lookupOptions info: {} ", lookupConf.toString());
+        log.info("async dim table lookupOptions info: {} ", lookupConfig.toString());
     }
 
     /** 初始化缓存 */
-    @VisibleForTesting
     protected void initCache() {
-        if (CacheType.NONE.name().equalsIgnoreCase(lookupConf.getCache())) {
+        if (CacheType.NONE.name().equalsIgnoreCase(lookupConfig.getCache())) {
             return;
         }
 
-        if (CacheType.LRU.name().equalsIgnoreCase(lookupConf.getCache())) {
-            sideCache = new LRUSideCache(lookupConf.getCacheSize(), lookupConf.getCacheTtl());
+        if (CacheType.LRU.name().equalsIgnoreCase(lookupConfig.getCache())) {
+            sideCache = new LRUCache(lookupConfig.getCacheSize(), lookupConfig.getCacheTtl());
         } else {
-            throw new RuntimeException("not support side cache with type:" + lookupConf.getCache());
+            throw new RuntimeException(
+                    "not support side cache with type:" + lookupConfig.getCache());
         }
 
         sideCache.initCache();
@@ -115,7 +96,6 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
      *
      * @param context 上下文
      */
-    @VisibleForTesting
     protected void initMetric(FunctionContext context) {
         parseErrorRecords = context.getMetricGroup().counter(Metrics.NUM_SIDE_PARSE_ERROR_RECORDS);
     }
@@ -177,20 +157,20 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
     // todo 无法设置超时
     public void timeout(CompletableFuture<Collection<RowData>> future, Object... keys) {
         if (timeOutNum % TIMEOUT_LOG_FLUSH_NUM == 0) {
-            LOG.info(
+            log.info(
                     "Async function call has timed out. input:{}, timeOutNum:{}", keys, timeOutNum);
         }
         timeOutNum++;
 
-        if (timeOutNum > lookupConf.getErrorLimit()) {
+        if (timeOutNum > lookupConfig.getErrorLimit()) {
             future.completeExceptionally(
                     new SuppressRestartsException(
                             new Throwable(
                                     String.format(
                                             "Async function call timedOutNum beyond limit. %s",
-                                            lookupConf.getErrorLimit()))));
+                                            lookupConfig.getErrorLimit()))));
         } else {
-            future.complete(Collections.EMPTY_LIST);
+            future.complete(Collections.emptyList());
         }
     }
 
@@ -211,24 +191,26 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
     /**
      * 异步查询数据
      *
-     * @param future 发送到下游
-     * @param keys 关联数据
+     * @param keyRow 关联数据
      */
-    public void eval(CompletableFuture<Collection<RowData>> future, Object... keys) {
+    @Override
+    public CompletableFuture<Collection<RowData>> asyncLookup(RowData keyRow) {
+        CompletableFuture<Collection<RowData>> lookupFuture = new CompletableFuture<>();
         try {
-            preInvoke(future, keys);
+            preInvoke(lookupFuture, keyRow);
 
-            String cacheKey = buildCacheKey(keys);
+            String cacheKey = buildCacheKey(keyRow);
             // 缓存判断
             if (isUseCache(cacheKey)) {
-                invokeWithCache(cacheKey, future);
-                return;
+                invokeWithCache(cacheKey, lookupFuture);
+                return lookupFuture;
             }
-            handleAsyncInvoke(future, keys);
+            handleAsyncInvoke(lookupFuture, keyRow);
         } catch (Exception e) {
             // todo 优化
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
         }
+        return lookupFuture;
     }
 
     /**
@@ -276,7 +258,6 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
                     future.completeExceptionally(
                             new RuntimeException("not support cache obj type " + val.getType()));
                 }
-                return;
             }
         }
     }
@@ -298,56 +279,7 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
      * @return
      */
     public String buildCacheKey(Object... keys) {
-        return Arrays.stream(keys).map(e -> String.valueOf(e)).collect(Collectors.joining("_"));
-    }
-
-    private ProcessingTimeService getProcessingTimeService() {
-        try {
-            Field runtimeContextField =
-                    RichAsyncFunction.RichAsyncFunctionRuntimeContext.class.getDeclaredField(
-                            "runtimeContext");
-            runtimeContextField.setAccessible(true);
-            RichAsyncFunction.RichAsyncFunctionRuntimeContext functionRuntimeContext =
-                    (RichAsyncFunction.RichAsyncFunctionRuntimeContext)
-                            runtimeContextField.get(runtimeContext);
-
-            Field streamingRuntimeContextField =
-                    RichAsyncFunction.RichAsyncFunctionRuntimeContext.class.getDeclaredField(
-                            "runtimeContext");
-            streamingRuntimeContextField.setAccessible(true);
-            StreamingRuntimeContext streamingRuntimeContext =
-                    (StreamingRuntimeContext)
-                            streamingRuntimeContextField.get(functionRuntimeContext);
-
-            Field processingTimeServiceField =
-                    StreamingRuntimeContext.class.getDeclaredField("processingTimeService");
-            processingTimeServiceField.setAccessible(true);
-            ProcessingTimeService processingTimeService =
-                    (ProcessingTimeService) processingTimeServiceField.get(streamingRuntimeContext);
-            return processingTimeService;
-        } catch (IllegalAccessException | NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    protected ScheduledFuture<?> registerTimer(
-            CompletableFuture<Collection<RowData>> future, Object... keys) {
-        ProcessingTimeService processingTimeService = getProcessingTimeService();
-        long timeoutTimestamp =
-                lookupConf.getAsyncTimeout() + processingTimeService.getCurrentProcessingTime();
-        return processingTimeService.registerTimer(
-                timeoutTimestamp, timestamp -> timeout(future, keys));
-    }
-
-    protected void registerTimerAndAddToHandler(
-            CompletableFuture<Collection<RowData>> future, Object... keys)
-            throws InvocationTargetException, IllegalAccessException {
-        ScheduledFuture<?> timeFuture = registerTimer(future, keys);
-        // resultFuture 是ResultHandler 的实例
-        Method setTimeoutTimer =
-                ReflectionUtils.getDeclaredMethod(future, "setTimeoutTimer", ScheduledFuture.class);
-        setTimeoutTimer.setAccessible(true);
-        setTimeoutTimer.invoke(future, timeFuture);
+        return Arrays.stream(keys).map(String::valueOf).collect(Collectors.joining("_"));
     }
 
     /**
@@ -358,21 +290,11 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
      */
     protected void dealFillDataError(CompletableFuture<Collection<RowData>> future, Throwable e) {
         parseErrorRecords.inc();
-        if (parseErrorRecords.getCount() > lookupConf.getErrorLimit()) {
-            LOG.info("dealFillDataError", e);
+        if (parseErrorRecords.getCount() > lookupConfig.getErrorLimit()) {
+            log.info("dealFillDataError", e);
             future.completeExceptionally(new SuppressRestartsException(e));
         } else {
             dealMissKey(future);
         }
-    }
-
-    /**
-     * 资源释放
-     *
-     * @throws Exception
-     */
-    @Override
-    public void close() throws Exception {
-        super.close();
     }
 }

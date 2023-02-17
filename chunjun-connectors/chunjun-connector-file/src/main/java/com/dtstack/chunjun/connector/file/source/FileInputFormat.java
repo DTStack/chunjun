@@ -18,13 +18,15 @@
 
 package com.dtstack.chunjun.connector.file.source;
 
-import com.dtstack.chunjun.conf.BaseFileConf;
+import com.dtstack.chunjun.config.BaseFileConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
 import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,24 +35,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/06/24
- */
+@Slf4j
 public class FileInputFormat extends BaseRichInputFormat {
 
-    private BaseFileConf fileConf;
+    private static final long serialVersionUID = -2810824870430405107L;
+
+    private BaseFileConfig fileConfig;
 
     private FileInputBufferedReader fbr;
 
     private transient String line;
 
     @Override
-    protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
+    protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
 
         List<String> inputFiles = new ArrayList<>();
-        String path = fileConf.getPath();
+        String path = fileConfig.getPath();
 
         if (path != null && path.length() > 0) {
             path = path.replace("\n", "").replace("\r", "");
@@ -61,15 +61,16 @@ public class FileInputFormat extends BaseRichInputFormat {
                     inputFiles.add(filePath);
                 } else if (file.isDirectory()) {
                     File[] childFiles = file.listFiles();
+                    assert childFiles != null;
                     List<String> collect =
-                            Arrays.asList(childFiles).stream()
-                                    .map((f) -> f.getAbsolutePath())
+                            Arrays.stream(childFiles)
+                                    .map(File::getAbsolutePath)
                                     .collect(Collectors.toList());
                     inputFiles.addAll(collect);
                 }
             }
         }
-        LOG.info("files = {}", GsonUtil.GSON.toJson(inputFiles));
+        log.info("files = {}", GsonUtil.GSON.toJson(inputFiles));
         int numSplits = (Math.min(inputFiles.size(), minNumSplits));
         FileInputSplit[] fileInputSplits = new FileInputSplit[numSplits];
         for (int index = 0; index < numSplits; ++index) {
@@ -88,7 +89,7 @@ public class FileInputFormat extends BaseRichInputFormat {
 
         FileInputSplit fileInputSplit = (FileInputSplit) inputSplit;
         List<String> paths = fileInputSplit.getPaths();
-        fbr = new FileInputBufferedReader(paths, fileConf);
+        fbr = new FileInputBufferedReader(paths, fileConfig);
     }
 
     @Override
@@ -114,11 +115,11 @@ public class FileInputFormat extends BaseRichInputFormat {
         return this.line == null;
     }
 
-    public BaseFileConf getFileConf() {
-        return fileConf;
+    public BaseFileConfig getFileConfig() {
+        return fileConfig;
     }
 
-    public void setFileConf(BaseFileConf fileConf) {
-        this.fileConf = fileConf;
+    public void setFileConfig(BaseFileConfig fileConfig) {
+        this.fileConfig = fileConfig;
     }
 }

@@ -19,48 +19,40 @@
 package com.dtstack.chunjun.connector.elasticsearch6.table.lookup;
 
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6ClientFactory;
-import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6RequestFactory;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
-import com.dtstack.chunjun.lookup.conf.LookupConf;
+import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.GenericRowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/24 22:47
- */
+@Slf4j
 public class Elasticsearch6AllTableFunction extends AbstractAllTableFunction {
 
-    private static final long serialVersionUID = 2L;
-    private static Logger LOG = LoggerFactory.getLogger(Elasticsearch6LruTableFunction.class);
+    private static final long serialVersionUID = -2046161755223639032L;
 
-    private final Elasticsearch6Conf elasticsearchConf;
-    private transient RestHighLevelClient rhlClient;
+    private final Elasticsearch6Config elasticsearchConfig;
 
     public Elasticsearch6AllTableFunction(
-            Elasticsearch6Conf elasticsearchConf,
-            LookupConf lookupConf,
+            Elasticsearch6Config elasticsearchConfig,
+            LookupConfig lookupConfig,
             String[] fieldNames,
             String[] keyNames,
             AbstractRowConverter rowConverter) {
-        super(fieldNames, keyNames, lookupConf, rowConverter);
-        this.elasticsearchConf = elasticsearchConf;
+        super(fieldNames, keyNames, lookupConfig, rowConverter);
+        this.elasticsearchConfig = elasticsearchConfig;
     }
 
     @Override
@@ -68,12 +60,12 @@ public class Elasticsearch6AllTableFunction extends AbstractAllTableFunction {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
 
-        rhlClient = Elasticsearch6ClientFactory.createClient(elasticsearchConf);
         SearchRequest requestBuilder = buildSearchRequest();
 
         SearchResponse searchResponse;
         SearchHit[] searchHits;
-        try {
+        try (RestHighLevelClient rhlClient =
+                Elasticsearch6ClientFactory.createClient(elasticsearchConfig)) {
             searchResponse = rhlClient.search(requestBuilder);
             searchHits = searchResponse.getHits().getHits();
             for (SearchHit searchHit : searchHits) {
@@ -87,24 +79,19 @@ public class Elasticsearch6AllTableFunction extends AbstractAllTableFunction {
                     }
                     buildCache(oneRow, tmpCache);
                 } catch (Exception e) {
-                    LOG.error("error:{} \n  data:{}", e.getMessage(), source);
+                    log.error("error:{} \n  data:{}", e.getMessage(), source);
                 }
             }
         } catch (Exception e) {
-            LOG.error("", e);
+            log.error("", e);
         }
     }
 
-    /**
-     * build search request
-     *
-     * @return
-     */
     private SearchRequest buildSearchRequest() {
         SearchSourceBuilder sourceBuilder =
                 Elasticsearch6RequestFactory.createSourceBuilder(fieldsName, null, null);
-        sourceBuilder.size(lookupConf.getFetchSize());
+        sourceBuilder.size(lookupConfig.getFetchSize());
         return Elasticsearch6RequestFactory.createSearchRequest(
-                elasticsearchConf.getIndex(), elasticsearchConf.getType(), null, sourceBuilder);
+                elasticsearchConfig.getIndex(), elasticsearchConfig.getType(), null, sourceBuilder);
     }
 }

@@ -20,33 +20,19 @@ package com.dtstack.chunjun.connector.hbase.source;
 
 import org.apache.flink.core.io.InputSplit;
 
-/**
- * The Class describing each InputSplit of HBase
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+/** The Class describing each InputSplit of HBase */
+@Getter
+@AllArgsConstructor
 public class HBaseInputSplit implements InputSplit {
 
+    private static final long serialVersionUID = 5741383494402835110L;
     private final String startkey;
 
     private final String endKey;
 
-    public HBaseInputSplit(String startKey, String endKey) {
-        this.startkey = startKey;
-        this.endKey = endKey;
-    }
-
-    public String getStartkey() {
-        return startkey;
-    }
-
-    public String getEndKey() {
-        return endKey;
-    }
-
-    @Override
     public int getSplitNumber() {
         return 0;
     }

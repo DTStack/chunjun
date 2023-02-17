@@ -23,11 +23,6 @@ import com.dtstack.chunjun.table.options.BaseFileOptions;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * @program: ChunJun
- * @author: xiuzhu
- * @create: 2021/06/25
- */
 public class FileOptions extends BaseFileOptions {
 
     public static final ConfigOption<String> FORMAT =

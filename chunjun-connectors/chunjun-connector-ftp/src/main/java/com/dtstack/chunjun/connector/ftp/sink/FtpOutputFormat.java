@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.sink;
 
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.handler.DTFtpHandler;
 import com.dtstack.chunjun.connector.ftp.handler.FtpHandlerFactory;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -31,6 +31,7 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
@@ -41,12 +42,14 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Function;
 
+@Slf4j
 public class FtpOutputFormat extends BaseFileOutputFormat {
 
     /** 换行符 */
     private static final int NEWLINE = 10;
+
+    private static final long serialVersionUID = -3331910729974811530L;
 
     protected FtpConfig ftpConfig;
 
@@ -68,7 +71,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void checkOutputDir() {
-        wrapFtpAction(
+        wrapFtpHandler(
                 iFtpHandler -> {
                     if (iFtpHandler.isDirExist(tmpPath)) {
                         if (iFtpHandler.isFileExist(tmpPath)) {
@@ -78,26 +81,17 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                     } else {
                         iFtpHandler.mkDirRecursive(tmpPath);
                     }
-                    return null;
                 });
     }
 
     @Override
     protected void deleteDataDir() {
-        wrapFtpAction(
-                iFtpHandler -> {
-                    iFtpHandler.deleteAllFilesInDir(outputFilePath, null);
-                    return null;
-                });
+        wrapFtpHandler(iFtpHandler -> iFtpHandler.deleteAllFilesInDir(outputFilePath, null));
     }
 
     @Override
     protected void deleteTmpDataDir() {
-        wrapFtpAction(
-                iFtpHandler -> {
-                    iFtpHandler.deleteAllFilesInDir(tmpPath, null);
-                    return null;
-                });
+        wrapFtpHandler(iFtpHandler -> iFtpHandler.deleteAllFilesInDir(tmpPath, null));
     }
 
     @Override
@@ -112,7 +106,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
             os = ftpHandler.getOutputStream(currentBlockTmpPath);
             writer =
                     new BufferedWriter(new OutputStreamWriter(os, ftpConfig.getEncoding()), 131072);
-            LOG.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
+            log.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
         } catch (IOException e) {
             throw new ChunJunRuntimeException(ExceptionUtil.getErrorMessage(e));
         }
@@ -136,7 +130,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
             flushData();
         }
         nextNumForCheckDataSize += ftpConfig.getNextCheckRows();
-        LOG.info(
+        log.info(
                 "current file: {}, size = {}, nextNumForCheckDataSize = {}",
                 currentFileName,
                 SizeUnitType.readableFileSize(currentFileSize),
@@ -174,11 +168,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         } catch (Exception e) {
             throw new ChunJunRuntimeException("can't close source.", e);
         } finally {
-            try {
-                this.ftpHandler.logoutFtpServer();
-            } catch (IOException e) {
-                throw new ChunJunRuntimeException("can't logout ftp client.", e);
-            }
+            this.ftpHandler.logoutFtpServer();
         }
     }
 
@@ -224,7 +214,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 String newFilePath = outputFilePath + File.separatorChar + fileName;
                 ftpHandler.rename(currentFilePath, newFilePath);
                 copyList.add(newFilePath);
-                LOG.info("copy temp file:{} to dir:{}", currentFilePath, outputFilePath);
+                log.info("copy temp file:{} to dir:{}", currentFilePath, outputFilePath);
             }
         } catch (Exception e) {
             throw new ChunJunRuntimeException(
@@ -243,7 +233,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
             for (String filePath : this.preCommitFilePathList) {
                 if (org.apache.commons.lang3.StringUtils.equals(path, outputFilePath)) {
                     ftpHandler.deleteFile(filePath);
-                    LOG.info("delete file:{}", currentFilePath);
+                    log.info("delete file:{}", currentFilePath);
                 }
             }
         } catch (IOException e) {
@@ -254,7 +244,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void moveAllTmpDataFileToDir() {
-        wrapFtpAction(
+        wrapFtpHandler(
                 (DTFtpHandler handler) -> {
                     String dataFilePath = "";
                     try {
@@ -274,7 +264,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                                     ftpConfig.getPath() + File.separatorChar + fileName;
                             handler.rename(dataFilePath, newDataFilePath);
                             copyList.add(newDataFilePath);
-                            LOG.info("move temp file:{} to dir:{}", dataFilePath, outputFilePath);
+                            log.info("move temp file:{} to dir:{}", dataFilePath, outputFilePath);
                         }
                         handler.deleteAllFilesInDir(tmpPath, null);
                     } catch (Exception e) {
@@ -284,7 +274,6 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                                         dataFilePath, outputFilePath),
                                 e);
                     }
-                    return null;
                 });
     }
 
@@ -310,7 +299,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() {
-        notSupportBatchWrite("FtpWriter");
+        throw new UnsupportedOperationException("FtpWriter不支持批量写入");
     }
 
     public FtpConfig getFtpConfig() {
@@ -321,16 +310,13 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         this.ftpConfig = ftpConfig;
     }
 
-    protected void notSupportBatchWrite(String writerName) {
-        throw new UnsupportedOperationException(writerName + "不支持批量写入");
-    }
-
     private String handleUserSpecificFileName(
-            String tmpDataFileName, int fileNumber, List<String> copyList, DTFtpHandler handler) {
+            String tmpDataFileName, int fileNumber, List<String> copyList, DTFtpHandler handler)
+            throws IOException {
         String fileName = ftpConfig.getFtpFileName();
         if (StringUtils.isNotBlank(fileName)) {
             if (fileNumber == 1) {
-                fileName = handlerSingleFile(tmpDataFileName);
+                fileName = ftpConfig.getFtpFileName();
             } else {
                 fileName = handlerMultiChannel(tmpDataFileName);
             }
@@ -338,10 +324,6 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
             fileName = tmpDataFileName;
         }
         return filepathCheck(fileName, copyList, handler);
-    }
-
-    private String handlerSingleFile(String tmpDataFileName) {
-        return ftpConfig.getFtpFileName();
     }
 
     private String handlerMultiChannel(String tmpDataFileName) {
@@ -365,7 +347,8 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         return fileName;
     }
 
-    private String filepathCheck(String filename, List<String> copyList, DTFtpHandler handler) {
+    private String filepathCheck(String filename, List<String> copyList, DTFtpHandler handler)
+            throws IOException {
         if (WriteMode.NONCONFLICT.name().equalsIgnoreCase(ftpConfig.getWriteMode())) {
             if (handler.isFileExist(ftpConfig.getPath() + File.separatorChar + filename)) {
                 handler.deleteAllFilesInDir(tmpPath, null);
@@ -401,20 +384,18 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         return filename;
     }
 
-    private void wrapFtpAction(Function<DTFtpHandler, Void> function) {
-        DTFtpHandler tmpFtpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
-        tmpFtpHandler.loginFtpServer(ftpConfig);
-
-        try {
-            function.apply(tmpFtpHandler);
+    private void wrapFtpHandler(Callback<DTFtpHandler> callback) {
+        try (DTFtpHandler tmpFtpHandler =
+                FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol())) {
+            tmpFtpHandler.loginFtpServer(ftpConfig);
+            callback.apply(tmpFtpHandler);
         } catch (Exception e) {
             throw new ChunJunRuntimeException(e);
-        } finally {
-            try {
-                tmpFtpHandler.logoutFtpServer();
-            } catch (Exception e1) {
-                throw new ChunJunRuntimeException(e1);
-            }
         }
+    }
+
+    @FunctionalInterface
+    interface Callback<T> {
+        void apply(T t) throws IOException;
     }
 }

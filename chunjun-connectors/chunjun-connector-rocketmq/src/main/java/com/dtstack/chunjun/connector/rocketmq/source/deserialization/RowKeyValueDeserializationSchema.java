@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.rocketmq.source.deserialization;
 
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.manager.DirtyManager;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
 import com.dtstack.chunjun.metrics.AccumulatorCollector;
@@ -31,19 +31,12 @@ import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.descriptors.DescriptorProperties;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.logical.RowType;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.Map;
 
 /**
  * * The row based implementation of {@link KeyValueDeserializationSchema} for the deserialization
@@ -51,12 +44,9 @@ import java.util.Map;
  */
 public class RowKeyValueDeserializationSchema implements KeyValueDeserializationSchema<RowData> {
 
-    private static final long serialVersionUID = -1L;
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(RowKeyValueDeserializationSchema.class);
+    private static final long serialVersionUID = -6942104006005258601L;
 
-    private transient TableSchema tableSchema;
-    // private final int columnSize;
+    private final transient ResolvedSchema tableSchema;
 
     protected FormatState formatState;
 
@@ -71,17 +61,11 @@ public class RowKeyValueDeserializationSchema implements KeyValueDeserialization
     protected AccumulatorCollector accumulatorCollector;
 
     private transient RuntimeContext runtimeContext;
-    private AbstractRowConverter converter;
+    private final AbstractRowConverter converter;
 
     public RowKeyValueDeserializationSchema(
-            TableSchema tableSchema,
-            Map<String, String> properties,
-            AbstractRowConverter converter) {
+            ResolvedSchema tableSchema, AbstractRowConverter converter) {
         this.tableSchema = tableSchema;
-        // this.columnSize = tableSchema.getFieldNames().length;
-
-        DescriptorProperties descriptorProperties = new DescriptorProperties();
-        descriptorProperties.putProperties(properties);
         this.converter = converter;
     }
 
@@ -97,10 +81,8 @@ public class RowKeyValueDeserializationSchema implements KeyValueDeserialization
     public void init() {
         initDirtyManager();
         initAccumulatorCollector();
-        // initRowSizeCalculator();
         initStatisticsAccumulator();
         initRestoreInfo();
-        // openInputFormat();
         startTime = System.currentTimeMillis();
     }
 
@@ -144,7 +126,7 @@ public class RowKeyValueDeserializationSchema implements KeyValueDeserialization
 
         ExecutionConfig.GlobalJobParameters params =
                 context.getExecutionConfig().getGlobalJobParameters();
-        DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
+        DirtyConfig dc = DirtyConfUtil.parseFromMap(params.toMap());
         this.dirtyManager = new DirtyManager(dc, context);
     }
 
@@ -223,7 +205,7 @@ public class RowKeyValueDeserializationSchema implements KeyValueDeserialization
 
     @Override
     public TypeInformation<RowData> getProducedType() {
-        return InternalTypeInfo.of((RowType) tableSchema.toRowDataType().getLogicalType());
+        return InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType());
     }
 
     private RowData deserializeValue(byte[] value) {
@@ -238,8 +220,7 @@ public class RowKeyValueDeserializationSchema implements KeyValueDeserialization
     /** Builder of {@link RowKeyValueDeserializationSchema}. */
     public static class Builder {
 
-        private TableSchema schema;
-        private Map<String, String> properties;
+        private ResolvedSchema schema;
         private AbstractRowConverter converter;
 
         public Builder() {}
@@ -249,25 +230,13 @@ public class RowKeyValueDeserializationSchema implements KeyValueDeserialization
             return this;
         }
 
-        public Builder setTableSchema(TableSchema tableSchema) {
+        public Builder setTableSchema(ResolvedSchema tableSchema) {
             this.schema = tableSchema;
             return this;
         }
 
-        public Builder setProperties(Map<String, String> properties) {
-            this.properties = properties;
-            if (null == properties) {
-                return this;
-            }
-            Configuration configuration = new Configuration();
-            for (String key : properties.keySet()) {
-                configuration.setString(key, properties.get(key));
-            }
-            return this;
-        }
-
         public RowKeyValueDeserializationSchema build() {
-            return new RowKeyValueDeserializationSchema(schema, properties, converter);
+            return new RowKeyValueDeserializationSchema(schema, converter);
         }
     }
 }

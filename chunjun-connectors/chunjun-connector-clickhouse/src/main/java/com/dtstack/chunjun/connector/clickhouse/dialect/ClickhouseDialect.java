@@ -26,12 +26,9 @@ import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import java.util.Optional;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/08
- */
 public class ClickhouseDialect implements JdbcDialect {
+
+    private static final long serialVersionUID = 4485804663355512770L;
 
     @Override
     public String dialectName() {

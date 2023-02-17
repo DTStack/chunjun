@@ -20,6 +20,7 @@ package com.dtstack.chunjun.connector.http.common;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -31,8 +32,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 
@@ -43,12 +42,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Map;
 
-/**
- * @author : shifang
- * @date : 2020/3/16
- */
+@Slf4j
 public class HttpUtil {
-    protected static final Logger LOG = LoggerFactory.getLogger(HttpUtil.class);
     private static final int COUNT = 32;
     private static final int TOTAL_COUNT = 1000;
     private static final int TIME_OUT = 5000;
@@ -71,7 +66,7 @@ public class HttpUtil {
                             .loadTrustMaterial(null, (certificate, authType) -> true)
                             .build();
         } catch (Exception e) {
-            LOG.warn(ExceptionUtil.getErrorMessage(e));
+            log.warn(ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);
         }
         return getBaseBuilder(timeOut)
@@ -117,7 +112,7 @@ public class HttpUtil {
             Map<String, Object> requestBody,
             Map<String, String> header,
             String url) {
-        LOG.debug("current request url: {}  current method:{} \n", url, method);
+        log.debug("current request url: {}  current method:{} \n", url, method);
         HttpRequestBase request;
 
         if (HttpMethod.GET.name().equalsIgnoreCase(method)) {
@@ -172,7 +167,7 @@ public class HttpUtil {
             }
         }
 
-        LOG.debug("current request url: {}  current method:{} \n", url, method);
+        log.debug("current request url: {}  current method:{} \n", url, method);
         if (HttpMethod.GET.name().equalsIgnoreCase(method)) {
             request = new HttpGet(url);
         } else if (HttpMethod.POST.name().equalsIgnoreCase(method)) {

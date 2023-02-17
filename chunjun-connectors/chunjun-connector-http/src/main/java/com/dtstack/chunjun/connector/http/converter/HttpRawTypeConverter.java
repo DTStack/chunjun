@@ -25,11 +25,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * @author shifang
- * @program chunjun
- * @create 2021/05/24
- */
 public class HttpRawTypeConverter {
 
     /** 将restapi返回的参数根据定义的类型，转换成flink的DataType类型。 */

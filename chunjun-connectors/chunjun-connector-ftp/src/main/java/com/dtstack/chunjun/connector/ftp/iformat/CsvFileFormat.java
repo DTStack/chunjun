@@ -23,10 +23,9 @@ import com.dtstack.chunjun.connector.ftp.extend.ftp.IFormatConfig;
 import com.dtstack.chunjun.connector.ftp.extend.ftp.format.IFileReadFormat;
 
 import com.csvreader.CsvReader;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,15 +33,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
 
+@Slf4j
 public class CsvFileFormat implements IFileReadFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CsvFileFormat.class);
     private CsvReader csvReader;
     private BufferedReader bufferedReader;
 
     @Override
     public void open(File file, InputStream inputStream, IFormatConfig config) throws IOException {
-        LOG.info("open file : {}", file.getFileName());
+        log.info("open file : {}", file.getFileName());
         bufferedReader =
                 new BufferedReader(new InputStreamReader(inputStream, config.getEncoding()));
         csvReader = new CsvReader(bufferedReader);

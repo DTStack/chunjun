@@ -24,16 +24,11 @@ import com.dtstack.chunjun.util.MapUtil;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * HttpRequestParam 一次http请求的所有参数
- *
- * @author by dujie@dtstack.com @Date 2020/9/25
- */
 public class HttpRequestParam {
 
-    private Map<String, Object> body = new HashMap<>(32);
-    private Map<String, Object> header = new HashMap<>(32);
-    private Map<String, Object> param = new HashMap<>(32);
+    private final Map<String, Object> body = new HashMap<>(32);
+    private final Map<String, Object> header = new HashMap<>(32);
+    private final Map<String, Object> param = new HashMap<>(32);
 
     /**
      * 将动态参数根据按照key是否嵌套，获取真正的key 将值放入对应的map中
@@ -43,10 +38,10 @@ public class HttpRequestParam {
      * @param value 动态参数当前对应的值
      */
     public void putValue(MetaParam metaParam, String fieldDelimiter, Object value) {
-        if (null == metaParam.getNest()) {
+        if (null == metaParam.getIsNest()) {
             fieldDelimiter = null;
         } else {
-            fieldDelimiter = metaParam.getNest() ? fieldDelimiter : null;
+            fieldDelimiter = metaParam.getIsNest() ? fieldDelimiter : null;
         }
         switch (metaParam.getParamType()) {
             case BODY:
@@ -72,10 +67,10 @@ public class HttpRequestParam {
      * @return
      */
     public Object getValue(MetaParam metaParam, String fieldDelimiter) {
-        if (null == metaParam.getNest()) {
+        if (null == metaParam.getIsNest()) {
             fieldDelimiter = null;
         } else {
-            fieldDelimiter = metaParam.getNest() ? fieldDelimiter : null;
+            fieldDelimiter = metaParam.getIsNest() ? fieldDelimiter : null;
         }
         switch (metaParam.getParamType()) {
             case BODY:
@@ -98,10 +93,10 @@ public class HttpRequestParam {
      * @return
      */
     public boolean containsKey(MetaParam metaParam, String fieldDelimiter) {
-        if (null == metaParam.getNest()) {
+        if (null == metaParam.getIsNest()) {
             fieldDelimiter = null;
         } else {
-            fieldDelimiter = metaParam.getNest() ? fieldDelimiter : null;
+            fieldDelimiter = metaParam.getIsNest() ? fieldDelimiter : null;
         }
         try {
             switch (metaParam.getParamType()) {

@@ -20,18 +20,15 @@ package com.dtstack.chunjun.connector.binlog.listener;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-/** @author toutian */
+@Slf4j
 public class BinlogJournalValidator {
-
-    private static final Logger LOG = LoggerFactory.getLogger(BinlogJournalValidator.class);
 
     private static final String BINLOG_NAME_KEY = "Log_name";
 
@@ -79,14 +76,14 @@ public class BinlogJournalValidator {
             for (int i = logIndex; i < fieldValues.size(); i += fieldSize) {
                 journalList.add(fieldValues.get(i));
             }
-            LOG.info("collect journals: " + journalList);
+            log.info("collect journals: " + journalList);
         } catch (IOException e) {
-            LOG.error("Error occurred: " + e.getMessage());
+            log.error("Error occurred: " + e.getMessage());
         } finally {
             try {
                 conn.disconnect();
             } catch (IOException e) {
-                LOG.error("Error occurred while disconnect mysql_connection: " + e.getMessage());
+                log.error("Error occurred while disconnect mysql_connection: " + e.getMessage());
             }
         }
         return journalList;

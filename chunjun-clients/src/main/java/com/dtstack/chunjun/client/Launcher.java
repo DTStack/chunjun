@@ -17,7 +17,9 @@
  */
 package com.dtstack.chunjun.client;
 
+import com.dtstack.chunjun.annotation.NotNull;
 import com.dtstack.chunjun.classloader.ClassLoaderManager;
+import com.dtstack.chunjun.client.exception.DeploymentException;
 import com.dtstack.chunjun.client.kubernetes.KubernetesApplicationClusterClientHelper;
 import com.dtstack.chunjun.client.kubernetes.KubernetesSessionClusterClientHelper;
 import com.dtstack.chunjun.client.local.LocalClusterClientHelper;
@@ -30,28 +32,22 @@ import com.dtstack.chunjun.options.Options;
 import com.dtstack.chunjun.util.ExecuteProcessHelper;
 
 import org.apache.flink.client.deployment.ClusterDeploymentException;
+import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.ConfigConstants;
 
+import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-/**
- * Chunjun commandline Launcher
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+/** Chunjun commandline Launcher */
+@Slf4j
 public class Launcher {
-    private static final Logger LOG = LoggerFactory.getLogger(Launcher.class);
-
     public static final String KEY_CHUNJUN_HOME = "CHUNJUN_HOME";
     public static final String KEY_FLINK_HOME = "FLINK_HOME";
     public static final String KEY_HADOOP_HOME = "HADOOP_HOME";
@@ -59,6 +55,7 @@ public class Launcher {
     public static final String PLUGINS_DIR_NAME = "chunjun-dist";
 
     public static void main(String[] args) throws Exception {
+        // 1. parse command into options.
         OptionParser optionParser = new OptionParser(args);
         Options launcherOptions = optionParser.getOptions();
 
@@ -67,56 +64,54 @@ public class Launcher {
         List<String> argList = optionParser.getProgramExeArgList();
 
         // 将argList转化为HashMap，方便通过参数名称来获取参数值
-        HashMap<String, String> temp = new HashMap<>(16);
+        Map<String, String> commandMap = Maps.newHashMap();
         for (int i = 0; i < argList.size(); i += 2) {
-            temp.put(argList.get(i), argList.get(i + 1));
+            commandMap.put(argList.get(i), argList.get(i + 1));
         }
 
         // 清空list，填充修改后的参数值
         argList.clear();
-        for (int i = 0; i < temp.size(); i++) {
-            argList.add(temp.keySet().toArray()[i].toString());
-            argList.add(temp.values().toArray()[i].toString());
+        for (int i = 0; i < commandMap.size(); i++) {
+            argList.add(commandMap.keySet().toArray()[i].toString());
+            argList.add(commandMap.values().toArray()[i].toString());
         }
 
         JobDeployer jobDeployer = new JobDeployer(launcherOptions, argList);
 
-        ClusterClientHelper clusterClientHelper;
-        switch (ClusterMode.getByName(launcherOptions.getMode())) {
-            case local:
-                clusterClientHelper = new LocalClusterClientHelper();
-                break;
-            case standalone:
-                clusterClientHelper = new StandaloneClusterClientHelper();
-                break;
-            case yarnSession:
-                clusterClientHelper = new YarnSessionClusterClientHelper();
-                break;
-            case yarnPerJob:
-                clusterClientHelper = new YarnPerJobClusterClientHelper();
-                break;
-            case yarnApplication:
-                throw new ClusterDeploymentException(
-                        "Application Mode not supported by Yarn deployments.");
-            case kubernetesSession:
-                clusterClientHelper = new KubernetesSessionClusterClientHelper();
-                break;
-            case kubernetesPerJob:
-                throw new ClusterDeploymentException(
-                        "Per-Job Mode not supported by Kubernetes deployments.");
-            case kubernetesApplication:
-                clusterClientHelper = new KubernetesApplicationClusterClientHelper();
-                break;
-            default:
-                throw new ClusterDeploymentException(
-                        launcherOptions.getMode() + " Mode not supported.");
-        }
+        ClusterClientHelper<?> clusterClientHelper = createHelper(launcherOptions.getMode());
 
         // add ext class
         URLClassLoader urlClassLoader = (URLClassLoader) Launcher.class.getClassLoader();
         List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(launcherOptions.getAddjar());
         ClassLoaderManager.loadExtraJar(jarUrlList, urlClassLoader);
-        clusterClientHelper.submit(jobDeployer);
+        try (ClusterClient<?> client = clusterClientHelper.submit(jobDeployer)) {
+            log.info(client.getClusterId() + " submit successfully.");
+        }
+    }
+
+    private static ClusterClientHelper<?> createHelper(String mode) {
+        switch (ClusterMode.getByName(mode)) {
+            case local:
+                return new LocalClusterClientHelper();
+            case standalone:
+                return new StandaloneClusterClientHelper();
+            case yarnSession:
+                return new YarnSessionClusterClientHelper();
+            case yarnPerJob:
+                return new YarnPerJobClusterClientHelper();
+            case yarnApplication:
+                throw new DeploymentException(
+                        "Application Mode not supported by Yarn deployments.");
+            case kubernetesSession:
+                return new KubernetesSessionClusterClientHelper();
+            case kubernetesPerJob:
+                throw new DeploymentException(
+                        "Per-Job Mode not supported by Kubernetes deployments.");
+            case kubernetesApplication:
+                return new KubernetesApplicationClusterClientHelper();
+            default:
+                throw new DeploymentException(mode + " Mode not supported.");
+        }
     }
 
     private static void findDefaultConfigDir(Options launcherOptions)
@@ -166,7 +161,7 @@ public class Launcher {
         }
     }
 
-    private static void findDefaultChunJunDistDir(Options launcherOptions)
+    private static void findDefaultChunJunDistDir(@NotNull Options launcherOptions)
             throws ClusterDeploymentException {
         String distDir = launcherOptions.getChunjunDistDir();
         if (StringUtils.isEmpty(distDir)) {
@@ -183,7 +178,7 @@ public class Launcher {
             }
         }
         if (StringUtils.isEmpty(distDir)) {
-            notConfiguredException(KEY_CHUNJUN_HOME);
+            throw new ClusterDeploymentException(KEY_CHUNJUN_HOME + " is not configured.");
         }
         System.setProperty(ConfigConstants.ENV_FLINK_PLUGINS_DIR, distDir);
     }
@@ -191,14 +186,9 @@ public class Launcher {
     private static String getSystemProperty(String name) {
         String property = System.getenv(name);
         if (StringUtils.isEmpty(property)) {
-            property = System.getProperty(name);
+            return System.getProperty(name);
         }
 
         return property;
-    }
-
-    private static void notConfiguredException(String propertyKey)
-            throws ClusterDeploymentException {
-        throw new ClusterDeploymentException(propertyKey + " is not configured.");
     }
 }

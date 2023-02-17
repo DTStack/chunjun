@@ -20,7 +20,6 @@ package com.dtstack.chunjun.client.standalone;
 import com.dtstack.chunjun.client.ClusterClientHelper;
 import com.dtstack.chunjun.client.JobDeployer;
 import com.dtstack.chunjun.client.util.JobGraphUtil;
-import com.dtstack.chunjun.client.yarn.YarnSessionClusterClientHelper;
 import com.dtstack.chunjun.options.Options;
 
 import org.apache.flink.api.common.JobID;
@@ -30,22 +29,15 @@ import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
-public class StandaloneClusterClientHelper implements ClusterClientHelper {
-
-    private static final Logger LOG = LoggerFactory.getLogger(YarnSessionClusterClientHelper.class);
+@Slf4j
+public class StandaloneClusterClientHelper implements ClusterClientHelper<StandaloneClusterId> {
 
     @Override
-    public ClusterClient submit(JobDeployer jobDeployer) throws Exception {
+    public ClusterClient<StandaloneClusterId> submit(JobDeployer jobDeployer) throws Exception {
 
         Options launcherOptions = jobDeployer.getLauncherOptions();
         List<String> programArgs = jobDeployer.getProgramArgs();
@@ -53,7 +45,7 @@ public class StandaloneClusterClientHelper implements ClusterClientHelper {
 
         try (StandaloneClusterDescriptor standaloneClusterDescriptor =
                 new StandaloneClusterDescriptor(flinkConf)) {
-            ClusterClient clusterClient =
+            ClusterClient<StandaloneClusterId> clusterClient =
                     standaloneClusterDescriptor
                             .retrieve(StandaloneClusterId.getInstance())
                             .getClusterClient();
@@ -62,8 +54,8 @@ public class StandaloneClusterClientHelper implements ClusterClientHelper {
             jobGraph.getClasspaths().clear();
             jobGraph.getUserJars().clear();
             jobGraph.getUserArtifacts().clear();
-            JobID jobID = (JobID) clusterClient.submitJob(jobGraph).get();
-            LOG.info("submit job successfully, jobID = {}", jobID);
+            JobID jobID = clusterClient.submitJob(jobGraph).get();
+            log.info("submit job successfully, jobID = {}", jobID);
             return clusterClient;
         }
     }

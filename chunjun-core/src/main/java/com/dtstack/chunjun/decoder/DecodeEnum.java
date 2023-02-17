@@ -18,19 +18,18 @@
 
 package com.dtstack.chunjun.decoder;
 
-/**
- * @author jiangbo
- * @date 2020/3/23
- */
 public enum DecodeEnum {
 
     /** json format */
     JSON("json"),
 
     /** text format */
-    TEXT("text");
+    TEXT("text"),
 
-    private String name;
+    VALUE("value"),
+    ;
+
+    private final String name;
 
     DecodeEnum(String name) {
         this.name = name;

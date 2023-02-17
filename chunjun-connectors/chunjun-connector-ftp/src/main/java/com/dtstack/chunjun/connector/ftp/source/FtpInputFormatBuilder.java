@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.source;
 
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 

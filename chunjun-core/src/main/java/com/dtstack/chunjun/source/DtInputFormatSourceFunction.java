@@ -22,7 +22,6 @@ import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
-import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.io.RichInputFormat;
 import org.apache.flink.api.common.state.ListState;
@@ -43,8 +42,7 @@ import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -52,17 +50,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-/**
- * A {@link SourceFunction} that reads data using an {@link InputFormat}.
- *
- * @author jiangbo
- */
-@Internal
+/** A {@link SourceFunction} that reads data using an {@link InputFormat}. */
+@Slf4j
 public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<OUT>
         implements CheckpointedFunction {
     private static final long serialVersionUID = 1L;
-
-    private static final Logger LOG = LoggerFactory.getLogger(DtInputFormatSourceFunction.class);
 
     private final TypeInformation<OUT> typeInfo;
     private transient TypeSerializer<OUT> serializer;
@@ -98,7 +90,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
         if (format instanceof BaseRichInputFormat) {
             if (formatStateMap != null) {
                 ((BaseRichInputFormat) format)
-                        .setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
+                        .setFormatState(formatStateMap.get(context.getIndexOfThisSubtask()));
             }
         }
 
@@ -145,7 +137,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
             }
         } catch (Exception exception) {
             tryException = exception;
-            LOG.error("Exception happened, start to close format", exception);
+            log.error("Exception happened, start to close format", exception);
         } finally {
             isRunning = false;
             gracefulClose();
@@ -169,14 +161,14 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
         try {
             format.close();
         } catch (IOException e) {
-            LOG.warn(ExceptionUtil.getErrorMessage(e));
+            log.warn(ExceptionUtil.getErrorMessage(e));
         }
 
         if (format instanceof RichInputFormat) {
             try {
                 ((RichInputFormat) format).closeInputFormat();
             } catch (IOException e) {
-                LOG.error(ExceptionUtil.getErrorMessage(e));
+                log.error(ExceptionUtil.getErrorMessage(e));
             }
         }
     }
@@ -248,7 +240,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         FormatState formatState = ((BaseRichInputFormat) format).getFormatState();
         if (formatState != null) {
-            LOG.info("InputFormat format state:{}", formatState);
+            log.info("InputFormat format state:{}", formatState);
             unionOffsetStates.clear();
             unionOffsetStates.add(formatState);
         }
@@ -257,7 +249,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
     @Override
     public void initializeState(FunctionInitializationContext context) throws Exception {
         OperatorStateStore stateStore = context.getOperatorStateStore();
-        LOG.info("Start initialize input format state, is restored:{}", context.isRestored());
+        log.info("Start initialize input format state, is restored:{}", context.isRestored());
         unionOffsetStates =
                 stateStore.getUnionListState(
                         new ListStateDescriptor<>(
@@ -267,9 +259,9 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
             formatStateMap = new HashMap<>(16);
             for (FormatState formatState : unionOffsetStates.get()) {
                 formatStateMap.put(formatState.getNumOfSubTask(), formatState);
-                LOG.info("Input format state into:{}", formatState);
+                log.info("Input format state into:{}", formatState);
             }
         }
-        LOG.info("End initialize input format state");
+        log.info("End initialize input format state");
     }
 }

@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.hbase.converter;
 
 import com.dtstack.chunjun.connector.hbase.FunctionParser;
 import com.dtstack.chunjun.connector.hbase.FunctionTree;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
@@ -34,6 +34,7 @@ import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.Durability;
@@ -58,15 +59,13 @@ import static com.dtstack.chunjun.connector.hbase.HBaseTypeUtils.MIN_TIMESTAMP_P
 import static com.dtstack.chunjun.connector.hbase.HBaseTypeUtils.MIN_TIME_PRECISION;
 import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getPrecision;
 
-/**
- * @author jier
- * @program chunjun FlatRowConverter for sync task when add transformer
- * @create 2021/04/30
- */
+/** FlatRowConverter for sync task when add transformer */
+@Slf4j
 public class HBaseFlatRowConverter
         extends AbstractRowConverter<Result, RowData, Mutation, LogicalType> {
 
     public static final String KEY_ROW_KEY = "rowkey";
+    private static final long serialVersionUID = 5955947079744643881L;
 
     private FunctionTree functionTree;
 
@@ -87,7 +86,7 @@ public class HBaseFlatRowConverter
 
     private final List<String> columnNames = new ArrayList<>();
 
-    private final HBaseConf hBaseConf;
+    private final HBaseConfig hBaseConfig;
 
     private List<String> rowKeyColumns;
 
@@ -95,22 +94,25 @@ public class HBaseFlatRowConverter
 
     private final byte[][][] familyAndQualifier;
 
-    public HBaseFlatRowConverter(HBaseConf hBaseConf, RowType rowType) {
+    public HBaseFlatRowConverter(HBaseConfig hBaseConfig, RowType rowType) {
         super(rowType);
-        this.commonConf = hBaseConf;
+        this.commonConfig = hBaseConfig;
 
-        nullMode = hBaseConf.getNullMode();
-        encoding = StringUtils.isEmpty(hBaseConf.getEncoding()) ? "utf-8" : hBaseConf.getEncoding();
+        nullMode = hBaseConfig.getNullMode();
+        encoding =
+                StringUtils.isEmpty(hBaseConfig.getEncoding())
+                        ? "utf-8"
+                        : hBaseConfig.getEncoding();
 
-        for (int i = 0; i < hBaseConf.getColumn().size(); i++) {
+        for (int i = 0; i < hBaseConfig.getColumn().size(); i++) {
             toExternalConverters.add(
                     i,
                     wrapIntoNullableExternalConverter(
                             createExternalConverter(rowType.getTypeAt(i)), rowType.getTypeAt(i)));
         }
         this.familyAndQualifier = new byte[rowType.getFieldCount()][][];
-        for (int i = 0; i < hBaseConf.getColumn().size(); i++) {
-            String name = hBaseConf.getColumn().get(i).getName();
+        for (int i = 0; i < hBaseConfig.getColumn().size(); i++) {
+            String name = hBaseConfig.getColumn().get(i).getName();
             columnNames.add(name);
             String[] cfAndQualifier = name.split(":");
             if (cfAndQualifier.length == 2
@@ -129,10 +131,10 @@ public class HBaseFlatRowConverter
             }
         }
 
-        this.hBaseConf = hBaseConf;
+        this.hBaseConfig = hBaseConfig;
         initRowKeyConfig();
-        this.versionColumnIndex = hBaseConf.getVersionColumnIndex();
-        this.versionColumnValue = hBaseConf.getVersionColumnValue();
+        this.versionColumnIndex = hBaseConfig.getVersionColumnIndex();
+        this.versionColumnValue = hBaseConfig.getVersionColumnValue();
     }
 
     @Override
@@ -142,14 +144,14 @@ public class HBaseFlatRowConverter
         Put put;
         if (version == null) {
             put = new Put(rowkey);
-            if (!hBaseConf.getWalFlag()) {
+            if (!hBaseConfig.getWalFlag()) {
                 put.setDurability(Durability.SKIP_WAL);
             }
         } else {
             put = new Put(rowkey, version);
         }
 
-        for (int i = 0; i < rowData.getArity(); i++) {
+        for (int i = 0; i < fieldTypes.length; i++) {
             if (rowKeyIndex == i) {
                 continue;
             }
@@ -159,7 +161,6 @@ public class HBaseFlatRowConverter
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected ISerializationConverter<Mutation> wrapIntoNullableExternalConverter(
             ISerializationConverter<Mutation> serializationConverter, LogicalType type) {
         return ((rowData, index, mutation) -> {
@@ -313,9 +314,9 @@ public class HBaseFlatRowConverter
     }
 
     private void initRowKeyConfig() {
-        if (StringUtils.isNotBlank(hBaseConf.getRowkeyExpress())) {
-            this.functionTree = FunctionParser.parse(hBaseConf.getRowkeyExpress());
-            this.rowKeyColumns = FunctionParser.parseRowKeyCol(hBaseConf.getRowkeyExpress());
+        if (StringUtils.isNotBlank(hBaseConfig.getRowkeyExpress())) {
+            this.functionTree = FunctionParser.parse(hBaseConfig.getRowkeyExpress());
+            this.rowKeyColumns = FunctionParser.parseRowKeyCol(hBaseConfig.getRowkeyExpress());
             this.rowKeyColumnIndex = new ArrayList<>(rowKeyColumns.size());
             for (String rowKeyColumn : rowKeyColumns) {
                 int index = columnNames.indexOf(rowKeyColumn);
@@ -366,7 +367,7 @@ public class HBaseFlatRowConverter
                 try {
                     date = timeSecondFormat.parse(timeStampValue.toString());
                 } catch (ParseException e1) {
-                    LOG.info(
+                    log.info(
                             String.format(
                                     "您指定第[%s]列作为hbase写入版本,但在尝试用yyyy-MM-dd HH:mm:ss 和 yyyy-MM-dd HH:mm:ss SSS 去解析为Date时均出错,请检查并修改",
                                     versionColumnIndex));

@@ -46,14 +46,10 @@ import java.util.List;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
-/**
- * @author Ada Wong
- * @program chunjun
- * @create 2021/06/20
- */
 public class SolrRowConverter
         extends AbstractRowConverter<SolrDocument, SolrDocument, SolrInputDocument, LogicalType> {
 
+    private static final long serialVersionUID = -1488018940395139854L;
     protected List<SolrSerializationConverter> toExternalConverters;
     protected String[] fieldNames;
 
@@ -92,7 +88,7 @@ public class SolrRowConverter
 
     @Override
     public SolrInputDocument toExternal(RowData rowData, SolrInputDocument solrInputDocument) {
-        for (int pos = 0; pos < rowData.getArity(); pos++) {
+        for (int pos = 0; pos < fieldTypes.length; pos++) {
             toExternalConverters
                     .get(pos)
                     .serialize(rowData, pos, fieldNames[pos], solrInputDocument);

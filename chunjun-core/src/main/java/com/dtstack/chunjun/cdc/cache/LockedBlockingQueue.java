@@ -30,6 +30,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class LockedBlockingQueue<T> implements Queue<T>, Serializable {
 
+    private static final long serialVersionUID = -5878734498497278866L;
+
     private final Lock lock = new ReentrantLock();
 
     private final BlockingQueue<T> queue;

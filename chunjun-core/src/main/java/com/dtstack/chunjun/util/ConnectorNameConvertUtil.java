@@ -22,11 +22,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author: shifang
- * @description convert plugin name
- * @date: 2021/8/10 下午5:58
- */
 public class ConnectorNameConvertUtil {
 
     // tuple f0 package name && directory name,f1 class name

@@ -24,12 +24,6 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * convert db2 type to flink type Company: www.dtstack.com
- *
- * @author xuchao
- * @date 2021-06-15
- */
 public class Db2RawTypeConverter {
 
     /**

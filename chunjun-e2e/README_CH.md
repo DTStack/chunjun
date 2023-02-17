@@ -2,10 +2,10 @@
 
 #### 1.在`com.dtstack.chunjun.connector.test.standalone` package下创建一个类
 ```java
-// 必须继承ChunjunFlinkStandaloneTestEnvironment类
+import lombok.extern.slf4j.Slf4j;// 必须继承ChunjunFlinkStandaloneTestEnvironment类
+@Slf4j
 public class PostgreSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
-    private static final Logger LOG = LoggerFactory.getLogger(PostgreSyncE2eITCase.class);
-
+    
     protected static final String POSTGRE_HOST = "chunjun-e2e-postgre";
 
     private static final URL POSTGRE_INIT_SQL_URL =
@@ -17,15 +17,15 @@ public class PostgreSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment 
     @Override
     public void before() throws Exception {
         super.before();
-        LOG.info("Starting containers...");
+        log.info("Starting containers...");
         postgre = new PostgreContainer();
         postgre.withNetwork(NETWORK);
         postgre.withNetworkAliases(POSTGRE_HOST);
-        postgre.withLogConsumer(new Slf4jLogConsumer(LOG));
+        postgre.withLogConsumer(new Slf4jLogConsumer(log));
         Startables.deepStart(Stream.of(postgre)).join();
         Thread.sleep(5000);
         initPostgre();
-        LOG.info("Containers are started.");
+        log.info("Containers are started.");
     }
 
     // 关闭
@@ -119,7 +119,7 @@ public class PostgreContainer extends JdbcDatabaseContainer {
 ```dockerfile
 FROM debezium/postgres:9.6
 
-LABEL maintainer="www.dtstack.com"
+LABEL maintainer="chunjun@github.com"
 
 ENV LANG=C.UTF-8
 ENV TZ=Asia/Shanghai

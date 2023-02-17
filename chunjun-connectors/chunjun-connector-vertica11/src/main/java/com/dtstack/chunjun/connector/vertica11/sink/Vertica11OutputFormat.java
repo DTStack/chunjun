@@ -25,33 +25,37 @@ import com.dtstack.chunjun.connector.vertica11.dialect.Vertica11Dialect;
 import com.dtstack.chunjun.enums.EWriteMode;
 import com.dtstack.chunjun.util.JsonUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.sql.SQLException;
 import java.util.List;
 
-/** @author menghan on 2022/7/12. */
+@Slf4j
 public class Vertica11OutputFormat extends JdbcOutputFormat {
+
+    private static final long serialVersionUID = 5927516457280937846L;
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         try {
             dbConn = getConnection();
             // By default, transaction auto-commit is turned off, and transactions are manually
             // controlled
-            dbConn.setAutoCommit(jdbcConf.isAutoCommit());
-            if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
-                List<String> updateKey = jdbcConf.getUniqueKey();
+            dbConn.setAutoCommit(jdbcConfig.isAutoCommit());
+            if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConfig.getMode())) {
+                List<String> updateKey = jdbcConfig.getUniqueKey();
                 if (CollectionUtils.isEmpty(updateKey)) {
                     List<String> tableIndex =
                             JdbcUtil.getTablePrimaryKey(
-                                    jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
-                    jdbcConf.setUniqueKey(tableIndex);
-                    LOG.info("updateKey = {}", JsonUtil.toJson(tableIndex));
+                                    jdbcConfig.getSchema(), jdbcConfig.getTable(), dbConn);
+                    jdbcConfig.setUniqueKey(tableIndex);
+                    log.info("updateKey = {}", JsonUtil.toJson(tableIndex));
                 }
             }
 
             buildStmtProxy();
-            LOG.info("subTask[{}}] wait finished", taskNumber);
+            log.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
         } finally {
@@ -62,27 +66,27 @@ public class Vertica11OutputFormat extends JdbcOutputFormat {
     @Override
     protected String prepareTemplates() {
         String singleSql;
-        if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
+        if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConfig.getMode())) {
             singleSql =
                     jdbcDialect.getInsertIntoStatement(
-                            jdbcConf.getSchema(),
-                            jdbcConf.getTable(),
+                            jdbcConfig.getSchema(),
+                            jdbcConfig.getTable(),
                             columnNameList.toArray(new String[0]));
-        } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())) {
+        } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConfig.getMode())) {
             singleSql =
                     ((Vertica11Dialect) jdbcDialect)
                             .getUpsertStatement(
-                                    jdbcConf.getSchema(),
-                                    jdbcConf.getTable(),
+                                    jdbcConfig.getSchema(),
+                                    jdbcConfig.getTable(),
                                     columnNameList.toArray(new String[0]),
                                     columnTypeList.toArray(new String[0]),
-                                    jdbcConf.getUniqueKey().toArray(new String[0]),
-                                    jdbcConf.isAllReplace())
+                                    jdbcConfig.getUniqueKey().toArray(new String[0]),
+                                    jdbcConfig.isAllReplace())
                             .get();
         } else {
-            throw new IllegalArgumentException("Unknown write mode:" + jdbcConf.getMode());
+            throw new IllegalArgumentException("Unknown write mode:" + jdbcConfig.getMode());
         }
-        LOG.info("write sql:{}", singleSql);
+        log.info("write sql:{}", singleSql);
         return singleSql;
     }
 }

@@ -21,7 +21,6 @@ package com.dtstack.chunjun.connector.rabbitmq.options;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/** @Author OT @Date 2022/7/9 */
 public class RabbitmqOptions {
     public static final ConfigOption<String> HOST =
             ConfigOptions.key("host")

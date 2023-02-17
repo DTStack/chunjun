@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.http.outputformat;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.http.common.HttpUtil;
 import com.dtstack.chunjun.connector.http.common.HttpWriterConfig;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -33,6 +33,7 @@ import org.apache.flink.table.data.RowData;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -41,18 +42,16 @@ import org.apache.http.impl.client.CloseableHttpClient;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static com.dtstack.chunjun.connector.http.common.HttpKeys.KEY_BATCH;
 
-/**
- * @author : shifang
- * @date : 2020/3/12
- */
+@Slf4j
 public class HttpOutputFormat extends BaseRichOutputFormat {
+
+    private static final long serialVersionUID = -561611231821621445L;
 
     protected HttpWriterConfig httpWriterConfig;
 
@@ -80,7 +79,7 @@ public class HttpOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(RowData row) throws WriteRecordException {
-        if (httpWriterConfig.getAssert()) {
+        if (httpWriterConfig.getIsAssert()) {
             rows.add(row);
             httpRequestForAssert();
             return;
@@ -89,7 +88,7 @@ public class HttpOutputFormat extends BaseRichOutputFormat {
     }
 
     private void httpRequest(RowData row) throws WriteRecordException {
-        LOG.info("start write single record");
+        log.info("start write single record");
         CloseableHttpClient httpClient = HttpUtil.getHttpClient();
         Map<String, Object> mapData = getMapDataFromRow(row, httpWriterConfig.getColumn());
         try {
@@ -119,14 +118,15 @@ public class HttpOutputFormat extends BaseRichOutputFormat {
             httpWriterConfig
                     .getParams()
                     .put(KEY_BATCH, UUID.randomUUID().toString().substring(0, 8));
-            Iterator iterator = httpWriterConfig.getParams().entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                httpWriterConfig.getFormatBody().put((String) entry.getKey(), entry.getValue());
+            for (Map.Entry<String, Object> stringObjectEntry :
+                    httpWriterConfig.getParams().entrySet()) {
+                httpWriterConfig
+                        .getFormatBody()
+                        .put(stringObjectEntry.getKey(), stringObjectEntry.getValue());
             }
             httpWriterConfig.getFormatBody().put("data", dataRow);
             requestBody.put("json", httpWriterConfig.getFormatBody());
-            LOG.info("this batch size = {}, send data:{}", rows.size(), gson.toJson(requestBody));
+            log.info("this batch size = {}, send data:{}", rows.size(), gson.toJson(requestBody));
             sendRequest(
                     httpClient,
                     requestBody,
@@ -134,7 +134,7 @@ public class HttpOutputFormat extends BaseRichOutputFormat {
                     httpWriterConfig.getFormatHeader(),
                     httpWriterConfig.getUrl());
         } catch (Exception e) {
-            LOG.error(ExceptionUtil.getErrorMessage(e));
+            log.error(ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);
         }
     }
@@ -142,16 +142,9 @@ public class HttpOutputFormat extends BaseRichOutputFormat {
     // only for data assert batch commit
     @Override
     protected void writeMultipleRecordsInternal() {
-        LOG.info("start write multiple records");
-        if (httpWriterConfig.getAssert()) {
+        log.info("start write multiple records");
+        if (httpWriterConfig.getIsAssert()) {
             httpRequestForAssert();
-        }
-    }
-
-    private void requestErrorMessage(Exception e, int index, RowData row) {
-        if (index < row.getArity()) {
-            recordConvertDetailErrorMessage(index, row);
-            LOG.error("add dirty data:" + ((ColumnRowData) row).getField(index).getData(), e);
         }
     }
 
@@ -169,7 +162,7 @@ public class HttpOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    private Map<String, Object> getMapDataFromRow(RowData row, List<FieldConf> columns)
+    private Map<String, Object> getMapDataFromRow(RowData row, List<FieldConfig> columns)
             throws WriteRecordException {
         RowData rowData;
         try {
@@ -182,12 +175,13 @@ public class HttpOutputFormat extends BaseRichOutputFormat {
         if (!columns.isEmpty()) {
             // if column is not empty ,row one to one column
             for (; index < columns.size(); index++) {
-                FieldConf fieldConf = columns.get(index);
+                FieldConfig fieldConfig = columns.get(index);
                 if (row instanceof GenericRowData) {
-                    columnData.put(fieldConf.getName(), ((GenericRowData) rowData).getField(index));
+                    columnData.put(
+                            fieldConfig.getName(), ((GenericRowData) rowData).getField(index));
                 } else {
                     columnData.put(
-                            fieldConf.getName(),
+                            fieldConfig.getName(),
                             ((ColumnRowData) rowData).getField(index).getData());
                 }
             }
@@ -202,7 +196,7 @@ public class HttpOutputFormat extends BaseRichOutputFormat {
             Map<String, String> header,
             String url)
             throws IOException {
-        LOG.debug("send data:{}", gson.toJson(requestBody));
+        log.debug("send data:{}", gson.toJson(requestBody));
         HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
         // set request timeout
         RequestConfig requestConfig =
@@ -214,7 +208,7 @@ public class HttpOutputFormat extends BaseRichOutputFormat {
         request.setConfig(requestConfig);
         CloseableHttpResponse httpResponse = httpClient.execute(request);
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            LOG.warn("request retry code is " + httpResponse.getStatusLine().getStatusCode());
+            log.warn("request retry code is " + httpResponse.getStatusLine().getStatusCode());
         }
     }
 }

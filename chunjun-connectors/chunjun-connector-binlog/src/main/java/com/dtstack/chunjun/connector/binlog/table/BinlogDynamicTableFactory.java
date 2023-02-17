@@ -17,30 +17,24 @@
  */
 package com.dtstack.chunjun.connector.binlog.table;
 
-import com.dtstack.chunjun.connector.binlog.conf.BinlogConf;
+import com.dtstack.chunjun.connector.binlog.config.BinlogConfig;
 import com.dtstack.chunjun.connector.binlog.options.BinlogOptions;
 import com.dtstack.chunjun.connector.binlog.source.BinlogDynamicTableSource;
 import com.dtstack.chunjun.constants.ConstantValue;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.formats.json.JsonOptions;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
+import org.apache.flink.table.types.DataType;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Date: 2021/04/27 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class BinlogDynamicTableFactory implements DynamicTableSourceFactory {
     public static final String IDENTIFIER = "binlog-x";
 
@@ -80,7 +74,7 @@ public class BinlogDynamicTableFactory implements DynamicTableSourceFactory {
         options.add(BinlogOptions.IS_GTID_MODE);
         options.add(BinlogOptions.QUERY_TIME_OUT);
         options.add(BinlogOptions.CONNECT_TIME_OUT);
-        options.add(JsonOptions.TIMESTAMP_FORMAT);
+        options.add(BinlogOptions.TIMESTAMP_FORMAT);
         return options;
     }
 
@@ -95,27 +89,28 @@ public class BinlogDynamicTableFactory implements DynamicTableSourceFactory {
         helper.validate();
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        BinlogConf binlogConf = getBinlogConf(config);
+        ResolvedSchema schema = context.getCatalogTable().getResolvedSchema();
+        DataType dataType = context.getPhysicalRowDataType();
+
+        BinlogConfig binlogConfig = getBinlogConf(config);
 
         return new BinlogDynamicTableSource(
-                physicalSchema, binlogConf, JsonOptions.getTimestampFormat(config));
+                schema, binlogConfig, BinlogOptions.getTimestampFormat(config), dataType);
     }
 
     /**
-     * 初始化BinlogConf
+     * 初始化BinlogConfig
      *
-     * @param config BinlogConf
-     * @return
+     * @param config BinlogConfig
+     * @return binlog config
      */
-    private BinlogConf getBinlogConf(ReadableConfig config) {
-        BinlogConf binlogConf = new BinlogConf();
-        binlogConf.setHost(config.get(BinlogOptions.HOST));
-        binlogConf.setPort(config.get(BinlogOptions.PORT));
-        binlogConf.setUsername(config.get(BinlogOptions.USERNAME));
-        binlogConf.setPassword(config.get(BinlogOptions.PASSWORD));
-        binlogConf.setJdbcUrl(config.get(BinlogOptions.JDBC_URL));
+    private BinlogConfig getBinlogConf(ReadableConfig config) {
+        BinlogConfig binlogConfig = new BinlogConfig();
+        binlogConfig.setHost(config.get(BinlogOptions.HOST));
+        binlogConfig.setPort(config.get(BinlogOptions.PORT));
+        binlogConfig.setUsername(config.get(BinlogOptions.USERNAME));
+        binlogConfig.setPassword(config.get(BinlogOptions.PASSWORD));
+        binlogConfig.setJdbcUrl(config.get(BinlogOptions.JDBC_URL));
 
         HashMap<String, Object> start = new HashMap<>();
         String journalName = config.get(BinlogOptions.JOURNAL_NAME);
@@ -124,26 +119,26 @@ public class BinlogDynamicTableFactory implements DynamicTableSourceFactory {
         start.put(BinlogOptions.JOURNAL_NAME.key(), journalName);
         start.put(BinlogOptions.TIMESTAMP.key(), timestamp);
         start.put(BinlogOptions.POSITION.key(), position);
-        binlogConf.setStart(start);
+        binlogConfig.setStart(start);
 
-        binlogConf.setCat(config.get(BinlogOptions.CAT));
-        binlogConf.setFilter(config.get(BinlogOptions.FILTER));
-        binlogConf.setPeriod(config.get(BinlogOptions.PERIOD));
-        binlogConf.setBufferSize(config.get(BinlogOptions.BUFFER_SIZE));
-        binlogConf.setPavingData(true);
-        binlogConf.setTable(
+        binlogConfig.setCat(config.get(BinlogOptions.CAT));
+        binlogConfig.setFilter(config.get(BinlogOptions.FILTER));
+        binlogConfig.setPeriod(config.get(BinlogOptions.PERIOD));
+        binlogConfig.setBufferSize(config.get(BinlogOptions.BUFFER_SIZE));
+        binlogConfig.setPavingData(true);
+        binlogConfig.setTable(
                 Arrays.asList(config.get(BinlogOptions.TABLE).split(ConstantValue.COMMA_SYMBOL)));
-        binlogConf.setConnectionCharset(config.get(BinlogOptions.CONNECTION_CHARSET));
-        binlogConf.setDetectingEnable(config.get(BinlogOptions.DETECTING_ENABLE));
-        binlogConf.setDetectingSQL(config.get(BinlogOptions.DETECTING_SQL));
-        binlogConf.setEnableTsdb(config.get(BinlogOptions.ENABLE_TSDB));
-        binlogConf.setParallel(config.get(BinlogOptions.PARALLEL));
-        binlogConf.setParallelThreadSize(config.get(BinlogOptions.PARALLEL_THREAD_SIZE));
-        binlogConf.setGTIDMode(config.get(BinlogOptions.IS_GTID_MODE));
-        binlogConf.setSplit(true);
-        binlogConf.setQueryTimeOut(config.get(BinlogOptions.QUERY_TIME_OUT));
-        binlogConf.setConnectTimeOut(config.get(BinlogOptions.CONNECT_TIME_OUT));
+        binlogConfig.setConnectionCharset(config.get(BinlogOptions.CONNECTION_CHARSET));
+        binlogConfig.setDetectingEnable(config.get(BinlogOptions.DETECTING_ENABLE));
+        binlogConfig.setDetectingSQL(config.get(BinlogOptions.DETECTING_SQL));
+        binlogConfig.setEnableTsdb(config.get(BinlogOptions.ENABLE_TSDB));
+        binlogConfig.setParallel(config.get(BinlogOptions.PARALLEL));
+        binlogConfig.setParallelThreadSize(config.get(BinlogOptions.PARALLEL_THREAD_SIZE));
+        binlogConfig.setGTIDMode(config.get(BinlogOptions.IS_GTID_MODE));
+        binlogConfig.setSplit(true);
+        binlogConfig.setQueryTimeOut(config.get(BinlogOptions.QUERY_TIME_OUT));
+        binlogConfig.setConnectTimeOut(config.get(BinlogOptions.CONNECT_TIME_OUT));
 
-        return binlogConf;
+        return binlogConfig;
     }
 }

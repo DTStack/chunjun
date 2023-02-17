@@ -18,16 +18,14 @@
 
 package com.dtstack.chunjun.connector.solr.table;
 
-import com.dtstack.chunjun.connector.solr.SolrConf;
+import com.dtstack.chunjun.connector.solr.SolrConfig;
 import com.dtstack.chunjun.security.KerberosConfig;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,11 +44,6 @@ import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_IN
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
 import static org.apache.flink.table.factories.FactoryUtil.SINK_PARALLELISM;
 
-/**
- * @author wuren
- * @program chunjun
- * @create 2021/05/31
- */
 public class SolrDynamicTableFactory implements DynamicTableSinkFactory {
 
     private static final String IDENTIFIER = "solr-x";
@@ -63,24 +56,22 @@ public class SolrDynamicTableFactory implements DynamicTableSinkFactory {
 
         helper.validate();
 
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        SolrConf solrConf = new SolrConf();
+        SolrConfig solrConfig = new SolrConfig();
         List<String> zkHosts = Arrays.asList(StringUtils.split(config.get(ZK_HOSTS), ','));
-        solrConf.setZkHosts(zkHosts);
-        solrConf.setZkChroot(config.get(ZK_CHROOT));
-        solrConf.setCollection(config.get(COLLECTION));
+        solrConfig.setZkHosts(zkHosts);
+        solrConfig.setZkChroot(config.get(ZK_CHROOT));
+        solrConfig.setCollection(config.get(COLLECTION));
 
-        solrConf.setParallelism(config.get(SINK_PARALLELISM));
+        solrConfig.setParallelism(config.get(SINK_PARALLELISM));
         KerberosConfig kerberosConfig =
                 new KerberosConfig(
                         config.get(PRINCIPAL), config.get(KEYTAB), config.get(KRB5_CONF));
-        solrConf.setKerberosConfig(kerberosConfig);
+        solrConfig.setKerberosConfig(kerberosConfig);
 
-        solrConf.setBatchSize(config.get(SINK_BUFFER_FLUSH_MAX_ROWS));
-        solrConf.setFlushIntervalMills(config.get(SINK_BUFFER_FLUSH_INTERVAL));
+        solrConfig.setBatchSize(config.get(SINK_BUFFER_FLUSH_MAX_ROWS));
+        solrConfig.setFlushIntervalMills(config.get(SINK_BUFFER_FLUSH_INTERVAL));
 
-        return new SolrDynamicTableSink(solrConf, physicalSchema);
+        return new SolrDynamicTableSink(solrConfig, context.getCatalogTable().getResolvedSchema());
     }
 
     @Override

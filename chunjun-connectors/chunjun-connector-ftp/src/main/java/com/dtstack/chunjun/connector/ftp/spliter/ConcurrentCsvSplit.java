@@ -24,15 +24,14 @@ import com.dtstack.chunjun.connector.ftp.extend.ftp.IFtpHandler;
 import com.dtstack.chunjun.connector.ftp.extend.ftp.concurrent.FtpFileSplit;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class ConcurrentCsvSplit extends DefaultFileSplit {
-    private static final Logger LOG = LoggerFactory.getLogger(ConcurrentCsvSplit.class);
 
     @Override
     public List<FtpFileSplit> buildFtpFileSplit(
@@ -89,7 +88,7 @@ public class ConcurrentCsvSplit extends DefaultFileSplit {
                             new FtpFileSplit(startPosition, endPosition, filePath, filename);
                     ftpFileSplits.add(ftpFileSplit);
 
-                    LOG.info(
+                    log.info(
                             String.format(
                                     "build file split, filename: %s, startPosition: %d, endPosition: %d",
                                     filePath, startPosition, endPosition));
@@ -103,7 +102,7 @@ public class ConcurrentCsvSplit extends DefaultFileSplit {
                             new FtpFileSplit(startPosition, currentFileSize, filePath, filename);
                     ftpFileSplits.add(ftpFileSplit);
 
-                    LOG.info(
+                    log.info(
                             String.format(
                                     "build file split, filename: %s, startPosition: %d, endPosition: %d",
                                     filePath, startPosition, currentFileSize));

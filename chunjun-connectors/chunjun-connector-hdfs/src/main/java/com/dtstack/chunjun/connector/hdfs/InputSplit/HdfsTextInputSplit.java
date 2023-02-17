@@ -27,13 +27,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-/**
- * Date: 2021/06/08 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HdfsTextInputSplit implements InputSplit {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -5705728781573308377L;
+
     int splitNumber;
     byte[] textSplitData;
 

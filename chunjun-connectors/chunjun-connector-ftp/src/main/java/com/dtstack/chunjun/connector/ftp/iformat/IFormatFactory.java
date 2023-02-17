@@ -37,7 +37,7 @@ public class IFormatFactory {
     }
 
     public static IFileReadFormat createCustom(String className) {
-        Class<?> userClass = null;
+        Class<?> userClass;
         try {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             userClass = classLoader.loadClass(className);

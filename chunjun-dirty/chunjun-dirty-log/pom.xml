@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>chunjun-dirty</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.12-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -72,6 +72,7 @@
 			</plugin>
 
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<executions>
 					<execution>
@@ -82,7 +83,7 @@
 							<goal>run</goal>
 						</goals>
 						<configuration>
-							<tasks>
+							<target>
 								<copy todir="${basedir}/../../${dist.dir}/dirty-data-collector/log"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
 								<move file="${basedir}/../../${dist.dir}/dirty-data-collector/log/${project.artifactId}-${project.version}.jar"
@@ -92,7 +93,7 @@
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}.jar"/>
 								</delete>
-							</tasks>
+							</target>
 						</configuration>
 					</execution>
 				</executions>

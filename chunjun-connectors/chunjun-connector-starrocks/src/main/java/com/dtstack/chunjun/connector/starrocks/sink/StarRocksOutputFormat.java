@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.connector.starrocks.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.streamload.StarRocksSinkBufferEntity;
 import com.dtstack.chunjun.connector.starrocks.streamload.StarRocksStreamLoadFailedException;
 import com.dtstack.chunjun.connector.starrocks.streamload.StreamLoadManager;
@@ -30,33 +30,33 @@ import org.apache.flink.table.data.RowData;
 
 import com.alibaba.fastjson.JSON;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/** @author liuliu 2022/7/12 */
 public class StarRocksOutputFormat extends BaseRichOutputFormat {
 
+    private static final long serialVersionUID = -72510119599895395L;
+
     StreamLoadManager streamLoadManager;
-    private StarRocksConf starRocksConf;
+    private StarRocksConfig starRocksConfig;
     private StarRocksWriteProcessor writeProcessor;
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+    protected void openInternal(int taskNumber, int numTasks) {
         List<String> columnNameList =
-                starRocksConf.getColumn().stream()
-                        .map(FieldConf::getName)
+                starRocksConfig.getColumn().stream()
+                        .map(FieldConfig::getName)
                         .collect(Collectors.toList());
 
-        streamLoadManager = new StreamLoadManager(starRocksConf);
+        streamLoadManager = new StreamLoadManager(starRocksConfig);
         streamLoadManager.startAsyncFlushing();
-        if (starRocksConf.isNameMapped()) {
-            writeProcessor = new MappedWriteProcessor(streamLoadManager, starRocksConf);
+        if (starRocksConfig.isNameMapped()) {
+            writeProcessor = new MappedWriteProcessor(streamLoadManager, starRocksConfig);
         } else {
             writeProcessor =
                     new NormalWriteProcessor(
-                            rowConverter, streamLoadManager, starRocksConf, columnNameList);
+                            rowConverter, streamLoadManager, starRocksConfig, columnNameList);
         }
     }
 
@@ -130,11 +130,11 @@ public class StarRocksOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    public void setStarRocksConf(StarRocksConf starRocksConf) {
-        this.starRocksConf = starRocksConf;
+    public void setStarRocksConf(StarRocksConfig starRocksConfig) {
+        this.starRocksConfig = starRocksConfig;
     }
 
-    public StarRocksConf getStarRocksConf() {
-        return starRocksConf;
+    public StarRocksConfig getStarRocksConf() {
+        return starRocksConfig;
     }
 }

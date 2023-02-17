@@ -32,11 +32,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Ada Wong
- * @program Chunjun
- * @create 2021/06/08
- */
 public class CreateFunctionStmtParser extends AbstractStmtParser {
 
     private static final String FUNC_PATTERN_STR =

@@ -28,10 +28,6 @@ import java.util.Locale;
 /**
  * inspried by
  * https://solr.apache.org/guide/7_4/field-types-included-with-solr.html#field-types-included-with-solr
- *
- * @author wuren
- * @program chunjun
- * @create 2021/05/31
  */
 public class SolrRawTypeConverter {
 

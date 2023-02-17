@@ -19,25 +19,19 @@
 package com.dtstack.chunjun.metrics;
 
 import com.dtstack.chunjun.constants.Metrics;
-import com.dtstack.chunjun.util.SysUtil;
+import com.dtstack.chunjun.util.ThreadUtil;
 
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.metrics.MetricGroup;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author jiangbo
- * @date 2019/6/5
- */
+@Slf4j
 public class BaseMetric {
-
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     public static final Long DELAY_PERIOD_MILL = 20000L;
 
@@ -86,8 +80,8 @@ public class BaseMetric {
         try {
             Thread.sleep(DELAY_PERIOD_MILL);
         } catch (InterruptedException e) {
-            SysUtil.sleep(DELAY_PERIOD_MILL);
-            LOG.warn("Task thread is interrupted");
+            ThreadUtil.sleepMilliseconds(DELAY_PERIOD_MILL);
+            log.warn("Task thread is interrupted");
         }
     }
 

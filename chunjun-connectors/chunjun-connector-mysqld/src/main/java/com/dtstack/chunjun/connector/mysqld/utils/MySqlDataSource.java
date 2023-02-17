@@ -24,11 +24,6 @@ import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.Collections;
 
-/**
- * Date: 2022/08/01
- *
- * @author kino
- */
 public class MySqlDataSource {
 
     private static final String DRIVER = "com.mysql.jdbc.Driver";

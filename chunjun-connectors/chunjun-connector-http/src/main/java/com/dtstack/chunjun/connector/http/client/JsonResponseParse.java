@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.http.client;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.http.common.HttpRestConfig;
 import com.dtstack.chunjun.connector.http.util.JsonPathUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -44,7 +44,7 @@ public class JsonResponseParse extends ResponseParse {
     private String responseValue;
     private HttpRequestParam requestParam;
     private final Gson gson;
-    private final List<FieldConf> fields;
+    private final List<FieldConfig> fields;
     private Iterator<Map<String, Object>> iterator;
 
     public JsonResponseParse(HttpRestConfig config, AbstractRowConverter converter) {
@@ -55,7 +55,7 @@ public class JsonResponseParse extends ResponseParse {
                     Arrays.stream(config.getFields().split(","))
                             .map(
                                     i -> {
-                                        FieldConf fieldConf = new FieldConf();
+                                        FieldConfig fieldConf = new FieldConfig();
                                         fieldConf.setName(i);
                                         return fieldConf;
                                     })

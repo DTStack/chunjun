@@ -22,13 +22,11 @@ import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.Md5Util;
 
-import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.cache.DistributedCache;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,15 +41,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.Map;
 
-/**
- * Company：www.dtstack.com
- *
- * @author shitou
- * @date 2021/8/16
- */
+@Slf4j
 public class SSLUtil {
-
-    public static Logger LOG = LoggerFactory.getLogger(SSLUtil.class);
 
     private static final String SP = "/";
 
@@ -88,7 +79,7 @@ public class SSLUtil {
             Map<String, Object> sslConfig, String filePath, DistributedCache distributedCache) {
         boolean useLocalFile = MapUtils.getBooleanValue(sslConfig, KEY_USE_LOCAL_FILE);
         if (useLocalFile) {
-            LOG.info("will use local file:{}", filePath);
+            log.info("will use local file:{}", filePath);
             checkFileExists(filePath);
             return filePath;
         } else {
@@ -98,20 +89,20 @@ public class SSLUtil {
             }
             if (StringUtils.startsWith(fileName, "blob_")) {
                 // already downloaded from blobServer
-                LOG.info("file [{}] already downloaded from blobServer", filePath);
+                log.info("file [{}] already downloaded from blobServer", filePath);
                 return filePath;
             }
             if (distributedCache != null) {
                 try {
                     File file = distributedCache.getFile(fileName);
                     String absolutePath = file.getAbsolutePath();
-                    LOG.info(
+                    log.info(
                             "load file [{}] from Flink BlobServer, download file path = {}",
                             fileName,
                             absolutePath);
                     return absolutePath;
                 } catch (Exception e) {
-                    LOG.warn(
+                    log.warn(
                             "failed to get [{}] from Flink BlobServer, try to get from sftp. e = {}",
                             fileName,
                             ExceptionUtil.getErrorMessage(e));
@@ -136,12 +127,12 @@ public class SSLUtil {
         InputStream is = null;
         try {
             if (KEY_PKCS12.equalsIgnoreCase(type)) {
-                LOG.info("init RestClient, type: pkcs#12.");
+                log.info("init RestClient, type: pkcs#12.");
                 keyStore = KeyStore.getInstance("pkcs12");
                 is = Files.newInputStream(path);
                 keyStore.load(is, keyStorePass.toCharArray());
             } else if (KEY_CA.equalsIgnoreCase(type)) {
-                LOG.info(
+                log.info(
                         "init RestClient, type: use CA certificate that is available as a PEM encoded file.");
                 CertificateFactory factory = CertificateFactory.getInstance("X.509");
                 Certificate trustedCa;
@@ -187,7 +178,7 @@ public class SSLUtil {
             if (handler.isFileExist(filePathOnSftp)) {
                 handler.downloadFileWithRetry(filePathOnSftp, fileLocalPath);
 
-                LOG.info("download file:{} to local:{}", filePathOnSftp, fileLocalPath);
+                log.info("download file:{} to local:{}", filePathOnSftp, fileLocalPath);
                 return fileLocalPath;
             }
         } catch (Exception e) {
@@ -201,7 +192,6 @@ public class SSLUtil {
         throw new RuntimeException("File[" + filePathOnSftp + "] not exist on sftp");
     }
 
-    @VisibleForTesting
     protected static void checkFileExists(String filePath) {
         File file = new File(filePath);
         if (file.exists()) {
@@ -217,14 +207,13 @@ public class SSLUtil {
         if (fileExists(filePath)) {
             File file = new File(filePath);
             if (file.delete()) {
-                LOG.info(file.getName() + " is deleted！");
+                log.info(file.getName() + " is deleted！");
             } else {
-                LOG.error("deleted " + file.getName() + " failed！");
+                log.error("deleted " + file.getName() + " failed！");
             }
         }
     }
 
-    @VisibleForTesting
     protected static boolean fileExists(String filePath) {
         File file = new File(filePath);
         return file.exists() && file.isFile();
@@ -241,7 +230,7 @@ public class SSLUtil {
             throw new RuntimeException("create dir failure: " + dir);
         }
 
-        LOG.info("create local dir:{}", dir);
+        log.info("create local dir:{}", dir);
         return dir;
     }
 }

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.sybase.source;
 
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.sybase.dialect.SybaseDialect;
@@ -27,16 +27,15 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import org.apache.commons.lang3.StringUtils;
 
-/** @Author OT @Date 2022/6/13 17:42 @Version 1.0 */
 public class SybaseSourceFactory extends JdbcSourceFactory {
-    public SybaseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, new SybaseDialect());
+    public SybaseSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
+        super(syncConfig, env, new SybaseDialect());
         // avoid result.next blocking
-        if (jdbcConf.isPolling()
-                && StringUtils.isEmpty(jdbcConf.getStartLocation())
-                && jdbcConf.getFetchSize() == 0) {
-            jdbcConf.setFetchSize(1000);
+        if (jdbcConfig.isPolling()
+                && StringUtils.isEmpty(jdbcConfig.getStartLocation())
+                && jdbcConfig.getFetchSize() == 0) {
+            jdbcConfig.setFetchSize(1000);
         }
-        JdbcUtil.putExtParam(jdbcConf);
+        JdbcUtil.putExtParam(jdbcConfig);
     }
 }

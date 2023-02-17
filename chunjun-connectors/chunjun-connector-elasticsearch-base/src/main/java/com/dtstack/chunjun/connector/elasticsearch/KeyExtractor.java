@@ -23,12 +23,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class KeyExtractor {
-    /**
-     * generate doc id by id fields.
-     *
-     * @param
-     * @return
-     */
     public static String getDocId(
             List<String> idFieldNames, Map<String, Object> dataMap, String keyDelimiter) {
         String docId = "";

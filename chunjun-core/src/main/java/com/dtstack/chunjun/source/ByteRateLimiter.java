@@ -21,7 +21,7 @@ package com.dtstack.chunjun.source;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.metrics.AccumulatorCollector;
 
-import org.apache.flink.shaded.guava18.com.google.common.util.concurrent.RateLimiter;
+import org.apache.flink.shaded.guava30.com.google.common.util.concurrent.RateLimiter;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
@@ -31,13 +31,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-/**
- * This class is user for speed control
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+/** This class is user for speed control */
 @SuppressWarnings("all")
 public class ByteRateLimiter {
 

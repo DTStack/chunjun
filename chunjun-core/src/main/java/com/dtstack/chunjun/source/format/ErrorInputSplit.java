@@ -20,12 +20,9 @@ package com.dtstack.chunjun.source.format;
 
 import org.apache.flink.core.io.InputSplit;
 
-/**
- * @author jiangbo
- * @date 2019/11/21
- */
 public class ErrorInputSplit implements InputSplit {
 
+    private static final long serialVersionUID = -8172632555407711932L;
     int splitNumber;
 
     String errorMessage;

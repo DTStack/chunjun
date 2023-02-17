@@ -18,6 +18,8 @@
 
 package com.dtstack.chunjun.connector.starrocks.streamload;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -26,9 +28,11 @@ import java.util.List;
 import java.util.StringJoiner;
 import java.util.UUID;
 
+@Data
 public class StarRocksSinkBufferEntity implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -9221910865925691012L;
+
     DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(("yyyyMMdd_HHmmss"));
 
     private final ArrayList<byte[]> buffer = new ArrayList<>();
@@ -48,58 +52,18 @@ public class StarRocksSinkBufferEntity implements Serializable {
         label = initBatchLabel();
     }
 
-    public String getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
-    public String getTable() {
-        return table;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public ArrayList<byte[]> getBuffer() {
-        return buffer;
-    }
-
     public void addToBuffer(byte[] bts, int count) {
         incBatchCount(count);
         incBatchSize(bts.length);
         buffer.add(bts);
     }
 
-    public int getBatchCount() {
-        return batchCount;
-    }
-
     private void incBatchCount(int count) {
         this.batchCount += count;
     }
 
-    public long getBatchSize() {
-        return batchSize;
-    }
-
     private void incBatchSize(long batchSize) {
         this.batchSize += batchSize;
-    }
-
-    public List<String> getColumnList() {
-        return columnList;
-    }
-
-    public boolean isSupportDelete() {
-        return supportDelete;
     }
 
     public void setSupportDelete(boolean supportDelete, boolean __opAutoProjectionInJson) {

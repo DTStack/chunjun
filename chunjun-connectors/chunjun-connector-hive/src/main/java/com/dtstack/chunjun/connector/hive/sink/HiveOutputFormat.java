@@ -17,13 +17,13 @@
  */
 package com.dtstack.chunjun.connector.hive.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsRawTypeConverter;
 import com.dtstack.chunjun.connector.hdfs.sink.BaseHdfsOutputFormat;
 import com.dtstack.chunjun.connector.hdfs.sink.HdfsOutputFormatBuilder;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
-import com.dtstack.chunjun.connector.hive.conf.HiveConf;
+import com.dtstack.chunjun.connector.hive.config.HiveConfig;
 import com.dtstack.chunjun.connector.hive.entity.ConnectionInfo;
 import com.dtstack.chunjun.connector.hive.entity.HiveFormatState;
 import com.dtstack.chunjun.connector.hive.entity.TableInfo;
@@ -44,7 +44,8 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
-import org.apache.commons.collections.MapUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -59,18 +60,16 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
+@Slf4j
 public class HiveOutputFormat extends BaseRichOutputFormat {
+
+    private static final long serialVersionUID = -5345705130137076697L;
 
     private org.apache.flink.configuration.Configuration parameters;
     private int taskNumber;
     private int numTasks;
 
-    private HiveConf hiveConf;
+    private HiveConfig hiveConfig;
     private ConnectionInfo connectionInfo;
     private SimpleDateFormat partitionFormat;
 
@@ -107,10 +106,10 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         }
 
         connectionInfo = new ConnectionInfo();
-        connectionInfo.setJdbcUrl(hiveConf.getJdbcUrl());
-        connectionInfo.setUsername(hiveConf.getUsername());
-        connectionInfo.setPassword(hiveConf.getPassword());
-        connectionInfo.setHiveConf(hiveConf.getHadoopConfig());
+        connectionInfo.setJdbcUrl(hiveConfig.getJdbcUrl());
+        connectionInfo.setUsername(hiveConfig.getUsername());
+        connectionInfo.setPassword(hiveConfig.getPassword());
+        connectionInfo.setHiveConfig(hiveConfig.getHadoopConfig());
         primaryCreateTable();
     }
 
@@ -119,8 +118,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         if (RowKind.INSERT != rowData.getRowKind()) {
             throw new ChunJunRuntimeException("Hive connector doesn't support update/delete!");
         }
-        String tableName = hiveConf.getTableName();
-        boolean hasAnalyticalRules = StringUtils.isNotBlank(hiveConf.getAnalyticalRules());
+        String tableName = hiveConfig.getTableName();
+        boolean hasAnalyticalRules = StringUtils.isNotBlank(hiveConfig.getAnalyticalRules());
         Map<String, Object> dataMap = null;
         if (rowData instanceof ColumnRowData) {
             ColumnRowData columnRowData = (ColumnRowData) rowData;
@@ -132,16 +131,16 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                     tableName =
                             PathConverterUtil.regexByRules(
                                     dataMap,
-                                    hiveConf.getAnalyticalRules(),
-                                    hiveConf.getDistributeTableMapping());
+                                    hiveConfig.getAnalyticalRules(),
+                                    hiveConfig.getDistributeTableMapping());
                 }
             } else {
                 if (hasAnalyticalRules) {
                     tableName =
                             PathConverterUtil.regexByRules(
                                     columnRowData,
-                                    hiveConf.getAnalyticalRules(),
-                                    hiveConf.getDistributeTableMapping());
+                                    hiveConfig.getAnalyticalRules(),
+                                    hiveConfig.getDistributeTableMapping());
                 }
             }
         }
@@ -151,13 +150,13 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
         try {
             BaseHdfsOutputFormat hdfsOutputFormat = formatPair.getLeft();
-            HdfsConf hdfsConf = hdfsOutputFormat.getHdfsConf();
-            List<FieldConf> fieldConfList = hdfsConf.getColumn();
+            HdfsConfig hdfsConfig = hdfsOutputFormat.getHdfsConf();
+            List<FieldConfig> fieldConfList = hdfsConfig.getColumn();
             RowData forwardRowData = null;
             if (dataMap != null) {
                 ColumnRowData result = new ColumnRowData(fieldConfList.size());
-                for (FieldConf fieldConf : fieldConfList) {
-                    Object data = dataMap.get(fieldConf.getName());
+                for (FieldConfig fieldConfig : fieldConfList) {
+                    Object data = dataMap.get(fieldConfig.getName());
                     result.addField(HiveUtil.parseDataFromMap(data));
                 }
                 forwardRowData = result;
@@ -165,8 +164,9 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 ColumnRowData columnRowData = (ColumnRowData) rowData;
                 if (columnRowData.getHeaders() != null) {
                     ColumnRowData result = new ColumnRowData(fieldConfList.size());
-                    for (FieldConf fieldConf : fieldConfList) {
-                        AbstractBaseColumn baseColumn = columnRowData.getField(fieldConf.getName());
+                    for (FieldConfig fieldConfig : fieldConfList) {
+                        AbstractBaseColumn baseColumn =
+                                columnRowData.getField(fieldConfig.getName());
                         if (baseColumn != null) {
                             result.addField(baseColumn);
                         } else {
@@ -184,7 +184,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         } catch (Exception e) {
             // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
             if (numWriteCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0) {
-                LOG.warn("write hdfs exception:", e);
+                log.warn("write hdfs exception:", e);
             }
         }
         rowsOfCurrentTransaction++;
@@ -249,7 +249,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 format.close();
                 format.finalizeGlobal(numTasks);
             } catch (IOException e) {
-                LOG.warn("close {} outputFormat error", entry.getKey(), e);
+                log.warn("close {} outputFormat error", entry.getKey(), e);
             }
         }
     }
@@ -258,7 +258,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             String tableName, RowData rowData, Map<String, Object> event) {
         String partitionValue = partitionFormat.format(new Date());
         String partitionPath =
-                String.format(HiveUtil.PARTITION_TEMPLATE, hiveConf.getPartition(), partitionValue);
+                String.format(
+                        HiveUtil.PARTITION_TEMPLATE, hiveConfig.getPartition(), partitionValue);
         String hiveTablePath = tableName + File.separatorChar + partitionPath;
 
         Pair<String, BaseHdfsOutputFormat> formatPair = outputFormatMap.get(tableName);
@@ -270,7 +271,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         if (outputFormat == null) {
             HiveUtil.createPartition(
                     tableInfo,
-                    hiveConf.getSchema(),
+                    hiveConfig.getSchema(),
                     partitionPath,
                     connectionInfo,
                     getRuntimeContext().getDistributedCache());
@@ -285,7 +286,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                     format.finalizeGlobal(numTasks);
                     format.close();
                 } catch (IOException e) {
-                    LOG.warn("close {} outputFormat error", hiveTablePath, e);
+                    log.warn("close {} outputFormat error", hiveTablePath, e);
                 }
             }
             outputFormatMap.put(tableName, Pair.of(partitionPath, outputFormat));
@@ -297,20 +298,20 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             TableInfo tableInfo, String path, String hiveTablePath, boolean useAbstractBaseColumn) {
         try {
             HdfsOutputFormatBuilder builder =
-                    HdfsOutputFormatBuilder.newBuild(hiveConf.getFileType());
-            HiveConf copyHiveConf =
-                    GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(hiveConf), HiveConf.class);
+                    HdfsOutputFormatBuilder.newBuild(hiveConfig.getFileType());
+            HiveConfig copyHiveConf =
+                    GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(hiveConfig), HiveConfig.class);
             copyHiveConf.setPath(path);
             copyHiveConf.setFileName(null);
             List<String> columnNameList = tableInfo.getColumnNameList();
             List<String> columnTypeList = tableInfo.getColumnTypeList();
-            List<FieldConf> fieldConfList = new ArrayList<>(columnNameList.size());
+            List<FieldConfig> fieldConfList = new ArrayList<>(columnNameList.size());
             for (int i = 0; i < columnNameList.size(); i++) {
-                FieldConf fieldConf = new FieldConf();
-                fieldConf.setIndex(i);
-                fieldConf.setName(columnNameList.get(i));
-                fieldConf.setType(columnTypeList.get(i));
-                fieldConfList.add(fieldConf);
+                FieldConfig fieldConfig = new FieldConfig();
+                fieldConfig.setIndex(i);
+                fieldConfig.setName(columnNameList.get(i));
+                fieldConfig.setType(columnTypeList.get(i));
+                fieldConfList.add(fieldConfig);
             }
             copyHiveConf.setColumn(fieldConfList);
             copyHiveConf.setFullColumnName(columnNameList);
@@ -323,13 +324,12 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                             copyHiveConf.getFileType(),
                             fieldConfList,
                             HdfsRawTypeConverter::apply,
-                            hiveConf),
+                            hiveConfig),
                     useAbstractBaseColumn);
             builder.setInitAccumulatorAndDirty(false);
 
             BaseHdfsOutputFormat outputFormat = (BaseHdfsOutputFormat) builder.finish();
             outputFormat.setFormatId(hiveTablePath);
-            outputFormat.setDirtyDataManager(dirtyDataManager);
             outputFormat.setRuntimeContext(getRuntimeContext());
             outputFormat.setRestoreState(formatStateMap.get(hiveTablePath));
             outputFormat.configure(parameters);
@@ -338,21 +338,23 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
             return outputFormat;
         } catch (Exception e) {
-            LOG.error("create [HdfsOutputFormat] exception:", e);
+            log.error("create [HdfsOutputFormat] exception:", e);
             throw new ChunJunRuntimeException(e);
         }
     }
 
     /** 预先建表 只适用于analyticalRules参数为schema和table的情况 */
     private void primaryCreateTable() {
-        for (Map.Entry<String, TableInfo> entry : hiveConf.getTableInfos().entrySet()) {
+        for (Map.Entry<String, TableInfo> entry : hiveConfig.getTableInfos().entrySet()) {
             Map<String, Object> event = new HashMap<>(4);
-            event.put("schema", hiveConf.getSchema());
+            event.put("schema", hiveConfig.getSchema());
             event.put("table", entry.getKey());
             TableInfo tableInfo = entry.getValue();
             String tablePath =
                     PathConverterUtil.regexByRules(
-                            event, hiveConf.getTableName(), hiveConf.getDistributeTableMapping());
+                            event,
+                            hiveConfig.getTableName(),
+                            hiveConfig.getDistributeTableMapping());
             tableInfo.setTablePath(tablePath);
             checkCreateTable(tablePath, null, event);
         }
@@ -362,22 +364,25 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             String tablePath, RowData rowData, Map<String, Object> event) {
         TableInfo tableInfo = tableCacheMap.get(tablePath);
         if (tableInfo == null) {
-            LOG.info("tablePath:{}, rowData:{}, even:{}", tablePath, rowData, event);
+            log.info("tablePath:{}, rowData:{}, even:{}", tablePath, rowData, event);
 
             String tableName = tablePath;
             if (event != null) {
                 tableName = MapUtils.getString(event, "table");
-                tableName = hiveConf.getDistributeTableMapping().getOrDefault(tableName, tableName);
+                tableName =
+                        hiveConfig.getDistributeTableMapping().getOrDefault(tableName, tableName);
             } else if (rowData instanceof ColumnRowData) {
                 ColumnRowData columnRowData = (ColumnRowData) rowData;
                 AbstractBaseColumn baseColumn = columnRowData.getField("table");
                 if (baseColumn != null) {
                     tableName = baseColumn.asString();
                     tableName =
-                            hiveConf.getDistributeTableMapping().getOrDefault(tableName, tableName);
+                            hiveConfig
+                                    .getDistributeTableMapping()
+                                    .getOrDefault(tableName, tableName);
                 }
             }
-            tableInfo = hiveConf.getTableInfos().get(tableName);
+            tableInfo = hiveConfig.getTableInfos().get(tableName);
             if (tableInfo == null) {
                 throw new ChunJunRuntimeException(
                         "tableName:" + tableName + " of the tableInfo is null");
@@ -385,7 +390,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             tableInfo.setTablePath(tablePath);
             HiveUtil.createHiveTableWithTableInfo(
                     tableInfo,
-                    hiveConf.getSchema(),
+                    hiveConfig.getSchema(),
                     connectionInfo,
                     getRuntimeContext().getDistributedCache());
             tableCacheMap.put(tablePath, tableInfo);
@@ -394,11 +399,11 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     }
 
     private SimpleDateFormat getPartitionFormat() {
-        if (StringUtils.isBlank(hiveConf.getPartitionType())) {
+        if (StringUtils.isBlank(hiveConfig.getPartitionType())) {
             throw new IllegalArgumentException("partitionEnumStr is empty!");
         }
         SimpleDateFormat format;
-        switch (hiveConf.getPartitionType().toUpperCase(Locale.ENGLISH)) {
+        switch (hiveConfig.getPartitionType().toUpperCase(Locale.ENGLISH)) {
             case "DAY":
                 format = new SimpleDateFormat("yyyyMMdd");
                 break;
@@ -410,19 +415,19 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 break;
             default:
                 throw new UnsupportedOperationException(
-                        "partitionEnum = " + hiveConf.getPartitionType() + " is undefined!");
+                        "partitionEnum = " + hiveConfig.getPartitionType() + " is undefined!");
         }
         TimeZone timeZone = TimeZone.getDefault();
-        LOG.info("timeZone = {}", timeZone);
+        log.info("timeZone = {}", timeZone);
         format.setTimeZone(timeZone);
         return format;
     }
 
-    public void setHiveConf(HiveConf hiveConf) {
-        this.hiveConf = hiveConf;
+    public void setHiveConfig(HiveConfig hiveConfig) {
+        this.hiveConfig = hiveConfig;
     }
 
-    public HiveConf getHiveConf() {
-        return hiveConf;
+    public HiveConfig getHiveConfig() {
+        return hiveConfig;
     }
 }

@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.metrics.prometheus;
 
-import com.dtstack.chunjun.conf.MetricParam;
+import com.dtstack.chunjun.config.MetricParam;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.metrics.CustomReporter;
 import com.dtstack.chunjun.metrics.SimpleAccumulatorGauge;
@@ -33,6 +33,7 @@ import org.apache.flink.metrics.Meter;
 import org.apache.flink.metrics.Metric;
 import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.runtime.execution.Environment;
+import org.apache.flink.runtime.metrics.filter.MetricFilter;
 import org.apache.flink.runtime.metrics.groups.AbstractMetricGroup;
 import org.apache.flink.runtime.metrics.groups.FrontMetricGroup;
 import org.apache.flink.runtime.metrics.groups.ReporterScopedSettings;
@@ -43,8 +44,7 @@ import org.apache.flink.util.StringUtils;
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.PushGateway;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -57,14 +57,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author: shifang
- * @description prometheus report
- * @date: 2021/6/28 下午5:09
- */
+@Slf4j
 public class PrometheusReport extends CustomReporter {
-
-    public static Logger LOG = LoggerFactory.getLogger(PrometheusReport.class);
 
     public CollectorRegistry defaultRegistry = new CollectorRegistry(true);
 
@@ -85,7 +79,7 @@ public class PrometheusReport extends CustomReporter {
             "metrics.reporter.promgateway.deleteOnShutdown";
 
     private static final char SCOPE_SEPARATOR = '_';
-    private static final String SCOPE_PREFIX = "flink" + SCOPE_SEPARATOR;
+    private static final String SCOPE_PREFIX = "org/apache/flink" + SCOPE_SEPARATOR;
 
     private final Map<String, AbstractMap.SimpleImmutableEntry<Collector, Integer>>
             collectorsWithCountByMetricName = new HashMap<>();
@@ -130,7 +124,7 @@ public class PrometheusReport extends CustomReporter {
         }
 
         pushGateway = new PushGateway(host + ':' + port);
-        LOG.info(
+        log.info(
                 "Configured PrometheusPushGatewayReporter with {host:{}, port:{}, jobName: {}, randomJobNameSuffix:{}, deleteOnShutdown:{}}",
                 host,
                 port,
@@ -143,7 +137,12 @@ public class PrometheusReport extends CustomReporter {
     public void registerMetric(Accumulator accumulator, String name) {
         name = Metrics.METRIC_GROUP_KEY_CHUNJUN + "_" + name;
         ReporterScopedSettings reporterScopedSettings =
-                new ReporterScopedSettings(0, ',', Collections.emptySet());
+                new ReporterScopedSettings(
+                        0,
+                        ',',
+                        MetricFilter.NO_OP_FILTER,
+                        Collections.emptySet(),
+                        Collections.emptyMap());
         FrontMetricGroup front =
                 new FrontMetricGroup<AbstractMetricGroup<?>>(
                         reporterScopedSettings, (AbstractMetricGroup) context.getMetricGroup());
@@ -155,10 +154,10 @@ public class PrometheusReport extends CustomReporter {
         try {
             if (null != pushGateway) {
                 pushGateway.push(defaultRegistry, jobName);
-                LOG.info("push metrics to PushGateway with jobName {}.", jobName);
+                log.info("push metrics to PushGateway with jobName {}.", jobName);
             }
         } catch (Exception e) {
-            LOG.warn("Failed to push metrics to PushGateway with jobName {}.", jobName, e);
+            log.warn("Failed to push metrics to PushGateway with jobName {}.", jobName, e);
             if (makeTaskFailedWhenReportFailed) {
                 throw new RuntimeException(e);
             }
@@ -170,9 +169,9 @@ public class PrometheusReport extends CustomReporter {
         if (deleteOnShutdown && pushGateway != null) {
             try {
                 pushGateway.delete(jobName);
-                LOG.info("delete metrics from PushGateway with jobName {}.", jobName);
+                log.info("delete metrics from PushGateway with jobName {}.", jobName);
             } catch (IOException e) {
-                LOG.warn("Failed to delete metrics from PushGateway with jobName {}.", jobName, e);
+                log.warn("Failed to delete metrics from PushGateway with jobName {}.", jobName, e);
             }
         }
     }
@@ -217,7 +216,7 @@ public class PrometheusReport extends CustomReporter {
                 try {
                     collector.register(defaultRegistry);
                 } catch (Exception e) {
-                    LOG.warn("There was a problem registering metric {}.", metricName, e);
+                    log.warn("There was a problem registering metric {}.", metricName, e);
                 }
             }
             addMetric(metric, dimensionValues, collector);
@@ -256,7 +255,7 @@ public class PrometheusReport extends CustomReporter {
                             dimensionKeys,
                             dimensionValues);
         } else {
-            LOG.warn(
+            log.warn(
                     "Cannot create collector for unknown metric type: {}. This indicates that the metric type is not supported by this reporter.",
                     metric.getClass().getName());
             collector = null;
@@ -277,7 +276,7 @@ public class PrometheusReport extends CustomReporter {
         } else if (metric instanceof Histogram) {
             ((HistogramSummaryProxy) collector).addChild((Histogram) metric, dimensionValues);
         } else {
-            LOG.warn(
+            log.warn(
                     "Cannot add unknown metric type: {}. This indicates that the metric type is not supported by this reporter.",
                     metric.getClass().getName());
         }
@@ -296,7 +295,7 @@ public class PrometheusReport extends CustomReporter {
             public double get() {
                 final Object value = gauge.getValue();
                 if (value == null) {
-                    LOG.debug("Gauge {} is null-valued, defaulting to 0.", gauge);
+                    log.debug("Gauge {} is null-valued, defaulting to 0.", gauge);
                     return 0;
                 }
                 if (value instanceof Double) {
@@ -308,7 +307,7 @@ public class PrometheusReport extends CustomReporter {
                 if (value instanceof Boolean) {
                     return ((Boolean) value) ? 1 : 0;
                 }
-                LOG.debug(
+                log.debug(
                         "Invalid type for Gauge {}: {}, only number types and booleans are supported by this reporter.",
                         gauge,
                         value.getClass().getName());

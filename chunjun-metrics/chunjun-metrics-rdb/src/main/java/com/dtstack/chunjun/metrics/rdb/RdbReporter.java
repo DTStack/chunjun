@@ -18,11 +18,12 @@
 
 package com.dtstack.chunjun.metrics.rdb;
 
-import com.dtstack.chunjun.conf.MetricParam;
+import com.dtstack.chunjun.config.MetricParam;
 import com.dtstack.chunjun.metrics.CustomReporter;
 import com.dtstack.chunjun.util.JsonUtil;
 
 import org.apache.flink.api.common.accumulators.Accumulator;
+import org.apache.flink.runtime.metrics.filter.MetricFilter;
 import org.apache.flink.runtime.metrics.groups.AbstractMetricGroup;
 import org.apache.flink.runtime.metrics.groups.FrontMetricGroup;
 import org.apache.flink.runtime.metrics.groups.ReporterScopedSettings;
@@ -80,7 +81,12 @@ public abstract class RdbReporter extends CustomReporter {
         }
         accumulatorMap.put(name, accumulator);
         ReporterScopedSettings reporterScopedSettings =
-                new ReporterScopedSettings(0, ',', Collections.emptySet());
+                new ReporterScopedSettings(
+                        0,
+                        ',',
+                        MetricFilter.NO_OP_FILTER,
+                        Collections.emptySet(),
+                        Collections.emptyMap());
         FrontMetricGroup front =
                 new FrontMetricGroup<AbstractMetricGroup<?>>(
                         reporterScopedSettings, (AbstractMetricGroup) context.getMetricGroup());

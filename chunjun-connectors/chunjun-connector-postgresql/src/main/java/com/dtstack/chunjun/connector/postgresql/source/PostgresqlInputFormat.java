@@ -22,11 +22,16 @@ import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class PostgresqlInputFormat extends JdbcInputFormat {
+
+    private static final long serialVersionUID = -2996563902455817663L;
 
     @Override
     protected void queryPollingWithOutStartLocation() throws SQLException {
@@ -34,19 +39,19 @@ public class PostgresqlInputFormat extends JdbcInputFormat {
         // , the query will report an error after the method
         // #setFetchDirection(ResultSet.FETCH_REVERSE) is called.
         String querySql =
-                jdbcConf.getQuerySql() + SqlUtil.buildOrderSql(jdbcConf, jdbcDialect, "ASC");
+                jdbcConfig.getQuerySql() + SqlUtil.buildOrderSql(jdbcConfig, jdbcDialect, "ASC");
         ps =
                 dbConn.prepareStatement(
                         querySql, ResultSet.TYPE_SCROLL_INSENSITIVE, resultSetConcurrency);
-        ps.setFetchSize(jdbcConf.getFetchSize());
-        ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
+        ps.setFetchSize(jdbcConfig.getFetchSize());
+        ps.setQueryTimeout(jdbcConfig.getQueryTimeOut());
         resultSet = ps.executeQuery();
         hasNext = resultSet.next();
 
         try {
             // 间隔轮询一直循环，直到查询到数据库中的数据为止
             while (!hasNext) {
-                TimeUnit.MILLISECONDS.sleep(jdbcConf.getPollingInterval());
+                TimeUnit.MILLISECONDS.sleep(jdbcConfig.getPollingInterval());
                 resultSet.close();
                 // 如果事务不提交 就会导致数据库即使插入数据 也无法读到数据
                 dbConn.commit();
@@ -54,39 +59,39 @@ public class PostgresqlInputFormat extends JdbcInputFormat {
                 hasNext = resultSet.next();
                 // 每隔五分钟打印一次，(当前时间 - 任务开始时间) % 300秒 <= 一个间隔轮询周期
                 if ((System.currentTimeMillis() - startTime) % 300000
-                        <= jdbcConf.getPollingInterval()) {
-                    LOG.info(
+                        <= jdbcConfig.getPollingInterval()) {
+                    log.info(
                             "no record matched condition in database, execute query sql = {}, startLocation = {}",
-                            jdbcConf.getQuerySql(),
+                            jdbcConfig.getQuerySql(),
                             endLocationAccumulator.getLocalValue());
                 }
             }
         } catch (InterruptedException e) {
-            LOG.warn(
+            log.warn(
                     "interrupted while waiting for polling, e = {}",
                     ExceptionUtil.getErrorMessage(e));
         }
 
         // 查询到数据，更新querySql
         StringBuilder builder = new StringBuilder(128);
-        builder.append(jdbcConf.getQuerySql());
-        if (jdbcConf.getQuerySql().contains("WHERE")) {
+        builder.append(jdbcConfig.getQuerySql());
+        if (jdbcConfig.getQuerySql().contains("WHERE")) {
             builder.append(" AND ");
         } else {
             builder.append(" WHERE ");
         }
-        builder.append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
+        builder.append(jdbcDialect.quoteIdentifier(jdbcConfig.getIncreColumn()))
                 .append(" > ? ORDER BY ")
-                .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
+                .append(jdbcDialect.quoteIdentifier(jdbcConfig.getIncreColumn()))
                 .append(" ASC");
-        jdbcConf.setQuerySql(builder.toString());
+        jdbcConfig.setQuerySql(builder.toString());
         ps =
                 dbConn.prepareStatement(
-                        jdbcConf.getQuerySql(),
+                        jdbcConfig.getQuerySql(),
                         ResultSet.TYPE_SCROLL_INSENSITIVE,
                         resultSetConcurrency);
-        ps.setFetchSize(jdbcConf.getFetchSize());
-        ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
-        LOG.info("update querySql, sql = {}", jdbcConf.getQuerySql());
+        ps.setFetchSize(jdbcConfig.getFetchSize());
+        ps.setQueryTimeout(jdbcConfig.getQueryTimeOut());
+        log.info("update querySql, sql = {}", jdbcConfig.getQuerySql());
     }
 }

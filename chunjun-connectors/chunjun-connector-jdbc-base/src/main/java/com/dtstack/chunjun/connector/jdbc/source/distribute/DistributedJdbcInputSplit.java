@@ -17,24 +17,24 @@
  */
 package com.dtstack.chunjun.connector.jdbc.source.distribute;
 
-import com.dtstack.chunjun.connector.jdbc.conf.DataSourceConf;
+import com.dtstack.chunjun.connector.jdbc.config.DataSourceConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
+
+import lombok.Getter;
 
 import java.util.List;
 
-/**
- * Date: 2022/01/12 Company: www.dtstack.com
- *
- * @author tudou
- */
+@Getter
 public class DistributedJdbcInputSplit extends JdbcInputSplit {
 
-    private List<DataSourceConf> sourceList;
+    private static final long serialVersionUID = 2553332495976709173L;
+
+    private final List<DataSourceConfig> sourceList;
 
     public DistributedJdbcInputSplit(
             int partitionNumber,
             int totalNumberOfPartitions,
-            List<DataSourceConf> sourceList,
+            List<DataSourceConfig> sourceList,
             String splitStrategy,
             boolean isPolling) {
         super(
@@ -47,14 +47,6 @@ public class DistributedJdbcInputSplit extends JdbcInputSplit {
                 null,
                 splitStrategy,
                 isPolling);
-        this.sourceList = sourceList;
-    }
-
-    public List<DataSourceConf> getSourceList() {
-        return sourceList;
-    }
-
-    public void setSourceList(List<DataSourceConf> sourceList) {
         this.sourceList = sourceList;
     }
 }

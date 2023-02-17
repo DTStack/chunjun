@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.dirty.manager;
 
 import com.dtstack.chunjun.constants.Metrics;
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.consumer.DirtyDataCollector;
 import com.dtstack.chunjun.dirty.impl.DirtyDataEntry;
 import com.dtstack.chunjun.factory.ChunJunThreadFactory;
@@ -32,8 +32,7 @@ import org.apache.flink.api.common.functions.RuntimeContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -43,15 +42,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * @author tiezhu@dtstack
- * @date 22/09/2021 Wednesday
- */
+@Slf4j
 public class DirtyManager implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
-    private static final Logger LOG = LoggerFactory.getLogger(DirtyManager.class);
 
     private static final String JOB_ID = "<job_id>";
 
@@ -80,8 +74,8 @@ public class DirtyManager implements Serializable {
 
     private final LongCounter errorCounter;
 
-    public DirtyManager(DirtyConf dirtyConf, RuntimeContext runtimeContext) {
-        this.consumer = DataSyncFactoryUtil.discoverDirty(dirtyConf);
+    public DirtyManager(DirtyConfig dirtyConfig, RuntimeContext runtimeContext) {
+        this.consumer = DataSyncFactoryUtil.discoverDirty(dirtyConfig);
         Map<String, String> allVariables = runtimeContext.getMetricGroup().getAllVariables();
         this.jobId = allVariables.get(JOB_ID);
         this.jobName = allVariables.getOrDefault(JOB_NAME, "defaultJobName");
@@ -102,7 +96,7 @@ public class DirtyManager implements Serializable {
                                     "dirty-consumer",
                                     true,
                                     (t, e) -> {
-                                        LOG.error(
+                                        log.error(
                                                 String.format(
                                                         "Thread [%s] consume failed.", t.getName()),
                                                 e);
@@ -148,7 +142,7 @@ public class DirtyManager implements Serializable {
             try {
                 return GSON.toJson(data);
             } catch (Exception processingException) {
-                LOG.warn("Dirty transform to String failed.", processingException);
+                log.warn("Dirty transform to String failed.", processingException);
                 return null;
             }
         }

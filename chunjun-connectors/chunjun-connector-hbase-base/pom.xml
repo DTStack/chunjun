@@ -23,26 +23,18 @@
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.12-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connector-hbase-base</artifactId>
-	<name>ChunJun : Connectors : HBase base</name>
+	<name>ChunJun : Connector : HBase base</name>
 	<packaging>jar</packaging>
 
 	<properties>
 		<hbase.version>1.4.3</hbase.version>
-		<log4j.version>2.12.1</log4j.version>
 	</properties>
 	<dependencies>
-		<dependency>
-			<groupId>org.apache.hadoop</groupId>
-			<artifactId>hadoop-common</artifactId>
-			<version>${hadoop.version}</version>
-			<scope>provided</scope>
-		</dependency>
-
 		<dependency>
 			<groupId>org.apache.hbase</groupId>
 			<artifactId>hbase-client</artifactId>
@@ -116,18 +108,5 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
-		<dependency>
-			<!-- API bridge between log4j 1 and 2 -->
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-1.2-api</artifactId>
-			<version>${log4j.version}</version>
-		</dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>RELEASE</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 </project>

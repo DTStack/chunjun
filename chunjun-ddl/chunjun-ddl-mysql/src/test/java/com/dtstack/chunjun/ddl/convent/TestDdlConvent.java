@@ -23,7 +23,7 @@ import com.dtstack.chunjun.cdc.ddl.definition.DdlOperator;
 import com.dtstack.chunjun.cdc.ddl.definition.TableOperator;
 import com.dtstack.chunjun.ddl.convent.mysql.MysqlDdlConventImpl;
 import com.dtstack.chunjun.ddl.convent.mysql.parse.impl.ChunjunMySqlParserImpl;
-import com.dtstack.chunjun.mapping.MappingConf;
+import com.dtstack.chunjun.mapping.MappingConfig;
 import com.dtstack.chunjun.throwable.ConventException;
 
 import org.apache.calcite.config.Lex;
@@ -149,8 +149,8 @@ public class TestDdlConvent {
         identifierMappings.put("dujie.*", "test_${dataBaseName}.${tableName}");
         LinkedHashMap<String, String> columnTypeMappings = new LinkedHashMap<>();
         columnTypeMappings.put("int", "varchar(255)");
-        MappingConf nameMappingConf = new MappingConf(identifierMappings, columnTypeMappings);
-        MysqlDdlConventImpl convent = new MysqlDdlConventImpl(nameMappingConf);
+        MappingConfig nameMappingConfig = new MappingConfig(identifierMappings, columnTypeMappings);
+        MysqlDdlConventImpl convent = new MysqlDdlConventImpl(nameMappingConfig);
 
         String sql = "create table  `dujie`.`t4` (id int(123) not null) ";
 

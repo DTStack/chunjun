@@ -24,15 +24,12 @@ import com.dtstack.chunjun.connector.test.utils.ChunjunFlinkStandaloneTestEnviro
 import com.dtstack.chunjun.connector.test.utils.JdbcProxy;
 
 import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
 public class MysqlBaseSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
-    private static final Logger LOG = LoggerFactory.getLogger(MysqlBaseSyncE2eITCase.class);
 
     protected static final String MYSQL_HOST = "chunjun-e2e-mysql";
 
@@ -61,18 +58,18 @@ public class MysqlBaseSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironmen
                         genericContainer.getDriverClassName());
         List<String> expectResult =
                 Arrays.asList(
-                        "1,zhang1,1,2022-08-12,13022539328,zhang3@dtstack.com,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
-                        "10,zhang10,10,2022-08-12,13022539328,zhang3@dtstack.com,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
-                        "11,zhang11,11,2022-08-12,13022539328,zhang3@dtstack.com,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
-                        "12,zhang12,12,2022-08-12,13022539328,zhang3@dtstack.com,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
-                        "2,zhang2,2,2022-08-12,13022539328,zhang3@dtstack.com,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
-                        "3,zhang3,3,2022-08-12,13022539328,zhang3@dtstack.com,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
-                        "4,zhang4,4,2022-08-12,13022539328,zhang3@dtstack.com,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
-                        "5,zhang5,5,2022-08-12,13022539328,zhang3@dtstack.com,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
-                        "6,zhang6,6,2022-08-12,13022539328,zhang3@dtstack.com,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
-                        "7,zhang7,7,2022-08-12,13022539328,zhang3@dtstack.com,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
-                        "8,zhang8,8,2022-08-12,13022539328,zhang3@dtstack.com,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
-                        "9,zhang9,9,2022-08-12,13022539328,zhang3@dtstack.com,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1");
+                        "1,zhang1,1,2022-08-12,13022539328,zhang3@chunjun,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
+                        "10,zhang10,10,2022-08-12,13022539328,zhang3@chunjun,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
+                        "11,zhang11,11,2022-08-12,13022539328,zhang3@chunjun,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
+                        "12,zhang12,12,2022-08-12,13022539328,zhang3@chunjun,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
+                        "2,zhang2,2,2022-08-12,13022539328,zhang3@chunjun,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
+                        "3,zhang3,3,2022-08-12,13022539328,zhang3@chunjun,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
+                        "4,zhang4,4,2022-08-12,13022539328,zhang3@chunjun,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
+                        "5,zhang5,5,2022-08-12,13022539328,zhang3@chunjun,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
+                        "6,zhang6,6,2022-08-12,13022539328,zhang3@chunjun,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
+                        "7,zhang7,7,2022-08-12,13022539328,zhang3@chunjun,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
+                        "8,zhang8,8,2022-08-12,13022539328,zhang3@chunjun,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1",
+                        "9,zhang9,9,2022-08-12,13022539328,zhang3@chunjun,1,2022-08-12 11:20:15.0,1,1,1,1.00,1.0,1.0,1");
         proxy.checkResultWithTimeout(
                 expectResult,
                 "test_sink",

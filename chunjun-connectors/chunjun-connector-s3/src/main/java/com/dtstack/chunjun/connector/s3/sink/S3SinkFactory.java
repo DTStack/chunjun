@@ -18,9 +18,9 @@
 
 package com.dtstack.chunjun.connector.s3.sink;
 
-import com.dtstack.chunjun.conf.SpeedConf;
-import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.s3.conf.S3Conf;
+import com.dtstack.chunjun.config.SpeedConfig;
+import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.connector.s3.converter.S3ColumnConverter;
 import com.dtstack.chunjun.connector.s3.converter.S3RawConverter;
 import com.dtstack.chunjun.connector.s3.converter.S3RowConverter;
@@ -37,17 +37,18 @@ import org.apache.flink.table.types.logical.RowType;
 
 public class S3SinkFactory extends SinkFactory {
 
-    private final S3Conf s3Conf;
-    private final SpeedConf speedConf;
+    private final S3Config s3Config;
+    private final SpeedConfig speedConfig;
 
-    public S3SinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        s3Conf =
+    public S3SinkFactory(SyncConfig syncConfig) {
+        super(syncConfig);
+        s3Config =
                 GsonUtil.GSON.fromJson(
-                        GsonUtil.GSON.toJson(syncConf.getWriter().getParameter()), S3Conf.class);
-        s3Conf.setColumn(syncConf.getWriter().getFieldList());
-        speedConf = syncConf.getSpeed();
-        super.initCommonConf(s3Conf);
+                        GsonUtil.GSON.toJson(syncConfig.getWriter().getParameter()),
+                        S3Config.class);
+        s3Config.setColumn(syncConfig.getWriter().getFieldList());
+        speedConfig = syncConfig.getSpeed();
+        super.initCommonConf(s3Config);
     }
 
     @Override
@@ -58,16 +59,17 @@ public class S3SinkFactory extends SinkFactory {
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         S3OutputFormatBuilder builder = new S3OutputFormatBuilder(new S3OutputFormat());
-        final RowType rowType = TableUtil.createRowType(s3Conf.getColumn(), getRawTypeConverter());
+        final RowType rowType =
+                TableUtil.createRowType(s3Config.getColumn(), getRawTypeConverter());
         AbstractRowConverter rowConverter;
         if (useAbstractBaseColumn) {
-            rowConverter = new S3ColumnConverter(rowType, s3Conf);
+            rowConverter = new S3ColumnConverter(rowType, s3Config);
         } else {
-            rowConverter = new S3RowConverter(rowType, s3Conf);
+            rowConverter = new S3RowConverter(rowType, s3Config);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
-        builder.setSpeedConf(speedConf);
-        builder.setS3Conf(s3Conf);
+        builder.setSpeedConf(speedConfig);
+        builder.setS3Conf(s3Config);
         return createOutput(dataSet, builder.finish());
     }
 }

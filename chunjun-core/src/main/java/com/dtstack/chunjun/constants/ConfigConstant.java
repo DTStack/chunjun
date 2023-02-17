@@ -22,22 +22,12 @@ import org.apache.flink.configuration.ConfigOptions;
 
 import static com.dtstack.chunjun.constants.ConstantValue.SHIP_FILE_PLUGIN_LOAD_MODE;
 
-/** @author sishu.yss */
 public class ConfigConstant {
 
-    public static final String KEY_PASSWORD = "password";
-    public static final String KEY_CONFUSED_PASSWORD = "******";
     public static final String KEY_COLUMN = "column";
 
     // ChunJun Restart strategy
     public static final String STRATEGY_NO_RESTART = "NoRestart";
-
-    // ChunJun log pattern
-    public static final String DEFAULT_LOG4J_PATTERN =
-            "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n";
-
-    /** 多少条打印一次日志 */
-    public static final String SAMPLE_INTERVAL_COUNT = "sample.interval.count";
 
     public static final ConfigOption<String> FLINK_PLUGIN_LOAD_MODE_KEY =
             ConfigOptions.key("pluginLoadMode")

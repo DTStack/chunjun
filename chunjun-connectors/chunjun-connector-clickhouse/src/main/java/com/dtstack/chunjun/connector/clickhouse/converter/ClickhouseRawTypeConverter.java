@@ -24,14 +24,8 @@ import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
-import java.sql.SQLException;
 import java.util.Locale;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/10
- */
 public class ClickhouseRawTypeConverter {
 
     /**
@@ -40,7 +34,6 @@ public class ClickhouseRawTypeConverter {
      *
      * @param type
      * @return
-     * @throws SQLException
      */
     public static DataType apply(String type) {
         type = type.toUpperCase(Locale.ENGLISH);

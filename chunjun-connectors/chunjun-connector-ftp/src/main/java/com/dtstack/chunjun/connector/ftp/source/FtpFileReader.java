@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.ftp.source;
 
 import com.dtstack.chunjun.connector.ftp.client.Data;
 import com.dtstack.chunjun.connector.ftp.client.ZipInputStream;
-import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.enums.FileType;
 import com.dtstack.chunjun.connector.ftp.extend.ftp.File;
 import com.dtstack.chunjun.connector.ftp.extend.ftp.FtpParseException;
@@ -37,9 +37,8 @@ import com.dtstack.chunjun.metrics.BaseMetric;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,11 +49,11 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.dtstack.chunjun.connector.ftp.conf.ConfigConstants.FTP_COUNTER_PREFIX;
+import static com.dtstack.chunjun.connector.ftp.config.ConfigConstants.FTP_COUNTER_PREFIX;
 
+@Slf4j
 public class FtpFileReader {
 
-    private static final Logger LOG = LoggerFactory.getLogger(FtpFileReader.class);
     private DTFtpHandler ftpHandler;
     private Iterator<FtpFileSplit> iter;
     private int fromLine = 0;
@@ -90,7 +89,7 @@ public class FtpFileReader {
         if (startPosition != null && startPosition.getCurrentReadPosition() > 0) {
             FtpFileSplit storefs = startPosition.getFileSplit();
 
-            /**
+            /*
              * remove same file name but endPosition < startPosition.getCurrentReadPosition() set
              * FtpFileSplit startPosition = startPosition.getCurrentReadPosition()
              */
@@ -216,7 +215,7 @@ public class FtpFileReader {
                     for (int i = 0; i < fromLine; i++) {
                         if (currentFileReadFormat.hasNext()) {
                             String[] strings = currentFileReadFormat.nextRecord();
-                            LOG.info("Skip line:{}", Arrays.toString(strings));
+                            log.info("Skip line:{}", Arrays.toString(strings));
                         } else {
                             break;
                         }
@@ -243,11 +242,11 @@ public class FtpFileReader {
                     ((FtpHandler) ftpHandler).getFtpClient().completePendingCommand();
                 } catch (Exception e) {
                     // 如果出现了超时异常，就直接获取一个新的ftpHandler
-                    LOG.warn("FTPClient completePendingCommand has error ->", e);
+                    log.warn("FTPClient completePendingCommand has error ->", e);
                     try {
                         ftpHandler.logoutFtpServer();
                     } catch (Exception exception) {
-                        LOG.warn("FTPClient logout has error ->", exception);
+                        log.warn("FTPClient logout has error ->", exception);
                     }
                     ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
                     ftpHandler.loginFtpServer(ftpConfig);
@@ -272,7 +271,7 @@ public class FtpFileReader {
             }
         }
 
-        LOG.info("The file [{}]  extension is {}  ", fileName, fileType);
+        log.info("The file [{}]  extension is {}  ", fileName, fileType);
 
         return FileType.getType(fileType);
     }

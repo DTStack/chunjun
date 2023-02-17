@@ -26,13 +26,11 @@ import io.vertx.ext.jdbc.spi.DataSourceProvider;
 
 import javax.sql.DataSource;
 
-import java.sql.SQLException;
 import java.util.Map;
 
-/** @author menghan on 2022/7/25. */
 public class Vertica11DataSourceProvider implements DataSourceProvider {
     @Override
-    public DataSource getDataSource(JsonObject json) throws SQLException {
+    public DataSource getDataSource(JsonObject json) {
 
         final HikariConfig config = new HikariConfig();
 
@@ -60,7 +58,7 @@ public class Vertica11DataSourceProvider implements DataSourceProvider {
     }
 
     @Override
-    public int maximumPoolSize(DataSource dataSource, JsonObject config) throws SQLException {
+    public int maximumPoolSize(DataSource dataSource, JsonObject config) {
         if (dataSource instanceof HikariDataSource) {
             return ((HikariDataSource) dataSource).getMaximumPoolSize();
         }
@@ -68,7 +66,7 @@ public class Vertica11DataSourceProvider implements DataSourceProvider {
     }
 
     @Override
-    public void close(DataSource dataSource) throws SQLException {
+    public void close(DataSource dataSource) {
         if (dataSource instanceof HikariDataSource) {
             ((HikariDataSource) dataSource).close();
         }

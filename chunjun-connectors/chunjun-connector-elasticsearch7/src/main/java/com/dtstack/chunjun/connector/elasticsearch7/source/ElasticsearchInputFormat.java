@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.elasticsearch7.source;
 
 import com.dtstack.chunjun.connector.elasticsearch7.Elasticsearch7ClientFactory;
 import com.dtstack.chunjun.connector.elasticsearch7.Elasticsearch7RequestFactory;
-import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConf;
+import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
 import com.dtstack.chunjun.util.JsonUtil;
@@ -30,6 +30,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.elasticsearch.action.search.ClearScrollRequest;
 import org.elasticsearch.action.search.ClearScrollResponse;
@@ -50,16 +51,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @description:
- * @program chunjun
- * @author: lany
- * @create: 2021/06/27 17:25
- */
+@Slf4j
 public class ElasticsearchInputFormat extends BaseRichInputFormat {
+
+    private static final long serialVersionUID = -2961994135280004118L;
+
     protected long keepAlive = 1;
     /** Elasticsearch Configuration */
-    private ElasticsearchConf elasticsearchConf;
+    private ElasticsearchConfig elasticsearchConfig;
     /** Elasticsearch High Level Client */
     private transient RestHighLevelClient rhlClient;
 
@@ -72,7 +71,7 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
     private String scrollId;
 
     @Override
-    protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
+    protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
         InputSplit[] splits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             splits[i] = new GenericInputSplit(i, minNumSplits);
@@ -87,17 +86,17 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
 
         rhlClient =
                 Elasticsearch7ClientFactory.createClient(
-                        elasticsearchConf, getRuntimeContext().getDistributedCache());
+                        elasticsearchConfig, getRuntimeContext().getDistributedCache());
         scroll = new Scroll(TimeValue.timeValueMinutes(keepAlive));
 
-        String[] fieldsNames = elasticsearchConf.getFieldNames();
+        String[] fieldsNames = elasticsearchConfig.getFieldNames();
         SearchSourceBuilder searchSourceBuilder =
                 Elasticsearch7RequestFactory.createSourceBuilder(fieldsNames, null, null);
-        searchSourceBuilder.size(elasticsearchConf.getBatchSize());
+        searchSourceBuilder.size(elasticsearchConfig.getBatchSize());
 
-        if (MapUtils.isNotEmpty(elasticsearchConf.getQuery())) {
+        if (MapUtils.isNotEmpty(elasticsearchConfig.getQuery())) {
             searchSourceBuilder.query(
-                    QueryBuilders.wrapperQuery(JsonUtil.toJson(elasticsearchConf.getQuery())));
+                    QueryBuilders.wrapperQuery(JsonUtil.toJson(elasticsearchConfig.getQuery())));
         }
 
         if (genericInputSplit.getTotalNumberOfSplits() > 1) {
@@ -109,7 +108,7 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
 
         searchRequest =
                 Elasticsearch7RequestFactory.createSearchRequest(
-                        elasticsearchConf.getIndex(), scroll, searchSourceBuilder);
+                        elasticsearchConfig.getIndex(), scroll, searchSourceBuilder);
     }
 
     @Override
@@ -142,7 +141,7 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
         ClearScrollResponse clearScrollResponse =
                 rhlClient.clearScroll(clearScrollRequest, RequestOptions.DEFAULT);
         boolean succeeded = clearScrollResponse.isSucceeded();
-        LOG.info("Clear scroll response:{}", succeeded);
+        log.info("Clear scroll response:{}", succeeded);
     }
 
     @Override
@@ -179,11 +178,11 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
         return !iterator.hasNext();
     }
 
-    public ElasticsearchConf getElasticsearchConf() {
-        return elasticsearchConf;
+    public ElasticsearchConfig getElasticsearchConf() {
+        return elasticsearchConfig;
     }
 
-    public void setElasticsearchConf(ElasticsearchConf elasticsearchConf) {
-        this.elasticsearchConf = elasticsearchConf;
+    public void setElasticsearchConf(ElasticsearchConfig elasticsearchConfig) {
+        this.elasticsearchConfig = elasticsearchConfig;
     }
 }

@@ -18,10 +18,7 @@
 
 package com.dtstack.chunjun.connector.starrocks.connection;
 
-import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.util.Preconditions;
-
-import javax.annotation.Nullable;
 
 import java.io.Serializable;
 import java.util.Optional;
@@ -30,14 +27,12 @@ import static com.dtstack.chunjun.connector.starrocks.options.ConstantValue.CJ_D
 import static com.dtstack.chunjun.connector.starrocks.options.ConstantValue.DRIVER_CLASS_NAME;
 
 /** JDBC connection options. */
-@PublicEvolving
 public class StarRocksJdbcConnectionOptions implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
+    private static final long serialVersionUID = 6052520834649527341L;
     protected final String url;
-    @Nullable protected final String username;
-    @Nullable protected final String password;
+    protected final String username;
+    protected final String password;
 
     public StarRocksJdbcConnectionOptions(String url, String username, String password) {
         this.url = Preconditions.checkNotNull(url, "jdbc url is empty");

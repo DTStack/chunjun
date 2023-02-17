@@ -17,50 +17,40 @@
  */
 package com.dtstack.chunjun.client.util;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
+import java.util.Optional;
 
-/**
- * @program chunjun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
 public class PluginInfoUtil {
 
     private static final String MAIN_CLASS = "com.dtstack.chunjun.Main";
     private static final String CORE_JAR_NAME_PREFIX = "chunjun";
 
     public static String getCoreJarPath(String pluginRoot) throws FileNotFoundException {
-        String coreJarPath = pluginRoot + File.separator + getCoreJarName(pluginRoot);
-        return coreJarPath;
+        return pluginRoot
+                + File.separator
+                + getCoreJarName(pluginRoot)
+                        .orElseThrow(
+                                () ->
+                                        new FileNotFoundException(
+                                                "Can not find core jar file in path:"
+                                                        + pluginRoot));
     }
 
-    public static String getCoreJarName(String pluginRoot) throws FileNotFoundException {
-        String coreJarFileName = null;
+    public static Optional<String> getCoreJarName(String pluginRoot) {
         File pluginDir = new File(pluginRoot);
         if (pluginDir.exists() && pluginDir.isDirectory()) {
             File[] jarFiles =
                     pluginDir.listFiles(
-                            new FilenameFilter() {
-                                @Override
-                                public boolean accept(File dir, String name) {
-                                    return name.toLowerCase().startsWith(CORE_JAR_NAME_PREFIX)
-                                            && name.toLowerCase().endsWith(".jar");
-                                }
-                            });
+                            (dir, name) ->
+                                    name.toLowerCase().startsWith(CORE_JAR_NAME_PREFIX)
+                                            && name.toLowerCase().endsWith(".jar"));
 
             if (jarFiles != null && jarFiles.length > 0) {
-                coreJarFileName = jarFiles[0].getName();
+                return Optional.of(jarFiles[0].getName());
             }
         }
-
-        if (StringUtils.isEmpty(coreJarFileName)) {
-            throw new FileNotFoundException("Can not find core jar file in path:" + pluginRoot);
-        }
-        return coreJarFileName;
+        return Optional.empty();
     }
 
     public static String getMainClass() {

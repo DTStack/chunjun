@@ -19,14 +19,14 @@
 package com.dtstack.chunjun.sink.format;
 
 import com.dtstack.chunjun.cdc.DdlRowData;
-import com.dtstack.chunjun.cdc.conf.DDLConf;
+import com.dtstack.chunjun.cdc.config.DDLConfig;
 import com.dtstack.chunjun.cdc.exception.LogExceptionHandler;
 import com.dtstack.chunjun.cdc.handler.DDLHandler;
 import com.dtstack.chunjun.cdc.utils.ExecutorUtils;
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.dirty.DirtyConf;
+import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.manager.DirtyManager;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
 import com.dtstack.chunjun.enums.Semantic;
@@ -35,7 +35,6 @@ import com.dtstack.chunjun.metrics.AccumulatorCollector;
 import com.dtstack.chunjun.metrics.BaseMetric;
 import com.dtstack.chunjun.metrics.RowSizeCalculator;
 import com.dtstack.chunjun.restore.FormatState;
-import com.dtstack.chunjun.sink.DirtyDataManager;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.NoRestartException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
@@ -43,7 +42,6 @@ import com.dtstack.chunjun.util.DataSyncFactoryUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.JsonUtil;
 
-import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
@@ -55,8 +53,7 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.RowData;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -86,10 +83,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * snapshotState、notifyCheckpointComplete may never call, Only call notifyCheckpointAborted.this
  * maybe a problem ,should make users perceive
  */
+@Slf4j
 public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         implements CleanupWhenUnsuccessful, InitializeOnMaster, FinalizeOnMaster {
 
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
+    private static final long serialVersionUID = -5787516937092596610L;
 
     public static final int LOG_PRINT_INTERNAL = 2000;
 
@@ -118,11 +116,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     /** 定时提交数据服务 */
     protected transient ScheduledExecutorService scheduler;
     /** 定时提交数据服务返回结果 */
-    protected transient ScheduledFuture scheduledFuture;
+    protected transient ScheduledFuture<?> scheduledFuture;
     /** 定时提交数据服务间隔时间，单位毫秒 */
     protected long flushIntervalMills;
     /** 任务公共配置 */
-    protected ChunJunCommonConf config;
+    protected CommonConfig config;
     /** BaseRichOutputFormat是否结束 */
     protected transient volatile boolean closed = false;
     /** 批量提交条数 */
@@ -136,8 +134,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     protected AbstractRowConverter rowConverter;
     /** 是否需要初始化脏数据和累加器，目前只有hive插件该参数设置为false */
     protected boolean initAccumulatorAndDirty = true;
-    /** 脏数据管理器 */
-    protected DirtyDataManager dirtyDataManager;
     /** 输出指标组 */
     protected transient BaseMetric outputMetric;
     /** cp和flush互斥条件 */
@@ -173,13 +169,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     /** 是否执行ddl语句 * */
     protected boolean executeDdlAble;
 
-    protected DDLConf ddlConf;
+    protected DDLConfig ddlConfig;
 
     protected DDLHandler ddlHandler;
 
     protected ExecutorService executorService;
 
-    @VisibleForTesting protected boolean useAbstractColumn;
+    protected boolean useAbstractColumn;
 
     private transient volatile Exception timerWriteException;
 
@@ -215,9 +211,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         this.rows = new ArrayList<>(batchSize);
         this.executeDdlAble = config.isExecuteDdlAble();
         if (executeDdlAble) {
-            ddlHandler = DataSyncFactoryUtil.discoverDdlHandler(ddlConf);
+            ddlHandler = DataSyncFactoryUtil.discoverDdlHandler(ddlConfig);
             try {
-                ddlHandler.init(ddlConf.getProperties());
+                ddlHandler.init(ddlConfig.getProperties());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -237,7 +233,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
         ExecutionConfig.GlobalJobParameters params =
                 context.getExecutionConfig().getGlobalJobParameters();
-        DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
+        DirtyConfig dc = DirtyConfUtil.parseFromMap(params.toMap());
         this.dirtyManager = new DirtyManager(dc, this.context);
 
         checkpointMode =
@@ -262,7 +258,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         openInternal(taskNumber, numTasks);
         this.startTime = System.currentTimeMillis();
 
-        LOG.info(
+        log.info(
                 "[{}] open successfully, \ncheckpointMode = {}, \ncheckpointEnabled = {}, \nflushIntervalMills = {}, \nbatchSize = {}, \n[{}]: \n{} ",
                 this.getClass().getSimpleName(),
                 checkpointMode,
@@ -301,7 +297,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     @Override
     public synchronized void close() throws IOException {
-        LOG.info("taskNumber[{}] close()", taskNumber);
+        log.info("taskNumber[{}] close()", taskNumber);
 
         if (closed) {
             return;
@@ -336,22 +332,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         try {
             closeInternal();
         } catch (Exception e) {
-            LOG.warn("closeInternal() Exception:{}", ExceptionUtil.getErrorMessage(e));
+            log.warn("closeInternal() Exception:{}", ExceptionUtil.getErrorMessage(e));
         }
 
         updateDuration();
 
         if (outputMetric != null) {
             outputMetric.waitForReportMetrics();
-        }
-
-        if (dirtyDataManager != null) {
-            try {
-                dirtyDataManager.close();
-            } catch (Exception e) {
-                LOG.error(
-                        "dirtyDataManager.close() Exception:{}", ExceptionUtil.getErrorMessage(e));
-            }
         }
 
         if (accumulatorCollector != null) {
@@ -366,7 +353,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
             throw new RuntimeException(closeException);
         }
 
-        LOG.info("subtask[{}}] close() finished", taskNumber);
+        log.info("subtask[{}}] close() finished", taskNumber);
         this.closed = true;
     }
 
@@ -437,7 +424,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     /** Turn on timed submission,Each result table is opened separately */
     private void initTimingSubmitTask() {
         if (batchSize > 1 && flushIntervalMills > 0) {
-            LOG.info(
+            log.info(
                     "initTimingSubmitTask() ,initialDelay:{}, delay:{}, MILLISECONDS",
                     flushIntervalMills,
                     flushIntervalMills);
@@ -456,7 +443,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
                                             writeRecordInternal();
                                         }
                                     } catch (Exception e) {
-                                        LOG.error(
+                                        log.error(
                                                 "Writing records failed. {}",
                                                 ExceptionUtil.getErrorMessage(e));
                                         timerWriteException = e;
@@ -480,8 +467,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
             numWriteCounter.add(1L);
         } catch (WriteRecordException e) {
             dirtyManager.collect(e.getRowData(), e, null);
-            if (LOG.isTraceEnabled()) {
-                LOG.trace(
+            if (log.isTraceEnabled()) {
+                log.trace(
                         "write error rowData, rowData = {}, e = {}",
                         rowData.toString(),
                         ExceptionUtil.getErrorMessage(e));
@@ -547,13 +534,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         // not EXACTLY_ONCE model,Does not interact with the db
         if (Semantic.EXACTLY_ONCE == semantic) {
             try {
-                LOG.info(
+                log.info(
                         "getFormatState:Start preCommit, rowsOfCurrentTransaction: {}",
                         rowsOfCurrentTransaction);
                 preCommit();
                 checkTimerWriteException();
             } catch (Exception e) {
-                LOG.error("preCommit error, e = {}", ExceptionUtil.getErrorMessage(e));
+                log.error("preCommit error, e = {}", ExceptionUtil.getErrorMessage(e));
                 if (e instanceof NoRestartException) {
                     throw e;
                 }
@@ -566,7 +553,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         // set metric after preCommit
         formatState.setNumberWrite(numWriteCounter.getLocalValue());
         formatState.setMetric(outputMetric.getMetricCounters());
-        LOG.info("format state:{}", formatState.getState());
+        log.info("format state:{}", formatState.getState());
         return formatState;
     }
 
@@ -577,7 +564,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
                 executeDdlRowData(ddlRowData);
             }
         } catch (Exception e) {
-            LOG.error("execute ddl {} error", ddlRowData);
+            log.error("execute ddl {} error", ddlRowData);
             throw new RuntimeException(e);
         }
     }
@@ -635,9 +622,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         if (Semantic.EXACTLY_ONCE == semantic) {
             try {
                 commit(checkpointId);
-                LOG.info("notifyCheckpointComplete:Commit success , checkpointId:{}", checkpointId);
+                log.info("notifyCheckpointComplete:Commit success , checkpointId:{}", checkpointId);
             } catch (Exception e) {
-                LOG.error("commit error, e = {}", ExceptionUtil.getErrorMessage(e));
+                log.error("commit error, e = {}", ExceptionUtil.getErrorMessage(e));
             } finally {
                 flushEnable.compareAndSet(false, true);
             }
@@ -661,10 +648,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         if (Semantic.EXACTLY_ONCE == semantic) {
             try {
                 rollback(checkpointId);
-                LOG.info(
+                log.info(
                         "notifyCheckpointAborted:rollback success , checkpointId:{}", checkpointId);
             } catch (Exception e) {
-                LOG.error("rollback error, e = {}", ExceptionUtil.getErrorMessage(e));
+                log.error("rollback error, e = {}", ExceptionUtil.getErrorMessage(e));
             } finally {
                 flushEnable.compareAndSet(false, true);
             }
@@ -691,15 +678,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         this.formatId = formatId;
     }
 
-    public void setDirtyDataManager(DirtyDataManager dirtyDataManager) {
-        this.dirtyDataManager = dirtyDataManager;
-    }
-
-    public ChunJunCommonConf getConfig() {
+    public CommonConfig getConfig() {
         return config;
     }
 
-    public void setConfig(ChunJunCommonConf config) {
+    public void setConfig(CommonConfig config) {
         this.config = config;
     }
 
@@ -719,7 +702,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         this.useAbstractColumn = useAbstractColumn;
     }
 
-    public void setDdlConf(DDLConf ddlConf) {
-        this.ddlConf = ddlConf;
+    public void setDdlConfig(DDLConfig ddlConfig) {
+        this.ddlConfig = ddlConfig;
     }
 }

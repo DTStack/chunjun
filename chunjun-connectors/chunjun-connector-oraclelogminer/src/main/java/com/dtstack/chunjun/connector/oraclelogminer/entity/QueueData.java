@@ -19,32 +19,18 @@ package com.dtstack.chunjun.connector.oraclelogminer.entity;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
+
 import java.math.BigInteger;
 
-/**
- * Date: 2020/06/01 Company: www.dtstack.com
- *
- * @author dujie
- */
+@Getter
+@AllArgsConstructor
+@ToString
 public class QueueData {
+
     private final BigInteger scn;
+
     private final RowData data;
-
-    public QueueData(BigInteger lsn, RowData data) {
-        this.scn = lsn;
-        this.data = data;
-    }
-
-    public BigInteger getScn() {
-        return scn;
-    }
-
-    public RowData getData() {
-        return data;
-    }
-
-    @Override
-    public String toString() {
-        return "QueueData{" + "scn=" + scn + ", data=" + data + '}';
-    }
 }

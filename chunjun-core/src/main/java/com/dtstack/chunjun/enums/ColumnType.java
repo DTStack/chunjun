@@ -29,10 +29,6 @@ import java.util.Locale;
 /**
  * Define standard column type for all the readers or writers that do not have special types of
  * their own
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
  */
 public enum ColumnType {
 

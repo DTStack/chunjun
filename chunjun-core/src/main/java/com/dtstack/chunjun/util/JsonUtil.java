@@ -35,11 +35,6 @@ import java.util.Properties;
 
 import static java.util.stream.Collectors.toMap;
 
-/**
- * Date: 2021/03/29 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class JsonUtil {
 
     public static final ObjectMapper objectMapper =

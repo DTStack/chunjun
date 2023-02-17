@@ -22,8 +22,10 @@ import org.apache.flink.core.io.GenericInputSplit;
 
 import java.util.List;
 
-/** @Author OT @Date 2022/7/27 */
 public class RedisInputSplit extends GenericInputSplit {
+
+    private static final long serialVersionUID = 5305567367658268144L;
+
     private List<String> key;
 
     public RedisInputSplit(int partitionNumber, int totalNumberOfPartitions, List<String> key) {

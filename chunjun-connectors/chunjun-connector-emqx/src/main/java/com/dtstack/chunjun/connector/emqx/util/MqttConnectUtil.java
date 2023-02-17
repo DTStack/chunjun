@@ -18,51 +18,36 @@
 
 package com.dtstack.chunjun.connector.emqx.util;
 
-import com.dtstack.chunjun.connector.emqx.conf.EmqxConf;
+import com.dtstack.chunjun.connector.emqx.config.EmqxConfig;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
-/**
- * @author chuixue
- * @create 2021-06-04 10:12
- * @description
- */
+@Slf4j
 public class MqttConnectUtil {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MqttConnectUtil.class);
-
-    /**
-     * get MqttClient
-     *
-     * @param emqxConf conf
-     * @param clientId id
-     * @return MqttClient
-     * @throws MqttException connect failed
-     */
-    public static MqttClient getMqttClient(EmqxConf emqxConf, String clientId) {
+    public static MqttClient getMqttClient(EmqxConfig emqxConfig, String clientId) {
         MqttClient client = null;
-        for (int i = 0; i <= emqxConf.getConnectRetryTimes(); i++) {
+        for (int i = 0; i <= emqxConfig.getConnectRetryTimes(); i++) {
             try {
-                client = new MqttClient(emqxConf.getBroker(), clientId);
+                client = new MqttClient(emqxConfig.getBroker(), clientId);
                 MqttConnectOptions options = new MqttConnectOptions();
-                options.setCleanSession(emqxConf.isCleanSession());
-                if (StringUtils.isNotBlank(emqxConf.getUsername())) {
-                    options.setUserName(emqxConf.getUsername());
-                    options.setPassword(emqxConf.getPassword().toCharArray());
+                options.setCleanSession(emqxConfig.isCleanSession());
+                if (StringUtils.isNotBlank(emqxConfig.getUsername())) {
+                    options.setUserName(emqxConfig.getUsername());
+                    options.setPassword(emqxConfig.getPassword().toCharArray());
                 }
                 options.setAutomaticReconnect(true);
 
-                LOG.info("connect " + (i + 1) + " times.");
+                log.info("connect " + (i + 1) + " times.");
                 client.connect(options);
-                LOG.info("emqx is connected = {} ", client.isConnected());
+                log.info("emqx is connected = {} ", client.isConnected());
 
                 if (client.isConnected()) {
                     break;
@@ -73,7 +58,7 @@ public class MqttConnectUtil {
                 } catch (InterruptedException interruptedException) {
                     throw new RuntimeException(interruptedException);
                 }
-                if (i == emqxConf.getConnectRetryTimes()) {
+                if (i == emqxConfig.getConnectRetryTimes()) {
                     throw new RuntimeException(e);
                 }
             }
@@ -87,7 +72,7 @@ public class MqttConnectUtil {
                 client.disconnect();
             }
         } catch (MqttException e) {
-            LOG.error("error to disconnect emqx client, e = {}", ExceptionUtil.getErrorMessage(e));
+            log.error("error to disconnect emqx client, e = {}", ExceptionUtil.getErrorMessage(e));
         }
     }
 }

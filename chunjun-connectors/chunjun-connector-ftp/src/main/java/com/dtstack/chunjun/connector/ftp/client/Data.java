@@ -21,6 +21,10 @@ package com.dtstack.chunjun.connector.ftp.client;
 import com.dtstack.chunjun.connector.ftp.extend.ftp.FtpParseException;
 import com.dtstack.chunjun.connector.ftp.handler.Position;
 
+import lombok.Getter;
+
+/** return from ftpSeqBufferedReader contains line and position */
+@Getter
 public class Data {
     private String[] data;
     private Position position;
@@ -35,17 +39,5 @@ public class Data {
         this.data = data;
         this.position = position;
         this.exception = exception;
-    }
-
-    public String[] getData() {
-        return data;
-    }
-
-    public FtpParseException getException() {
-        return exception;
-    }
-
-    public Position getPosition() {
-        return position;
     }
 }

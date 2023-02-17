@@ -25,18 +25,13 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class GreenplumRawTypeConverter {
 
     /**
      * inspired by Postgresql doc. <a
      * href="https://www.postgresql.org/docs/current/datatype.html">...</a>
      *
-     * @param type
+     * @param type original type
      */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
@@ -64,7 +59,6 @@ public class GreenplumRawTypeConverter {
                 return DataTypes.DOUBLE();
             case "DECIMAL":
             case "NUMERIC":
-                //            case "MONEY":
                 return DataTypes.DECIMAL(38, 18);
 
                 // Character Types

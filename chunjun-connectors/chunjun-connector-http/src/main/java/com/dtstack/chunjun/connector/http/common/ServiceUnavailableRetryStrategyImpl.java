@@ -21,13 +21,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.protocol.HttpContext;
 
-/**
- * @author : shifang
- * @date : 2020/3/12 自定义httpClient重试策略,默认重试次数为5,重试时间间隔为2s
- */
+/** 自定义httpClient重试策略,默认重试次数为5,重试时间间隔为2s */
 public class ServiceUnavailableRetryStrategyImpl implements ServiceUnavailableRetryStrategy {
-    private int executionCount;
-    private long retryInterval;
+    private final int executionCount;
+    private final long retryInterval;
 
     public ServiceUnavailableRetryStrategyImpl(Builder builder) {
         this.executionCount = builder.executionCount;

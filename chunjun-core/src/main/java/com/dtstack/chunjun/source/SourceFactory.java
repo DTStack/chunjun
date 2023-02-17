@@ -18,10 +18,10 @@
 
 package com.dtstack.chunjun.source;
 
-import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.conf.SpeedConf;
-import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.SpeedConfig;
+import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.RawTypeConvertible;
 import com.dtstack.chunjun.util.PropertiesUtil;
@@ -41,40 +41,33 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Abstract specification of Reader Plugin
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
 public abstract class SourceFactory implements RawTypeConvertible {
 
     protected StreamExecutionEnvironment env;
-    protected SyncConf syncConf;
-    protected List<FieldConf> fieldList;
+    protected SyncConfig syncConfig;
+    protected List<FieldConfig> fieldList;
     protected TypeInformation<RowData> typeInformation;
     protected boolean useAbstractBaseColumn = true;
 
-    protected SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    protected SourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
         this.env = env;
-        this.syncConf = syncConf;
-        List<FieldConf> readerFiledConfList = syncConf.getReader().getFieldList();
+        this.syncConfig = syncConfig;
+        List<FieldConfig> readerFiledConfList = syncConfig.getReader().getFieldList();
         this.fieldList = new ArrayList<>(readerFiledConfList.size());
         fieldList.addAll(readerFiledConfList);
-        if (syncConf.getTransformer() != null
-                && !StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
+        if (syncConfig.getTransformer() != null
+                && !StringUtils.isBlank(syncConfig.getTransformer().getTransformSql())) {
             useAbstractBaseColumn = false;
         } else {
             fieldList.forEach(
-                    fieldConf -> {
+                    fieldConfig -> {
                         /*
                          In a synchronous job, we don't care about the name field when
                          typeInformation is generated.To avoid name duplication/empty, use
                          indexValue
                         */
-                        if (fieldConf.getName() == null) {
-                            fieldConf.setName(String.valueOf(fieldConf.getIndex()));
+                        if (fieldConfig.getName() == null) {
+                            fieldConfig.setName(String.valueOf(fieldConfig.getIndex()));
                         }
                     });
         }
@@ -90,16 +83,16 @@ public abstract class SourceFactory implements RawTypeConvertible {
     /**
      * 同步任务使用transform。不支持*、不支持常量、不支持format、必须是flinksql支持的类型 常量和format都可以在transform中做。
      *
-     * @param commonConf
+     * @param commonConfig
      */
-    protected void checkConstant(ChunJunCommonConf commonConf) {
-        List<FieldConf> fieldList = commonConf.getColumn();
+    protected void checkConstant(CommonConfig commonConfig) {
+        List<FieldConfig> fieldList = commonConfig.getColumn();
         if (fieldList.size() == 1
                 && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldList.get(0).getName())) {
             com.google.common.base.Preconditions.checkArgument(
                     false, "in transformer mode : not support '*' in column.");
         }
-        commonConf.getColumn().stream()
+        commonConfig.getColumn().stream()
                 .forEach(
                         x -> {
                             if (StringUtils.isNotBlank(x.getValue())) {
@@ -134,12 +127,12 @@ public abstract class SourceFactory implements RawTypeConvertible {
         return createInput(inputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 
-    /** 初始化ChunJunCommonConf */
-    public void initCommonConf(ChunJunCommonConf commonConf) {
-        PropertiesUtil.initCommonConf(commonConf, this.syncConf);
-        commonConf.setCheckFormat(this.syncConf.getReader().getBooleanVal("check", true));
-        SpeedConf speed = this.syncConf.getSpeed();
-        commonConf.setParallelism(
+    /** 初始化CommonConfig */
+    public void initCommonConf(CommonConfig commonConfig) {
+        PropertiesUtil.initCommonConf(commonConfig, this.syncConfig);
+        commonConfig.setCheckFormat(this.syncConfig.getReader().getBooleanVal("check", true));
+        SpeedConfig speed = this.syncConfig.getSpeed();
+        commonConfig.setParallelism(
                 speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
     }
 

@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>chunjun-metrics</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
-		<version>1.12-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -47,7 +47,7 @@
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-metrics-prometheus_${scala.binary.version}</artifactId>
+			<artifactId>flink-metrics-prometheus</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 	</dependencies>
@@ -84,6 +84,7 @@
 			</plugin>
 
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<executions>
 					<execution>
@@ -94,7 +95,7 @@
 							<goal>run</goal>
 						</goals>
 						<configuration>
-							<tasks>
+							<target>
 								<copy todir="${basedir}/../../${dist.dir}/metrics/prometheus"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
 								<move file="${basedir}/../../${dist.dir}/metrics/prometheus/${project.artifactId}-${project.version}.jar"
@@ -104,7 +105,7 @@
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}.jar"/>
 								</delete>
-							</tasks>
+							</target>
 						</configuration>
 					</execution>
 				</executions>

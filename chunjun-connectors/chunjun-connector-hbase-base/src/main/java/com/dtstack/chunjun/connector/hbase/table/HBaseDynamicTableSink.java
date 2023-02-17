@@ -18,7 +18,7 @@
 package com.dtstack.chunjun.connector.hbase.table;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseRowConverter;
 import com.dtstack.chunjun.connector.hbase.sink.HBaseOutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
@@ -28,24 +28,19 @@ import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 
-/**
- * Date: 2021/06/21 Company: www.dtstack.com
- *
- * @author tudou
- */
 public class HBaseDynamicTableSink implements DynamicTableSink {
 
-    private final HBaseConf conf;
+    private final HBaseConfig config;
     private final TableSchema tableSchema;
     private final HBaseTableSchema hbaseSchema;
     protected final String nullStringLiteral;
 
     public HBaseDynamicTableSink(
-            HBaseConf conf,
+            HBaseConfig config,
             TableSchema tableSchema,
             HBaseTableSchema hbaseSchema,
             String nullStringLiteral) {
-        this.conf = conf;
+        this.config = config;
         this.tableSchema = tableSchema;
         this.hbaseSchema = hbaseSchema;
         this.nullStringLiteral = nullStringLiteral;
@@ -60,19 +55,19 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
 
         HBaseOutputFormatBuilder builder = new HBaseOutputFormatBuilder();
-        builder.setHbaseConfig(conf.getHbaseConfig());
-        builder.setTableName(conf.getTable());
-        builder.setWriteBufferSize(conf.getWriteBufferSize());
+        builder.setHbaseConfig(config.getHbaseConfig());
+        builder.setTableName(config.getTable());
+        builder.setWriteBufferSize(config.getWriteBufferSize());
         HBaseRowConverter hbaseRowConverter = new HBaseRowConverter(hbaseSchema, nullStringLiteral);
         builder.setRowConverter(hbaseRowConverter);
-        builder.setConfig(conf);
+        builder.setConfig(config);
         return SinkFunctionProvider.of(
-                new DtOutputFormatSinkFunction(builder.finish()), conf.getParallelism());
+                new DtOutputFormatSinkFunction<>(builder.finish()), config.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new HBaseDynamicTableSink(conf, tableSchema, hbaseSchema, nullStringLiteral);
+        return new HBaseDynamicTableSink(config, tableSchema, hbaseSchema, nullStringLiteral);
     }
 
     @Override

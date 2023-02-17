@@ -28,11 +28,6 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.time.Duration;
 
-/**
- * @author jayce
- * @version 1.0
- * @date 2022/8/11 17:00
- */
 public class FlinkStandaloneContainer extends GenericContainer<FlinkStandaloneContainer> {
     private static final URL FLINK_STANDALONE_DOCKERFILE =
             FlinkStandaloneContainer.class

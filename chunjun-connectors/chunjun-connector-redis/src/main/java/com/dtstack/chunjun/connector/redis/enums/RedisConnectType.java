@@ -25,7 +25,7 @@ public enum RedisConnectType {
     SENTINEL(2),
     /** 集群 */
     CLUSTER(3);
-    int type;
+    final int type;
 
     RedisConnectType(int type) {
         this.type = type;

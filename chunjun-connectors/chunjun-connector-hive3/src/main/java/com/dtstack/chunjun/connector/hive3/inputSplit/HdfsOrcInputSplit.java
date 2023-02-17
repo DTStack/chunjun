@@ -29,9 +29,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
-/** @author liuliu 2022/3/23 */
 public class HdfsOrcInputSplit implements InputSplit {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -956858589799307007L;
+
     int splitNumber;
     byte[] orcSplitData;
 

@@ -20,30 +20,19 @@ package com.dtstack.chunjun.connector.hive.entity;
 import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.util.JsonUtil;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.util.Map;
 
-/**
- * Date: 2021/06/22 Company: www.dtstack.com
- *
- * @author tudou
- */
+@AllArgsConstructor
+@Getter
 public class HiveFormatState implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -558116282295060041L;
+
     private Map<String, FormatState> formatStateMap;
-
-    public HiveFormatState(Map<String, FormatState> formatStateMap) {
-        this.formatStateMap = formatStateMap;
-    }
-
-    public Map<String, FormatState> getFormatStateMap() {
-        return formatStateMap;
-    }
-
-    public void setFormatStateMap(Map<String, FormatState> formatStateMap) {
-        this.formatStateMap = formatStateMap;
-    }
 
     @Override
     public String toString() {

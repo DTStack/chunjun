@@ -36,7 +36,7 @@ public class ConstraintDefinition {
     private final Boolean isCheck;
 
     /** 约束字段* */
-    private final List<String> columns;
+    private List<String> columns;
 
     /** 约束表达式* */
     private final String check;
@@ -106,5 +106,59 @@ public class ConstraintDefinition {
     @Override
     public int hashCode() {
         return Objects.hash(name, isPrimary, isUnique, isCheck, columns, check, comment);
+    }
+
+    public void setColumns(List<String> columnList) {
+        this.columns = columnList;
+    }
+
+    public static class Builder {
+        private String name = null;
+        private Boolean isPrimary = false;
+        private Boolean isUnique = false;
+        private Boolean isCheck = false;
+        private List<String> columns = null;
+        private String check = null;
+        private String comment = null;
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder isPrimary(Boolean primary) {
+            isPrimary = primary;
+            return this;
+        }
+
+        public Builder isUnique(Boolean unique) {
+            isUnique = unique;
+            return this;
+        }
+
+        public Builder isCheck(Boolean check) {
+            isCheck = check;
+            return this;
+        }
+
+        public Builder columns(List<String> columns) {
+            this.columns = columns;
+            return this;
+        }
+
+        public Builder check(String check) {
+            this.check = check;
+            return this;
+        }
+
+        public Builder comment(String comment) {
+            this.comment = comment;
+            return this;
+        }
+
+        public ConstraintDefinition build() {
+            return new ConstraintDefinition(
+                    name, isPrimary, isUnique, isCheck, columns, check, comment);
+        }
     }
 }

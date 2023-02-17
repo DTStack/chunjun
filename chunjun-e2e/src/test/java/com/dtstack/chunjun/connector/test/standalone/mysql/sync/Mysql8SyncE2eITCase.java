@@ -21,34 +21,33 @@ package com.dtstack.chunjun.connector.test.standalone.mysql.sync;
 import com.dtstack.chunjun.connector.containers.mysql.Mysql8Container;
 import com.dtstack.chunjun.connector.containers.mysql.MysqlBaseContainer;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.lifecycle.Startables;
 
 import java.util.stream.Stream;
 
+@Slf4j
 public class Mysql8SyncE2eITCase extends MysqlBaseSyncE2eITCase {
-    private static final Logger LOG = LoggerFactory.getLogger(Mysql8SyncE2eITCase.class);
 
     protected MysqlBaseContainer mysql8Container;
 
     @Before
     public void before() throws Exception {
         super.before();
-        LOG.info("Starting mysql8 containers...");
+        log.info("Starting mysql8 containers...");
         mysql8Container = new Mysql8Container();
         mysql8Container
                 .withNetwork(NETWORK)
                 .withNetworkAliases(MYSQL_HOST)
-                .withLogConsumer(new Slf4jLogConsumer(LOG))
+                .withLogConsumer(new Slf4jLogConsumer(log))
                 .dependsOn(flinkStandaloneContainer);
         Startables.deepStart(Stream.of(mysql8Container)).join();
         Thread.sleep(5000);
-        LOG.info("Mysql8 Containers are started.");
+        log.info("Mysql8 Containers are started.");
     }
 
     @After

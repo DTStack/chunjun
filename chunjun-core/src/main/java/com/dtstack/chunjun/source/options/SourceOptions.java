@@ -21,11 +21,6 @@ package com.dtstack.chunjun.source.options;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-/**
- * @author chuixue
- * @create 2021-04-10 16:19
- * @description
- */
 public class SourceOptions {
     // read config options
     public static final ConfigOption<String> SCAN_RESTORE_COLUMNNAME =

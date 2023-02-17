@@ -32,24 +32,16 @@ import org.apache.flink.kubernetes.kubeclient.FlinkKubeClient;
 import org.apache.flink.kubernetes.kubeclient.FlinkKubeClientFactory;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-/**
- * @program: ChunJun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
-public class KubernetesSessionClusterClientHelper implements ClusterClientHelper {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(KubernetesSessionClusterClientHelper.class);
+@Slf4j
+public class KubernetesSessionClusterClientHelper implements ClusterClientHelper<String> {
 
     @Override
-    public ClusterClient submit(JobDeployer jobDeployer) throws Exception {
+    public ClusterClient<String> submit(JobDeployer jobDeployer) throws Exception {
         Options launcherOptions = jobDeployer.getLauncherOptions();
         List<String> programArgs = jobDeployer.getProgramArgs();
 
@@ -63,14 +55,14 @@ public class KubernetesSessionClusterClientHelper implements ClusterClientHelper
         FlinkKubeClient flinkKubeClient =
                 FlinkKubeClientFactory.getInstance().fromConfiguration(configuration, "ChunJun");
         try (KubernetesClusterDescriptor descriptor =
-                new KubernetesClusterDescriptor(configuration, flinkKubeClient); ) {
+                new KubernetesClusterDescriptor(configuration, flinkKubeClient)) {
             ClusterClientProvider<String> retrieve = descriptor.retrieve(clusterId);
             ClusterClient<String> clusterClient = retrieve.getClusterClient();
 
             JobGraph jobGraph =
                     JobGraphUtil.buildJobGraph(launcherOptions, programArgs.toArray(new String[0]));
-            JobID jobID = (JobID) clusterClient.submitJob(jobGraph).get();
-            LOG.info("submit job successfully, jobID = {}", jobID);
+            JobID jobID = clusterClient.submitJob(jobGraph).get();
+            log.info("submit job successfully, jobID = {}", jobID);
             return clusterClient;
         }
     }

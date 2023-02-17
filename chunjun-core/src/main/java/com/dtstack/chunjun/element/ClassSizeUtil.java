@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.element;
 
-/** @author liuliu 2022/5/23 */
 public class ClassSizeUtil {
 
     public static final int ColumnRowDataSize;

@@ -20,14 +20,9 @@ package com.dtstack.chunjun.connector.hbase;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @company: www.dtstack.com
- * @author: toutian
- * @create: 2019/7/23
- */
 public class FunctionFactory {
 
-    public static IFunction createFuntion(String functionName) {
+    public static IFunction createFunction(String functionName) {
         if (StringUtils.isBlank(functionName)) {
             throw new UnsupportedOperationException("function name can't be null!");
         }

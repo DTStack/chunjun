@@ -22,18 +22,16 @@ import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.ReflectionUtils;
 
-import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.accumulators.StringifiedAccumulatorResult;
-import org.apache.flink.runtime.executiongraph.ArchivedExecutionGraph;
 import org.apache.flink.runtime.jobmaster.JobMasterGateway;
+import org.apache.flink.runtime.scheduler.ExecutionGraphInfo;
 import org.apache.flink.runtime.taskexecutor.TaskManagerConfiguration;
 import org.apache.flink.runtime.taskexecutor.rpc.RpcGlobalAggregateManager;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.util.Preconditions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -44,26 +42,19 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 累加器收集器，周期性地更新累加器信息
- *
- * @author jiangbo
- * @date 2019/7/17
- */
+@Slf4j
 public class AccumulatorCollector {
-
-    private static final Logger LOG = LoggerFactory.getLogger(AccumulatorCollector.class);
 
     private static final String THREAD_NAME = "accumulator-collector-thread";
 
-    @VisibleForTesting protected static final int MAX_COLLECT_ERROR_TIMES = 100;
+    protected static final int MAX_COLLECT_ERROR_TIMES = 100;
     private long collectErrorTimes = 0;
 
     private JobMasterGateway gateway;
 
     private final long period;
 
-    @VisibleForTesting protected final ScheduledExecutorService scheduledExecutorService;
+    protected final ScheduledExecutorService scheduledExecutorService;
     private final Map<String, ValueAccumulator> valueAccumulatorMap;
 
     private String rdbMaxFuncValue = Metrics.MAX_VALUE_NONE;
@@ -73,7 +64,7 @@ public class AccumulatorCollector {
         valueAccumulatorMap = new HashMap<>(metricNames.size());
         for (String metricName : metricNames) {
             valueAccumulatorMap.put(
-                    metricName, new ValueAccumulator(0, context.getLongCounter(metricName)));
+                    metricName, new ValueAccumulator(context.getLongCounter(metricName), 0));
         }
 
         scheduledExecutorService =
@@ -82,7 +73,7 @@ public class AccumulatorCollector {
         // 比task manager心跳间隔多1秒
         this.period =
                 ((TaskManagerConfiguration) context.getTaskManagerRuntimeInfo())
-                                .getTimeout()
+                                .getRpcTimeout()
                                 .toMilliseconds()
                         + 1000;
         RpcGlobalAggregateManager globalAggregateManager =
@@ -93,7 +84,7 @@ public class AccumulatorCollector {
         try {
             gateway = (JobMasterGateway) field.get(globalAggregateManager);
         } catch (IllegalArgumentException | IllegalAccessException e) {
-            LOG.error(
+            log.error(
                     "failed to get field:[gateway] from RpcGlobalAggregateManager, e = {}",
                     ExceptionUtil.getErrorMessage(e));
         }
@@ -116,11 +107,11 @@ public class AccumulatorCollector {
 
     /** 收集累加器信息 */
     public void collectAccumulator() {
-        CompletableFuture<ArchivedExecutionGraph> archivedExecutionGraphFuture =
+        CompletableFuture<ExecutionGraphInfo> executionGraphInfoCompletableFuture =
                 gateway.requestJob(Time.seconds(10));
-        ArchivedExecutionGraph archivedExecutionGraph;
+        ExecutionGraphInfo executionGraphInfo;
         try {
-            archivedExecutionGraph = archivedExecutionGraphFuture.get();
+            executionGraphInfo = executionGraphInfoCompletableFuture.get();
         } catch (Exception e) {
             // 限制最大出错次数，超过最大次数则使任务失败，如果不失败，统计数据没有及时更新，会影响速率限制，错误控制等功能
             collectErrorTimes++;
@@ -133,7 +124,7 @@ public class AccumulatorCollector {
             return;
         }
         StringifiedAccumulatorResult[] accumulatorResult =
-                archivedExecutionGraph.getAccumulatorResultsStringified();
+                executionGraphInfo.getArchivedExecutionGraph().getAccumulatorResultsStringified();
         for (StringifiedAccumulatorResult result : accumulatorResult) {
             ValueAccumulator valueAccumulator = valueAccumulatorMap.get(result.getName());
             if (valueAccumulator != null) {
@@ -171,7 +162,7 @@ public class AccumulatorCollector {
         try {
             TimeUnit.MILLISECONDS.sleep(this.period);
         } catch (InterruptedException e) {
-            LOG.warn(
+            log.warn(
                     "Interrupted when waiting for valueAccumulatorMap, e = {}",
                     ExceptionUtil.getErrorMessage(e));
         }

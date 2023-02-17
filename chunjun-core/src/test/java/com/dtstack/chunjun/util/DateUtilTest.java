@@ -25,10 +25,6 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
-/**
- * @author jiangbo
- * @date 2020/3/18
- */
 public class DateUtilTest {
 
     @Test

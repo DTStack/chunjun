@@ -18,31 +18,23 @@
 
 package com.dtstack.chunjun.connector.stream.table;
 
-import com.dtstack.chunjun.connector.stream.conf.StreamConf;
+import com.dtstack.chunjun.connector.stream.config.StreamConfig;
 import com.dtstack.chunjun.connector.stream.options.StreamOptions;
-import com.dtstack.chunjun.connector.stream.sink.StreamDynamicTableSink;
-import com.dtstack.chunjun.connector.stream.source.StreamDynamicTableSource;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author chuixue
- * @create 2021-04-08 11:56
- * @description
- */
 public class StreamDynamicTableFactory
         implements DynamicTableSinkFactory, DynamicTableSourceFactory {
     public static final String IDENTIFIER = "stream-x";
@@ -77,31 +69,27 @@ public class StreamDynamicTableFactory
         helper.validate();
 
         // 3.封装参数
-        StreamConf sinkConf = new StreamConf();
-        sinkConf.setPrint(config.get(StreamOptions.PRINT));
-        sinkConf.setParallelism(config.get(StreamOptions.SINK_PARALLELISM));
-
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        StreamConfig streamConfig = new StreamConfig();
+        streamConfig.setPrint(config.get(StreamOptions.PRINT));
+        streamConfig.setParallelism(config.get(StreamOptions.SINK_PARALLELISM));
 
         return new StreamDynamicTableSink(
-                sinkConf,
-                context.getCatalogTable().getSchema().toPhysicalRowDataType(),
-                physicalSchema);
+                streamConfig,
+                context.getPhysicalRowDataType().getLogicalType(),
+                context.getCatalogTable().getResolvedSchema());
     }
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
         Configuration options = new Configuration();
         context.getCatalogTable().getOptions().forEach(options::setString);
-        TableSchema schema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        ResolvedSchema schema = context.getCatalogTable().getResolvedSchema();
 
-        StreamConf streamConf = new StreamConf();
-        streamConf.setSliceRecordCount(
+        StreamConfig streamConfig = new StreamConfig();
+        streamConfig.setSliceRecordCount(
                 Collections.singletonList(options.get(StreamOptions.NUMBER_OF_ROWS)));
-        streamConf.setPermitsPerSecond(options.get(StreamOptions.ROWS_PER_SECOND));
+        streamConfig.setPermitsPerSecond(options.get(StreamOptions.ROWS_PER_SECOND));
 
-        return new StreamDynamicTableSource(schema, streamConf);
+        return new StreamDynamicTableSource(schema, streamConfig, context.getPhysicalRowDataType());
     }
 }

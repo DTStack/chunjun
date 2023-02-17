@@ -1,0 +1,281 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This file is an FMPP (http://fmpp.sourceforge.net/) configuration file to
+# allow clients to extend Calcite's SQL parser to support application specific
+# SQL statements, literals or data types.
+#
+# Calcite's parser grammar file (Parser.jj) is written in javacc
+# (https://javacc.org/) with Freemarker (http://freemarker.org/) variables
+# to allow clients to:
+#   1. have custom parser implementation class and package name.
+#   2. insert new parser method implementations written in javacc to parse
+#      custom:
+#      a) SQL statements.
+#      b) literals.
+#      c) data types.
+#   3. add new keywords to support custom SQL constructs added as part of (2).
+#   4. add import statements needed by inserted custom parser implementations.
+#
+# Parser template file (Parser.jj) along with this file are packaged as
+# part of the calcite-core-<version>.jar under "codegen" directory.
+
+data: {
+  parser: {
+            # Generated parser implementation package and class name.
+            package: "com.dtstack.chunjun.ddl.convert.oracle.parse.impl",
+            class: "ChunjunOracleParserImpl",
+
+            # List of additional classes and packages to import.
+            # Example. "org.apache.calcite.sql.*", "java.util.List".
+            # Please keep the import classes in alphabetical order if new class is added.
+            imports: [
+              "com.dtstack.chunjun.cdc.ddl.definition.IndexType"
+              "com.dtstack.chunjun.cdc.ddl.ColumnType"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlAddColumn"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlAlterIndex"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlAlterTableAdd"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlAlterTableDrop"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlAlterTable"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlComment.CommentTypeEnum"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlComment"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlConstraintReferences.ReferencesOptionEnum"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlConstraintReferences.ReferencesSituationEnum"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlConstraintReferences"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlConstraint.SqlConstraintSpec"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlConstraint"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlCreateIndex"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlCreateTable"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlCreateTableIndex"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlDropColumn"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlDropConstraint"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlDropIndex"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlDropTable"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlGeneralColumn"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlRenameColumn"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlRenameConstraint"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlRenameIndex"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlRenameTable"
+              "com.dtstack.chunjun.ddl.convert.oracle.parse.SqlTruncateTable"
+              "com.dtstack.chunjun.ddl.convert.oracle.type.OracleType"
+              "com.dtstack.chunjun.ddl.parse.type.SqlCustomTypeNameSpec"
+              "com.dtstack.chunjun.ddl.parse.type.SqlNumberTypeNameSpec"
+              "com.dtstack.chunjun.ddl.parse.type.SqlSuffixTypeNameSpec"
+              "com.dtstack.chunjun.throwable.ChunJunRuntimeException"
+
+              "org.apache.calcite.sql.SqlCreate"
+              "org.apache.calcite.sql.SqlCollation"
+              "org.apache.calcite.sql.SqlCharStringLiteral"
+              "org.apache.calcite.sql.SqlIdentifier"
+              "org.apache.calcite.sql.SqlDataTypeSpec"
+              "org.apache.calcite.sql.SqlLiteral"
+              "org.apache.calcite.sql.SqlNode"
+              "org.apache.calcite.sql.SqlNodeList"
+              "org.apache.calcite.sql.SqlDrop"
+              "java.lang.UnsupportedOperationException"
+              "java.util.List"
+              "java.util.ArrayList"
+            ]
+
+            # List of new keywords. Example: "DATABASES", "TABLES". If the keyword is not a reserved
+            # keyword, please also add it to 'nonReservedKeywords' section.
+            # Please keep the keyword in alphabetical order if new keyword is added.
+            keywords: [
+                "ARTRIVE"
+                "BFILE"
+                "BINARY_FLOAT"
+                "BINARY_DOUBLE"
+                "BITMAP"
+                "BLOCKCHAIN"
+                "BYTE"
+                "CACHE"
+                "CLUSTERING"
+                "CLUSTER"
+                "COMMENT"
+                "CREATION"
+                "DISABLE"
+                "DUPLICATED"
+                "ENABLE"
+                "ENCRYPT"
+                "ENFORCED"
+                "FILESYSTEM_LIKE_LOGGING"
+                "FLASHBACK"
+                "IDENTIFY"
+                "IF"
+                "ILM"
+                "IMMUTABLE"
+                "INDEXING"
+                "INDEX"
+                "INITRANS"
+                "INVISIBLE"
+                "KEEP"
+                "LOB"
+                "LOGGING"
+                "LONG"
+                "MEMOPTIMIZE"
+                "METADATA"
+                "MULTVALUE"
+                "NESTED"
+                "NOCACHE"
+                "NOCYCLE"
+                "NOLOGGING"
+                "NOMAXVALUE"
+                "NOMINVALUE"
+                "NOORDER"
+                "NOPARALLEL"
+                "NOROWDEPENDENCIES"
+                "NVARCHAR2"
+                "VARCHAR2"
+                "ONLINE"
+                "ORGANIZATION"
+                "OVERWRITE"
+                "OVERWRITING"
+                "PARALLEL"
+                "PARENT"
+                "PARTITIONED"
+                "PARTITIONS"
+                "PCTFREE"
+                "PCTUSED"
+                "PRIVATE"
+                "PURGE"
+                "RAW"
+                "RENAME"
+                "RESULT_CACHE"
+                "ROWDEPENDENCIES"
+                "ROWID"
+                "SEGMENT"
+                "SHARING"
+                "SHARDED"
+                "SLAT"
+                "SORT"
+                "STORAGE"
+                "TABLESPACE"
+                "UROWID"
+                "VARRAY"
+                "VIRTUAL"
+                "VISIBLE"
+                "XMLTYPE"
+            ]
+
+            # List of keywords from "keywords" section that are not reserved.
+            nonReservedKeywords: [
+              "NAME"
+            ]
+
+            # List of non-reserved keywords to add;
+            # items in this list become non-reserved.
+            # Please keep the keyword in alphabetical order if new keyword is added.
+            nonReservedKeywordsToAdd: [
+              # not in core, added in Flink
+              "ENFORCED"
+              "IF"
+              "METADATA"
+              "OVERWRITE"
+              "OVERWRITING"
+              "PARTITIONED"
+              "PARTITIONS"
+              "VIRTUAL"
+            ]
+
+            # List of non-reserved keywords to remove;
+            # items in this list become reserved
+            nonReservedKeywordsToRemove: [
+            ]
+
+            # List of methods for parsing custom SQL statements.
+            # Return type of method implementation should be 'SqlNode'.
+            # Example: SqlShowDatabases(), SqlShowTables().
+            statementParserMethods: [
+                "SqlCommon()"
+                "SqlDropTable()"
+                "SqlAlterTable()"
+                "SqlTruncateTable()"
+                "SqlCreateIndex()"
+                "SqlAlterIndex()"
+                "SqlDropIndex()"
+            ]
+
+            # List of methods for parsing custom literals.
+            # Return type of method implementation should be "SqlNode".
+            # Example: ParseJsonLiteral().
+            literalParserMethods: [
+            ]
+
+            # List of methods for parsing ddl supported data types.
+            # Return type of method implementation should be "SqlTypeNameSpec".
+            # Example: SqlParseTimeStampZ().
+            dataTypeParserMethods: [
+                "SqlCustomTypeParse(s)"
+                "SqlNumberTypeParse(s)"
+                "SqlTimestampTypeParse(s)"
+                "SqlIntervalTypeParse(s)"
+            ]
+
+            # List of methods for parsing builtin function calls.
+            # Return type of method implementation should be "SqlNode".
+            # Example: DateFunctionCall().
+            builtinFunctionCallMethods: [
+            ]
+
+            # List of methods for parsing extensions to "ALTER <scope>" calls.
+            # Each must accept arguments "(SqlParserPos pos, String scope)".
+            # Example: "SqlUploadJarNode"
+            alterStatementParserMethods: [
+            ]
+
+            # List of methods for parsing extensions to "CREATE [OR REPLACE]" calls.
+            # Each must accept arguments "(SqlParserPos pos, boolean replace)".
+            createStatementParserMethods: [
+                "SqlCreateTableParse"
+            ]
+
+            # List of methods for parsing extensions to "DROP" calls.
+            # Each must accept arguments "(Span s)".
+            dropStatementParserMethods: [
+            ]
+
+            # Binary operators tokens
+            binaryOperatorsTokens: [
+            ]
+
+            # Binary operators initialization
+            extraBinaryExpressions: [
+            ]
+
+            # List of files in @includes directory that have parser method
+            # implementations for parsing custom SQL statements, literals or types
+            # given as part of "statementParserMethods", "literalParserMethods" or
+            # "dataTypeParserMethods".
+            implementationFiles: [
+                "typeParse.ftl"
+                "parseImpls.ftl"
+            ]
+
+            # List of additional join types. Each is a method with no arguments.
+            # Example: LeftSemiJoin()
+            joinTypes: [
+            ]
+
+            includePosixOperators: false
+            includeCompoundIdentifier: true
+            includeBraces: true
+            includeAdditionalDeclarations: false
+          }
+
+}
+
+freemarkerLinks: {
+  includes: includes/
+}

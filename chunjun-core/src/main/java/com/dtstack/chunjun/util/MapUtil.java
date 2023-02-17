@@ -28,17 +28,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.chunjun.util.StringUtil.escapeExprSpecialWord;
 
-/**
- * Reason: Date: 2019/8/9 Company: www.dtstack.com
- *
- * @author xuchao
- */
 public class MapUtil {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -173,12 +167,13 @@ public class MapUtil {
         return map.get(key);
     }
 
+    public static String writeValueAsString(Object obj) throws JsonProcessingException {
+        return objectMapper.writeValueAsString(obj);
+    }
+
     public static void replaceAllElement(
-            Map<String, Object> map, final List<String> keys, final Object value)
-            throws JsonProcessingException {
-        Iterator<Map.Entry<String, Object>> entries = map.entrySet().iterator();
-        while (entries.hasNext()) {
-            Map.Entry<String, Object> entry = entries.next();
+            Map<String, Object> map, final List<String> keys, final Object value) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
             if (entry.getValue() instanceof Map) {
                 replaceAllElement((Map<String, Object>) entry.getValue(), keys, value);
             }

@@ -22,16 +22,13 @@ import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
 
 import java.util.Properties;
 
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
 public class SaphanaOutputFormat extends JdbcOutputFormat {
+
+    private static final long serialVersionUID = 6376766150008666553L;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
-        Properties properties = jdbcConf.getProperties();
+        Properties properties = jdbcConfig.getProperties();
         properties.setProperty("zeroDateTimeBehavior", "convertToNull");
         super.openInternal(taskNumber, numTasks);
     }

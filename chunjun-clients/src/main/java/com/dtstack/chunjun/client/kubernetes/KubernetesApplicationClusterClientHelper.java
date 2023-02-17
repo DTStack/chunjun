@@ -19,7 +19,6 @@ package com.dtstack.chunjun.client.kubernetes;
 
 import com.dtstack.chunjun.client.ClusterClientHelper;
 import com.dtstack.chunjun.client.JobDeployer;
-import com.dtstack.chunjun.client.constants.ConfigConstant;
 import com.dtstack.chunjun.client.util.PluginInfoUtil;
 import com.dtstack.chunjun.options.Options;
 
@@ -42,9 +41,8 @@ import org.apache.flink.kubernetes.configuration.KubernetesDeploymentTarget;
 import org.apache.flink.runtime.clusterframework.TaskExecutorProcessUtils;
 import org.apache.flink.runtime.jobmanager.JobManagerProcessUtils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -54,18 +52,13 @@ import java.util.List;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
-/**
- * @program: ChunJun
- * @author: xiuzhu
- * @create: 2021/05/31
- */
-public class KubernetesApplicationClusterClientHelper implements ClusterClientHelper {
+@Slf4j
+public class KubernetesApplicationClusterClientHelper implements ClusterClientHelper<String> {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(KubernetesApplicationClusterClientHelper.class);
+    public static final String KUBERNETES_HOST_ALIASES_ENV = "KUBERNETES_HOST_ALIASES";
 
     @Override
-    public ClusterClient submit(JobDeployer jobDeployer) throws Exception {
+    public ClusterClient<String> submit(JobDeployer jobDeployer) throws Exception {
         Options launcherOptions = jobDeployer.getLauncherOptions();
         List<String> programArgs = jobDeployer.getProgramArgs();
         Configuration effectiveConfiguration = jobDeployer.getEffectiveConfiguration();
@@ -84,14 +77,14 @@ public class KubernetesApplicationClusterClientHelper implements ClusterClientHe
         KubernetesClusterClientFactory kubernetesClusterClientFactory =
                 new KubernetesClusterClientFactory();
         try (KubernetesClusterDescriptor descriptor =
-                kubernetesClusterClientFactory.createClusterDescriptor(effectiveConfiguration); ) {
+                kubernetesClusterClientFactory.createClusterDescriptor(effectiveConfiguration)) {
             ClusterSpecification clusterSpecification =
                     getClusterSpecification(effectiveConfiguration);
             ClusterClientProvider<String> clientProvider =
                     descriptor.deployApplicationCluster(
                             clusterSpecification, applicationConfiguration);
             ClusterClient<String> clusterClient = clientProvider.getClusterClient();
-            LOG.info("Deploy Application with Cluster Id: {}", clusterClient.getClusterId());
+            log.info("Deploy Application with Cluster Id: {}", clusterClient.getClusterId());
             return clusterClient;
         }
     }
@@ -123,7 +116,7 @@ public class KubernetesApplicationClusterClientHelper implements ClusterClientHe
                 .createClusterSpecification();
     }
 
-    private List<String> replaceRemoteParams(List<String> programArgs, Configuration flinkConfig) {
+    private void replaceRemoteParams(List<String> programArgs, Configuration flinkConfig) {
 
         HashMap<String, String> temp = new HashMap<>(16);
         for (int i = 0; i < programArgs.size(); i += 2) {
@@ -147,15 +140,19 @@ public class KubernetesApplicationClusterClientHelper implements ClusterClientHe
             programArgs.add(temp.keySet().toArray()[i].toString());
             programArgs.add(temp.values().toArray()[i].toString());
         }
-
-        return programArgs;
     }
 
     private void setDeployerConfig(Configuration configuration, Options launcherOptions)
             throws FileNotFoundException {
         configuration.set(DeploymentOptionsInternal.CONF_DIR, launcherOptions.getFlinkConfDir());
 
-        String coreJarFileName = PluginInfoUtil.getCoreJarName(launcherOptions.getChunjunDistDir());
+        String coreJarFileName =
+                PluginInfoUtil.getCoreJarName(launcherOptions.getChunjunDistDir())
+                        .orElseThrow(
+                                () ->
+                                        new FileNotFoundException(
+                                                "Can not find core jar file in path:"
+                                                        + launcherOptions.getChunjunDistDir()));
         String remoteCoreJarPath =
                 "local://"
                         + launcherOptions.getRemoteChunJunDistDir()
@@ -170,21 +167,19 @@ public class KubernetesApplicationClusterClientHelper implements ClusterClientHe
     }
 
     private void setHostAliases(Configuration flinkConfig) {
-        String hostAliases = flinkConfig.getString(ConfigConstant.KUBERNETES_HOST_ALIASES_KEY, "");
+        String hostAliases = flinkConfig.getString(DTConfigurationOptions.KUBERNETES_HOST_ALIASES);
         if (StringUtils.isNotBlank(hostAliases)) {
-            flinkConfig.setString(
-                    buildMasterEnvKey(ConfigConstant.KUBERNETES_HOST_ALIASES_ENV), hostAliases);
-            flinkConfig.setString(
-                    buildTaskManagerEnvKey(ConfigConstant.KUBERNETES_HOST_ALIASES_ENV),
-                    hostAliases);
+            flinkConfig.setString(buildMasterEnvKey(), hostAliases);
+            flinkConfig.setString(buildTaskManagerEnvKey(), hostAliases);
         }
     }
 
-    private String buildMasterEnvKey(String env) {
-        return ResourceManagerOptions.CONTAINERIZED_MASTER_ENV_PREFIX + env;
+    private String buildMasterEnvKey() {
+        return ResourceManagerOptions.CONTAINERIZED_MASTER_ENV_PREFIX + KUBERNETES_HOST_ALIASES_ENV;
     }
 
-    private String buildTaskManagerEnvKey(String env) {
-        return ResourceManagerOptions.CONTAINERIZED_TASK_MANAGER_ENV_PREFIX + env;
+    private String buildTaskManagerEnvKey() {
+        return ResourceManagerOptions.CONTAINERIZED_TASK_MANAGER_ENV_PREFIX
+                + KUBERNETES_HOST_ALIASES_ENV;
     }
 }
