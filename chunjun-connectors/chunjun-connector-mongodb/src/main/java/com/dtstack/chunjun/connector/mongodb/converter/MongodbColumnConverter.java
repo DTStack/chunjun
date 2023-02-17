@@ -101,17 +101,13 @@ public class MongodbColumnConverter
     public RowData toInternal(Document document) {
         List<FieldConf> fieldList = commonConf.getColumn();
         ColumnRowData result = new ColumnRowData(fieldList.size());
-        int convertIndex = 0;
-        for (FieldConf fieldConf : fieldList) {
+        for (int i = 0; i < fieldList.size(); i++) {
             AbstractBaseColumn baseColumn = null;
-            if (StringUtils.isNullOrWhitespaceOnly(fieldConf.getValue())) {
-                Object field = document.get(fieldConf.getName());
-                baseColumn =
-                        (AbstractBaseColumn)
-                                toInternalConverters.get(convertIndex).deserialize(field);
-                convertIndex++;
+            if (StringUtils.isNullOrWhitespaceOnly(fieldList.get(i).getValue())) {
+                Object field = document.get(fieldList.get(i).getName());
+                baseColumn = (AbstractBaseColumn) toInternalConverters.get(i).deserialize(field);
             }
-            result.addField(assembleFieldProps(fieldConf, baseColumn));
+            result.addField(assembleFieldProps(fieldList.get(i), baseColumn));
         }
         return result;
     }
