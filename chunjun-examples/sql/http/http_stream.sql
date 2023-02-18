@@ -3,10 +3,10 @@ CREATE TABLE source
     id             int,
     name           varchar
 ) WITH (
-      'connector' = 'restapi-x'
+      'connector' = 'http-x'
       ,'url' = 'http://dev.insight.dtstack.cn/api/streamapp/service/streamCatalogue/getCatalogue'
       ,'intervalTime'= '3000'
-       ,'requestMode'='post'
+       ,'method'='post'
         ,'decode'= 'json'
         ,'body'= '[
               {
@@ -37,11 +37,11 @@ CREATE TABLE source
             ]'
             ,'column'='[
               {
-                "name": "data.id",
+                "name": "id",
                 "type": "int"
               },
               {
-                "name": "data.name",
+                "name": "name",
                 "type": "string"
               }
             ]'
