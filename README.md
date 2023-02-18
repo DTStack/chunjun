@@ -83,7 +83,7 @@ The following table shows the correspondence between the branches of ChunJun and
 
 | Branches     | Flink version |
 |--------------|---------------|
-| master       | 1.12.7        |
+| master       | 1.16.1        |
 | 1.12_release | 1.12.7        |
 | 1.10_release | 1.10.1        |
 | 1.8_release  | 1.8.3         |
