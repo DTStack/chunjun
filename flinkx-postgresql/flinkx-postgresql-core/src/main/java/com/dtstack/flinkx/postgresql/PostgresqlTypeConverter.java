@@ -19,13 +19,18 @@
 package com.dtstack.flinkx.postgresql;
 
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * The type converter for PostgreSQL database
@@ -72,7 +77,38 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
         } else if(bitTypes.contains(typeName)){
             //
         }else if(byteTypes.contains(typeName)){
-            data = Byte.valueOf(dataValue);
+            // According to https://www.postgresql.org/docs/current/datatype-binary.html
+            // the bytea data type is corresponding to byte array (byte[]) in java.
+            if (!(data instanceof byte[])) {
+                // convert binary string to byte[]
+                // - escape format e.g. \153\154\155\251\124 (3 octal digits and precede by backslash per byte)
+                // - hex format. e.g. \xDEADBEEF (2 hex digits per byte)
+
+                // NOTE: we suppose the given binary string is valid,
+                // otherwise it makes no sense.
+                if (dataValue.startsWith("\\x")) { // hex format
+                    data =
+                            parseBinaryString2ByteArray(
+                                    dataValue.substring(2).replace(" ", ""),
+                                    2,
+                                    16,
+                                    s -> s.length() == 2,
+                                    Function.identity());
+                } else if (dataValue.startsWith("\\")) { // escape format
+                    data =
+                            parseBinaryString2ByteArray(
+                                    dataValue,
+                                    4,
+                                    8,
+                                    s -> s.length() == 4 && s.startsWith("\\"),
+                                    s -> s.replace("\\", ""));
+                } else {
+                    throw new IllegalArgumentException(
+                            String.format(
+                                    "Invalid binary string [%s]. can not convert to bytea type.",
+                                    dataValue));
+                }
+            }
         } else if(intTypes.contains(typeName)){
             if(dataValue.contains(".")){
                 dataValue =  new BigDecimal(dataValue).stripTrailingZeros().toPlainString();
@@ -81,5 +117,27 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
         }
 
         return data;
+    }
+
+    private byte[] parseBinaryString2ByteArray(
+            String s,
+            int numsPerGroup,
+            int radix,
+            Predicate<String> checker,
+            Function<String, String> groupProcessor) {
+        Iterable<String> it = Splitter.fixedLength(numsPerGroup).split(s);
+        byte[] ret = new byte[Iterables.size(it)];
+        Iterator<String> iterator = it.iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            String nums = iterator.next();
+            if (!checker.test(nums)) {
+                throw new IllegalArgumentException(
+                        String.format(
+                                "Invalid binary string [%s]. can not parse to bytea type.", s));
+            }
+            ret[i++] = Byte.parseByte(groupProcessor.apply(nums), radix);
+        }
+        return ret;
     }
 }
