@@ -28,6 +28,7 @@ import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
+import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
@@ -43,6 +44,7 @@ import java.sql.Date;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MongodbColumnConverter
         extends AbstractRowConverter<Document, Document, Document, LogicalType> {
@@ -134,7 +136,13 @@ public class MongodbColumnConverter
                 return val -> new BigDecimalColumn(((Decimal128) val).bigDecimalValue());
             case CHAR:
             case VARCHAR:
-                return val -> new StringColumn((String) val);
+                return val -> {
+                    if (val instanceof List || val instanceof Map) {
+                        return new StringColumn(GsonUtil.GSON.toJson(val));
+                    } else {
+                        return new StringColumn(val.toString());
+                    }
+                };
             case INTERVAL_YEAR_MONTH:
             case DATE:
             case TIME_WITHOUT_TIME_ZONE:
