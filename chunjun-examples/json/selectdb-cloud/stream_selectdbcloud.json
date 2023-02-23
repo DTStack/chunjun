@@ -1,0 +1,95 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "sliceRecordCount": [
+              1000
+            ],
+            "permitsPerSecond": 100,
+            "column": [
+              {
+                "name": "timestamp",
+                "type": "datetime"
+              },
+              {
+                "name": "type",
+                "type": "int"
+              },
+              {
+                "name": "error_code",
+                "type": "int"
+              },
+              {
+                "name": "error_msg",
+                "type": "string"
+              },
+              {
+                "name": "op_id",
+                "type": "bigint"
+              },
+              {
+                "name": "op_time",
+                "type": "datetime"
+              }
+            ]
+          },
+          "name": "streamreader"
+        },
+        "writer": {
+          "parameter": {
+            "host":"39.105.60.197",
+            "httpPort": 59806,
+            "queryPort": 28463,
+            "cluster": "test",
+            "tableIdentifier": "test.dup_tbl",
+            "username": "admin",
+            "password": "SelectDB2023",
+            "loadProperties": {
+              "file.type": "json",
+              "file.strip_outer_array": "true"
+            },
+            "column": [
+              {
+                "name": "timestamp",
+                "type": "datetime"
+              },
+              {
+                "name": "type",
+                "type": "int"
+              },
+              {
+                "name": "error_code",
+                "type": "int"
+              },
+              {
+                "name": "error_msg",
+                "type": "string"
+              },
+              {
+                "name": "op_id",
+                "type": "bigint"
+              },
+              {
+                "name": "op_time",
+                "type": "datetime"
+              }
+            ],
+            "batchSize": 200
+          },
+          "name": "selectdbcloudwriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": false,
+        "isStream": true
+      },
+      "speed": {
+        "channel": 1
+      }
+    }
+  }
+}
