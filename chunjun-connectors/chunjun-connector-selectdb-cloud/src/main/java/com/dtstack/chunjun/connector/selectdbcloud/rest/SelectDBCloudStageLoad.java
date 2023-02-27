@@ -1,7 +1,25 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dtstack.chunjun.connector.selectdbcloud.rest;
 
 import com.dtstack.chunjun.connector.selectdbcloud.exception.SelectdbcloudRuntimeException;
-import com.dtstack.chunjun.connector.selectdbcloud.options.SelectdbcloudConf;
+import com.dtstack.chunjun.connector.selectdbcloud.options.SelectdbcloudConfig;
 import com.dtstack.chunjun.connector.selectdbcloud.rest.http.HttpPostBuilder;
 import com.dtstack.chunjun.connector.selectdbcloud.rest.http.HttpPutBuilder;
 import com.dtstack.chunjun.connector.selectdbcloud.rest.model.BaseResponse;
@@ -53,9 +71,9 @@ public class SelectDBCloudStageLoad implements Serializable {
     private final HttpClientBuilder httpClientBuilder =
             HttpClients.custom().disableRedirectHandling();
     private CloseableHttpClient httpClient;
-    private SelectdbcloudConf conf;
+    private SelectdbcloudConfig conf;
 
-    public SelectDBCloudStageLoad(SelectdbcloudConf conf) {
+    public SelectDBCloudStageLoad(SelectdbcloudConfig conf) {
         this.hostPort = conf.getHttpUrl();
         this.user = conf.getUsername();
         this.passwd = conf.getPassword();

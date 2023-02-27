@@ -1,6 +1,24 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dtstack.chunjun.connector.selectdbcloud.sink;
 
-import com.dtstack.chunjun.connector.selectdbcloud.options.SelectdbcloudConf;
+import com.dtstack.chunjun.connector.selectdbcloud.options.SelectdbcloudConfig;
 import com.dtstack.chunjun.connector.selectdbcloud.rest.SelectDBCloudStageLoad;
 
 import org.apache.flink.table.data.RowData;
@@ -40,11 +58,11 @@ public class SeletdbcloudWriter {
 
     private String lineDelimiter;
 
-    private final SelectdbcloudConf conf;
+    private final SelectdbcloudConfig conf;
 
     private final SelectDBCloudStageLoad stageLoad;
 
-    public SeletdbcloudWriter(SelectdbcloudConf conf) {
+    public SeletdbcloudWriter(SelectdbcloudConfig conf) {
         this.conf = conf;
         this.stageLoad = new SelectDBCloudStageLoad(conf);
         init();

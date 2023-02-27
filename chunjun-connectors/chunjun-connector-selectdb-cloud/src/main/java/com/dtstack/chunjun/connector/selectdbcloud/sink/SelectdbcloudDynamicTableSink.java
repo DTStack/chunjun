@@ -16,7 +16,7 @@
 // under the License.
 package com.dtstack.chunjun.connector.selectdbcloud.sink;
 
-import com.dtstack.chunjun.connector.selectdbcloud.options.SelectdbcloudConf;
+import com.dtstack.chunjun.connector.selectdbcloud.options.SelectdbcloudConfig;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.table.connector.ChangelogMode;
@@ -27,9 +27,9 @@ import org.apache.flink.types.RowKind;
 /** DorisDynamicTableSink */
 public class SelectdbcloudDynamicTableSink implements DynamicTableSink {
 
-    private final SelectdbcloudConf options;
+    private final SelectdbcloudConfig options;
 
-    public SelectdbcloudDynamicTableSink(SelectdbcloudConf options) {
+    public SelectdbcloudDynamicTableSink(SelectdbcloudConfig options) {
         this.options = options;
     }
 

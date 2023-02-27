@@ -39,17 +39,18 @@
         },
         "writer": {
           "parameter": {
-            "host":"39.105.60.197",
-            "httpPort": 59806,
-            "queryPort": 28463,
-            "cluster": "test",
-            "tableIdentifier": "test.dup_tbl",
+            "host":"xxx",
+            "httpPort": 21341,
+            "queryPort": 12345,
+            "cluster": "xxx",
+            "tableIdentifier": "db.table",
             "username": "admin",
-            "password": "SelectDB2023",
+            "password": "xxx",
             "loadProperties": {
               "file.type": "json",
               "file.strip_outer_array": "true"
             },
+            "enableDelete": false,
             "column": [
               {
                 "name": "timestamp",

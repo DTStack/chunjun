@@ -17,7 +17,7 @@
 
 package com.dtstack.chunjun.connector.selectdbcloud.table;
 
-import com.dtstack.chunjun.connector.selectdbcloud.options.SelectdbcloudConf;
+import com.dtstack.chunjun.connector.selectdbcloud.options.SelectdbcloudConfig;
 import com.dtstack.chunjun.connector.selectdbcloud.sink.SelectdbcloudDynamicTableSink;
 
 import org.apache.flink.configuration.ConfigOption;
@@ -74,9 +74,9 @@ public final class SelectdbcloudDynamicTableFactory implements DynamicTableSinkF
         return options;
     }
 
-    private SelectdbcloudConf getSelectDBOptions(ReadableConfig readableConfig) {
+    private SelectdbcloudConfig getSelectDBOptions(ReadableConfig readableConfig) {
 
-        SelectdbcloudConf conf = new SelectdbcloudConf();
+        SelectdbcloudConfig conf = new SelectdbcloudConfig();
 
         // set required options
         conf.setHost(readableConfig.get(HOST));
@@ -85,6 +85,7 @@ public final class SelectdbcloudDynamicTableFactory implements DynamicTableSinkF
         conf.setCluster(readableConfig.get(CLUSTER_NAME));
         conf.setUsername(readableConfig.get(USERNAME));
         conf.setPassword(readableConfig.get(PASSWORD));
+        conf.setTableIdentifier(readableConfig.get(TABLE_IDENTIFIER));
 
         // set optional options
 
@@ -115,7 +116,7 @@ public final class SelectdbcloudDynamicTableFactory implements DynamicTableSinkF
         // validate all options
         helper.validateExcept(STAGE_LOAD_PROP_PREFIX);
 
-        SelectdbcloudConf conf = getSelectDBOptions(helper.getOptions());
+        SelectdbcloudConfig conf = getSelectDBOptions(helper.getOptions());
 
         Properties streamLoadProp = getStreamLoadProp(context.getCatalogTable().getOptions());
         conf.setLoadProperties(streamLoadProp);
@@ -131,7 +132,7 @@ public final class SelectdbcloudDynamicTableFactory implements DynamicTableSinkF
         return new SelectdbcloudDynamicTableSink(conf);
     }
 
-    private void setDefaults(SelectdbcloudConf conf) {
+    private void setDefaults(SelectdbcloudConfig conf) {
 
         if (conf.getMaxRetries() == null) {
             conf.setMaxRetries(SINK_MAX_RETRIES.defaultValue());
