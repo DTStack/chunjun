@@ -76,9 +76,11 @@ public class SqlParser {
         AbstractStmtParser uploadFileStmtParser = new UploadFileStmtParser();
         AbstractStmtParser createFunctionStmtParser = new CreateFunctionStmtParser();
         AbstractStmtParser insertStmtParser = new InsertStmtParser();
+        AbstractStmtParser setStmtParser = new SetStmtParser();
 
         uploadFileStmtParser.setNextStmtParser(createFunctionStmtParser);
         createFunctionStmtParser.setNextStmtParser(insertStmtParser);
+        insertStmtParser.setNextStmtParser(setStmtParser);
 
         return uploadFileStmtParser;
     }
