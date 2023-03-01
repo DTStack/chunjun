@@ -25,6 +25,11 @@ import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 
+/**
+ * @program chunjun
+ * @author: xiuzhu
+ * @create: 2021/06/19
+ */
 public class FtpRowConverter extends AbstractRowConverter<String, String, String, LogicalType> {
 
     private DeserializationSchema<RowData> valueDeserialization;

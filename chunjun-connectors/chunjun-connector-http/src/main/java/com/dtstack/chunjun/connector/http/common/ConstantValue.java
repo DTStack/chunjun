@@ -35,10 +35,6 @@ public class ConstantValue {
     public static final String SYSTEM_FUNCTION_CURRENT_TIME = "currentTime";
     public static final String SYSTEM_FUNCTION_INTERVAL_TIME = "intervalTime";
 
-    public static final String CSV_DECODE = "csv";
-    public static final String XML_DECODE = "xml";
-    public static final String TEXT_DECODE = "text";
-
     public static final String DEFAULT_DECODE = "json";
 
     public static String PREFIX = "${";

@@ -18,6 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.source;
 
+import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.connector.ftp.conf.ConfigConstants;
 import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
@@ -34,9 +35,17 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * @program chunjun
+ * @author: xiuzhu
+ * @create: 2021/06/19
+ */
 public class FtpSourceFactory extends SourceFactory {
 
-    private FtpConfig ftpConfig;
+    private final FtpConfig ftpConfig;
 
     public FtpSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
@@ -52,8 +61,6 @@ public class FtpSourceFactory extends SourceFactory {
             String fieldDelimiter = StringUtil.convertRegularExpr(ftpConfig.getFieldDelimiter());
             ftpConfig.setFieldDelimiter(fieldDelimiter);
         }
-
-        ftpConfig.setColumn(syncConf.getReader().getFieldList());
         super.initCommonConf(ftpConfig);
     }
 
@@ -61,6 +68,16 @@ public class FtpSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         FtpInputFormatBuilder builder = new FtpInputFormatBuilder();
         builder.setFtpConfig(ftpConfig);
+        List<FieldConf> fieldConfList =
+                ftpConfig.getColumn().stream()
+                        .peek(
+                                fieldConf -> {
+                                    if (fieldConf.getName() == null) {
+                                        fieldConf.setName(String.valueOf(fieldConf.getIndex()));
+                                    }
+                                })
+                        .collect(Collectors.toList());
+        ftpConfig.setColumn(fieldConfList);
         final RowType rowType =
                 TableUtil.createRowType(ftpConfig.getColumn(), getRawTypeConverter());
         builder.setRowConverter(new FtpColumnConverter(rowType, ftpConfig), useAbstractBaseColumn);

@@ -19,23 +19,16 @@
 package com.dtstack.chunjun.connector.ftp.source;
 
 import com.dtstack.chunjun.connector.ftp.client.Data;
+import com.dtstack.chunjun.connector.ftp.client.File;
+import com.dtstack.chunjun.connector.ftp.client.FileUtil;
 import com.dtstack.chunjun.connector.ftp.client.ZipInputStream;
 import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.enums.FileType;
-import com.dtstack.chunjun.connector.ftp.extend.ftp.File;
-import com.dtstack.chunjun.connector.ftp.extend.ftp.FtpParseException;
-import com.dtstack.chunjun.connector.ftp.extend.ftp.IFormatConfig;
-import com.dtstack.chunjun.connector.ftp.extend.ftp.concurrent.FtpFileSplit;
-import com.dtstack.chunjun.connector.ftp.extend.ftp.format.IFileReadFormat;
-import com.dtstack.chunjun.connector.ftp.handler.DTFtpHandler;
-import com.dtstack.chunjun.connector.ftp.handler.FtpHandler;
-import com.dtstack.chunjun.connector.ftp.handler.FtpHandlerFactory;
+import com.dtstack.chunjun.connector.ftp.format.IFileReadFormat;
+import com.dtstack.chunjun.connector.ftp.format.IFormatConfig;
+import com.dtstack.chunjun.connector.ftp.format.IFormatFactory;
+import com.dtstack.chunjun.connector.ftp.handler.IFtpHandler;
 import com.dtstack.chunjun.connector.ftp.handler.Position;
-import com.dtstack.chunjun.connector.ftp.iformat.IFormatFactory;
-import com.dtstack.chunjun.metrics.BaseMetric;
-
-import org.apache.flink.api.common.accumulators.LongCounter;
-import org.apache.flink.api.common.functions.RuntimeContext;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -43,6 +36,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -50,31 +45,27 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.dtstack.chunjun.connector.ftp.conf.ConfigConstants.FTP_COUNTER_PREFIX;
-
 public class FtpFileReader {
 
     private static final Logger LOG = LoggerFactory.getLogger(FtpFileReader.class);
-    private DTFtpHandler ftpHandler;
+    private final IFtpHandler ftpHandler;
     private Iterator<FtpFileSplit> iter;
     private int fromLine = 0;
 
     /** the fileSplit current read * */
     private FtpFileSplit currentFileSplit;
 
+    /** The bytes read from the current fileSplit * */
+    private Long currentFileSplitReadBytes = 0L;
+
     private Position startPosition;
     private final FtpConfig ftpConfig;
     private IFormatConfig iFormatConfig;
     private IFileReadFormat currentFileReadFormat;
     private final Map<FileType, IFileReadFormat> iFileReadFormatCache;
-    private RuntimeContext runtimeContext;
-    private Map<String, LongCounter> counterMap;
-    private BaseMetric baseMetric;
-    private boolean enableMetric = false;
-    private FtpInputStreamProxy currentInputStream;
 
     public FtpFileReader(
-            DTFtpHandler ftpHandler,
+            IFtpHandler ftpHandler,
             Iterator<FtpFileSplit> iter,
             FtpConfig ftpConfig,
             Position startPosition) {
@@ -88,19 +79,20 @@ public class FtpFileReader {
     /** 断点续跑，过滤文件已经读过的部分 * */
     public void skipHasReadFiles() {
         if (startPosition != null && startPosition.getCurrentReadPosition() > 0) {
-            FtpFileSplit storefs = startPosition.getFileSplit();
+            FtpFileSplit storeFileSplit = startPosition.getFileSplit();
 
-            /**
+            /*
              * remove same file name but endPosition < startPosition.getCurrentReadPosition() set
              * FtpFileSplit startPosition = startPosition.getCurrentReadPosition()
              */
             ArrayList<FtpFileSplit> fileCache = new ArrayList<>();
             for (Iterator<FtpFileSplit> it = iter; it.hasNext(); ) {
                 FtpFileSplit fs = it.next();
-                if (fs.getFileAbsolutePath().equals(storefs.getFileAbsolutePath())) {
+                if (fs.getFileAbsolutePath().equals(storeFileSplit.getFileAbsolutePath())) {
                     if (fs.getEndPosition() <= startPosition.getCurrentReadPosition()) {
                         // remove same file name but endPosition <
                         // startPosition.getCurrentReadPosition()
+                        // do nothing
                     } else {
                         fs.setStartPosition(startPosition.getCurrentReadPosition());
                         fileCache.add(fs);
@@ -120,50 +112,23 @@ public class FtpFileReader {
         }
 
         if (currentFileReadFormat != null) {
+            if (currentFileSplitReadBytes >= currentFileSplit.getReadLimit()) {
+                close();
+                return readLine();
+            }
+
             if (!currentFileReadFormat.hasNext()) {
                 close();
                 return readLine();
             }
 
-            try {
-                String[] record = currentFileReadFormat.nextRecord();
-                if (enableMetric) {
-                    String readBytesMetricName = getMetricName("readBytes");
-                    LongCounter readBytesCounter = counterMap.get(readBytesMetricName);
-                    setMetricValue(readBytesCounter, currentInputStream.getCurrentReadBytes());
+            String[] record = currentFileReadFormat.nextRecord();
+            addCurrentReadSize(record);
 
-                    String metricName = getMetricName("readLines");
-                    LongCounter counter = counterMap.get(metricName);
-                    updateMetric(counter, 1);
-                }
-
-                return new Data(
-                        record,
-                        new Position(
-                                currentInputStream.getCurrentReadBytes()
-                                        + currentFileSplit.getStartPosition(),
-                                currentFileSplit));
-
-            } catch (FtpParseException e) {
-                String[] record = new String[] {e.getContent()};
-                return new Data(
-                        record,
-                        new Position(
-                                currentInputStream.getCurrentReadBytes()
-                                        + currentFileSplit.getStartPosition(),
-                                currentFileSplit),
-                        e);
-            }
-
-        } else {
-            if (enableMetric) {
-                //  tick end
-                String metricName = getMetricName("tickEnd");
-                LongCounter counter = counterMap.get(metricName);
-                tickEndMetric(counter);
-            }
-            return null;
+            return new Data(record, new Position(currentFileSplitReadBytes, currentFileSplit));
         }
+
+        return null;
     }
 
     private void nextStream() throws IOException {
@@ -199,8 +164,6 @@ public class FtpFileReader {
                 iFileReadFormatCache.put(fileType, iFileReadFormat);
             }
             currentFileReadFormat = iFileReadFormatCache.get(fileType);
-            currentFileSplit = fileSplit;
-            currentInputStream = new FtpInputStreamProxy(in, currentFileSplit.getReadLimit());
 
             // adapt to previous file parameter
             File file =
@@ -209,7 +172,10 @@ public class FtpFileReader {
                             fileSplit.getFileAbsolutePath(),
                             fileSplit.getFilename(),
                             fileSplit.getCompressType());
-            currentFileReadFormat.open(file, currentInputStream, iFormatConfig);
+            currentFileReadFormat.open(file, in, iFormatConfig);
+
+            currentFileSplit = fileSplit;
+            currentFileSplitReadBytes = 0L;
 
             if (fileSplit.getStartPosition() == 0) {
                 if (fileType != FileType.EXCEL) {
@@ -217,6 +183,7 @@ public class FtpFileReader {
                         if (currentFileReadFormat.hasNext()) {
                             String[] strings = currentFileReadFormat.nextRecord();
                             LOG.info("Skip line:{}", Arrays.toString(strings));
+                            addCurrentReadSize(strings);
                         } else {
                             break;
                         }
@@ -229,30 +196,11 @@ public class FtpFileReader {
     }
 
     public void close() throws IOException {
-
-        if (currentInputStream != null) {
-            currentInputStream.close();
-        }
-
         if (currentFileReadFormat != null) {
             currentFileReadFormat.close();
             currentFileReadFormat = null;
 
-            if (ftpHandler instanceof FtpHandler) {
-                try {
-                    ((FtpHandler) ftpHandler).getFtpClient().completePendingCommand();
-                } catch (Exception e) {
-                    // 如果出现了超时异常，就直接获取一个新的ftpHandler
-                    LOG.warn("FTPClient completePendingCommand has error ->", e);
-                    try {
-                        ftpHandler.logoutFtpServer();
-                    } catch (Exception exception) {
-                        LOG.warn("FTPClient logout has error ->", exception);
-                    }
-                    ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
-                    ftpHandler.loginFtpServer(ftpConfig);
-                }
-            }
+            FileUtil.closeWithFtpHandler(ftpHandler, LOG);
         }
     }
 
@@ -295,102 +243,23 @@ public class FtpFileReader {
         return currentFileSplit.getFileAbsolutePath();
     }
 
-    public IFormatConfig getiFormatConfig() {
-        return iFormatConfig;
-    }
-
-    public void setiFormatConfig(IFormatConfig iFormatConfig) {
+    public void setIFormatConfig(IFormatConfig iFormatConfig) {
         this.iFormatConfig = iFormatConfig;
     }
 
-    public void enableMetric(RuntimeContext runtimeContext, BaseMetric baseMetric) {
-        this.runtimeContext = runtimeContext;
-        this.baseMetric = baseMetric;
-        counterMap = new HashMap<>();
-        this.enableMetric = true;
-
-        ArrayList<FtpFileSplit> fileCache = new ArrayList<>();
-
-        int totalFiles = 0;
-        StringBuilder allFileNamesBuilder = new StringBuilder();
-        allFileNamesBuilder.append("ftp_read_files(");
-
-        for (Iterator<FtpFileSplit> it = iter; it.hasNext(); ) {
-            FtpFileSplit file = it.next();
-            String readLinesMetricName = getMetricName("readLines");
-            String readBytesMetricName = getMetricName("readBytes");
-
-            counterMap.put(readLinesMetricName, registerMetric(readLinesMetricName, true));
-            counterMap.put(readBytesMetricName, registerMetric(readBytesMetricName, false));
-
-            totalFiles += 1;
-            allFileNamesBuilder.append(file.getFileAbsolutePath());
-
-            if (it.hasNext()) {
-                allFileNamesBuilder.append(", ");
-            }
-            fileCache.add(file);
-        }
-
-        allFileNamesBuilder.append(')');
-        String totalFileMetricName = allFileNamesBuilder.toString();
-        LongCounter totalFileCounter = registerMetric(totalFileMetricName, false);
-        counterMap.put(totalFileMetricName, registerMetric(totalFileMetricName, false));
-        updateMetric(totalFileCounter, totalFiles);
-
-        // tick start
-        String tickStartMetric = getMetricName("tickStart");
-        LongCounter durationCounter = registerMetric(tickStartMetric, false);
-        counterMap.put(tickStartMetric, durationCounter);
-        tickStartMetric(durationCounter);
-
-        iter = fileCache.iterator();
+    private void addCurrentReadSize(String[] value) {
+        String line = String.join(ftpConfig.getFieldDelimiter(), value);
+        currentFileSplitReadBytes += line.getBytes(getCharacterSet()).length;
+        currentFileSplitReadBytes += "\n".getBytes(getCharacterSet()).length;
     }
 
-    private String getMetricName(String action) {
-        switch (action) {
-            case "tickStart":
-            case "tickEnd":
-                return FTP_COUNTER_PREFIX + "_read_duration";
-
-            case "readLines":
-                return FTP_COUNTER_PREFIX + "_read_lines";
-
-            case "readBytes":
-                return FTP_COUNTER_PREFIX + "_read_bytes";
-
+    private Charset getCharacterSet() {
+        switch (ftpConfig.encoding) {
+            case "gbk":
+                return Charset.forName("GBK");
+            case "utf-8":
             default:
-                throw new RuntimeException("illegal parameter");
-        }
-    }
-
-    public LongCounter registerMetric(String metricName, boolean meterView) {
-        LongCounter counter = runtimeContext.getLongCounter(metricName);
-        baseMetric.addMetric(metricName, counter, meterView);
-        return counter;
-    }
-
-    public void updateMetric(LongCounter counter, long incr) {
-        counter.add(incr);
-    }
-
-    public void setMetricValue(LongCounter counter, Long value) {
-        counter.resetLocal();
-        counter.add(value);
-    }
-
-    public void tickStartMetric(LongCounter counter) {
-        if (counter != null) {
-            counter.resetLocal();
-            counter.add(System.currentTimeMillis());
-        }
-    }
-
-    public void tickEndMetric(LongCounter counter) {
-        if (counter != null) {
-            Long startTime = counter.getLocalValue();
-            counter.resetLocal();
-            counter.add(System.currentTimeMillis() - startTime);
+                return StandardCharsets.UTF_8;
         }
     }
 }

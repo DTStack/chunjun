@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.ftp.handler;
 
-import com.dtstack.chunjun.connector.ftp.extend.ftp.concurrent.FtpFileSplit;
+import com.dtstack.chunjun.connector.ftp.source.FtpFileSplit;
 
 import java.io.Serializable;
 import java.util.StringJoiner;
@@ -27,10 +27,10 @@ public class Position implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /** 当前的文件偏移量 */
-    private Long currentReadPosition;
-    /** 读取的数据文件 */
-    private FtpFileSplit fileSplit;
+    /** 第几条数据* */
+    private final Long currentReadPosition;
+    /** 读取的数据文件* */
+    private final FtpFileSplit fileSplit;
 
     public Position(Long currentReadPosition, FtpFileSplit fileSplit) {
         this.currentReadPosition = currentReadPosition;

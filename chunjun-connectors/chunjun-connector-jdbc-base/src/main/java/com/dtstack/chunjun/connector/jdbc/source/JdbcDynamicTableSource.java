@@ -154,7 +154,7 @@ public class JdbcDynamicTableSource
         if (StringUtils.isNotBlank(splitPk)) {
             FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), splitPk);
             if (fieldConf != null) {
-                jdbcConf.setSplitPk(fieldConf.getName());
+                jdbcConf.setSplitPk(fieldConf.getType());
                 splitKeyUtil = jdbcDialect.initKeyUtil(fieldConf.getName(), fieldConf.getType());
             }
         }

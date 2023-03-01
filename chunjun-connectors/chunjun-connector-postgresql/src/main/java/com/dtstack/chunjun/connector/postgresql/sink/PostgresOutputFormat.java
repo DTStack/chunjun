@@ -76,7 +76,6 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
                 PostgresqlDialect pgDialect = (PostgresqlDialect) jdbcDialect;
                 copySql =
                         pgDialect.getCopyStatement(
-                                jdbcConf.getSchema(),
                                 jdbcConf.getTable(),
                                 columnNameList.toArray(new String[0]),
                                 StringUtils.isNullOrWhitespaceOnly(jdbcConf.getFieldDelim().trim())
@@ -89,13 +88,10 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
                 LOG.info("write sql:{}", copySql);
             }
             checkUpsert();
-            if (rowConverter instanceof JdbcColumnConverter) {
-                if (jdbcDialect.dialectName().equals("PostgresSQL")) {
-                    ((PostgresqlColumnConverter) rowConverter)
-                            .setConnection((BaseConnection) dbConn);
-                }
-                ((PostgresqlColumnConverter) rowConverter).setFieldTypeList(columnTypeList);
+            if (jdbcDialect.dialectName().equals("PostgreSQL")) {
+                ((PostgresqlColumnConverter) rowConverter).setConnection((BaseConnection) dbConn);
             }
+            ((PostgresqlColumnConverter) rowConverter).setFieldTypeList(columnTypeList);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("checkUpsert() failed.", sqe);
         }

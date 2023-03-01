@@ -24,12 +24,16 @@ import com.dtstack.chunjun.converter.RawTypeConverter;
 
 import java.util.Optional;
 
+/**
+ * company www.dtstack.com
+ *
+ * @author jier
+ */
 public class GreenplumDialect extends PostgresqlDialect {
 
     private static final String DIALECT_NAME = "Greenplum";
     private static final String DRIVER = "com.pivotal.jdbc.GreenplumDriver";
-    public static final String URL_START = "jdbc:pivotal:greenplum:";
-    public static final String DATABASE_NAME = ";DatabaseName=";
+    private static final String URL_START = "jdbc:pivotal:greenplum:";
 
     @Override
     public String dialectName() {

@@ -27,7 +27,8 @@ public enum FileType {
     CSV,
     EXCEL,
     /** For user-defined file types, the IFileReadFormat interface needs to be implemented.* */
-    CUSTOM;
+    CUSTOM,
+    ;
 
     public static FileType getType(String type) {
         try {

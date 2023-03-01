@@ -17,8 +17,6 @@
  */
 package com.google.common.collect;
 
-import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
-
 import com.google.common.base.Function;
 
 import java.lang.reflect.Method;
@@ -33,7 +31,7 @@ public class MapMakerHelper {
             method.setAccessible(true);
             return (MapMaker) method.invoke(mapMaker);
         } catch (Exception e) {
-            throw new ChunJunRuntimeException(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -46,7 +44,7 @@ public class MapMakerHelper {
             method.setAccessible(true);
             return (ConcurrentMap<K, V>) method.invoke(mapMaker, computingFunction);
         } catch (Exception e) {
-            throw new ChunJunRuntimeException(e);
+            throw new RuntimeException(e);
         }
     }
 }

@@ -20,7 +20,6 @@ package com.dtstack.chunjun.connector.jdbc.sink;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 import org.apache.commons.lang3.StringUtils;
@@ -67,13 +66,6 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder<JdbcOut
         if (StringUtils.isBlank(jdbcConf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }
-
-        if (Semantic.getByName(jdbcConf.getSemantic()) == Semantic.EXACTLY_ONCE
-                && jdbcConf.isAutoCommit()) {
-            sb.append(
-                    "Exactly-once semantics requires that the jdbc driver is not in auto-commit mode;\n");
-        }
-
         if (sb.length() > 0) {
             throw new IllegalArgumentException(sb.toString());
         }

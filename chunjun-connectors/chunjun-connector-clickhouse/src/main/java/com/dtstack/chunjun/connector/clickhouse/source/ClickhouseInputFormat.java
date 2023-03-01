@@ -36,13 +36,13 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) {
-        currentJdbcInputSplit = (JdbcInputSplit) inputSplit;
-        initMetric(currentJdbcInputSplit);
-        if (!canReadData(currentJdbcInputSplit)) {
+        JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
+        initMetric(jdbcInputSplit);
+        if (!canReadData(jdbcInputSplit)) {
             LOG.warn(
                     "Not read data when the start location are equal to end location, start = {}, end = {}",
-                    currentJdbcInputSplit.getStartLocation(),
-                    currentJdbcInputSplit.getEndLocation());
+                    jdbcInputSplit.getStartLocation(),
+                    jdbcInputSplit.getEndLocation());
             hasNext = false;
             return;
         }
@@ -50,9 +50,9 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
         String querySQL = null;
         try {
             dbConn = getConnection();
-            querySQL = buildQuerySql(currentJdbcInputSplit);
+            querySQL = buildQuerySql(jdbcInputSplit);
             jdbcConf.setQuerySql(querySQL);
-            executeQuery(currentJdbcInputSplit.getStartLocation());
+            executeQuery(jdbcInputSplit.getStartLocation());
             // 增量任务
             needUpdateEndLocation =
                     jdbcConf.isIncrement() && !jdbcConf.isPolling() && !jdbcConf.isUseMaxFunc();

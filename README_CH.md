@@ -127,11 +127,6 @@ sh bin/chunjun-local.sh  -job chunjun-examples/json/stream/stream.json
 
 即可执行一个简单的 **stream -> stream** 同步任务
 
-注意:
-```
-如果你是在windows环境下打包，在linux上运行任务前需要执行 sed -i "s/\r//g" bin/*.sh 命令修复sh脚本中的  '\r' 问题。
-```
-
 [参考视频](https://www.bilibili.com/video/BV1mT411g7fJ?spm_id_from=333.999.0.0)
 
 ### Standalone

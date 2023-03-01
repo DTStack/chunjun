@@ -18,31 +18,20 @@
 
 package com.dtstack.chunjun.connector.ftp.client;
 
-import com.dtstack.chunjun.connector.ftp.extend.ftp.FtpParseException;
 import com.dtstack.chunjun.connector.ftp.handler.Position;
 
+/** return from ftpSeqBufferedReader contains line and position */
 public class Data {
     private String[] data;
     private Position position;
-    private FtpParseException exception;
 
     public Data(String[] data, Position position) {
         this.data = data;
         this.position = position;
     }
 
-    public Data(String[] data, Position position, FtpParseException exception) {
-        this.data = data;
-        this.position = position;
-        this.exception = exception;
-    }
-
     public String[] getData() {
         return data;
-    }
-
-    public FtpParseException getException() {
-        return exception;
     }
 
     public Position getPosition() {

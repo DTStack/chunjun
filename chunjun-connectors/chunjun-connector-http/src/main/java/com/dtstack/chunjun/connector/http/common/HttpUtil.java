@@ -58,10 +58,10 @@ public class HttpUtil {
 
     public static CloseableHttpClient getHttpClient() {
 
-        return getBaseBuilder(TIME_OUT).build();
+        return getBaseBuilder().build();
     }
 
-    public static CloseableHttpClient getHttpsClient(int timeOut) {
+    public static CloseableHttpClient getHttpsClient() {
 
         // 设置Http连接池
         SSLContext sslContext;
@@ -74,16 +74,13 @@ public class HttpUtil {
             LOG.warn(ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);
         }
-        return getBaseBuilder(timeOut)
+        return getBaseBuilder()
                 .setSSLContext(sslContext)
                 .setSSLHostnameVerifier(new NoopHostnameVerifier())
                 .build();
     }
 
-    public static HttpClientBuilder getBaseBuilder(int timeOut) {
-        if (timeOut <= 0) {
-            timeOut = TIME_OUT;
-        }
+    public static HttpClientBuilder getBaseBuilder() {
         // 设置自定义的重试策略
         ServiceUnavailableRetryStrategyImpl strategy =
                 new ServiceUnavailableRetryStrategyImpl.Builder()
@@ -96,9 +93,9 @@ public class HttpUtil {
         // 设置超时时间
         RequestConfig requestConfig =
                 RequestConfig.custom()
-                        .setConnectTimeout(timeOut)
-                        .setConnectionRequestTimeout(timeOut)
-                        .setSocketTimeout(timeOut)
+                        .setConnectTimeout(TIME_OUT)
+                        .setConnectionRequestTimeout(TIME_OUT)
+                        .setSocketTimeout(TIME_OUT)
                         .build();
         // 设置Http连接池
         PoolingHttpClientConnectionManager pcm = new PoolingHttpClientConnectionManager();

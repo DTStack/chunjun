@@ -163,6 +163,12 @@ public class DefaultRestHandler implements RestHandler {
         return requestParam;
     }
 
+    @Override
+    public ResponseValue buildResponseValue(
+            String decode, String responseValue, String fields, HttpRequestParam requestParam) {
+        return new ResponseValue(responseValue, requestParam, responseValue);
+    }
+
     /**
      * 根据指定的key 构建一个新的response
      *

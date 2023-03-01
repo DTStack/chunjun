@@ -21,9 +21,7 @@ import com.dtstack.chunjun.conf.ChunJunCommonConf;
 import com.dtstack.chunjun.connector.http.client.Strategy;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * HttpRestConfig
@@ -45,13 +43,6 @@ public class HttpRestConfig extends ChunJunCommonConf {
 
     private String fieldDelimiter = com.dtstack.chunjun.constants.ConstantValue.POINT_SYMBOL;
 
-    /** 数据主体，代表json或者xml返回数据里，数据主体字段对应的数据一定是一个数组，里面的数据需要拆分 */
-    private String dataSubject;
-
-    private String csvDelimiter = com.dtstack.chunjun.constants.ConstantValue.COMMA_SYMBOL;
-
-    private Map<String, Object> csvConfig = new HashMap<>();
-
     /** response text/json */
     private String decode = "text";
 
@@ -62,11 +53,7 @@ public class HttpRestConfig extends ChunJunCommonConf {
     private String fieldTypes;
 
     /** 请求的间隔时间 单位毫秒 */
-    private Long intervalTime = 3000L;
-
-    // allow request num cycles 为-1时，除非异常或者strategy生效导致任务结束，否则任务会一直循环请求，如果 大于
-    // 0，则代表循环请求的次数，如配置为3，则会发送三次http请求
-    private long cycles = -1;
+    private Long intervalTime;
 
     /** 请求的header头 */
     private List<MetaParam> header = new ArrayList<>(2);
@@ -79,9 +66,6 @@ public class HttpRestConfig extends ChunJunCommonConf {
 
     /** 返回结果的处理策略 */
     protected List<Strategy> strategy = new ArrayList<>(2);
-
-    /** 请求的超时时间 单位毫秒 */
-    private long timeOut = 10000;
 
     public String getFieldTypes() {
         return fieldTypes;
@@ -183,46 +167,6 @@ public class HttpRestConfig extends ChunJunCommonConf {
         this.fieldDelimiter = fieldDelimiter;
     }
 
-    public String getDataSubject() {
-        return dataSubject;
-    }
-
-    public void setDataSubject(String dataSubject) {
-        this.dataSubject = dataSubject;
-    }
-
-    public String getCsvDelimiter() {
-        return csvDelimiter;
-    }
-
-    public void setCsvDelimiter(String csvDelimiter) {
-        this.csvDelimiter = csvDelimiter;
-    }
-
-    public Map<String, Object> getCsvConfig() {
-        return csvConfig;
-    }
-
-    public void setCsvConfig(Map<String, Object> csvConfig) {
-        this.csvConfig = csvConfig;
-    }
-
-    public long getCycles() {
-        return cycles;
-    }
-
-    public void setCycles(long cycles) {
-        this.cycles = cycles;
-    }
-
-    public long getTimeOut() {
-        return timeOut;
-    }
-
-    public void setTimeOut(long timeOut) {
-        this.timeOut = timeOut;
-    }
-
     @Override
     public String toString() {
         return "HttpRestConfig{"
@@ -235,30 +179,16 @@ public class HttpRestConfig extends ChunJunCommonConf {
                 + ", requestMode='"
                 + requestMode
                 + '\''
-                + ", fieldDelimiter='"
-                + fieldDelimiter
-                + '\''
-                + ", dataSubject='"
-                + dataSubject
-                + '\''
-                + ", csvDelimiter='"
-                + csvDelimiter
-                + '\''
-                + ", csvConfig="
-                + csvConfig
                 + ", decode='"
                 + decode
                 + '\''
                 + ", fields='"
                 + fields
                 + '\''
-                + ", fieldTypes='"
-                + fieldTypes
-                + '\''
                 + ", intervalTime="
                 + intervalTime
-                + ", cycles="
-                + cycles
+                + ", fieldDelimiter="
+                + fieldDelimiter
                 + ", header="
                 + header
                 + ", param="
@@ -267,8 +197,6 @@ public class HttpRestConfig extends ChunJunCommonConf {
                 + body
                 + ", strategy="
                 + strategy
-                + ", timeOut="
-                + timeOut
                 + '}';
     }
 }

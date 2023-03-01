@@ -524,9 +524,7 @@ public class LogMinerListener implements Runnable {
             }
 
             /* generate create table ddl */
-            if (logMinerConf.isInitialTableStructure()) {
-                initialTableStruct(conn);
-            }
+            initialTableStruct(conn);
 
             /* release lock */
             stmt.execute(SqlUtil.releaseTableLock());

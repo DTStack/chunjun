@@ -29,6 +29,7 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.enums.EWriteMode;
 import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.GsonUtil;
@@ -36,6 +37,7 @@ import com.dtstack.chunjun.util.JsonUtil;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.FlinkRuntimeException;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +68,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected JdbcDialect jdbcDialect;
 
     protected transient Connection dbConn;
+    protected boolean autoCommit = true;
 
     protected transient PreparedStmtProxy stmtProxy;
 
@@ -86,7 +89,10 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         try {
             dbConn = getConnection();
             // 默认关闭事务自动提交，手动控制事务
-            dbConn.setAutoCommit(jdbcConf.isAutoCommit());
+            if (Semantic.EXACTLY_ONCE == semantic) {
+                autoCommit = false;
+                dbConn.setAutoCommit(autoCommit);
+            }
             if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
                 List<String> updateKey = jdbcConf.getUniqueKey();
                 if (CollectionUtils.isEmpty(updateKey)) {
@@ -131,11 +137,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         int index = 0;
         try {
             stmtProxy.writeSingleRecordInternal(row);
-            if (Semantic.EXACTLY_ONCE == semantic) {
-                rowsOfCurrentTransaction += rows.size();
-            } else {
-                JdbcUtil.commit(dbConn);
-            }
         } catch (Exception e) {
             JdbcUtil.rollBack(dbConn);
             processWriteException(e, index, row);
@@ -165,8 +166,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             // 开启了cp，但是并没有使用2pc方式让下游数据可见
             if (Semantic.EXACTLY_ONCE == semantic) {
                 rowsOfCurrentTransaction += rows.size();
-            } else {
-                JdbcUtil.commit(dbConn);
             }
         } catch (Exception e) {
             LOG.warn(
@@ -179,6 +178,29 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         } finally {
             // 执行完后清空batch
             stmtProxy.clearBatch();
+        }
+    }
+
+    @Override
+    public synchronized void writeRecord(RowData rowData) {
+        checkConnValid();
+        super.writeRecord(rowData);
+    }
+
+    public void checkConnValid() {
+        try {
+            LOG.debug("check db connection valid..");
+            if (!dbConn.isValid(10)) {
+                if (Semantic.EXACTLY_ONCE == semantic) {
+                    throw new FlinkRuntimeException(
+                            "jdbc connection is valid!work's semantic is ExactlyOnce.To prevent data loss,we don't try to reopen the connection");
+                }
+                LOG.info("db connection reconnect..");
+                dbConn = getConnection();
+                stmtProxy.reOpen(dbConn);
+            }
+        } catch (Exception e) {
+            throw new ChunJunRuntimeException("failed to check jdbcConnection valid", e);
         }
     }
 
@@ -219,7 +241,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     public void doCommit() throws SQLException {
         try {
-            if (!jdbcConf.isAutoCommit()) {
+            if (!autoCommit) {
                 dbConn.commit();
             }
             snapshotWriteCounter.add(rowsOfCurrentTransaction);

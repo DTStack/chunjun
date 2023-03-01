@@ -64,16 +64,4 @@ public class HttpOptions {
 
     public static final ConfigOption<Integer> DELAY =
             ConfigOptions.key("delay").intType().defaultValue(30).withDescription("request delay");
-
-    public static final ConfigOption<String> DATA_SUBJECT =
-            ConfigOptions.key("dataSubject")
-                    .stringType()
-                    .defaultValue("${data}")
-                    .withDescription("response data subject");
-
-    public static final ConfigOption<Long> CYCLES =
-            ConfigOptions.key("cycles")
-                    .longType()
-                    .defaultValue(1L)
-                    .withDescription("request cycle");
 }

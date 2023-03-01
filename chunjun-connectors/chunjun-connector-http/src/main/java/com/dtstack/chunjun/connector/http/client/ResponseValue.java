@@ -18,8 +18,6 @@
 
 package com.dtstack.chunjun.connector.http.client;
 
-import org.apache.flink.table.data.RowData;
-
 /**
  * 返回值
  *
@@ -30,7 +28,7 @@ public class ResponseValue {
     /** 本次请求状态 -1 不正常，代表出现了异常 0 代表结束任务 strategy 出现了stop 1 代表任务正常 */
     private int status;
     /** 返回值 */
-    private RowData data;
+    private String data;
     /** 如果是异常数据 这个是异常数据 */
     private String errorMsg;
     /** 请求参数 */
@@ -41,7 +39,7 @@ public class ResponseValue {
 
     public ResponseValue(
             int status,
-            RowData data,
+            String data,
             String errorMsg,
             HttpRequestParam requestParam,
             String originResponseValue) {
@@ -52,7 +50,7 @@ public class ResponseValue {
         this.originResponseValue = originResponseValue;
     }
 
-    public ResponseValue(RowData data, HttpRequestParam requestParam, String originResponseValue) {
+    public ResponseValue(String data, HttpRequestParam requestParam, String originResponseValue) {
         this(1, data, null, requestParam, originResponseValue);
     }
 
@@ -60,7 +58,7 @@ public class ResponseValue {
         return status != -1;
     }
 
-    public RowData getData() {
+    public String getData() {
         return data;
     }
 

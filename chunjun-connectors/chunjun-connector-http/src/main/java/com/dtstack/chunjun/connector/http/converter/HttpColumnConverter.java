@@ -18,7 +18,8 @@
 
 package com.dtstack.chunjun.connector.http.converter;
 
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.connector.http.client.DefaultRestHandler;
+import com.dtstack.chunjun.connector.http.common.ConstantValue;
 import com.dtstack.chunjun.connector.http.common.HttpRestConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -31,6 +32,8 @@ import com.dtstack.chunjun.element.column.MapColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 import com.dtstack.chunjun.util.DateUtil;
+import com.dtstack.chunjun.util.GsonUtil;
+import com.dtstack.chunjun.util.MapUtil;
 
 import org.apache.flink.table.data.RowData;
 
@@ -38,7 +41,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -48,7 +50,7 @@ import java.util.Map;
  * @description
  */
 public class HttpColumnConverter
-        extends AbstractRowConverter<Map<String, Object>, Object, Map<String, Object>, String> {
+        extends AbstractRowConverter<String, Object, Map<String, Object>, String> {
 
     /** restapi Conf */
     private HttpRestConfig httpRestConfig;
@@ -75,27 +77,34 @@ public class HttpColumnConverter
     }
 
     @Override
-    public RowData toInternal(Map<String, Object> input) throws Exception {
+    public RowData toInternal(String input) throws Exception {
         ColumnRowData row;
+        if (httpRestConfig.getDecode().equals(ConstantValue.DEFAULT_DECODE)) {
+            Map<String, Object> result =
+                    DefaultRestHandler.gson.fromJson(input, GsonUtil.gsonMapTypeToken);
+            if (toInternalConverters != null && toInternalConverters.size() > 0) {
+                // 同步任务配置了field参数(对应的类型转换都是string) 需要对每个字段进行类型转换
+                row = new ColumnRowData(toInternalConverters.size());
+                String fields = httpRestConfig.getFields();
+                String[] split = fields.split(",");
 
-        if (toInternalConverters != null && toInternalConverters.size() > 0) {
-            List<FieldConf> fieldConfList = commonConf.getColumn();
-            // 同步任务配置了field参数(对应的类型转换都是string) 需要对每个字段进行类型转换
-            row = new ColumnRowData(toInternalConverters.size());
-            for (int i = 0; i < toInternalConverters.size(); i++) {
-                String name = httpRestConfig.getColumn().get(i).getName();
-                AbstractBaseColumn baseColumn =
-                        (AbstractBaseColumn)
-                                toInternalConverters.get(i).deserialize(input.get(name));
-
-                row.addField(assembleFieldProps(fieldConfList.get(i), baseColumn));
+                for (int i = 0; i < split.length; i++) {
+                    Object value =
+                            MapUtil.getValueByKey(
+                                    result, split[i], httpRestConfig.getFieldDelimiter());
+                    row.addField(
+                            (AbstractBaseColumn) toInternalConverters.get(i).deserialize(value));
+                }
+            } else {
+                // 直接作为mapColumn
+                row = new ColumnRowData(1);
+                row.addField(new MapColumn(result));
             }
-        } else {
-            // 实时直接作为mapColumn
-            row = new ColumnRowData(1);
-            row.addField(new MapColumn(input));
-        }
 
+        } else {
+            row = new ColumnRowData(1);
+            row.addField(new StringColumn(input));
+        }
         return row;
     }
 

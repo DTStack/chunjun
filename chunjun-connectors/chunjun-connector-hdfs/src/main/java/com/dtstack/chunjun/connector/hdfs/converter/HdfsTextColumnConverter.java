@@ -108,29 +108,12 @@ public class HdfsTextColumnConverter
     }
 
     @Override
-    protected IDeserializationConverter wrapIntoNullableInternalConverter(
-            IDeserializationConverter IDeserializationConverter) {
-        return val -> {
-            if (val == null || "".equals(val)) {
-                return null;
-            } else {
-                try {
-                    return IDeserializationConverter.deserialize(val);
-                } catch (Exception e) {
-                    LOG.error("value [{}] convent failed ", val);
-                    throw e;
-                }
-            }
-        };
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
     protected ISerializationConverter<String[]> wrapIntoNullableExternalConverter(
             ISerializationConverter serializationConverter, String type) {
         return (rowData, index, data) -> {
             if (rowData == null || rowData.isNullAt(index)) {
-                data[index] = "\\N";
+                data[index] = null;
             } else {
                 serializationConverter.serialize(rowData, index, data);
             }

@@ -20,8 +20,6 @@ package com.dtstack.chunjun.util;
 
 import com.dtstack.chunjun.constants.ConstantValue;
 
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.type.TypeReference;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -33,19 +31,15 @@ public class JobUtil {
         throw new IllegalAccessException(getClass().getName() + " can not be instantiated");
     }
 
-    public static String replaceJobParameter(String p, String pj, String job) {
+    public static String replaceJobParameter(String p, String job) {
         if (StringUtils.isNotBlank(p)) {
-            Map<String, String> parameters = commandSimpleTransform(p);
-            job = jsonValueReplace(job, parameters);
-        }
-        if (StringUtils.isNotBlank(pj)) {
-            Map<String, String> parameters = commandJsonTransform(pj);
-            job = jsonValueReplace(job, parameters);
+            Map<String, String> parameters = CommandTransform(p);
+            job = JsonValueReplace(job, parameters);
         }
         return job;
     }
 
-    public static String jsonValueReplace(String json, Map<String, String> parameter) {
+    public static String JsonValueReplace(String json, Map<String, String> parameter) {
         for (String item : parameter.keySet()) {
             if (json.contains("${" + item + "}")) {
                 json = json.replace("${" + item + "}", parameter.get(item));
@@ -55,7 +49,7 @@ public class JobUtil {
     }
 
     /** 将命令行中的修改命令转化为HashMap保存 */
-    public static HashMap<String, String> commandSimpleTransform(String command) {
+    public static HashMap<String, String> CommandTransform(String command) {
         HashMap<String, String> parameter = new HashMap<>();
         String[] split = StringUtils.split(command, ConstantValue.COMMA_SYMBOL);
         for (String item : split) {
@@ -63,9 +57,5 @@ public class JobUtil {
             parameter.put(temp[0].trim(), temp[1].trim());
         }
         return parameter;
-    }
-
-    public static HashMap<String, String> commandJsonTransform(String command) {
-        return JsonUtil.toObject(command, new TypeReference<HashMap<String, String>>() {});
     }
 }

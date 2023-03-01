@@ -18,10 +18,12 @@
 
 package com.dtstack.chunjun.connector.http.converter;
 
+import com.dtstack.chunjun.connector.http.client.DefaultRestHandler;
 import com.dtstack.chunjun.connector.http.common.HttpRestConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
+import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.MapUtil;
 
 import org.apache.flink.table.data.DecimalData;
@@ -43,8 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Base class for all converters that convert between restapi body and Flink internal object. */
-public class HttpRowConverter
-        extends AbstractRowConverter<Map<String, Object>, RowData, RowData, LogicalType> {
+public class HttpRowConverter extends AbstractRowConverter<String, RowData, RowData, LogicalType> {
 
     private HttpRestConfig httpRestConfig;
 
@@ -68,7 +69,9 @@ public class HttpRowConverter
     }
 
     @Override
-    public RowData toInternal(Map<String, Object> result) throws Exception {
+    public RowData toInternal(String input) throws Exception {
+        Map<String, Object> result =
+                DefaultRestHandler.gson.fromJson(input, GsonUtil.gsonMapTypeToken);
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         List<String> columns = rowType.getFieldNames();
         for (int pos = 0; pos < columns.size(); pos++) {

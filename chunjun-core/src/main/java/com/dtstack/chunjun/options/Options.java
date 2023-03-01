@@ -70,11 +70,8 @@ public class Options {
     @OptionRequired(description = "env properties")
     private String confProp = "{}";
 
-    @OptionRequired(description = "parameters in simple format")
+    @OptionRequired(description = "json modify")
     private String p = "";
-
-    @OptionRequired(description = "parameters in json format")
-    private String pj = "";
 
     @OptionRequired(description = "plugin load mode, by classpath or shipfile")
     private String pluginLoadMode = "shipfile";
@@ -87,9 +84,6 @@ public class Options {
 
     @OptionRequired(description = "file add to ship file")
     private String addShipfile;
-
-    @OptionRequired(description = "flink run mode")
-    private String runMode;
 
     private Configuration flinkConfiguration = null;
 
@@ -182,14 +176,6 @@ public class Options {
         this.p = p;
     }
 
-    public String getPj() {
-        return pj;
-    }
-
-    public void setPj(String pj) {
-        this.pj = pj;
-    }
-
     public String getPluginLoadMode() {
         return pluginLoadMode;
     }
@@ -238,14 +224,6 @@ public class Options {
         this.jobType = jobType;
     }
 
-    public String getRunMode() {
-        return runMode;
-    }
-
-    public void setRunMode(String runMode) {
-        this.runMode = runMode;
-    }
-
     @Override
     public String toString() {
         return new StringJoiner(", ", Options.class.getSimpleName() + "[", "]")
@@ -259,12 +237,10 @@ public class Options {
                 .add("flinkLibDir='" + flinkLibDir + "'")
                 .add("confProp='" + confProp + "'")
                 .add("p='" + p + "'")
-                .add("pj='" + pj + "'")
                 .add("pluginLoadMode='" + pluginLoadMode + "'")
                 .add("remoteChunJunDistDir='" + remoteChunJunDistDir + "'")
                 .add("addjar='" + addjar + "'")
                 .add("addShipfile='" + addShipfile + "'")
-                .add("runMode='" + runMode + "'")
                 .add("flinkConfiguration=" + flinkConfiguration)
                 .toString();
     }

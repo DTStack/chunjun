@@ -38,6 +38,11 @@ import org.apache.flink.table.types.logical.RowType;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @program chunjun
+ * @author: xiuzhu
+ * @create: 2021/06/19
+ */
 public class FtpSinkFactory extends SinkFactory {
 
     private List<String> columnName;

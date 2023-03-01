@@ -172,15 +172,4 @@ public class FunctionParser {
 
         return express;
     }
-
-    public static List<String> getRegexColumnName(String qualifier) {
-        Matcher matcher = COL_PATTERN.matcher(qualifier);
-        ArrayList<String> columnQualifier = new ArrayList<>();
-        while (matcher.find()) {
-            String columnGroup = matcher.group();
-            String column = columnGroup.substring(2, columnGroup.length() - 1);
-            columnQualifier.add(column);
-        }
-        return columnQualifier;
-    }
 }

@@ -52,7 +52,6 @@ import com.dtstack.chunjun.util.RealTimeDataSourceNameUtil;
 import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.api.common.JobExecutionResult;
-import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.runtime.jobgraph.SavepointConfigOptions;
@@ -102,7 +101,7 @@ public class Main {
 
         Options options = new OptionParser(args).getOptions();
         String job = URLDecoder.decode(options.getJob(), StandardCharsets.UTF_8.name());
-        String replacedJob = JobUtil.replaceJobParameter(options.getP(), options.getPj(), job);
+        String replacedJob = JobUtil.replaceJobParameter(options.getP(), job);
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =
@@ -144,8 +143,6 @@ public class Main {
         try {
             configStreamExecutionEnvironment(env, options, null);
             List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(options.getAddjar());
-            String runMode = options.getRunMode();
-            if ("batch".equalsIgnoreCase(runMode)) env.setRuntimeMode(RuntimeExecutionMode.BATCH);
             StatementSet statementSet = SqlParser.parseSql(job, jarUrlList, tableEnv);
             TableResult execute = statementSet.execute();
             if (env instanceof MyLocalStreamEnvironment) {

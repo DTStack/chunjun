@@ -19,9 +19,7 @@ package com.dtstack.chunjun.connector.hive.util;
 
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
-import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
-import org.datanucleus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +36,6 @@ public class PathConverterUtil {
     private static final Logger logger = LoggerFactory.getLogger(PathConverterUtil.class);
     private static final Pattern pat1 = Pattern.compile("\\$\\{.*?\\}");
     private static final String KEY_TABLE = "table";
-
-    private static final String HIVE_TABLE_PATTERN = "[A-Za-z0-9][A-Za-z0-9_]*";
 
     /**
      * @param path
@@ -63,7 +59,6 @@ public class PathConverterUtil {
                 // .在sql中会视为db.table的分隔符，需要单独过滤特殊字符 '.'
                 path = path.replace(pkey, ruleValue).replace(".", "_");
             }
-            path = tryGetValidHiveTableName(path);
         } catch (Exception e) {
             logger.error("parser path rules is fail", e);
         }
@@ -93,25 +88,9 @@ public class PathConverterUtil {
                 // .在sql中会视为db.table的分隔符，需要单独过滤特殊字符 '.'
                 path = path.replace(pkey, ruleValue).replace(".", "_");
             }
-
-            path = tryGetValidHiveTableName(path);
         } catch (Exception e) {
             logger.error("parser path rules is fail", e);
         }
         return path;
-    }
-
-    private static String tryGetValidHiveTableName(String path) {
-        // 各种来源的表名 schema.tablename 并不会与 hive table name 规范兼容，这里需要适配
-        Pattern hiveTableNamePattern = Pattern.compile(HIVE_TABLE_PATTERN);
-        Matcher hiveTableMatcher = hiveTableNamePattern.matcher(path);
-        StringBuilder validTableName = new StringBuilder();
-        while (hiveTableMatcher.find()) {
-            validTableName.append(hiveTableMatcher.group());
-        }
-        if (StringUtils.isEmpty(validTableName.toString())) {
-            throw new ChunJunRuntimeException("hive table name does not match");
-        }
-        return validTableName.toString();
     }
 }

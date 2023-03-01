@@ -222,18 +222,11 @@ public class HdfsOrcColumnConverter
             case "CHAR":
                 return (rowData, index, data) -> data[index] = rowData.getString(index).toString();
             case "TIMESTAMP":
-                return (rowData, index, data) -> {
-                    Timestamp ts = rowData.getTimestamp(index, 6).toTimestamp();
-                    int nanos = ts.getNanos();
-                    data[index] =
-                            org.apache.hadoop.hive.common.type.Timestamp.ofEpochMilli(
-                                    ts.getTime(), nanos);
-                };
+                return (rowData, index, data) ->
+                        data[index] = rowData.getTimestamp(index, 6).toTimestamp();
             case "DATE":
                 return (rowData, index, data) ->
-                        data[index] =
-                                org.apache.hadoop.hive.common.type.Date.ofEpochMilli(
-                                        rowData.getTimestamp(index, 6).getMillisecond());
+                        data[index] = new Date(rowData.getTimestamp(index, 6).getMillisecond());
             case "BINARY":
                 return (rowData, index, data) ->
                         data[index] = new BytesWritable(rowData.getBinary(index));

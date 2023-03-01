@@ -20,39 +20,16 @@ package com.dtstack.chunjun.connector.greenplum.sink;
 
 import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.connector.greenplum.dialect.GreenplumDialect;
-import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
-import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.chunjun.connector.postgresql.dialect.PostgresqlDialect;
+import com.dtstack.chunjun.connector.postgresql.sink.PostgresqlSinkFactory;
 
-import org.apache.commons.lang.StringUtils;
-
-import static com.dtstack.chunjun.connector.greenplum.sink.GreenplumOutputFormat.INSERT_SQL_MODE_TYPE;
-
-public class GreenplumSinkFactory extends JdbcSinkFactory {
+/**
+ * company www.dtstack.com
+ *
+ * @author jier
+ */
+public class GreenplumSinkFactory extends PostgresqlSinkFactory {
 
     public GreenplumSinkFactory(SyncConf syncConf) {
-        super(syncConf, null);
-        if (syncConf.getWriter().getParameter().get("insertSqlMode") != null
-                && INSERT_SQL_MODE_TYPE.equalsIgnoreCase(
-                        syncConf.getWriter().getParameter().get("insertSqlMode").toString())) {
-            this.jdbcDialect = new PostgresqlDialect();
-            String pgUrl = changeToPostgresqlUrl(this.jdbcConf.getJdbcUrl());
-            this.jdbcConf.setJdbcUrl(pgUrl);
-        } else {
-            this.jdbcDialect = new GreenplumDialect();
-        }
-    }
-
-    @Override
-    protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new GreenplumOutputFormat());
-    }
-
-    private String changeToPostgresqlUrl(String gpUrl) {
-        String pgUrl =
-                StringUtils.replaceOnce(
-                        gpUrl, GreenplumDialect.URL_START, PostgresqlDialect.URL_START);
-        pgUrl = StringUtils.replaceOnce(pgUrl, GreenplumDialect.DATABASE_NAME, "/");
-        return pgUrl;
+        super(syncConf, new GreenplumDialect());
     }
 }

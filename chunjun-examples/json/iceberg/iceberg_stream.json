@@ -1,0 +1,72 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader" : {
+          "parameter" : {
+            "path" : "/Users/xx/study/bigdata-iceberg/iceberg_warehouse/tb1",
+            "defaultFS" : "file:///",
+            "hadoopConfig" : {
+              "fs.hdfs.impl.disable.cache": "true"
+            },
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "event_time",
+                "type": "long"
+              },
+              {
+                "name": "message",
+                "type": "string"
+              },
+              {
+                "name": "t_timestamp",
+                "type": "timestamp"
+              },
+              {
+                "name": "t_date",
+                "type": "date"
+              },
+              {
+                "name": "t_time",
+                "type": "time"
+              },
+              {
+                "name": "t_bool",
+                "type": "boolean"
+              },
+              {
+                "name": "t_double",
+                "type": "double"
+              },
+              {
+                "name": "t_float",
+                "type": "float"
+              },
+              {
+                "name": "t_decimal",
+                "type": "decimal"
+              }
+            ]
+          },
+          "name" : "icebergreader"
+        },
+        "writer": {
+          "name": "streamwriter",
+          "parameter": {
+            "print": true
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}

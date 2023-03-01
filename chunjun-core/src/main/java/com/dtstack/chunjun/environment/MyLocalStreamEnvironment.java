@@ -21,7 +21,6 @@ package com.dtstack.chunjun.environment;
 import org.apache.flink.annotation.Public;
 import org.apache.flink.api.common.InvalidProgramException;
 import org.apache.flink.api.common.JobExecutionResult;
-import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.DeploymentOptions;
@@ -34,14 +33,11 @@ import org.apache.flink.runtime.minicluster.MiniClusterConfiguration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.graph.StreamGraph;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -117,22 +113,6 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
         return effectiveConfiguration;
     }
 
-    private void clearFlinkLocalDsitributeCache(JobGraph jobGraph) throws IOException {
-        File osTmpDir = new File(System.getProperty("java.io.tmpdir"));
-        JobID jobID = jobGraph.getJobID();
-        File[] flinkTmpDirs =
-                osTmpDir.listFiles(
-                        (dir, name) -> name.startsWith("flink-distributed-cache-" + jobID));
-
-        if (flinkTmpDirs != null && flinkTmpDirs.length > 0) {
-            for (File flinkTmpDir : flinkTmpDirs) {
-                if (flinkTmpDir.exists() && flinkTmpDir.isDirectory()) {
-                    FileUtils.deleteDirectory(flinkTmpDir);
-                }
-            }
-        }
-    }
-
     @Override
     protected Configuration getConfiguration() {
         return configuration;
@@ -195,7 +175,6 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
         } finally {
             transformations.clear();
             miniCluster.close();
-            clearFlinkLocalDsitributeCache(jobGraph);
         }
     }
 }

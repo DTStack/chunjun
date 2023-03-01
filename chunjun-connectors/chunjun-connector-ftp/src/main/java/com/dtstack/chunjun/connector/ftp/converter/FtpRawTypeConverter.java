@@ -27,6 +27,11 @@ import org.apache.flink.table.types.logical.BinaryType;
 
 import java.util.Locale;
 
+/**
+ * @program chunjun
+ * @author: xiuzhu
+ * @create: 2021/06/28
+ */
 public class FtpRawTypeConverter {
 
     public static DataType apply(String type) throws UnsupportedTypeException {
