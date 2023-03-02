@@ -20,6 +20,8 @@ package com.dtstack.chunjun.connector.mongodb.converter;
 
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 
+import com.mongodb.util.JSON;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -102,6 +104,8 @@ public final class MongodbRowConverter
             Object field = document.get(fieldNames[pos]);
             if (field instanceof ObjectId) {
                 field = field.toString();
+            } else if ("flinkBson".equalsIgnoreCase(fieldNames[pos])) {
+                field = JSON.serialize(document);
             }
             genericRowData.setField(pos, toInternalConverters.get(pos).deserialize(field));
         }

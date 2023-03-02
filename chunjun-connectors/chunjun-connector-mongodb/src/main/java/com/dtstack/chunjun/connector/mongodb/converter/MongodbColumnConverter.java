@@ -29,6 +29,8 @@ import com.dtstack.chunjun.element.column.BytesColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 
+import com.mongodb.util.JSON;
+
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
@@ -102,7 +104,13 @@ public class MongodbColumnConverter
         int convertIndex = 0;
         for (FieldConf fieldConf : fieldList) {
             AbstractBaseColumn baseColumn = null;
-            if (StringUtils.isNullOrWhitespaceOnly(fieldConf.getValue())) {
+            if ("flinkBson".equalsIgnoreCase(fieldConf.getName())) {
+                Object field = JSON.serialize(document);
+                baseColumn =
+                        (AbstractBaseColumn)
+                                toInternalConverters.get(convertIndex).deserialize(field);
+                convertIndex++;
+            }else if (StringUtils.isNullOrWhitespaceOnly(fieldConf.getValue())){
                 Object field = document.get(fieldConf.getName());
                 baseColumn =
                         (AbstractBaseColumn)
