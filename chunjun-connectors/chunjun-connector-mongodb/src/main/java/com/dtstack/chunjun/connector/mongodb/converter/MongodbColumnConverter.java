@@ -20,6 +20,7 @@ package com.dtstack.chunjun.connector.mongodb.converter;
 
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
 import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.connector.mongodb.util.Bson2JsonUtils;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -104,13 +105,14 @@ public class MongodbColumnConverter
         for (FieldConf fieldConf : fieldList) {
             AbstractBaseColumn baseColumn = null;
             if ("flinkBson".equalsIgnoreCase(fieldConf.getName())) {
-                Object field = JSON.serialize(document);
+                Document doc = Document.parse(JSON.serialize(document));
+                Object field = Bson2JsonUtils.toJson(doc);
                 baseColumn =
                         (AbstractBaseColumn)
                                 toInternalConverters.get(convertIndex).deserialize(field);
                 convertIndex++;
             } else if (StringUtils.isNullOrWhitespaceOnly(fieldConf.getValue())) {
-                Object field = JSON.serialize(document.get(fieldConf.getName()));
+                Object field = document.get(fieldConf.getName());
                 baseColumn =
                         (AbstractBaseColumn)
                                 toInternalConverters.get(convertIndex).deserialize(field);
