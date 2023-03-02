@@ -52,6 +52,13 @@
 			</directory>
 			<outputDirectory>lib</outputDirectory>
 		</fileSet>
+		<fileSet>
+			<directory>${project.parent.basedir}/chunjun-clients/target</directory>
+			<outputDirectory>lib</outputDirectory>
+			<includes>
+				<include>chunjun-clients.jar</include>
+			</includes>
+		</fileSet>
 	</fileSets>
 
 	<dependencySets>
@@ -61,6 +68,10 @@
 			<unpack>false</unpack>
 			<scope>provided</scope>
 			<useProjectArtifact>false</useProjectArtifact>
+			<!-- only include log4j-*.jars -->
+			<includes>
+				<include>org.apache.logging.log4j:*</include>
+			</includes>
 		</dependencySet>
 	</dependencySets>
 </assembly>
