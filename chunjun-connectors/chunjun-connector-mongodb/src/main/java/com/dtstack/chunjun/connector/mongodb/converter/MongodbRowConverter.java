@@ -20,8 +20,6 @@ package com.dtstack.chunjun.connector.mongodb.converter;
 
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 
-import com.mongodb.util.JSON;
-
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -33,6 +31,7 @@ import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
+import com.mongodb.util.JSON;
 import org.bson.Document;
 import org.bson.types.Binary;
 import org.bson.types.Decimal128;
@@ -103,7 +102,7 @@ public final class MongodbRowConverter
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
             Object field = document.get(fieldNames[pos]);
             if (field instanceof ObjectId) {
-                field = field.toString();
+                field = JSON.serialize(field.toString());
             } else if ("flinkBson".equalsIgnoreCase(fieldNames[pos])) {
                 field = JSON.serialize(document);
             }
