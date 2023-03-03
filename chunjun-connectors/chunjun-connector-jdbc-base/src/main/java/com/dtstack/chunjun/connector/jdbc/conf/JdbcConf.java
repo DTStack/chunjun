@@ -55,6 +55,8 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
     protected String orderByColumn;
     protected String querySql;
     protected String splitPk;
+    protected String splitPkStart;
+    protected String splitPkEnd;
     protected String splitStrategy;
     protected int fetchSize = 0;
     protected int queryTimeOut = 0;
@@ -139,6 +141,22 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
             return null;
         }
         return connection.get(0).getTable().get(0);
+    }
+
+    public String getSplitPkStart() {
+        return splitPkStart;
+    }
+
+    public void setSplitPkStart(String splitPkStart) {
+        this.splitPkStart = splitPkStart;
+    }
+
+    public String getSplitPkEnd() {
+        return splitPkEnd;
+    }
+
+    public void setSplitPkEnd(String splitPkEnd) {
+        this.splitPkEnd = splitPkEnd;
     }
 
     public void setTable(String table) {
@@ -483,6 +501,12 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
                 + '\''
                 + ", splitPk='"
                 + splitPk
+                + '\''
+                + ", splitPkStart='"
+                + splitPkStart
+                + '\''
+                + ", splitPkEnd='"
+                + splitPkEnd
                 + '\''
                 + ", splitStrategy='"
                 + splitStrategy

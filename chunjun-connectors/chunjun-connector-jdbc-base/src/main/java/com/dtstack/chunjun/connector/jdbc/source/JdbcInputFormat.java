@@ -393,25 +393,32 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         try {
             long startTime = System.currentTimeMillis();
 
-            String querySplitRangeSql = SqlUtil.buildQuerySplitRangeSql(jdbcConf, jdbcDialect);
-            LOG.info(String.format("Query SplitRange sql is '%s'", querySplitRangeSql));
-
-            conn = getConnection();
-            st = conn.createStatement(resultSetType, resultSetConcurrency);
-            st.setQueryTimeout(jdbcConf.getQueryTimeOut());
-            rs = st.executeQuery(querySplitRangeSql);
-            if (rs.next()) {
+            if (jdbcConf.getSplitPkStart() != null && jdbcConf.getSplitPkEnd() != null) {
                 splitPkRange =
                         Pair.of(
-                                String.valueOf(rs.getObject("min_value")),
-                                String.valueOf(rs.getObject("max_value")));
+                                String.valueOf(jdbcConf.getSplitPkStart()),
+                                String.valueOf(jdbcConf.getSplitPkEnd()));
+
+            } else {
+                String querySplitRangeSql = SqlUtil.buildQuerySplitRangeSql(jdbcConf, jdbcDialect);
+                LOG.info(String.format("Query SplitRange sql is '%s'", querySplitRangeSql));
+
+                conn = getConnection();
+                st = conn.createStatement(resultSetType, resultSetConcurrency);
+                st.setQueryTimeout(jdbcConf.getQueryTimeOut());
+                rs = st.executeQuery(querySplitRangeSql);
+                if (rs.next()) {
+                    splitPkRange =
+                            Pair.of(
+                                    String.valueOf(rs.getObject("min_value")),
+                                    String.valueOf(rs.getObject("max_value")));
+                }
+
+                LOG.info(
+                        String.format(
+                                "Takes [%s] milliseconds to get the SplitRange value [%s]",
+                                System.currentTimeMillis() - startTime, splitPkRange));
             }
-
-            LOG.info(
-                    String.format(
-                            "Takes [%s] milliseconds to get the SplitRange value [%s]",
-                            System.currentTimeMillis() - startTime, splitPkRange));
-
             return splitPkRange;
         } catch (Throwable e) {
             throw new ChunJunRuntimeException(
