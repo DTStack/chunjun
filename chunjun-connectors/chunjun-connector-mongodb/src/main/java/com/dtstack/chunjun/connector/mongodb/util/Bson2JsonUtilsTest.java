@@ -1,30 +1,23 @@
 package com.dtstack.chunjun.connector.mongodb.util;
 
-import com.dtstack.chunjun.connector.mongodb.util.Bson2JsonUtils;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.icu.impl.Assert;
 import com.mongodb.util.JSON;
-import org.bson.BsonDateTime;
-import org.bson.BsonObjectId;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.ietf.jgss.Oid;
-
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
+import java.util.Date;
 
 public class Bson2JsonUtilsTest {
 
     public static void main(String[] args) {
         String moneyValueOri = "1.211";
         Instant instant = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant();
-        String createTimeOri = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault()).format(instant);
+        String createTimeOri =
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        .withZone(ZoneId.systemDefault())
+                        .format(instant);
         System.out.println(createTimeOri);
 
         Document document = new Document();
