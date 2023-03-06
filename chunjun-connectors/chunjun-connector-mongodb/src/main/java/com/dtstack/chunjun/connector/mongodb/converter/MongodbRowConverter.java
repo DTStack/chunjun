@@ -21,8 +21,6 @@ package com.dtstack.chunjun.connector.mongodb.converter;
 import com.dtstack.chunjun.connector.mongodb.util.Bson2JsonUtils;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 
-import com.mongodb.util.JSON;
-
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -34,6 +32,7 @@ import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
+import com.mongodb.util.JSON;
 import org.bson.Document;
 import org.bson.types.Binary;
 import org.bson.types.Decimal128;
