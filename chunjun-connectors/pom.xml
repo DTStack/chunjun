@@ -60,7 +60,7 @@
 		<module>chunjun-connector-hbase-base</module>
 		<module>chunjun-connector-hbase-1.4</module>
 		<module>chunjun-connector-hbase2</module>
-		<!--		<module>chunjun-connector-elasticsearch6</module>-->
+		<module>chunjun-connector-elasticsearch6</module>
 		<module>chunjun-connector-elasticsearch7</module>
 		<module>chunjun-connector-elasticsearch-base</module>
 		<module>chunjun-connector-redis</module>
