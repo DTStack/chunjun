@@ -65,6 +65,7 @@ public class Elasticsearch6SourceFactory extends SourceFactory {
     @Override
     public DataStream<RowData> createSource() {
         Elasticsearch6InputFormatBuilder builder = new Elasticsearch6InputFormatBuilder();
+        System.out.println(builder);
         builder.setEsConf(elasticsearchConf);
         final RowType rowType =
                 TableUtil.createRowType(elasticsearchConf.getColumn(), getRawTypeConverter());
