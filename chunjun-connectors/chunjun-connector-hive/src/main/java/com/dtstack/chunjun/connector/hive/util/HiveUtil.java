@@ -65,6 +65,7 @@ import java.util.regex.Pattern;
 public class HiveUtil {
     public static final String TABLE_COLUMN_KEY = "key";
     public static final String TABLE_COLUMN_TYPE = "type";
+    public static final String TABLE_COLUMN_COMMENT = "comment";
     public static final String DECIMAL_KEY = "DECIMAL";
     public static final String DECIMAL_FORMAT = "DECIMAL(%s, %s)";
     public static final String DECIMAL_PATTERN_STR = "DECIMAL(\\((\\s*\\d+\\s*),(\\s*\\d+\\s*)\\))";
@@ -221,9 +222,10 @@ public class HiveUtil {
         for (int i = 0; i < tableInfo.getColumnNameList().size(); i++) {
             sql.append(
                     String.format(
-                            "`%s` %s",
+                            "`%s` %s COMMENT '%s'",
                             tableInfo.getColumnNameList().get(i),
-                            tableInfo.getColumnTypeList().get(i)));
+                            tableInfo.getColumnTypeList().get(i),
+                            tableInfo.getColumnCommentList().get(i)));
             if (i != tableInfo.getColumnNameList().size() - 1) {
                 sql.append(",");
             }
@@ -291,6 +293,10 @@ public class HiveUtil {
                     tableInfo.addColumnAndType(
                             MapUtils.getString(column, HiveUtil.TABLE_COLUMN_KEY),
                             convertType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE)));
+                    //comment 可以为空，兼容
+                    String comment = MapUtils.getString(column, HiveUtil.TABLE_COLUMN_COMMENT);
+                    //为空时填入空字符串
+                    tableInfo.addComment(StringUtils.isNotBlank(comment)?comment:"");
                 }
                 String createTableSql = HiveUtil.getCreateTableHql(tableInfo);
                 tableInfo.setCreateTableSql(createTableSql);

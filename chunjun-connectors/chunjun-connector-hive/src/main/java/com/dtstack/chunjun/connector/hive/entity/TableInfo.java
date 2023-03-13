@@ -37,16 +37,30 @@ public class TableInfo implements Serializable {
     private String store;
     private String delimiter;
     private List<String> partitionList;
+    private List<String> columnCommentList;
 
     public TableInfo(int columnSize) {
         columnNameList = new ArrayList<>(columnSize);
         columnTypeList = new ArrayList<>(columnSize);
+        columnCommentList = new ArrayList<>(columnSize);
         partitionList = new ArrayList<>();
     }
 
     public void addColumnAndType(String columnName, String columnType) {
         columnNameList.add(columnName);
         columnTypeList.add(columnType);
+    }
+
+    public void addComment(String comment){
+        columnCommentList.add(comment);
+    }
+
+    public List<String> getColumnCommentList() {
+        return columnCommentList;
+    }
+
+    public void setColumnCommentList(List<String> columnCommentList) {
+        this.columnCommentList = columnCommentList;
     }
 
     public List<String> getColumnNameList() {
@@ -127,31 +141,17 @@ public class TableInfo implements Serializable {
 
     @Override
     public String toString() {
-        return "TableInfo{"
-                + "columnNameList="
-                + columnNameList
-                + ", columnTypeList="
-                + columnTypeList
-                + ", createTableSql='"
-                + createTableSql
-                + '\''
-                + ", tableName='"
-                + tableName
-                + '\''
-                + ", tablePath='"
-                + tablePath
-                + '\''
-                + ", path='"
-                + path
-                + '\''
-                + ", store='"
-                + store
-                + '\''
-                + ", delimiter='"
-                + delimiter
-                + '\''
-                + ", partitionList="
-                + partitionList
-                + '}';
+        return "TableInfo{" +
+                "columnNameList=" + columnNameList +
+                ", columnTypeList=" + columnTypeList +
+                ", createTableSql='" + createTableSql + '\'' +
+                ", tableName='" + tableName + '\'' +
+                ", tablePath='" + tablePath + '\'' +
+                ", path='" + path + '\'' +
+                ", store='" + store + '\'' +
+                ", delimiter='" + delimiter + '\'' +
+                ", partitionList=" + partitionList +
+                ", columnCommentList=" + columnCommentList +
+                '}';
     }
 }
