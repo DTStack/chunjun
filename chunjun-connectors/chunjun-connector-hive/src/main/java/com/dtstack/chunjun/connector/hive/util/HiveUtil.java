@@ -71,6 +71,7 @@ public class HiveUtil {
     public static final String DECIMAL_PATTERN_STR = "DECIMAL(\\((\\s*\\d+\\s*),(\\s*\\d+\\s*)\\))";
     public static final Pattern DECIMAL_PATTERN = Pattern.compile(DECIMAL_PATTERN_STR);
     public static final String PARTITION_TEMPLATE = "%s=%s";
+    public static final String PARTITION_TEMPLATE_FOR_CREATE = "%s='%s'";
     private static final Logger logger = LoggerFactory.getLogger(HiveUtil.class);
     private static final String CREATE_PARTITION_TEMPLATE =
             "alter table %s add if not exists partition (%s)";

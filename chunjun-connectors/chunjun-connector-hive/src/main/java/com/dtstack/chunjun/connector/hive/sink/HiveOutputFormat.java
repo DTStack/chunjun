@@ -262,6 +262,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         }
         String partitionPath =
                 String.format(HiveUtil.PARTITION_TEMPLATE, hiveConf.getPartition(), partitionValue);
+        String createPartitionPath =
+                String.format(HiveUtil.PARTITION_TEMPLATE_FOR_CREATE, hiveConf.getPartition(), partitionValue);
         String hiveTablePath = tableName + File.separatorChar + partitionPath;
 
         Pair<String, BaseHdfsOutputFormat> formatPair = outputFormatMap.get(tableName);
@@ -274,7 +276,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             HiveUtil.createPartition(
                     tableInfo,
                     hiveConf.getSchema(),
-                    partitionPath,
+                    createPartitionPath,
                     connectionInfo,
                     getRuntimeContext().getDistributedCache());
             String path = tableInfo.getPath() + File.separatorChar + partitionPath;
