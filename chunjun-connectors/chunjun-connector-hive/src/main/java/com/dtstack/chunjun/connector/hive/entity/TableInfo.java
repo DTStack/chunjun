@@ -51,7 +51,7 @@ public class TableInfo implements Serializable {
         columnTypeList.add(columnType);
     }
 
-    public void addComment(String comment){
+    public void addComment(String comment) {
         columnCommentList.add(comment);
     }
 
@@ -141,17 +141,33 @@ public class TableInfo implements Serializable {
 
     @Override
     public String toString() {
-        return "TableInfo{" +
-                "columnNameList=" + columnNameList +
-                ", columnTypeList=" + columnTypeList +
-                ", createTableSql='" + createTableSql + '\'' +
-                ", tableName='" + tableName + '\'' +
-                ", tablePath='" + tablePath + '\'' +
-                ", path='" + path + '\'' +
-                ", store='" + store + '\'' +
-                ", delimiter='" + delimiter + '\'' +
-                ", partitionList=" + partitionList +
-                ", columnCommentList=" + columnCommentList +
-                '}';
+        return "TableInfo{"
+                + "columnNameList="
+                + columnNameList
+                + ", columnTypeList="
+                + columnTypeList
+                + ", createTableSql='"
+                + createTableSql
+                + '\''
+                + ", tableName='"
+                + tableName
+                + '\''
+                + ", tablePath='"
+                + tablePath
+                + '\''
+                + ", path='"
+                + path
+                + '\''
+                + ", store='"
+                + store
+                + '\''
+                + ", delimiter='"
+                + delimiter
+                + '\''
+                + ", partitionList="
+                + partitionList
+                + ", columnCommentList="
+                + columnCommentList
+                + '}';
     }
 }

@@ -30,7 +30,6 @@ import com.google.common.base.Preconditions;
 public class Elasticsearch6InputFormatBuilder
         extends BaseRichInputFormatBuilder<Elasticsearch6InputFormat> {
 
-
     public Elasticsearch6InputFormatBuilder() {
         super(new Elasticsearch6InputFormat());
     }

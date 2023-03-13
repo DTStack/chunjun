@@ -294,10 +294,10 @@ public class HiveUtil {
                     tableInfo.addColumnAndType(
                             MapUtils.getString(column, HiveUtil.TABLE_COLUMN_KEY),
                             convertType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE)));
-                    //comment 可以为空，兼容
+                    // comment 可以为空，兼容
                     String comment = MapUtils.getString(column, HiveUtil.TABLE_COLUMN_COMMENT);
-                    //为空时填入空字符串
-                    tableInfo.addComment(StringUtils.isNotBlank(comment)?comment:"");
+                    // 为空时填入空字符串
+                    tableInfo.addComment(StringUtils.isNotBlank(comment) ? comment : "");
                 }
                 String createTableSql = HiveUtil.getCreateTableHql(tableInfo);
                 tableInfo.setCreateTableSql(createTableSql);
