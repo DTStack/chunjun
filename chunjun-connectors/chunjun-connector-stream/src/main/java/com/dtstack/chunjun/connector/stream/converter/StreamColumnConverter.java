@@ -27,6 +27,8 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.ByteColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -103,9 +105,9 @@ public class StreamColumnConverter
             case "BIGINT":
                 return val -> new BigDecimalColumn(JMockData.mock(long.class));
             case "FLOAT":
-                return val -> new BigDecimalColumn(JMockData.mock(float.class));
+                return val -> new FloatColumn(JMockData.mock(float.class));
             case "DOUBLE":
-                return val -> new BigDecimalColumn(JMockData.mock(double.class));
+                return val -> new DoubleColumn(JMockData.mock(double.class));
             case "DECIMAL":
                 return val -> new BigDecimalColumn(JMockData.mock(BigDecimal.class));
             case "DATE":

@@ -20,29 +20,40 @@ package com.dtstack.chunjun.decoder;
 
 import com.dtstack.chunjun.util.JsonUtil;
 
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
 @Slf4j
+@NoArgsConstructor
 public class JsonDecoder implements IDecode, Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private static final Logger LOG = LoggerFactory.getLogger(JsonDecoder.class);
+
     private static final String KEY_MESSAGE = "message";
+    private boolean addMessage;
+
+    public JsonDecoder(boolean addMessage) {
+        this.addMessage = addMessage;
+    }
 
     @Override
     public Map<String, Object> decode(final String message) {
         try {
             Map<String, Object> event = JsonUtil.toObject(message, JsonUtil.MAP_TYPE_REFERENCE);
-            if (!event.containsKey(KEY_MESSAGE)) {
+            if (addMessage && !event.containsKey(KEY_MESSAGE)) {
                 event.put(KEY_MESSAGE, message);
             }
             return event;
         } catch (Exception e) {
-            log.error(e.getMessage());
+            LOG.error(e.getMessage());
             return Collections.singletonMap(KEY_MESSAGE, message);
         }
     }

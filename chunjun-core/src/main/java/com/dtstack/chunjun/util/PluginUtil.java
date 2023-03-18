@@ -54,6 +54,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.constants.ConstantValue.CONNECTOR_DIR_NAME;
 import static com.dtstack.chunjun.constants.ConstantValue.DDL_CONVENT_DIR_NAME;
@@ -437,6 +438,32 @@ public class PluginUtil {
         }
 
         config.setSyncJarList(setPipelineOptionsToEnvConfig(env, urlList, options.getMode()));
+    }
+
+    public static List<String> registerPluginUrlToCachedFile(
+            StreamExecutionEnvironment env, Set<URL> urlSet) throws Exception {
+        List<String> urlList = new ArrayList<>(urlSet.size());
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+        add.setAccessible(true);
+        // 类加载器泄露检查的时候可以把 jar 包都加载到 ChildFirst 的 ucp 的
+        int i = env.getCachedFiles().size();
+        Set<String> collect =
+                env.getCachedFiles().stream().map(t -> t.f0).collect(Collectors.toSet());
+        for (URL url : urlSet) {
+            String classFileName = String.format(CLASS_FILE_NAME_FMT, i);
+            for (int index = 0; index < 10; index++) {
+                if (collect.contains(classFileName)) {
+                    classFileName = String.format(CLASS_FILE_NAME_FMT, ++i);
+                } else {
+                    i++;
+                }
+            }
+            env.registerCachedFile(url.getPath(), classFileName, true);
+            urlList.add(url.getPath());
+            add.invoke(contextClassLoader, url);
+        }
+        return urlList;
     }
 
     /**

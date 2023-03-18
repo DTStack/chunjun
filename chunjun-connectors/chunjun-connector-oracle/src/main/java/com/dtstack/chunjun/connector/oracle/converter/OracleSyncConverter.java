@@ -84,15 +84,15 @@ public class OracleSyncConverter extends JdbcSyncConverter {
         }
         currentIndex = 0;
         result = new ColumnRowData(fieldConfList.size());
-        for (FieldConfig fieldConf : fieldConfList) {
+        for (FieldConfig fieldConfig : fieldConfList) {
             AbstractBaseColumn baseColumn = null;
-            if (StringUtils.isBlank(fieldConf.getValue())) {
+            if (StringUtils.isBlank(fieldConfig.getValue())) {
                 baseColumn =
                         (AbstractBaseColumn)
                                 toInternalConverters.get(currentIndex).deserialize(resultSet);
                 currentIndex++;
             }
-            result.addField(assembleFieldProps(fieldConf, baseColumn));
+            result.addField(assembleFieldProps(fieldConfig, baseColumn));
         }
         return result;
     }

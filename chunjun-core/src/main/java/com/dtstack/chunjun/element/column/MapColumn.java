@@ -28,9 +28,12 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Map;
 
+/**
+ * Date: 2021/04/26 Company: www.dtstack.com
+ *
+ * @author tudou
+ */
 public class MapColumn extends AbstractBaseColumn {
-
-    private static final long serialVersionUID = 440087045570980195L;
 
     public MapColumn(Map<String, Object> data) {
         super(data, 0);
@@ -39,7 +42,7 @@ public class MapColumn extends AbstractBaseColumn {
         }
     }
 
-    public MapColumn(Map<String, Object> data, int byteSize) {
+    private MapColumn(Map<String, Object> data, int byteSize) {
         super(data, byteSize);
     }
 
@@ -48,10 +51,7 @@ public class MapColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public String asString() {
-        if (null == data) {
-            return null;
-        }
+    public String asStringInternal() {
         return JsonUtil.toJson(data);
     }
 
@@ -64,63 +64,42 @@ public class MapColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public byte[] asBytes() {
-        if (null == data) {
-            return null;
-        }
+    public byte[] asBytesInternal() {
         return JsonUtil.toJson(data).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
-    public Boolean asBoolean() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Map", "Boolean", this.asString());
-    }
-
-    @Override
     public String type() {
-        return "BIGDECIMAL";
+        return "MAP";
     }
 
     @Override
-    public BigDecimal asBigDecimal() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Map", "BigDecimal", this.asString());
+    public Boolean asBooleanInternal() {
+        throw new CastException("Map", "Boolean", this.asStringInternal());
     }
 
     @Override
-    public Timestamp asTimestamp() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Map", "Timestamp", this.asString());
+    public BigDecimal asBigDecimalInternal() {
+        throw new CastException("Map", "BigDecimal", this.asStringInternal());
     }
 
     @Override
-    public Time asTime() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Map", "java.sql.Time", this.asString());
+    public Timestamp asTimestampInternal() {
+        throw new CastException("Map", "Timestamp", this.asStringInternal());
     }
 
     @Override
-    public java.sql.Date asSqlDate() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Map", "java.sql.Date", this.asString());
+    public Time asTimeInternal() {
+        throw new CastException("Map", "java.sql.Time", this.asStringInternal());
     }
 
     @Override
-    public String asTimestampStr() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Map", "Timestamp", this.asString());
+    public java.sql.Date asSqlDateInternal() {
+        throw new CastException("Map", "java.sql.Date", this.asStringInternal());
+    }
+
+    @Override
+    public String asTimestampStrInternal() {
+        throw new CastException("Map", "Timestamp", this.asStringInternal());
     }
 }

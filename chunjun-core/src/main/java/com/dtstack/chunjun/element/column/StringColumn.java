@@ -21,22 +21,27 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.throwable.CastException;
 import com.dtstack.chunjun.util.DateUtil;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.table.types.logical.LogicalType;
+
+import cn.hutool.core.date.LocalDateTimeUtil;
+import com.alibaba.fastjson.JSON;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static com.dtstack.chunjun.element.ClassSizeUtil.getStringSize;
 
+/**
+ * Date: 2021/04/26 Company: www.dtstack.com
+ *
+ * @author tudou
+ */
 public class StringColumn extends AbstractBaseColumn {
-
-    private static final long serialVersionUID = 575802015291413262L;
 
     private String format = "yyyy-MM-dd HH:mm:ss";
     private boolean isCustomFormat = false;
@@ -71,10 +76,7 @@ public class StringColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public String asString() {
-        if (null == data) {
-            return null;
-        }
+    public String asStringInternal() {
         if (isCustomFormat) {
             return asTimestampStr();
         } else {
@@ -87,10 +89,9 @@ public class StringColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        SimpleDateFormat dateFormat = DateUtil.buildDateFormatter(format);
         Long time = null;
         Date result = null;
-        String data = String.valueOf(this.data);
+        String data = (String) this.data;
         try {
             // 如果string是时间戳
             time = NumberUtils.createLong(data);
@@ -98,23 +99,29 @@ public class StringColumn extends AbstractBaseColumn {
             // doNothing
         }
         if (time != null) {
-            Date date = new Date(time);
             try {
-                result = dateFormat.parse(dateFormat.format(date));
-            } catch (ParseException ignored) {
+                result =
+                        new Date(
+                                DateUtil.columnToTimestamp(
+                                                LocalDateTimeUtil.format(
+                                                        new Timestamp(time).toLocalDateTime(),
+                                                        format),
+                                                format)
+                                        .getTime());
+            } catch (Exception ignored) {
                 // doNothing
             }
         } else {
             try {
                 // 如果是日期格式字符串
-                result = dateFormat.parse(data);
-            } catch (ParseException ignored) {
+                result = new Date(DateUtil.columnToTimestamp(data, format).getTime());
+            } catch (Exception ignored) {
                 // doNothing
             }
         }
 
         if (result == null) {
-            result = DateUtil.columnToDate(data, dateFormat);
+            result = DateUtil.columnToDate(data, null);
 
             if (result == null) {
                 throw new CastException("String", "Date", data);
@@ -125,10 +132,7 @@ public class StringColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public byte[] asBytes() {
-        if (null == data) {
-            return null;
-        }
+    public byte[] asBytesInternal() {
         return ((String) data).getBytes(StandardCharsets.UTF_8);
     }
 
@@ -138,18 +142,12 @@ public class StringColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Boolean asBoolean() {
+    public Boolean asBooleanInternal() {
         if (null == data) {
             return null;
         }
 
         String data = String.valueOf(this.data);
-        // 如果是数值类型
-        try {
-            return NumberUtils.toInt(data) != 0;
-        } catch (Exception ignored) {
-            // doNothing
-        }
 
         if ("true".equalsIgnoreCase(data)) {
             return true;
@@ -159,14 +157,18 @@ public class StringColumn extends AbstractBaseColumn {
             return false;
         }
 
+        // 如果是数值类型
+        try {
+            return NumberUtils.toInt(data) != 0;
+        } catch (Exception ignored) {
+            // doNothing
+        }
+
         throw new CastException("String", "Boolean", data);
     }
 
     @Override
-    public BigDecimal asBigDecimal() {
-        if (null == data) {
-            return null;
-        }
+    public BigDecimal asBigDecimalInternal() {
         String data = String.valueOf(this.data);
         this.validateDoubleSpecific(data);
 
@@ -200,10 +202,7 @@ public class StringColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Timestamp asTimestamp() {
-        if (null == data) {
-            return null;
-        }
+    public Timestamp asTimestampInternal() {
         try {
             return new Timestamp(this.asDate().getTime());
         } catch (CastException e) {
@@ -221,32 +220,22 @@ public class StringColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Time asTime() {
-        if (null == data) {
-            return null;
-        }
+    public Time asTimeInternal() {
         return new Time(asTimestamp().getTime());
     }
 
     @Override
-    public java.sql.Date asSqlDate() {
-        if (null == data) {
-            return null;
-        }
+    public java.sql.Date asSqlDateInternal() {
         return java.sql.Date.valueOf(asTimestamp().toLocalDateTime().toLocalDate());
     }
 
     @Override
-    public String asTimestampStr() {
-        if (null == data) {
-            return null;
-        }
-        SimpleDateFormat dateFormat = DateUtil.buildDateFormatter(format);
+    public String asTimestampStrInternal() {
         String data = String.valueOf(this.data);
         try {
             // 如果string是时间戳
             Long time = NumberUtils.createLong(data);
-            return dateFormat.format(time);
+            return LocalDateTimeUtil.format(new Timestamp(time).toLocalDateTime(), format);
         } catch (Exception ignored) {
             // doNothing
         }
@@ -254,7 +243,8 @@ public class StringColumn extends AbstractBaseColumn {
         try {
             if (isCustomFormat) {
                 // 格式化
-                return dateFormat.format(asDate().getTime());
+                return LocalDateTimeUtil.format(
+                        new Timestamp(asDate().getTime()).toLocalDateTime(), format);
             } else {
                 // 校验格式
                 DateUtil.stringToDate(data);
@@ -264,6 +254,46 @@ public class StringColumn extends AbstractBaseColumn {
             throw new CastException("String", "Timestamp", data);
         }
     }
+
+    @Override
+    public Integer asYearInt() {
+        if (null == data) {
+            return null;
+        }
+        return asTimestampInternal().toLocalDateTime().getYear();
+    }
+
+    @Override
+    public Integer asMonthInt() {
+        if (null == data) {
+            return null;
+        }
+        return asTimestampInternal().toLocalDateTime().getYear();
+    }
+
+    @Override
+    public Object asArray(LogicalType elementType) {
+        if (null == data) {
+            return null;
+        }
+        try {
+            return JSON.parseObject((String) data, Object[].class);
+        } catch (Exception e) {
+            throw new CastException("String", "ARRAY", asStringInternal());
+        }
+    }
+    //
+    //    @Override
+    //    public Map<?, ?> asBaseMap() {
+    //        if (null == data) {
+    //            return null;
+    //        }
+    //        try {
+    //            return JSON.parseObject((String) data, Map.class);
+    //        } catch (Exception e) {
+    //            throw new CastException("String", "MAP", asStringInternal());
+    //        }
+    //    }
 
     public boolean isCustomFormat() {
         return isCustomFormat;

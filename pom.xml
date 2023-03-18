@@ -72,6 +72,8 @@
 		<javax.servlet.jap.version>2.1</javax.servlet.jap.version>
 		<hadoop.binary.version>2.7</hadoop.binary.version>
 		<jackson.version>2.12.6</jackson.version>
+		<fastjson.version>1.2.83</fastjson.version>
+		<hutool.version>5.8.4</hutool.version>
 		<protostuff.version>1.8.0</protostuff.version>
 		<avro.version>1.8.2</avro.version>
 		<codec.version>1.13</codec.version>
@@ -644,6 +646,12 @@
 				<version>${junit5.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>fastjson</artifactId>
+				<version>${fastjson.version}</version>
 			</dependency>
 
 			<dependency>

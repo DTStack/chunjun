@@ -25,6 +25,8 @@ import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
@@ -88,9 +90,9 @@ public class S3ColumnConverter
             case BIGINT:
                 return val -> new BigDecimalColumn((Long) val);
             case FLOAT:
-                return val -> new BigDecimalColumn((Float) val);
+                return val -> new FloatColumn((Float) val);
             case DOUBLE:
-                return val -> new BigDecimalColumn((Double) val);
+                return val -> new DoubleColumn((Double) val);
             case VARCHAR:
                 return val -> new StringColumn((String) val);
             case DATE:

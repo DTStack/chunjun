@@ -18,13 +18,23 @@
 
 package com.dtstack.chunjun.converter;
 
+import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.element.AbstractBaseColumn;
+import com.dtstack.chunjun.element.column.StringColumn;
+import com.dtstack.chunjun.enums.ColumnType;
+import com.dtstack.chunjun.util.DateUtil;
 import com.dtstack.chunjun.util.SnowflakeIdWorker;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
@@ -34,6 +44,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializable {
 
     private static final long serialVersionUID = -4974556259079546810L;
@@ -150,5 +161,70 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
 
     public void clearConverterCache() {
         cdcConverterCacheMap.clear();
+    }
+
+    /**
+     * 组装字段属性，常量、format、等等
+     *
+     * @param fieldConfig
+     * @param baseColumn
+     * @return
+     */
+    protected AbstractBaseColumn assembleFieldProps(
+            FieldConfig fieldConfig, AbstractBaseColumn baseColumn) {
+        String format = fieldConfig.getFormat();
+        String parseFormat = fieldConfig.getParseFormat();
+        if (StringUtils.isNotBlank(fieldConfig.getValue())) {
+            String type = fieldConfig.getType();
+            if ((ColumnType.isStringType(type) || ColumnType.isTimeType(type))
+                    && StringUtils.isNotBlank(format)) {
+                SimpleDateFormat parseDateFormat = null;
+                if (StringUtils.isNotBlank(parseFormat)) {
+                    parseDateFormat = new SimpleDateFormat(parseFormat);
+                }
+                baseColumn =
+                        new StringColumn(
+                                String.valueOf(
+                                        DateUtil.columnToDate(
+                                                        fieldConfig.getValue(), parseDateFormat)
+                                                .getTime()),
+                                format);
+            } else {
+                baseColumn = new StringColumn(fieldConfig.getValue(), format);
+            }
+        } else if (StringUtils.isNotBlank(format)) {
+            baseColumn =
+                    new StringColumn(
+                            getMilliSecondsWithParseFormat(
+                                    baseColumn.asString(), parseFormat, format),
+                            format);
+        }
+        return baseColumn;
+    }
+
+    /** Convert val from timestampString to longString with parseFormat and format */
+    public String getMilliSecondsWithParseFormat(String val, String parseFormat, String format) {
+        if (StringUtils.isNotBlank(parseFormat) && val != null) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(parseFormat);
+            try {
+                return String.valueOf(simpleDateFormat.parse(val).getTime());
+            } catch (ParseException e) {
+                log.warn(
+                        String.format(
+                                "Cannot parse val %s with the given parseFormat[%s],try parsing with format[%s]",
+                                val, parseFormat, format),
+                        e);
+                try {
+                    simpleDateFormat = new SimpleDateFormat(format);
+                    return String.valueOf(simpleDateFormat.parse(val).getTime());
+                } catch (ParseException parseException) {
+                    throw new UnsupportedOperationException(
+                            String.format(
+                                    "Cannot parse val %s with the given parseFormat[%s] and format[%s]",
+                                    val, parseFormat, format));
+                }
+            }
+        }
+        return val;
     }
 }

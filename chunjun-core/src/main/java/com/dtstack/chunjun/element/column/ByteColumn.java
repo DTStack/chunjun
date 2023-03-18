@@ -26,15 +26,16 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
+/**
+ * @author tiezhu
+ * @since 2021/6/25 星期五
+ */
 public class ByteColumn extends AbstractBaseColumn {
-
-    private static final long serialVersionUID = -7151575051615132219L;
-
     public ByteColumn(byte data) {
         super(data, 1);
     }
 
-    public ByteColumn(byte data, int byteSize) {
+    private ByteColumn(byte data, int byteSize) {
         super(data, byteSize);
     }
 
@@ -47,53 +48,47 @@ public class ByteColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Boolean asBoolean() {
+    public String type() {
+        return "BYTE";
+    }
+
+    @Override
+    public Boolean asBooleanInternal() {
         return (byte) data != 0x00;
     }
 
     @Override
-    public String type() {
-        return "BIGDECIMAL";
-    }
-
-    @Override
-    public byte[] asBytes() {
+    public byte[] asBytesInternal() {
         return new byte[] {(byte) data};
     }
 
     @Override
-    public String asString() {
+    public String asStringInternal() {
         return String.valueOf(data);
     }
 
     @Override
-    public BigDecimal asBigDecimal() {
+    public BigDecimal asBigDecimalInternal() {
         return new BigDecimal((byte) data);
     }
 
     @Override
-    public Timestamp asTimestamp() {
+    public Timestamp asTimestampInternal() {
         throw new CastException("byte", "Timestamp", String.valueOf(data));
     }
 
     @Override
-    public Time asTime() {
-        if (null == data) {
-            return null;
-        }
+    public Time asTimeInternal() {
         throw new CastException("byte", "java.sql.Time", String.valueOf(data));
     }
 
     @Override
-    public Date asSqlDate() {
-        if (null == data) {
-            return null;
-        }
+    public Date asSqlDateInternal() {
         throw new CastException("byte", "java.sql.Date", String.valueOf(data));
     }
 
     @Override
-    public String asTimestampStr() {
+    public String asTimestampStrInternal() {
         throw new CastException("byte", "Timestamp", String.valueOf(data));
     }
 }

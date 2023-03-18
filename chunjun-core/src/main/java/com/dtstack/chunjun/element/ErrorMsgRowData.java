@@ -26,6 +26,11 @@ import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.types.RowKind;
 
+/**
+ * Date: 2021/04/28 Company: www.dtstack.com
+ *
+ * @author tudou
+ */
 public class ErrorMsgRowData implements RowData {
 
     private final String errorMsg;

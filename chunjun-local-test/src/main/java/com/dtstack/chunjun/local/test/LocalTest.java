@@ -43,10 +43,7 @@ public class LocalTest {
         //        confProperties.setProperty("state.checkpoints.dir", "file:///ck");
         String userDir = System.getProperty("user.dir");
 
-        String jobPath =
-                // "/Users/wtz/project_place/chunjun/chunjun-local-test/src/main/resources/task/test.sql";
-                // "/Users/gnehil/IdeaProjects/chunjun/chunjun-examples/json/selectdb-cloud/stream_selectdbcloud.json";
-                "/Users/gnehil/IdeaProjects/chunjun/chunjun-examples/sql/selectdb-cloud/stream_selectdbcloud.sql";
+        String jobPath = "/Users/wtz/job_place/chunjun/1.16/_01_SQL/_06_Kafka/_01_sourceKafka_dimMysql_sinkMysql.sql";
         String chunjunDistDir = userDir + "/chunjun-dist";
         String s = "";
 

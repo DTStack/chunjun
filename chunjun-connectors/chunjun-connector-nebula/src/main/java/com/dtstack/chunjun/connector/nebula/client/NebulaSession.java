@@ -124,11 +124,11 @@ public class NebulaSession implements Serializable {
         String prop =
                 nebulaConfig.getFields().stream()
                         .map(
-                                fieldConf ->
+                                fieldConfig ->
                                         String.format(
                                                 NEBULA_PROP,
-                                                fieldConf.getName(),
-                                                convertToNebulaType(fieldConf.getType())))
+                                                fieldConfig.getName(),
+                                                convertToNebulaType(fieldConfig.getType())))
                         .collect(Collectors.joining(","));
         switch (nebulaConfig.getSchemaType()) {
             case TAG:

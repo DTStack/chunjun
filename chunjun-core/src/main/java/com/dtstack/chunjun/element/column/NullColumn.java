@@ -24,9 +24,12 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 
+/**
+ * Date: 2021/04/26 Company: www.dtstack.com
+ *
+ * @author tudou
+ */
 public class NullColumn extends AbstractBaseColumn {
-
-    private static final long serialVersionUID = 5030650752823753810L;
 
     public NullColumn() {
         super(null, 0);
@@ -48,13 +51,13 @@ public class NullColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Boolean asBoolean() {
-        return null;
+    public String type() {
+        return "NULL";
     }
 
     @Override
-    public String type() {
-        return "BIGDECIMAL";
+    public Boolean asBoolean() {
+        return null;
     }
 
     @Override
@@ -84,6 +87,46 @@ public class NullColumn extends AbstractBaseColumn {
 
     @Override
     public String asTimestampStr() {
+        return null;
+    }
+
+    @Override
+    public Boolean asBooleanInternal() {
+        return null;
+    }
+
+    @Override
+    public byte[] asBytesInternal() {
+        return null;
+    }
+
+    @Override
+    public String asStringInternal() {
+        return null;
+    }
+
+    @Override
+    public BigDecimal asBigDecimalInternal() {
+        return null;
+    }
+
+    @Override
+    public Timestamp asTimestampInternal() {
+        return null;
+    }
+
+    @Override
+    public Time asTimeInternal() {
+        return null;
+    }
+
+    @Override
+    public java.sql.Date asSqlDateInternal() {
+        return null;
+    }
+
+    @Override
+    public String asTimestampStrInternal() {
         return null;
     }
 }

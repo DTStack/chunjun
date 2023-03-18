@@ -28,6 +28,8 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -66,9 +68,9 @@ public class SaphanaSyncConverter extends JdbcSyncConverter {
             case INTEGER:
                 return val -> new BigDecimalColumn((Integer) val);
             case FLOAT:
-                return val -> new BigDecimalColumn((Float) val);
+                return val -> new FloatColumn((Float) val);
             case DOUBLE:
-                return val -> new BigDecimalColumn((Double) val);
+                return val -> new DoubleColumn((Double) val);
             case BIGINT:
                 return val -> new BigDecimalColumn((Long) val);
             case DECIMAL:

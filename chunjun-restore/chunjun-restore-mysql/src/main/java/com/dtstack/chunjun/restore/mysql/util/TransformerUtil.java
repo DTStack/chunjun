@@ -39,10 +39,11 @@ public class TransformerUtil {
         return bytes;
     }
 
-    public static Map<String, Integer> sortHeaders(Map<String, Integer> headers) {
+    public static LinkedHashMap<String, Integer> sortHeaders(
+            LinkedHashMap<String, Integer> headers) {
         List<Map.Entry<String, Integer>> entries = new ArrayList<>(headers.entrySet());
         entries.sort(Comparator.comparingInt(Map.Entry::getValue));
-        Map<String, Integer> sortedHeaders = new LinkedHashMap<>(headers.size());
+        LinkedHashMap<String, Integer> sortedHeaders = new LinkedHashMap<>(headers.size());
         for (Map.Entry<String, Integer> entry : entries) {
             sortedHeaders.put(entry.getKey(), entry.getValue());
         }

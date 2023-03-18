@@ -28,6 +28,8 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -128,12 +130,12 @@ public class HBaseOutputFormatTest {
         FieldConfig decimal_val = new FieldConfig();
         decimal_val.setName("msg:decimal_val");
         decimal_val.setType("decimal(38, 18)");
-        rowData.addField(new BigDecimalColumn(3.3));
+        rowData.addField(new BigDecimalColumn(3));
 
         FieldConfig float_val = new FieldConfig();
         float_val.setName("msg:float_val");
         float_val.setType("float");
-        rowData.addField(new BigDecimalColumn(3.33));
+        rowData.addField(new FloatColumn(3.33f));
 
         FieldConfig smallint_val = new FieldConfig();
         smallint_val.setName("msg:smallint_val");
@@ -188,7 +190,7 @@ public class HBaseOutputFormatTest {
         FieldConfig double_val = new FieldConfig();
         double_val.setName("msg:double_val");
         double_val.setType("double");
-        rowData.addField(new BigDecimalColumn(3.33));
+        rowData.addField(new DoubleColumn(3.33));
 
         FieldConfig val_1 = new FieldConfig();
         val_1.setName("val_1");
