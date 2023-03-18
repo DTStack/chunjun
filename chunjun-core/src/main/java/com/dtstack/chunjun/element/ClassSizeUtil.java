@@ -18,8 +18,8 @@
 
 package com.dtstack.chunjun.element;
 
+/** @author liuliu 2022/5/9 */
 public class ClassSizeUtil {
-
     public static final int ColumnRowDataSize;
     public static final int AbstractBaseColumnSize;
     public static final int StringColumnSize;
@@ -75,10 +75,17 @@ public class ClassSizeUtil {
         return (num >> 3) << 3;
     }
 
-    public static int getStringSize(String str) {
+    public static int getStringMemory(String str) {
         if (str == null) {
             return 0;
         }
         return str.length() * 2 + StringSize;
+    }
+
+    public static int getStringSize(String str) {
+        if (str == null) {
+            return 0;
+        }
+        return str.length();
     }
 }

@@ -29,6 +29,9 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.ByteColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
@@ -134,13 +137,13 @@ public class StarRocksColumnConverter
             case SMALLINT:
                 return val -> new BigDecimalColumn((short) val);
             case INTEGER:
-                return val -> new BigDecimalColumn((int) val);
+                return val -> new IntColumn((int) val);
             case BIGINT:
                 return val -> new BigDecimalColumn((long) val);
             case FLOAT:
-                return val -> new BigDecimalColumn((float) val);
+                return val -> new FloatColumn((float) val);
             case DOUBLE:
-                return val -> new BigDecimalColumn((double) val);
+                return val -> new DoubleColumn((double) val);
             case DECIMAL:
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:

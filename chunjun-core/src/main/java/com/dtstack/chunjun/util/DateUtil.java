@@ -18,6 +18,7 @@
 
 package com.dtstack.chunjun.util;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Timestamp;
@@ -161,6 +162,13 @@ public class DateUtil {
 
         throw new IllegalArgumentException(
                 "Can't convert " + column.getClass().getName() + " to Date");
+    }
+
+    public static Timestamp columnToTimestamp(String data, String format) {
+        LocalDateTime parse = LocalDateTimeUtil.parse(data, format);
+        LocalTime localTime = parse.query(TemporalQueries.localTime());
+        LocalDate localDate = parse.query(TemporalQueries.localDate());
+        return Timestamp.valueOf(LocalDateTime.of(localDate, localTime));
     }
 
     public static java.sql.Timestamp columnToTimestamp(

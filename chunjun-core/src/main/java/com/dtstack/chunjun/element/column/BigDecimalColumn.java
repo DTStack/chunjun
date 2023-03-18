@@ -28,24 +28,15 @@ import java.util.Date;
 
 import static com.dtstack.chunjun.element.ClassSizeUtil.getStringSize;
 
+/**
+ * Date: 2021/04/26 Company: www.dtstack.com
+ *
+ * @author tudou
+ */
 public class BigDecimalColumn extends AbstractBaseColumn {
-
-    private static final long serialVersionUID = 8849006021507991960L;
 
     public BigDecimalColumn(BigDecimal data) {
         this(data, data.toString());
-    }
-
-    public BigDecimalColumn(int data) {
-        this(new BigDecimal(data), String.valueOf(data));
-    }
-
-    public BigDecimalColumn(double data) {
-        this(String.valueOf(data));
-    }
-
-    public BigDecimalColumn(float data) {
-        this(String.valueOf(data));
     }
 
     public BigDecimalColumn(long data) {
@@ -60,15 +51,7 @@ public class BigDecimalColumn extends AbstractBaseColumn {
         this(new BigDecimal(data), data.toString());
     }
 
-    public BigDecimalColumn(short data) {
-        this(new BigDecimal(data), String.valueOf(data));
-    }
-
-    public BigDecimalColumn(short data, int size) {
-        super(new BigDecimal(data), size);
-    }
-
-    public BigDecimalColumn(BigDecimal bigDecimal, String data) {
+    private BigDecimalColumn(BigDecimal bigDecimal, String data) {
         super(bigDecimal, getStringSize(data));
     }
 
@@ -81,12 +64,8 @@ public class BigDecimalColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public String asString() {
-        if (null == data) {
-            return null;
-        }
-
-        return data.toString();
+    public String asStringInternal() {
+        return ((BigDecimal) data).toPlainString();
     }
 
     @Override
@@ -99,11 +78,8 @@ public class BigDecimalColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public byte[] asBytes() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("BigDecimal", "Bytes", this.asString());
+    public byte[] asBytesInternal() {
+        throw new CastException("BigDecimal", "Bytes", this.asStringInternal());
     }
 
     @Override
@@ -112,50 +88,45 @@ public class BigDecimalColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Boolean asBoolean() {
-        if (null == data) {
-            return null;
-        }
+    public Boolean asBooleanInternal() {
         BigDecimal bigDecimal = (BigDecimal) data;
         return bigDecimal.compareTo(BigDecimal.ZERO) != 0;
     }
 
     @Override
-    public BigDecimal asBigDecimal() {
-        if (null == data) {
-            return null;
-        }
+    public BigDecimal asBigDecimalInternal() {
         return (BigDecimal) data;
     }
 
     @Override
-    public Timestamp asTimestamp() {
-        if (null == data) {
-            return null;
-        }
+    public Timestamp asTimestampInternal() {
         BigDecimal bigDecimal = (BigDecimal) data;
         return new Timestamp(bigDecimal.longValue());
     }
 
     @Override
-    public java.sql.Date asSqlDate() {
-        if (null == data) {
-            return null;
-        }
-        return java.sql.Date.valueOf(asTimestamp().toLocalDateTime().toLocalDate());
+    public java.sql.Date asSqlDateInternal() {
+        return java.sql.Date.valueOf(asTimestampInternal().toLocalDateTime().toLocalDate());
     }
 
     @Override
-    public String asTimestampStr() {
-        return asTimestamp().toString();
+    public String asTimestampStrInternal() {
+        return asTimestampInternal().toString();
     }
 
     @Override
-    public Time asTime() {
-        if (null == data) {
-            return null;
-        }
+    public Time asTimeInternal() {
         BigDecimal bigDecimal = (BigDecimal) data;
         return new Time(bigDecimal.longValue());
+    }
+
+    @Override
+    public Integer asYearInt() {
+        return asInt();
+    }
+
+    @Override
+    public Integer asMonthInt() {
+        return asInt() * 12;
     }
 }

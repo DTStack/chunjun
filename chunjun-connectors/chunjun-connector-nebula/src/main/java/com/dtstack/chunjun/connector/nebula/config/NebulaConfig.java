@@ -140,7 +140,7 @@ public class NebulaConfig extends CommonConfig implements Serializable {
             return null;
         }
         return fields.stream()
-                .filter(fieldConf -> !var.contains(fieldConf.getName()))
+                .filter(fieldConfig -> !var.contains(fieldConfig.getName()))
                 .collect(Collectors.toList());
     }
 }

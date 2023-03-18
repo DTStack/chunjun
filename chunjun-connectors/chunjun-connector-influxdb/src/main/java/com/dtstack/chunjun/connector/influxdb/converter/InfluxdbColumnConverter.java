@@ -30,6 +30,8 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
@@ -184,9 +186,9 @@ public class InfluxdbColumnConverter
                     return new BigDecimalColumn((Integer) val);
                 };
             case FLOAT:
-                return val -> new BigDecimalColumn(((Double) val).floatValue());
+                return val -> new FloatColumn(((Double) val).floatValue());
             case DOUBLE:
-                return val -> new BigDecimalColumn((Double) val);
+                return val -> new DoubleColumn((Double) val);
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
             case BIGINT:

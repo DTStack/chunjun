@@ -28,6 +28,8 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
@@ -404,9 +406,9 @@ public class HiveUtil {
         } else if (data instanceof BigInteger) {
             return new BigDecimalColumn((BigInteger) data);
         } else if (data instanceof Float) {
-            return new BigDecimalColumn((Float) data);
+            return new FloatColumn((Float) data);
         } else if (data instanceof Double) {
-            return new BigDecimalColumn((Double) data);
+            return new DoubleColumn((Double) data);
         } else if (data instanceof BigDecimal) {
             return new BigDecimalColumn((BigDecimal) data);
         } else if (data instanceof Timestamp) {

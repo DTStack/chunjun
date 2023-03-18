@@ -29,6 +29,8 @@ import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -144,10 +146,9 @@ public class HdfsOrcColumnConverter
             case "BIGINT":
                 return (IDeserializationConverter<Long, AbstractBaseColumn>) BigDecimalColumn::new;
             case "FLOAT":
-                return (IDeserializationConverter<Float, AbstractBaseColumn>) BigDecimalColumn::new;
+                return (IDeserializationConverter<Float, AbstractBaseColumn>) FloatColumn::new;
             case "DOUBLE":
-                return (IDeserializationConverter<Double, AbstractBaseColumn>)
-                        BigDecimalColumn::new;
+                return (IDeserializationConverter<Double, AbstractBaseColumn>) DoubleColumn::new;
             case "DECIMAL":
                 return (IDeserializationConverter<BigDecimal, AbstractBaseColumn>)
                         BigDecimalColumn::new;

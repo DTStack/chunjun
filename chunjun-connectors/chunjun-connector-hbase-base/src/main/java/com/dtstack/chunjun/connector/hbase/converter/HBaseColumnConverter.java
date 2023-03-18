@@ -31,6 +31,8 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -283,10 +285,10 @@ public class HBaseColumnConverter
                         bytes -> new BigDecimalColumn(Bytes.toShort(bytes));
             case DOUBLE:
                 return (IDeserializationConverter<byte[], AbstractBaseColumn>)
-                        bytes -> new BigDecimalColumn(Bytes.toDouble(bytes));
+                        bytes -> new DoubleColumn(Bytes.toDouble(bytes));
             case FLOAT:
                 return (IDeserializationConverter<byte[], AbstractBaseColumn>)
-                        bytes -> new BigDecimalColumn(Bytes.toFloat(bytes));
+                        bytes -> new FloatColumn(Bytes.toFloat(bytes));
             case DECIMAL:
                 return (IDeserializationConverter<byte[], AbstractBaseColumn>)
                         bytes -> new BigDecimalColumn(Bytes.toBigDecimal(bytes));

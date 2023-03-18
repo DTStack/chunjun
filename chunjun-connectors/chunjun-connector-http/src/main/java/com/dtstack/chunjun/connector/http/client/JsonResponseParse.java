@@ -55,9 +55,9 @@ public class JsonResponseParse extends ResponseParse {
                     Arrays.stream(config.getFields().split(","))
                             .map(
                                     i -> {
-                                        FieldConfig fieldConf = new FieldConfig();
-                                        fieldConf.setName(i);
-                                        return fieldConf;
+                                        FieldConfig fieldConfig = new FieldConfig();
+                                        fieldConfig.setName(i);
+                                        return fieldConfig;
                                     })
                             .collect(Collectors.toList());
         } else {

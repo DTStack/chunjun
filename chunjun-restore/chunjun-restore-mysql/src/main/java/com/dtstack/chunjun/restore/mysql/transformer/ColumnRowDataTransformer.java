@@ -28,7 +28,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class ColumnRowDataTransformer {
 
@@ -45,7 +44,7 @@ public class ColumnRowDataTransformer {
         JSONObject header = jsonObject.getJSONObject("header");
         JSONArray extHeader = jsonObject.getJSONArray("extHeader");
 
-        Map<String, Integer> headerMap = new LinkedHashMap<>();
+        LinkedHashMap<String, Integer> headerMap = new LinkedHashMap<>();
 
         ColumnRowData columnRowData =
                 new ColumnRowData(RowKind.valueOf(rowKind), header.size(), byteSize);

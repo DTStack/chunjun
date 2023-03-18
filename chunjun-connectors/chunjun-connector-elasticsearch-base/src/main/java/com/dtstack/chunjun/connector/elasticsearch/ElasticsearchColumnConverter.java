@@ -26,6 +26,8 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -147,9 +149,9 @@ public class ElasticsearchColumnConverter
             case INTEGER:
                 return val -> new BigDecimalColumn(new BigDecimal(val.toString()).intValue());
             case FLOAT:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).floatValue());
+                return val -> new FloatColumn(new BigDecimal(val.toString()).floatValue());
             case DOUBLE:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).doubleValue());
+                return val -> new DoubleColumn(new BigDecimal(val.toString()).doubleValue());
             case BIGINT:
                 return val -> new BigDecimalColumn(new BigDecimal(val.toString()).longValue());
             case DECIMAL:

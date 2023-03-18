@@ -33,23 +33,30 @@ import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.StringUtils;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static com.dtstack.chunjun.element.ClassSizeUtil.getStringSize;
 
+/**
+ * Date: 2021/04/26 Company: www.dtstack.com
+ *
+ * @author tudou
+ */
 public final class ColumnRowData implements RowData, Serializable {
 
     private static final long serialVersionUID = 1L;
     private final List<AbstractBaseColumn> columnList;
-    private Map<String, Integer> header;
-    private final Set<String> extHeader = new HashSet<>();
+    private LinkedHashMap<String, Integer> header;
+    private Set<String> extHeader = new HashSet<>();
     private int byteSize;
 
     private RowKind kind;
@@ -79,13 +86,16 @@ public final class ColumnRowData implements RowData, Serializable {
         byteSize += getStringSize(name);
     }
 
-    public void setHeader(Map<String, Integer> header) {
+    public void setHeader(LinkedHashMap<String, Integer> header) {
         this.header = header;
+    }
+
+    public void setExtHeader(Set<String> extHeader) {
+        this.extHeader = extHeader;
     }
 
     public void replaceHeader(String original, String another) {
         if (this.header == null || !this.header.containsKey(original)) {
-            addHeader(another);
             return;
         }
         Integer value = this.header.get(original);
@@ -115,30 +125,48 @@ public final class ColumnRowData implements RowData, Serializable {
         }
     }
 
-    public Map<String, Integer> getHeaderInfo() {
+    public LinkedHashMap<String, Integer> getHeaderInfo() {
         return header;
     }
 
     public void removeExtHeaderInfo() {
-        List<AbstractBaseColumn> needToRemove = new ArrayList<>();
-        for (String key : extHeader) {
-            Integer index = header.remove(key);
-            AbstractBaseColumn removeColumn = columnList.get(index);
-            needToRemove.add(removeColumn);
-            byteSize -= removeColumn.byteSize;
+        ArrayList<AbstractBaseColumn> newColumns = new ArrayList<>();
+        LinkedHashMap<String, Integer> newHeader = new LinkedHashMap<>();
+
+        if (CollectionUtils.isNotEmpty(extHeader)) {
+            if (header.size() < columnList.size()) {
+                ArrayList<Integer> indexs = new ArrayList<>();
+                extHeader.forEach(
+                        extHeaderName -> indexs.add(header.getOrDefault(extHeaderName, -1)));
+                for (int i = 0; i < columnList.size(); i++) {
+                    if (!indexs.contains(i)) {
+                        newColumns.add(columnList.get(i));
+                    }
+                }
+            } else {
+                header.forEach(
+                        (k, v) -> {
+                            AbstractBaseColumn column = columnList.get(v);
+                            if (extHeader.contains(k)) {
+                                byteSize -= column.byteSize;
+                            } else {
+                                newHeader.put(k, newHeader.size());
+                                newColumns.add(column);
+                            }
+                        });
+            }
+
+            this.columnList.clear();
+            this.columnList.addAll(newColumns);
+            this.header = newHeader;
         }
-        columnList.removeAll(needToRemove);
     }
 
     public String[] getHeaders() {
         if (this.header == null) {
             return null;
         }
-        String[] names = new String[this.header.size()];
-        for (Map.Entry<String, Integer> entry : header.entrySet()) {
-            names[entry.getValue()] = entry.getKey();
-        }
-        return names;
+        return header.keySet().toArray(new String[0]);
     }
 
     public void addField(AbstractBaseColumn value) {
@@ -287,6 +315,10 @@ public final class ColumnRowData implements RowData, Serializable {
         return byteSize;
     }
 
+    public void setByteSize(int byteSize) {
+        this.byteSize = byteSize;
+    }
+
     public String getString() {
         StringBuilder sb = new StringBuilder();
         return buildString(sb);
@@ -312,5 +344,71 @@ public final class ColumnRowData implements RowData, Serializable {
         }
         sb.append(")");
         return sb.toString();
+    }
+
+    // sort rowData by field header name
+    public ColumnRowData sortColumnRowData() {
+        String[] oldHeaders = this.getHeaders();
+
+        // mode: sync
+        if (oldHeaders == null) {
+            return this;
+        }
+
+        ColumnRowData newRowData = new ColumnRowData(this.getArity());
+        String[] newHeaders = Arrays.stream(oldHeaders).sorted().toArray(String[]::new);
+
+        newRowData.setRowKind(this.getRowKind());
+        Arrays.stream(newHeaders)
+                .forEach(
+                        header -> {
+                            AbstractBaseColumn column = this.getField(header);
+                            newRowData.addHeader(header);
+                            newRowData.addField(column);
+                        });
+
+        Set<String> extHeaders = this.getExtHeader();
+        extHeaders.forEach(extHeader -> newRowData.addExtHeader(extHeader));
+        return newRowData;
+    }
+
+    @Override
+    public int hashCode() {
+        if (columnList == null) {
+            return 0;
+        }
+        int result = 1;
+        for (AbstractBaseColumn column : columnList) {
+            result = 31 * result + (column.data == null ? 0 : column.data.hashCode());
+        }
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o instanceof ColumnRowData) {
+            ColumnRowData that = (ColumnRowData) o;
+            if (this.columnList.size() != that.columnList.size()) {
+                return false;
+            }
+            Object thisData;
+            Object thatData;
+            for (int i = 0; i < this.columnList.size(); i++) {
+                thisData = this.columnList.get(i).data;
+                thatData = that.columnList.get(i).data;
+                if (thisData == null) {
+                    if (thatData != null) {
+                        return false;
+                    }
+                } else if (!thisData.equals(thatData)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 }

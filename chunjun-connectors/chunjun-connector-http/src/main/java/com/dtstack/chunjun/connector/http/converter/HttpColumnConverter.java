@@ -27,6 +27,8 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
 import com.dtstack.chunjun.element.column.MapColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
@@ -127,9 +129,9 @@ public class HttpColumnConverter
             case "BIGINT":
                 return val -> new BigDecimalColumn(Long.parseLong(val.toString()));
             case "FLOAT":
-                return val -> new BigDecimalColumn(Float.parseFloat(val.toString()));
+                return val -> new FloatColumn(Float.parseFloat(val.toString()));
             case "DOUBLE":
-                return val -> new BigDecimalColumn(Double.parseDouble(val.toString()));
+                return val -> new DoubleColumn(Double.parseDouble(val.toString()));
             case "DECIMAL":
                 return val -> new BigDecimalColumn(new BigDecimal(val.toString()));
             case "DATE":

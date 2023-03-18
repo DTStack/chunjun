@@ -17,12 +17,23 @@
  */
 package com.dtstack.chunjun.element;
 
+import com.dtstack.chunjun.element.column.ZonedTimestampColumn;
+import com.dtstack.chunjun.throwable.CastException;
+
+import org.apache.flink.table.types.logical.LogicalType;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Map;
 
+/**
+ * Date: 2021/04/26 Company: www.dtstack.com
+ *
+ * @author tudou
+ */
 public abstract class AbstractBaseColumn implements Serializable {
     private static final long serialVersionUID = 1L;
     protected Object data;
@@ -47,44 +58,140 @@ public abstract class AbstractBaseColumn implements Serializable {
      *
      * @return
      */
-    public abstract Boolean asBoolean();
+    public Boolean asBoolean() {
+        if (data == null) {
+            return null;
+        }
+        return asBooleanInternal();
+    }
 
     /**
      * Convert data to byte[] type
      *
      * @return
      */
-    public abstract byte[] asBytes();
+    public byte[] asBytes() {
+        if (data == null) {
+            return null;
+        }
+        return asBytesInternal();
+    }
 
     /**
      * Convert data to String type
      *
      * @return
      */
-    public abstract String asString();
+    public String asString() {
+        if (data == null) {
+            return null;
+        }
+        return asStringInternal();
+    }
 
     /**
      * Convert data to BigDecimal type
      *
      * @return
      */
-    public abstract BigDecimal asBigDecimal();
+    public BigDecimal asBigDecimal() {
+        if (data == null) {
+            return null;
+        }
+        return asBigDecimalInternal();
+    }
 
     /**
      * Convert data to Timestamp type
      *
      * @return
      */
-    public abstract Timestamp asTimestamp();
+    public Timestamp asTimestamp() {
+        if (data == null) {
+            return null;
+        }
+        return asTimestampInternal();
+    }
 
     /** Convert data to Time type */
-    public abstract Time asTime();
+    public Time asTime() {
+        if (data == null) {
+            return null;
+        }
+        return asTimeInternal();
+    }
 
     /** Convert data to java.sql.Date type */
-    public abstract java.sql.Date asSqlDate();
+    public java.sql.Date asSqlDate() {
+        if (data == null) {
+            return null;
+        }
+        return asSqlDateInternal();
+    }
 
     /** Convert data to timestamp string */
-    public abstract String asTimestampStr();
+    public String asTimestampStr() {
+        if (data == null) {
+            return null;
+        }
+        return asTimestampStrInternal();
+    }
+
+    /**
+     * Convert data to Boolean type
+     *
+     * @return
+     */
+    protected abstract Boolean asBooleanInternal();
+
+    /**
+     * Convert data to byte[] type
+     *
+     * @return
+     */
+    protected abstract byte[] asBytesInternal();
+
+    /**
+     * Convert data to String type
+     *
+     * @return
+     */
+    protected abstract String asStringInternal();
+
+    /**
+     * Convert data to BigDecimal type
+     *
+     * @return
+     */
+    protected abstract BigDecimal asBigDecimalInternal();
+
+    /**
+     * Convert data to Timestamp type
+     *
+     * @return
+     */
+    protected abstract Timestamp asTimestampInternal();
+
+    /** Convert data to Time type */
+    protected abstract Time asTimeInternal();
+
+    /** Convert data to java.sql.Date type */
+    protected abstract java.sql.Date asSqlDateInternal();
+
+    /** Convert data to timestamp string */
+    protected abstract String asTimestampStrInternal();
+
+    /**
+     * Convert data to short type
+     *
+     * @return
+     */
+    public Byte asByte() {
+        if (null == data) {
+            return null;
+        }
+        return this.asBigDecimal().byteValue();
+    }
 
     /**
      * Convert data to short type
@@ -164,10 +271,45 @@ public abstract class AbstractBaseColumn implements Serializable {
      * @return
      */
     public Integer asYearInt() {
+        if (data == null) {
+            return null;
+        }
+        throw new CastException(this.getClass().getSimpleName(), "Year", this.asString());
+    }
+
+    /**
+     * Convert data to Year Integer
+     *
+     * @return
+     */
+    public Integer asMonthInt() {
+        if (data == null) {
+            return null;
+        }
+        throw new CastException(this.getClass().getSimpleName(), "Month", this.asString());
+    }
+
+    public Object asArray() {
+        throw new CastException(this.getClass().getSimpleName(), "Array", this.asString());
+    }
+
+    public Object asArray(LogicalType logicalType) {
+        throw new CastException(this.getClass().getSimpleName(), "Array", this.asString());
+    }
+
+    public Map<?, ?> asBaseMap() {
+        throw new CastException(this.getClass().getSimpleName(), "Map", this.asString());
+    }
+
+    public Map<?, ?> asBaseMap(LogicalType keyType, LogicalType valueType) {
+        throw new CastException(this.getClass().getSimpleName(), "Map", this.asString());
+    }
+
+    public ZonedTimestampColumn asZonedTimestamp() {
         if (null == data) {
             return null;
         }
-        return this.asInt();
+        return new ZonedTimestampColumn(this.asTimestamp());
     }
 
     /**

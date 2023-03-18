@@ -23,15 +23,18 @@ import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.util.Preconditions;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 
-@Data
+@ToString
+@Getter
+@Setter
 public class SyncConfig implements Serializable {
 
     private static final long serialVersionUID = 1964981610706788313L;
@@ -49,6 +52,8 @@ public class SyncConfig implements Serializable {
 
     /** 本次任务所需插件jar包路径列表 */
     private List<String> syncJarList;
+
+    private String mode;
 
     public static SyncConfig parseJob(String jobJson) {
         SyncConfig config = GsonUtil.GSON.fromJson(jobJson, SyncConfig.class);
@@ -170,16 +175,5 @@ public class SyncConfig implements Serializable {
 
     public MappingConfig getNameMappingConfig() {
         return job.getNameMapping();
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", SyncConfig.class.getSimpleName() + "[", "]")
-                .add("job=" + job)
-                .add("pluginRoot='" + pluginRoot + "'")
-                .add("remotePluginPath='" + remotePluginPath + "'")
-                .add("savePointPath='" + savePointPath + "'")
-                .add("syncJarList=" + syncJarList)
-                .toString();
     }
 }
