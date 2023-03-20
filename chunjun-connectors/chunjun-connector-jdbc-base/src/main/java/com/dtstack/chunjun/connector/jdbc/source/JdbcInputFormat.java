@@ -270,7 +270,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         if (StringUtils.isNotBlank(startLocation)) {
             startLocationAccumulator.add(new BigInteger(startLocation));
             // 防止数据库无增量数据时下次从prometheus获取到的startLocation为空
-            if (endLocationAccumulator.getLocalValue().longValue() == Long.MIN_VALUE) {
+            if (endLocationAccumulator.getLocalValue().intValue()
+                    == BigIntegerAccumulator.MIN_VAL) {
                 endLocationAccumulator.add(new BigInteger(startLocation));
             }
         }
