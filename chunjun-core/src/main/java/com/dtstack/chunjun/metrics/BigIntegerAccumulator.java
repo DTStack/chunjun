@@ -29,7 +29,9 @@ public class BigIntegerAccumulator implements SimpleAccumulator<BigInteger> {
 
     private static final long serialVersionUID = 1L;
 
-    private BigInteger max = BigInteger.valueOf(Integer.MIN_VALUE);
+    public static Integer MIN_VAL = Integer.MIN_VALUE;
+
+    private BigInteger max = BigInteger.valueOf(MIN_VAL);
 
     @Override
     public void add(BigInteger value) {
