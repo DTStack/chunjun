@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.jdbc.dialect;
 
 import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.connector.jdbc.conf.TableIdentify;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcSqlConverter;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcSyncConverter;
@@ -34,7 +35,6 @@ import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.types.logical.LogicalType;
@@ -42,16 +42,20 @@ import org.apache.flink.table.types.logical.RowType;
 
 import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.dtstack.chunjun.connector.jdbc.util.JdbcUtil.checkTableExist;
 import static java.lang.String.format;
 
 /** Handle the SQL dialect of jdbc driver. */
@@ -400,8 +404,60 @@ public interface JdbcDialect extends Serializable {
         }
     }
 
-    /** catalog/schema/table */
-    default Function<JdbcConfig, Tuple3<String, String, String>> getTableIdentify() {
-        return conf -> Tuple3.of(null, conf.getSchema(), conf.getTable());
+    default Pair<List<String>, List<String>> getTableMetaData(
+            Connection dbConn, JdbcConfig jdbcConfig) {
+        return getTableMetaData(
+                dbConn,
+                jdbcConfig.getSchema(),
+                jdbcConfig.getTable(),
+                jdbcConfig.getQueryTimeOut(),
+                jdbcConfig.getCustomSql(),
+                jdbcConfig.getColumn().stream()
+                        .filter(fieldConf -> StringUtils.isBlank(fieldConf.getValue()))
+                        .filter(fieldConf -> !fieldConf.getName().equals("*"))
+                        .map(fieldConf -> quoteIdentifier(fieldConf.getName()))
+                        .collect(Collectors.toList()));
+    }
+
+    default Pair<List<String>, List<String>> getTableMetaData(
+            Connection dbConn,
+            String schema,
+            String table,
+            int queryTimeout,
+            String customSql,
+            List<String> selectedColumnList) {
+        if ("*".equalsIgnoreCase(table)) {
+            // all table,return empty metadata
+            return Pair.of(new LinkedList<>(), new LinkedList<>());
+        }
+        TableIdentify tableIdentify = getTableIdentify(schema, table);
+        checkTableExist(dbConn, tableIdentify);
+        String metadataQuerySql =
+                getMetadataQuerySql(selectedColumnList, customSql, tableIdentify.getTableInfo());
+
+        return JdbcUtil.getTableMetaData(dbConn, metadataQuerySql, queryTimeout);
+    }
+
+    default String getMetadataQuerySql(
+            List<String> selectedColumnList, String customSql, String tableInfo) {
+        if (StringUtils.isNotBlank(customSql)) {
+            return String.format("select * from (%s) custom where 1=2", customSql);
+        }
+
+        String columnStr;
+        if (selectedColumnList == null || selectedColumnList.isEmpty()) {
+            columnStr = "*";
+        } else {
+            columnStr = String.join(",", selectedColumnList);
+        }
+        return String.format(getMetadataQuerySql(), columnStr, tableInfo);
+    }
+
+    default String getMetadataQuerySql() {
+        return "select %s from %s where 1=2";
+    }
+
+    default TableIdentify getTableIdentify(String confSchema, String confTable) {
+        return new TableIdentify(null, confSchema, confTable, this::quoteIdentifier, false);
     }
 }

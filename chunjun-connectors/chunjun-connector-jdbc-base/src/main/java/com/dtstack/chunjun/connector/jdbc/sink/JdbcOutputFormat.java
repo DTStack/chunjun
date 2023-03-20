@@ -84,7 +84,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 if (CollectionUtils.isEmpty(updateKey)) {
                     List<String> tableIndex =
                             JdbcUtil.getTableUniqueIndex(
-                                    jdbcConfig.getSchema(), jdbcConfig.getTable(), dbConn);
+                                    jdbcDialect.getTableIdentify(
+                                            jdbcConfig.getSchema(), jdbcConfig.getTable()),
+                                    dbConn);
                     jdbcConfig.setUniqueKey(tableIndex);
                     log.info("updateKey = {}", JsonUtil.toJson(tableIndex));
                 }

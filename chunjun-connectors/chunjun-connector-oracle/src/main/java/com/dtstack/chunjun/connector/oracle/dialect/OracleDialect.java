@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.oracle.dialect;
 
 import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.connector.jdbc.conf.TableIdentify;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
@@ -194,5 +195,9 @@ public class OracleDialect implements JdbcDialect {
                                     incrementType, incrementName));
                 }
         }
+    }
+
+    public TableIdentify getTableIdentify(String confSchema, String confTable) {
+        return new TableIdentify(null, confSchema, confTable, this::quoteIdentifier, true);
     }
 }
