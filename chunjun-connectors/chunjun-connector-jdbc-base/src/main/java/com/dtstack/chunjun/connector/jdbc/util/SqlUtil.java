@@ -41,7 +41,7 @@ public class SqlUtil {
         if (StringUtils.isNotEmpty(jdbcConfig.getCustomSql())) {
             querySplitRangeSql =
                     String.format(
-                            "SELECT min(%s.%s) as min_value,max(%s.%s) as max_value, FROM ( %s ) %s %s",
+                            "SELECT min(%s.%s) as min_value,max(%s.%s) as max_value FROM ( %s ) %s %s",
                             JdbcUtil.TEMPORARY_TABLE_NAME,
                             jdbcDialect.quoteIdentifier(jdbcConfig.getSplitPk()),
                             JdbcUtil.TEMPORARY_TABLE_NAME,
