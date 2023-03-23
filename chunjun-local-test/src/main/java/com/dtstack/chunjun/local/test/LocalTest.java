@@ -43,7 +43,8 @@ public class LocalTest {
         //        confProperties.setProperty("state.checkpoints.dir", "file:///ck");
         String userDir = System.getProperty("user.dir");
 
-        String jobPath = "/Users/wtz/job_place/chunjun/1.16/_01_SQL/_06_Kafka/_01_sourceKafka_dimMysql_sinkMysql.sql";
+        String jobPath =
+                "/Users/wtz/job_place/chunjun/1.16/_01_SQL/_06_Kafka/_01_sourceKafka_dimMysql_sinkMysql.sql";
         String chunjunDistDir = userDir + "/chunjun-dist";
         String s = "";
 
