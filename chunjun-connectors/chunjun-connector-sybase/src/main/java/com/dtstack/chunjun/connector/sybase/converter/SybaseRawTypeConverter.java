@@ -50,6 +50,7 @@ public class SybaseRawTypeConverter {
             case "REAL":
                 return DataTypes.FLOAT();
             case "DOUBLE":
+            case "DOUBLE PRECISION":
                 return DataTypes.DOUBLE();
             case "SMALLMONEY":
                 return DataTypes.DECIMAL(10, 4);
