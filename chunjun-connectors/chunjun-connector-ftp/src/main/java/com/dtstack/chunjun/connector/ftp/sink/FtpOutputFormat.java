@@ -176,6 +176,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     protected void closeSource() {
         try {
             if (writer != null) {
+                writer.flush();
                 writer.close();
                 writer = null;
             }
