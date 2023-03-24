@@ -22,6 +22,7 @@ import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.collections.CollectionUtils;
 
 public class StarRocksInputFormatBuilder extends BaseRichInputFormatBuilder<StarRocksInputFormat> {
     public StarRocksInputFormatBuilder(StarRocksInputFormat format) {
@@ -37,7 +38,8 @@ public class StarRocksInputFormatBuilder extends BaseRichInputFormatBuilder<Star
     protected void checkFormat() {
         StarRocksConfig conf = format.getStarRocksConf();
         Preconditions.checkNotNull(conf.getUrl(), "starRocks url is required");
-        Preconditions.checkNotNull(conf.getFeNodes(), "starRocks feNodes is required");
+        Preconditions.checkArgument(
+                CollectionUtils.isNotEmpty(conf.getFeNodes()), "starRocks feNodes is required");
         Preconditions.checkNotNull(
                 conf.getDatabase(), "starRocks database is required when nameMapped is not enable");
         Preconditions.checkNotNull(
