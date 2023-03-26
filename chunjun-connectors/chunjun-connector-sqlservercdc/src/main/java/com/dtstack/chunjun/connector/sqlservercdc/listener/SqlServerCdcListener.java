@@ -28,6 +28,7 @@ import com.dtstack.chunjun.connector.sqlservercdc.inputFormat.SqlServerCdcInputF
 import com.dtstack.chunjun.connector.sqlservercdc.util.SqlServerCdcUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.Clock;
 import com.dtstack.chunjun.util.ExceptionUtil;
@@ -117,7 +118,21 @@ public class SqlServerCdcListener implements Runnable {
             } catch (Exception e) {
                 String errorMessage = ExceptionUtil.getErrorMessage(e);
                 log.error(errorMessage, e);
+                checkConnectionValid();
             }
+        }
+    }
+
+    private void checkConnectionValid() {
+        try {
+            // the sqlserver drivers is support isValid method
+            if (!conn.isValid(3)) {
+                log.warn("conn is invalid, try to reset connection.");
+                resetConnection();
+                log.warn("reset connection successfully.");
+            }
+        } catch (Throwable e) {
+            throw new ChunJunRuntimeException("check connection valid failed.", e);
         }
     }
 
