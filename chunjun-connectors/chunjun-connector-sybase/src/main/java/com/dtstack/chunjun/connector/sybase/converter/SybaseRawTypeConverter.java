@@ -76,6 +76,7 @@ public class SybaseRawTypeConverter {
             case "UNITEXT":
             case "LONGSYSNAME":
             case "STRING":
+            case "SYSNAME":
                 return DataTypes.STRING();
             case "BINARY":
             case "TIMESTAMP":
