@@ -37,6 +37,8 @@ public class HdfsPathFilter implements PathFilter, JobConfigurable {
     private static Pattern PATTERN;
     private String regex;
 
+    public HdfsPathFilter() {}
+
     public HdfsPathFilter(String regex) {
         this.regex = regex;
         compileRegex();
