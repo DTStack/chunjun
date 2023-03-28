@@ -39,7 +39,7 @@ public class PostgresqlInputFormat extends JdbcInputFormat {
         // , the query will report an error after the method
         // #setFetchDirection(ResultSet.FETCH_REVERSE) is called.
         String querySql =
-                jdbcConfig.getQuerySql() + SqlUtil.buildOrderSql(jdbcConfig, jdbcDialect, "ASC");
+                SqlUtil.buildOrderSql(jdbcConfig.getQuerySql(), jdbcConfig, jdbcDialect, "ASC");
         ps =
                 dbConn.prepareStatement(
                         querySql, ResultSet.TYPE_SCROLL_INSENSITIVE, resultSetConcurrency);
