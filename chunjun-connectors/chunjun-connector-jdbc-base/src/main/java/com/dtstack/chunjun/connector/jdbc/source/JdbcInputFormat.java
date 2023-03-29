@@ -691,14 +691,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 builder.append(jdbcDialect.quoteIdentifier(jdbcConfig.getIncreColumn()))
                         .append(" > ?");
 
-                String querySQL = SqlUtil.buildOrderSql(builder.toString(), jdbcConfig, jdbcDialect, "ASC");
+                String querySQL =
+                        SqlUtil.buildOrderSql(builder.toString(), jdbcConfig, jdbcDialect, "ASC");
                 jdbcConfig.setQuerySql(querySQL);
                 initPrepareStatement(jdbcConfig.getQuerySql());
                 log.info("update querySql, sql = {}", jdbcConfig.getQuerySql());
             } else {
                 // if the job have startLocation
                 // sql will be like "select ... from ... where increColumn > ?"
-                jdbcConfig.setQuerySql(SqlUtil.buildOrderSql(jdbcConfig.getQuerySql(), jdbcConfig, jdbcDialect, "ASC"));
+                jdbcConfig.setQuerySql(
+                        SqlUtil.buildOrderSql(
+                                jdbcConfig.getQuerySql(), jdbcConfig, jdbcDialect, "ASC"));
                 initPrepareStatement(jdbcConfig.getQuerySql());
                 queryForPolling(startLocation);
                 state = restoreKeyUtil.transLocationStrToSqlValue(startLocation);
@@ -733,7 +736,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected void queryPollingWithOutStartLocation() throws SQLException {
         // add order by to query SQL avoid duplicate data
         initPrepareStatement(
-                 SqlUtil.buildOrderSql(jdbcConfig.getQuerySql(), jdbcConfig, jdbcDialect, "ASC"));
+                SqlUtil.buildOrderSql(jdbcConfig.getQuerySql(), jdbcConfig, jdbcDialect, "ASC"));
         resultSet = ps.executeQuery();
         hasNext = resultSet.next();
 

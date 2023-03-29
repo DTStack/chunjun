@@ -165,9 +165,8 @@ public class SqlUtil {
                 StringUtils.isBlank(column)
                         ? ""
                         : String.format(
-                        " ORDER BY %s %s", jdbcDialect.quoteIdentifier(column), sortRule);
+                                " ORDER BY %s %s", jdbcDialect.quoteIdentifier(column), sortRule);
         return originalSql + additional;
-
     }
 
     /* 是否添加自定义函数column 作为分片key ***/
