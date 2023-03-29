@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -86,10 +85,9 @@ public class DorisLoadClient implements Serializable {
         if (value instanceof GenericRowData) {
             schema = config.getDatabase();
             table = config.getTable();
-            StringJoiner joiner = new StringJoiner(",");
+            String[] joiner = new String[columns.size()];
             if (RowKind.INSERT.equals(value.getRowKind())) {
-                Object toExternal = converter.toExternal(value, joiner);
-                String[] split = String.valueOf(toExternal).split(",");
+                String[] split = (String[]) converter.toExternal(value, joiner);
                 insertV.addAll(Arrays.asList(split));
             }
             Carrier carrier = initCarrier(columns, insertV, deleteV, schema, table);
@@ -169,10 +167,9 @@ public class DorisLoadClient implements Serializable {
             throws Exception {
         String schema = config.getDatabase();
         String table = config.getTable();
-        StringJoiner joiner = new StringJoiner(",");
+        String[] joiner = new String[columns.size()];
         if (RowKind.INSERT.equals(value.getRowKind())) {
-            Object toExternal = converter.toExternal(value, joiner);
-            String[] split = String.valueOf(toExternal).split(",");
+            String[] split = (String[]) converter.toExternal(value, joiner);
             insertV.addAll(Arrays.asList(split));
         }
         String key = schema + KEY_POINT + table;

@@ -27,10 +27,8 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 
-import java.util.StringJoiner;
-
 public class DorisHttpRowConverter
-        extends AbstractRowConverter<RowData, RowData, StringJoiner, LogicalType> {
+        extends AbstractRowConverter<RowData, RowData, String[], LogicalType> {
 
     private static final String NULL_VALUE = "\\N";
 
@@ -54,7 +52,7 @@ public class DorisHttpRowConverter
     }
 
     @Override
-    public StringJoiner toExternal(RowData rowData, StringJoiner joiner) throws Exception {
+    public String[] toExternal(RowData rowData, String[] joiner) throws Exception {
         for (int index = 0; index < fieldTypes.length; index++) {
             toExternalConverters.get(index).serialize(rowData, index, joiner);
         }
@@ -62,13 +60,13 @@ public class DorisHttpRowConverter
     }
 
     @Override
-    protected ISerializationConverter<StringJoiner> wrapIntoNullableExternalConverter(
-            ISerializationConverter<StringJoiner> ISerializationConverter, LogicalType type) {
+    protected ISerializationConverter<String[]> wrapIntoNullableExternalConverter(
+            ISerializationConverter<String[]> ISerializationConverter, LogicalType type) {
         return ((rowData, index, joiner) -> {
             if (rowData == null
                     || rowData.isNullAt(index)
                     || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
-                joiner.add(NULL_VALUE);
+                joiner[index] = NULL_VALUE;
             } else {
                 ISerializationConverter.serialize(rowData, index, joiner);
             }
@@ -76,10 +74,10 @@ public class DorisHttpRowConverter
     }
 
     @Override
-    protected ISerializationConverter<StringJoiner> createExternalConverter(LogicalType type) {
+    protected ISerializationConverter<String[]> createExternalConverter(LogicalType type) {
         return (rowData, index, joiner) -> {
             Object value = ((GenericRowData) rowData).getField(index);
-            joiner.add("".equals(value.toString()) ? NULL_VALUE : value.toString());
+            joiner[index] = "".equals(value.toString()) ? NULL_VALUE : value.toString();
         };
     }
 }

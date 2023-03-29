@@ -182,6 +182,7 @@ public class DorisStreamLoad implements Serializable {
         } else {
             RespContent respContent = OM.readValue(loadResponse.respContent, RespContent.class);
             if (!DORIS_SUCCESS_STATUS.contains(respContent.getStatus())) {
+                log.error("stream load error url: " + respContent.getErrorURL());
                 throw new IOException("stream load error: " + getDetailErrorLog(respContent));
             }
         }
