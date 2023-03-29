@@ -34,6 +34,8 @@ import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -136,7 +138,8 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         hdfsConfig.setDefaultFS(config.get(HdfsOptions.DEFAULT_FS));
         hdfsConfig.setFileType(config.get(HdfsOptions.FILE_TYPE));
         hdfsConfig.setFilterRegex(config.get(HdfsOptions.FILTER_REGEX));
-        hdfsConfig.setFieldDelimiter(config.get(HdfsOptions.FIELD_DELIMITER));
+        hdfsConfig.setFieldDelimiter(
+                StringEscapeUtils.unescapeJava(config.get(HdfsOptions.FIELD_DELIMITER)));
         hdfsConfig.setEnableDictionary(config.get(HdfsOptions.ENABLE_DICTIONARY));
 
         return hdfsConfig;
