@@ -151,24 +151,22 @@ public class SqlUtil {
         return querySql;
     }
 
-    /**
-     * build order sql
-     *
-     * @param sortRule
-     * @return
-     */
     public static String buildOrderSql(
-            JdbcConfig jdbcConfig, JdbcDialect jdbcDialect, String sortRule) {
+            String originalSql, JdbcConfig jdbcConf, JdbcDialect jdbcDialect, String sortRule) {
         String column;
         // 增量任务
-        if (jdbcConfig.isIncrement()) {
-            column = jdbcConfig.getIncreColumn();
+        if (jdbcConf.isIncrement() && jdbcConf.isOrderBy() && !originalSql.contains("ORDER BY")) {
+            column = jdbcConf.getIncreColumn();
         } else {
-            column = jdbcConfig.getOrderByColumn();
+            column = jdbcConf.getOrderByColumn();
         }
-        return StringUtils.isBlank(column)
-                ? ""
-                : String.format(" ORDER BY %s %s", jdbcDialect.quoteIdentifier(column), sortRule);
+
+        String additional =
+                StringUtils.isBlank(column)
+                        ? ""
+                        : String.format(
+                                " ORDER BY %s %s", jdbcDialect.quoteIdentifier(column), sortRule);
+        return originalSql + additional;
     }
 
     /* 是否添加自定义函数column 作为分片key ***/

@@ -353,7 +353,8 @@ public class JdbcInputFormatTest {
                 .thenCallRealMethod();
         when(SqlUtil.buildQuerySqlBySplit(any(), any(), anyList(), anyList(), any()))
                 .thenAnswer(invocation -> "select id from table where id > 10");
-        when(SqlUtil.buildOrderSql(jdbcConfig, jdbcDialect, "ASC"))
+        when(SqlUtil.buildOrderSql(
+                        jdbcInputFormat.buildQuerySql(inputSplit), jdbcConfig, jdbcDialect, "ASC"))
                 .thenAnswer(invocation -> " order by id ASC");
         String except = "select id from table where id > 10 order by id ASC";
         Assert.assertEquals(except, jdbcInputFormat.buildQuerySql(inputSplit));

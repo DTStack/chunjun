@@ -460,11 +460,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
         querySql = buildQuerySqlBySplit(jdbcInputSplit, whereList);
 
-        if (!jdbcConfig.isPolling()) {
-            querySql = querySql + SqlUtil.buildOrderSql(jdbcConfig, jdbcDialect, "ASC");
-        }
-        log.info("Executing sql is: '{}'", querySql);
-        return querySql;
+        String finalSql = SqlUtil.buildOrderSql(querySql, jdbcConfig, jdbcDialect, "ASC");
+        log.info("Executing sql is: '{}'", finalSql);
+        return finalSql;
     }
 
     /**
@@ -691,17 +689,19 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     builder.append(" WHERE ");
                 }
                 builder.append(jdbcDialect.quoteIdentifier(jdbcConfig.getIncreColumn()))
-                        .append(" > ?")
-                        .append(SqlUtil.buildOrderSql(jdbcConfig, jdbcDialect, "ASC"));
-                jdbcConfig.setQuerySql(builder.toString());
+                        .append(" > ?");
+
+                String querySQL =
+                        SqlUtil.buildOrderSql(builder.toString(), jdbcConfig, jdbcDialect, "ASC");
+                jdbcConfig.setQuerySql(querySQL);
                 initPrepareStatement(jdbcConfig.getQuerySql());
                 log.info("update querySql, sql = {}", jdbcConfig.getQuerySql());
             } else {
                 // if the job have startLocation
                 // sql will be like "select ... from ... where increColumn > ?"
                 jdbcConfig.setQuerySql(
-                        jdbcConfig.getQuerySql()
-                                + SqlUtil.buildOrderSql(jdbcConfig, jdbcDialect, "ASC"));
+                        SqlUtil.buildOrderSql(
+                                jdbcConfig.getQuerySql(), jdbcConfig, jdbcDialect, "ASC"));
                 initPrepareStatement(jdbcConfig.getQuerySql());
                 queryForPolling(startLocation);
                 state = restoreKeyUtil.transLocationStrToSqlValue(startLocation);
@@ -736,7 +736,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected void queryPollingWithOutStartLocation() throws SQLException {
         // add order by to query SQL avoid duplicate data
         initPrepareStatement(
-                jdbcConfig.getQuerySql() + SqlUtil.buildOrderSql(jdbcConfig, jdbcDialect, "ASC"));
+                SqlUtil.buildOrderSql(jdbcConfig.getQuerySql(), jdbcConfig, jdbcDialect, "ASC"));
         resultSet = ps.executeQuery();
         hasNext = resultSet.next();
 
