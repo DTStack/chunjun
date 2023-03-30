@@ -72,8 +72,11 @@ import org.apache.flink.table.types.DataType;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -91,8 +94,19 @@ public class Main {
         log.info("-------------------------------------------");
 
         Options options = new OptionParser(args).getOptions();
-        String job = URLDecoder.decode(options.getJob(), StandardCharsets.UTF_8.name());
-        String replacedJob = JobUtil.replaceJobParameter(options.getP(), job);
+        String replacedJob = "";
+        File file = new File(options.getJob());
+        if (file.isFile()) {
+            try {
+                replacedJob = FileUtils.readFileToString(file, StandardCharsets.UTF_8.name());
+            } catch (IOException ioe) {
+                log.error("Can not get the job info !!!", ioe);
+                throw new RuntimeException(ioe);
+            }
+        } else {
+            String job = URLDecoder.decode(options.getJob(), StandardCharsets.UTF_8.name());
+            replacedJob = JobUtil.replaceJobParameter(options.getP(), job);
+        }
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =
