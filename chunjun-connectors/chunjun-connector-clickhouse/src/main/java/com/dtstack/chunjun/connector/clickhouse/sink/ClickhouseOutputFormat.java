@@ -30,6 +30,7 @@ public class ClickhouseOutputFormat extends JdbcOutputFormat {
 
     @Override
     protected Connection getConnection() throws SQLException {
+        jdbcConfig.setAutoCommit(true);
         return ClickhouseUtil.getConnection(
                 jdbcConfig.getJdbcUrl(), jdbcConfig.getUsername(), jdbcConfig.getPassword());
     }
