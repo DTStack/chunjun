@@ -28,7 +28,7 @@ import java.util.Map;
 @Slf4j
 public class PrintUtil {
 
-    public static void printResult(Map<String, Object> result) {
+    public static String printResult(Map<String, Object> result) {
         List<String> names = Lists.newArrayList();
         List<String> values = Lists.newArrayList();
         result.forEach(
@@ -58,5 +58,6 @@ public class PrintUtil {
         }
         builder.append("\n*********************************************\n");
         log.info(builder.toString());
+        return builder.toString();
     }
 }

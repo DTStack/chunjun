@@ -26,6 +26,7 @@ import com.dtstack.chunjun.config.OperatorConfig;
 import com.dtstack.chunjun.config.SpeedConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
+import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
 import com.dtstack.chunjun.enums.ClusterMode;
@@ -42,6 +43,7 @@ import com.dtstack.chunjun.sql.parser.SqlParser;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.JobConfigException;
 import com.dtstack.chunjun.util.DataSyncFactoryUtil;
+import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.ExecuteProcessHelper;
 import com.dtstack.chunjun.util.FactoryHelper;
 import com.dtstack.chunjun.util.JobUtil;
@@ -55,6 +57,8 @@ import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.core.execution.JobClient;
+import org.apache.flink.runtime.clusterframework.ApplicationStatus;
+import org.apache.flink.runtime.entrypoint.ClusterEntrypoint;
 import org.apache.flink.runtime.jobgraph.SavepointConfigOptions;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -80,10 +84,16 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 public class Main {
@@ -143,6 +153,16 @@ public class Main {
             if ("batch".equalsIgnoreCase(runMode)) env.setRuntimeMode(RuntimeExecutionMode.BATCH);
             StatementSet statementSet = SqlParser.parseSql(job, jarUrlList, tableEnv);
             TableResult execute = statementSet.execute();
+            // Solve the problem that yarn-per-job sql mode does not exit when executing batch jobs
+            Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
+            String executionMode =
+                    confProperties.getProperty(
+                            "chunjun.cluster.execution-mode",
+                            ClusterEntrypoint.ExecutionMode.DETACHED.name());
+            if (!ClusterEntrypoint.ExecutionMode.DETACHED.name().equalsIgnoreCase(executionMode)) {
+                // wait job finish
+                printSqlResult(execute);
+            }
             if (env instanceof MyLocalStreamEnvironment) {
                 Optional<JobClient> jobClient = execute.getJobClient();
                 if (jobClient.isPresent()) {
@@ -371,5 +391,128 @@ public class Main {
                             mappingConfig, useDdlConvent, sourceDdlConvent, sinkDdlConvent));
         }
         return dataStreamSource;
+    }
+
+    /**
+     * Solve the problem that the execution of yarn-per-job sql mode does not exit. Solve the
+     * problem of obtaining statistical indicators and reporting errors when the degree of
+     * parallelism is large
+     */
+    private static void printSqlResult(TableResult execute) {
+        Optional<JobClient> jobClient = execute.getJobClient();
+        jobClient.ifPresent(
+                v -> {
+                    Map<String, Object> accumulators = null;
+                    int sleepTime = 15000;
+                    CompletableFuture<JobExecutionResult> jobExecutionResult = null;
+                    String msg = "";
+                    int tryNum = 0;
+                    while (true) {
+                        try {
+                            Thread.sleep(sleepTime);
+                            ApplicationStatus applicationStatus =
+                                    ApplicationStatus.fromJobStatus(v.getJobStatus().get());
+                            String status = applicationStatus.toString();
+                            switch (applicationStatus) {
+                                case FAILED:
+                                    msg = "Failed to execute this sql";
+                                    break;
+                                case CANCELED:
+                                    msg = "Canceled to execute this sql";
+                                    break;
+                                case SUCCEEDED:
+                                    msg = "Succeeded to execute this sql";
+                                    break;
+                                default:
+                            }
+                            if (StringUtils.isNotBlank(status)) {
+                                status = status.toUpperCase();
+                                if (status.contains("FAILED")) {
+                                    msg = "Failed to execute this sql";
+                                }
+                            }
+                            if (StringUtils.isNotBlank(msg)) {
+                                accumulators = v.getAccumulators().get();
+                                if (null != accumulators.get(Metrics.READ_BYTES)) {
+                                    Map<String, Object> data = new LinkedHashMap<>();
+                                    for (String key : Metrics.METRIC_SINK_LIST) {
+                                        data.put(key, accumulators.get(key));
+                                    }
+                                    data.put(
+                                            Metrics.READ_BYTES,
+                                            accumulators.get(Metrics.READ_BYTES));
+                                    data.put(
+                                            Metrics.READ_DURATION,
+                                            accumulators.get(Metrics.READ_DURATION));
+                                    data.put(
+                                            Metrics.SNAPSHOT_WRITES,
+                                            accumulators.get(Metrics.SNAPSHOT_WRITES));
+                                    System.out.println(PrintUtil.printResult(data));
+                                } else {
+                                    System.out.println(
+                                            getDateTime() + " accumulator read bytes is null");
+                                }
+                                System.out.println(
+                                        getDateTime()
+                                                + " Start to stop flink job("
+                                                + v.getJobID()
+                                                + ")");
+                                while (true) {
+                                    try {
+                                        jobExecutionResult = v.getJobExecutionResult();
+                                        jobExecutionResult.complete(
+                                                new JobExecutionResult(v.getJobID(), 0, null));
+                                        ApplicationStatus.fromJobStatus(v.getJobStatus().get());
+                                        Thread.sleep(sleepTime);
+                                    } catch (Exception e) {
+                                        break;
+                                    }
+                                }
+                                System.out.println(
+                                        getDateTime()
+                                                + " Success to stop flink job("
+                                                + v.getJobID()
+                                                + ")");
+                                int code = applicationStatus.processExitCode();
+                                System.out.println(
+                                        getDateTime() + " Flink process exit code is: " + code);
+                                System.exit(code);
+                            }
+                            accumulators = v.getAccumulators().get();
+                            if (null == accumulators.get(Metrics.READ_BYTES)) {
+                                continue;
+                            }
+                        } catch (ExecutionException e) {
+                            // Handle getAccumulators exception
+                            tryNum++;
+                            System.out.println(
+                                    getDateTime()
+                                            + " ERROR ["
+                                            + tryNum
+                                            + " times] "
+                                            + e.getMessage());
+                            // Increase the maximum number of attempts limit
+                            if (tryNum > 2) {
+                                System.out.println(
+                                        getDateTime()
+                                                + " try get accumulators num has reached the limit");
+                                System.out.println(ExceptionUtil.getErrorMessage(e));
+                                System.exit(-1);
+                            }
+                        } catch (Exception e) {
+                            System.out.println(getDateTime() + " -----------------------------");
+                            System.out.println(ExceptionUtil.getErrorMessage(e));
+                            System.out.println(
+                                    getDateTime()
+                                            + " yarn task maybe killed, error to execute this sql");
+                            System.exit(-1);
+                        }
+                    }
+                });
+    }
+
+    public static String getDateTime() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return dateFormat.format(new Date());
     }
 }
