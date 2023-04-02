@@ -48,7 +48,9 @@ public class Vertica11OutputFormat extends JdbcOutputFormat {
                 if (CollectionUtils.isEmpty(updateKey)) {
                     List<String> tableIndex =
                             JdbcUtil.getTablePrimaryKey(
-                                    jdbcConfig.getSchema(), jdbcConfig.getTable(), dbConn);
+                                    jdbcDialect.getTableIdentify(
+                                            jdbcConfig.getSchema(), jdbcConfig.getTable()),
+                                    dbConn);
                     jdbcConfig.setUniqueKey(tableIndex);
                     log.info("updateKey = {}", JsonUtil.toJson(tableIndex));
                 }

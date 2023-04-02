@@ -18,20 +18,17 @@
 package com.dtstack.chunjun.connector.jdbc.util;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.connector.jdbc.conf.TableIdentify;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.ClassUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.RetryUtil;
-import com.dtstack.chunjun.util.TableUtil;
 import com.dtstack.chunjun.util.TelnetUtil;
-
-import org.apache.flink.table.types.logical.LogicalType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -105,73 +102,54 @@ public class JdbcUtil {
         }
     }
 
-    /**
-     * get full column name and type from database
-     *
-     * @param cataLog cataLog
-     * @param schema schema
-     * @param tableName tableName
-     * @param dbConn jdbc Connection
-     * @return fullColumnList and fullColumnTypeList
-     */
-    public static Pair<List<String>, List<String>> getTableMetaData(
-            String cataLog, String schema, String tableName, Connection dbConn) {
-        return getTableMetaData(cataLog, schema, tableName, dbConn, null);
+    /** Check whether the table exists in the database */
+    public static void checkTableExist(Connection dbConn, TableIdentify tableIdentify) {
+        try {
+            ResultSet tableRs =
+                    dbConn.getMetaData()
+                            .getTables(
+                                    tableIdentify.getCatalog(),
+                                    tableIdentify.getSchema(),
+                                    tableIdentify.getTable(),
+                                    null);
+            if (!tableRs.next()) {
+                throw new ChunJunRuntimeException(
+                        String.format("table %s not found.", tableIdentify.getTableInfo()));
+            }
+        } catch (Throwable throwable) {
+            throw new ChunJunRuntimeException("failed to check table exist", throwable);
+        }
     }
 
+    /**
+     * get column name and type from database
+     *
+     * @param dbConn jdbc Connection.
+     * @param metadataQuerySql SQL used to retrieve metadata
+     */
     public static Pair<List<String>, List<String>> getTableMetaData(
-            String cataLog, String schema, String tableName, Connection dbConn, String querySql) {
-        try {
-            if (StringUtils.isEmpty(schema)) {
-                schema = cataLog;
-            }
-            if (StringUtils.isBlank(querySql)) {
-                // check table exists
-                if (ALL_TABLE.equalsIgnoreCase(tableName.trim())) {
-                    return Pair.of(new LinkedList<>(), new LinkedList<>());
-                }
-                ResultSet tableRs =
-                        dbConn.getMetaData().getTables(cataLog, schema, tableName, null);
-                if (!tableRs.next()) {
-                    String tableInfo = schema == null ? tableName : schema + "." + tableName;
-                    throw new ChunJunRuntimeException(
-                            String.format("table %s not found.", tableInfo));
-                }
-                tableRs.close();
-
-                String tableInfo;
-                if (StringUtils.isNotBlank(schema)) {
-                    tableInfo = String.format("%s.%s", schema, tableName);
-                } else {
-                    // schema is null, use default schema to get metadata
-                    tableInfo = tableName;
-                }
-                querySql = String.format("select * from %s where 1=2", tableInfo);
-            } else {
-                querySql = String.format("select * from (%s) custom where 1=2", querySql);
-            }
-
-            Statement statement = dbConn.createStatement();
-            statement.setQueryTimeout(30);
-            ResultSet resultSet = dbConn.createStatement().executeQuery(querySql);
-            ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+            Connection dbConn, String metadataQuerySql, int queryTimeout) {
+        log.info("jdbc query table metadata from db, querySql is:{}", metadataQuerySql);
+        try (Statement st = dbConn.createStatement();
+                ResultSet rs = st.executeQuery(metadataQuerySql)) {
+            st.setQueryTimeout(queryTimeout);
+            ResultSetMetaData resultSetMetaData = rs.getMetaData();
             List<String> fullColumnList = new ArrayList<>(resultSetMetaData.getColumnCount());
             List<String> fullColumnTypeList = new ArrayList<>(resultSetMetaData.getColumnCount());
             String columnName;
-            String columnTypeName;
+            String columnType;
             for (int i = 0; i < resultSetMetaData.getColumnCount(); i++) {
                 columnName = resultSetMetaData.getColumnName(i + 1);
-                columnTypeName = resultSetMetaData.getColumnTypeName(i + 1);
+                columnType = resultSetMetaData.getColumnTypeName(i + 1);
                 // compatible with sqlserver, bigint identity  -> bigint
-                columnTypeName = columnTypeName.replace("identity", "").trim();
+                columnType = columnType.replace("identity", "").trim();
+
                 fullColumnList.add(columnName);
-                fullColumnTypeList.add(columnTypeName);
+                fullColumnTypeList.add(columnType);
             }
-            resultSet.close();
             return Pair.of(fullColumnList, fullColumnTypeList);
-        } catch (SQLException e) {
-            throw new ChunJunRuntimeException(
-                    String.format("error to get meta from [%s.%s]", schema, tableName), e);
+        } catch (Exception e) {
+            throw new ChunJunRuntimeException("failed to retrieve table metadata", e);
         }
     }
 
@@ -192,14 +170,21 @@ public class JdbcUtil {
         return indexList;
     }
 
-    public static List<String> getTableUniqueIndex(
-            String schema, String tableName, Connection dbConn) throws SQLException {
-        List<String> tablePrimaryKey = getTablePrimaryKey(schema, tableName, dbConn);
+    public static List<String> getTableUniqueIndex(TableIdentify tableIdentify, Connection dbConn)
+            throws SQLException {
+        List<String> tablePrimaryKey = getTablePrimaryKey(tableIdentify, dbConn);
         if (CollectionUtils.isNotEmpty(tablePrimaryKey)) {
             return tablePrimaryKey;
         }
 
-        ResultSet rs = dbConn.getMetaData().getIndexInfo(null, schema, tableName, true, false);
+        ResultSet rs =
+                dbConn.getMetaData()
+                        .getIndexInfo(
+                                tableIdentify.getCatalogForGetIndex(),
+                                tableIdentify.getSchemaForGetIndex(),
+                                tableIdentify.getTableForGetIndex(),
+                                true,
+                                false);
         List<String> indexList = new LinkedList<>();
         while (rs.next()) {
             String index = rs.getString(9);
@@ -209,21 +194,24 @@ public class JdbcUtil {
     }
 
     /**
-     * get primarykey
+     * get primarykey from db
      *
-     * @param schema
-     * @param tableName
      * @param dbConn
      * @return
      * @throws SQLException
      */
-    public static List<String> getTablePrimaryKey(
-            String schema, String tableName, Connection dbConn) throws SQLException {
-        ResultSet rs = dbConn.getMetaData().getPrimaryKeys(null, schema, tableName);
+    public static List<String> getTablePrimaryKey(TableIdentify tableIdentify, Connection dbConn)
+            throws SQLException {
+        ResultSet rs =
+                dbConn.getMetaData()
+                        .getPrimaryKeys(
+                                tableIdentify.getCatalog(),
+                                tableIdentify.getSchema(),
+                                tableIdentify.getTable());
         List<String> indexList = new LinkedList<>();
         while (rs.next()) {
             String index = rs.getString(4);
-            if (StringUtils.isNotBlank(index)) indexList.add(index);
+            if (org.apache.commons.lang.StringUtils.isNotBlank(index)) indexList.add(index);
         }
         return indexList;
     }
@@ -454,28 +442,6 @@ public class JdbcUtil {
         extraProperties.forEach(finalProperties::putIfAbsent);
 
         jdbcConfig.setProperties(finalProperties);
-    }
-
-    /**
-     * 获取数据库的LogicalType
-     *
-     * @param jdbcConfig 连接信息
-     * @param jdbcDialect 方言
-     * @param converter 数据库数据类型到flink内部类型的映射
-     * @return
-     */
-    public static LogicalType getLogicalTypeFromJdbcMetaData(
-            JdbcConfig jdbcConfig, JdbcDialect jdbcDialect, RawTypeConverter converter) {
-        try (Connection conn = JdbcUtil.getConnection(jdbcConfig, jdbcDialect)) {
-            Pair<List<String>, List<String>> pair =
-                    JdbcUtil.getTableMetaData(
-                            null, jdbcConfig.getSchema(), jdbcConfig.getTable(), conn);
-            List<String> rawFieldNames = pair.getLeft();
-            List<String> rawFieldTypes = pair.getRight();
-            return TableUtil.createRowType(rawFieldNames, rawFieldTypes, converter);
-        } catch (SQLException throwables) {
-            throw new RuntimeException(throwables);
-        }
     }
 
     /** 解析schema.table 或者 "schema"."table"等格式的表名 获取对应的schema以及table * */
