@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.connector.oraclelogminer.converter;
 
-import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
+import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.EventRow;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.EventRowData;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.TableMetaData;
@@ -26,6 +26,7 @@ import com.dtstack.chunjun.constants.CDCConstantValue;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
+import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
@@ -59,6 +60,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -70,10 +72,33 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
     // 存储表字段
     protected final Map<String, TableMetaData> tableMetaDataCacheMap = new ConcurrentHashMap<>(32);
     protected Connection connection;
+    protected final JdbcDialect defaultDialect;
 
     public LogMinerColumnConverter(boolean pavingData, boolean splitUpdate) {
         super.pavingData = pavingData;
         super.split = splitUpdate;
+        defaultDialect =
+                new JdbcDialect() {
+                    @Override
+                    public String dialectName() {
+                        return null;
+                    }
+
+                    @Override
+                    public boolean canHandle(String url) {
+                        return false;
+                    }
+
+                    @Override
+                    public RawTypeConverter getRawTypeConverter() {
+                        return null;
+                    }
+
+                    @Override
+                    public Optional<String> defaultDriverName() {
+                        return Optional.of("oracle.jdbc.OracleDriver");
+                    }
+                };
     }
 
     @Override
@@ -173,7 +198,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
                         .collect(Collectors.toCollection(HashSet::new))
                         .containsAll(metadata.getFieldList())) {
             Pair<List<String>, List<String>> latestMetaData =
-                    JdbcUtil.getTableMetaData(null, schema, table, connection);
+                    defaultDialect.getTableMetaData(connection, schema, table, 120, null, null);
             this.converters =
                     Arrays.asList(
                             latestMetaData.getRight().stream()

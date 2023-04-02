@@ -79,7 +79,6 @@
           "name": "mysqlwriter",
           "preSql": "truncate table test_sink;",
           "postSql": "truncate table test_sink;",
-          "semantic": "update",
           "updateKey": {
             "test_sink": [
               "id"

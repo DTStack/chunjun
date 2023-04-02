@@ -95,7 +95,6 @@ public class SourceFactoryTest {
                             type.add(field.getType());
                         });
         Pair<List<String>, List<String>> pair = mock(Pair.class);
-        when(JdbcUtil.getTableMetaData(any(), any(), any(), any())).thenAnswer(invocation -> pair);
         when(JdbcUtil.buildColumnWithMeta(any(), any(), any())).thenAnswer(invocation -> pair);
 
         when(pair.getLeft()).thenReturn(name);

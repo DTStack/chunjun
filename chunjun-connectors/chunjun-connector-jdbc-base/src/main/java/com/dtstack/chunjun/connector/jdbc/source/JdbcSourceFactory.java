@@ -37,7 +37,6 @@ import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
 
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
@@ -184,14 +183,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     }
 
     protected Pair<List<String>, List<String>> getTableMetaData(Connection dbConn) {
-        Tuple3<String, String, String> tableIdentify =
-                jdbcDialect.getTableIdentify().apply(jdbcConfig);
-        return JdbcUtil.getTableMetaData(
-                tableIdentify.f0,
-                tableIdentify.f1,
-                tableIdentify.f2,
-                dbConn,
-                jdbcConfig.getCustomSql());
+        return jdbcDialect.getTableMetaData(dbConn, jdbcConfig);
     }
 
     protected String getConstantType() {

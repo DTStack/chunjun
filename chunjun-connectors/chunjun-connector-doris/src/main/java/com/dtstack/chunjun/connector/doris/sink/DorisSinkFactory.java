@@ -38,7 +38,6 @@ import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
 
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
@@ -178,10 +177,7 @@ public class DorisSinkFactory extends SinkFactory {
         Connection conn = JdbcUtil.getConnection(conf, dialect);
 
         // get table metadata
-        Tuple3<String, String, String> tableIdentify = dialect.getTableIdentify().apply(conf);
-        Pair<List<String>, List<String>> tableMetaData =
-                JdbcUtil.getTableMetaData(
-                        tableIdentify.f0, tableIdentify.f1, tableIdentify.f2, conn);
+        Pair<List<String>, List<String>> tableMetaData = dialect.getTableMetaData(conn, conf);
 
         Pair<List<String>, List<String>> selectedColumnInfo =
                 JdbcUtil.buildColumnWithMeta(conf, tableMetaData, null);
