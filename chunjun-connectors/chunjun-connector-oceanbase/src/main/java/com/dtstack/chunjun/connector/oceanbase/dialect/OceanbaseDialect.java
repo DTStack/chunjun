@@ -17,10 +17,20 @@
  */
 package com.dtstack.chunjun.connector.oceanbase.dialect;
 
+import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.oceanbase.converter.OceanbaseRawTypeConverter;
+import com.dtstack.chunjun.connector.oceanbase.converter.OceanbaseSyncConverter;
+import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
+import io.vertx.core.json.JsonArray;
+
+import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -108,5 +118,11 @@ public class OceanbaseDialect implements JdbcDialect {
                 getInsertIntoStatement(schema, tableName, fieldNames)
                         + " ON DUPLICATE KEY UPDATE "
                         + updateClause);
+    }
+
+    @Override
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
+            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
+        return new OceanbaseSyncConverter(rowType, commonConfig);
     }
 }
