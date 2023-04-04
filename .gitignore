@@ -27,7 +27,8 @@ replay_pid*
 target/
 
 # Intellij Idea files
-.idea/
+.idea/*
+!.idea/vcs.xml
 *.iml
 
 # mac system
