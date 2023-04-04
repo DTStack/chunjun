@@ -37,12 +37,15 @@ import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
+import com.dtstack.chunjun.element.column.YearMonthColumn;
+import com.dtstack.chunjun.element.column.ZonedTimestampColumn;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.logical.YearMonthIntervalType;
+import org.apache.flink.table.types.logical.ZonedTimestampType;
 
 import io.vertx.core.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
@@ -259,6 +262,58 @@ public class JdbcSyncConverter
                         statement.setBytes(index, ((ColumnRowData) val).getField(index).asBytes());
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
+        }
+    }
+
+    protected IDeserializationConverter<Object, ZonedTimestampColumn>
+            getZonedTimestampDeserialization(ZonedTimestampType type) {
+        int precision = type.getPrecision();
+        return val -> new ZonedTimestampColumn((Timestamp) val, precision);
+    }
+
+    protected ISerializationConverter<FieldNamedPreparedStatement>
+            getZonedTimestampSerialization() {
+        return (val, index, statement) ->
+                statement.setTimestamp(index, ((ColumnRowData) val).getField(index).asTimestamp());
+    }
+
+    public IDeserializationConverter<?, ?> getYearMonthDeserialization(
+            YearMonthIntervalType yearMonthIntervalType) {
+        switch (yearMonthIntervalType.getResolution()) {
+            case YEAR:
+            case MONTH:
+            case YEAR_TO_MONTH:
+                return val -> {
+                    if (val instanceof Date) {
+                        Date date = (Date) val;
+                        return new YearMonthColumn(
+                                date.toLocalDate().getYear() * 12
+                                        + date.toLocalDate().getMonthValue());
+                    }
+                    return new YearMonthColumn(Integer.parseInt(String.valueOf(val)));
+                };
+            default:
+                throw new UnsupportedOperationException(
+                        yearMonthIntervalType.getResolution().name());
+        }
+    }
+
+    protected ISerializationConverter<FieldNamedPreparedStatement> getYearMonthSerialization(
+            YearMonthIntervalType yearMonthIntervalType) {
+        switch (yearMonthIntervalType.getResolution()) {
+            case YEAR:
+                return (val, index, statement) ->
+                        statement.setInt(index, ((ColumnRowData) val).getField(index).asYearInt());
+            case MONTH:
+                return (val, index, statement) ->
+                        statement.setInt(index, ((ColumnRowData) val).getField(index).asMonthInt());
+            case YEAR_TO_MONTH:
+                return (val, index, statement) ->
+                        statement.setString(
+                                index, ((ColumnRowData) val).getField(index).asString());
+            default:
+                throw new UnsupportedOperationException(
+                        yearMonthIntervalType.getResolution().name());
         }
     }
 }

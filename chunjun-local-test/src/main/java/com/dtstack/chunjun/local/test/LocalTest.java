@@ -44,7 +44,7 @@ public class LocalTest {
         String userDir = System.getProperty("user.dir");
 
         String jobPath =
-                "/Users/wtz/job_place/chunjun/1.16/_01_SQL/_06_Kafka/_01_sourceKafka_dimMysql_sinkMysql.sql";
+                "/Users/wtz/job_place/chunjun/1.16/_02_SYNC/_05_Oceanbase/oceanbase_stream.json";
         String chunjunDistDir = userDir + "/chunjun-dist";
         String s = "";
 

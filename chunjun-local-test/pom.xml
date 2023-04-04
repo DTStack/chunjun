@@ -101,6 +101,24 @@
 			<version>${flink.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-oceanbase</artifactId>
+			<version>master</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.avro</groupId>
+			<artifactId>avro</artifactId>
+			<version>1.10.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.parquet</groupId>
+			<artifactId>parquet-avro</artifactId>
+			<version>1.12.2</version>
+		</dependency>
+
 		<!--Test Connector End. Do not Add directly -->
 	</dependencies>
 </project>
