@@ -95,6 +95,8 @@ import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 @Slf4j
 public class Main {
 
@@ -166,7 +168,12 @@ public class Main {
             if (env instanceof MyLocalStreamEnvironment) {
                 Optional<JobClient> jobClient = execute.getJobClient();
                 if (jobClient.isPresent()) {
-                    PrintUtil.printResult(jobClient.get().getAccumulators().get());
+                    PrintUtil.printResult(
+                            jobClient
+                                    .get()
+                                    .getJobExecutionResult()
+                                    .get()
+                                    .getAllAccumulatorResults());
                 }
             }
         } catch (Exception e) {
@@ -462,8 +469,9 @@ public class Main {
                                         jobExecutionResult = v.getJobExecutionResult();
                                         jobExecutionResult.complete(
                                                 new JobExecutionResult(v.getJobID(), 0, null));
-                                        ApplicationStatus.fromJobStatus(v.getJobStatus().get());
-                                        Thread.sleep(sleepTime);
+                                        ApplicationStatus.fromJobStatus(
+                                                v.getJobStatus().get(3, SECONDS));
+                                        Thread.sleep(2000);
                                     } catch (Exception e) {
                                         break;
                                     }
