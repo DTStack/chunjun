@@ -66,7 +66,11 @@ import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.VERTX
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.getLibConfMap;
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcSinkOptions.SINK_ALL_REPLACE;
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcSinkOptions.SINK_PARALLELISM;
+import static com.dtstack.chunjun.connector.jdbc.options.JdbcSinkOptions.SINK_POST_SQL;
+import static com.dtstack.chunjun.connector.jdbc.options.JdbcSinkOptions.SINK_PRE_SQL;
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcSinkOptions.SINK_SEMANTIC;
+import static com.dtstack.chunjun.connector.jdbc.options.JdbcSourceOptions.SCAN_CUSTOM_SQL;
+import static com.dtstack.chunjun.connector.jdbc.options.JdbcSourceOptions.SCAN_WHERE;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
@@ -168,6 +172,13 @@ public abstract class JdbcDynamicTableFactory
         jdbcConfig.setParallelism(readableConfig.get(SINK_PARALLELISM));
         jdbcConfig.setSemantic(readableConfig.get(SINK_SEMANTIC));
 
+        if (StringUtils.isNotEmpty(readableConfig.get(SINK_PRE_SQL))) {
+            jdbcConfig.setPreSql(Arrays.asList(readableConfig.get(SINK_PRE_SQL).split(";")));
+        }
+        if (StringUtils.isNotEmpty(readableConfig.get(SINK_POST_SQL))) {
+            jdbcConfig.setPostSql(Arrays.asList(readableConfig.get(SINK_POST_SQL).split(";")));
+        }
+
         List<String> keyFields = new ArrayList<>();
         schema.getPrimaryKey().ifPresent(item -> keyFields.add(item.getName()));
 
@@ -240,7 +251,11 @@ public abstract class JdbcDynamicTableFactory
                             : readableConfig.get(SCAN_FETCH_SIZE));
         }
 
-        resetTableInfo(jdbcConfig);
+        jdbcConfig.setWhere(readableConfig.get(SCAN_WHERE));
+        jdbcConfig.setCustomSql(readableConfig.get(SCAN_CUSTOM_SQL));
+        if (StringUtils.isBlank(jdbcConfig.getCustomSql())) {
+            resetTableInfo(jdbcConfig);
+        }
         return jdbcConfig;
     }
 
@@ -271,6 +286,8 @@ public abstract class JdbcDynamicTableFactory
         optionalOptions.add(SCAN_RESTORE_COLUMNNAME);
         optionalOptions.add(SCAN_RESTORE_COLUMNTYPE);
         optionalOptions.add(SCAN_ORDER_BY_COLUMN);
+        optionalOptions.add(SCAN_WHERE);
+        optionalOptions.add(SCAN_CUSTOM_SQL);
 
         optionalOptions.add(LOOKUP_CACHE_PERIOD);
         optionalOptions.add(LOOKUP_CACHE_MAX_ROWS);
@@ -288,6 +305,8 @@ public abstract class JdbcDynamicTableFactory
         optionalOptions.add(SINK_ALL_REPLACE);
         optionalOptions.add(SINK_PARALLELISM);
         optionalOptions.add(SINK_SEMANTIC);
+        optionalOptions.add(SINK_PRE_SQL);
+        optionalOptions.add(SINK_POST_SQL);
         return optionalOptions;
     }
 
