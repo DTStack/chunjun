@@ -22,6 +22,8 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.net.URL;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -39,7 +41,9 @@ public class SetStmtParser extends AbstractStmtParser {
 
     @Override
     public boolean canHandle(String stmt) {
-        return SET_PATTERN.matcher(stmt).find();
+        return StringUtils.isNotBlank(stmt)
+                && stmt.trim().toLowerCase().startsWith("set")
+                && SET_PATTERN.matcher(stmt).find();
     }
 
     @Override
