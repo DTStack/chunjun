@@ -1,0 +1,154 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+# Pull Request Labeler Github Action Configuration: https://github.com/marketplace/actions/labeler
+INFRA:
+  - .asf.yaml
+  - .gitattributes
+  - .gitignore
+  - .baseline/**/*
+  - .github/**/*
+  - dev/**/*
+BUILD:
+  - build/*
+DOCS:
+  - docs/**/*
+  - "**/*CHANGELOG.md"
+  - "**/*README.md"
+  - "**/*CONTRIBUTING.md"
+  - chunjun-examples/**/*
+ASSEMBLY:
+  - chunjun-assembly/**/*
+CLIENTS:
+  - chunjun-clients/**/*
+CORE:
+  - chunjun-core/**/*
+DDL:
+  - chunjun-ddl/**/*
+DIRTY:
+  - chunjun-dirty/**/*
+DOCKER:
+  - chunjun-docker/**/*
+E2E:
+  - chunjun-docker/**/*
+LOCAL_TEST:
+  - chunjun-local-test/**/*
+METRICS:
+  - chunjun-metrics/**/*
+RESTORE:
+  - chunjun-restore/**/*
+BINLOG:
+  - chunjun-connectors/chunjun-connector-binlog/**/*
+CASSANDRA:
+  - chunjun-connectors/chunjun-connector-cassandra/**/*
+CLICKHOUSE:
+  - chunjun-connectors/chunjun-connector-clickhouse/**/*
+DB2:
+  - chunjun-connectors/chunjun-connector-db2/**/*
+DM:
+  - chunjun-connectors/chunjun-connector-dm/**/*
+DORIS:
+  - chunjun-connectors/chunjun-connector-doris/**/*
+ELASTICSEARCH6:
+  - chunjun-connectors/chunjun-connector-elasticsearch6/**/*
+ELASTICSEARCH7:
+    - chunjun-connectors/chunjun-connector-elasticsearch7/**/*
+ELASTICSEARCH:
+  - chunjun-connectors/chunjun-connector-elasticsearch-base/**/*
+EMQX:
+  - chunjun-connectors/chunjun-connector-emqx/**/*
+FILE:
+  - chunjun-connectors/chunjun-connector-file/**/*
+FTP:
+  - chunjun-connectors/chunjun-connector-ftp/**/*
+GREENPLUM:
+  - chunjun-connectors/chunjun-connector-greenplum/**/*
+HBASE2:
+    - chunjun-connectors/chunjun-connector-hbase2/**/*
+HBASE-1.4:
+    - chunjun-connectors/chunjun-connector-hbase-1.4/**/*
+HBASE:
+    - chunjun-connectors/chunjun-connector-hbase-base/**/*
+HDFS:
+  - chunjun-connectors/chunjun-connector-hdfs/**/*
+HIVE:
+    - chunjun-connectors/chunjun-connector-hive/**/*
+HIVE3:
+    - chunjun-connectors/chunjun-connector-hive3/**/*
+HTTP:
+    - chunjun-connectors/chunjun-connector-http/**/*
+ICEBERG:
+    - chunjun-connectors/chunjun-connector-iceberg/**/*
+INFLUXDB:
+    - chunjun-connectors/chunjun-connector-influxdb/**/*
+JDBC:
+    - chunjun-connectors/chunjun-connector-jdbc/**/*
+KAFKA:
+    - chunjun-connectors/chunjun-connector-kafka/**/*
+KUDU:
+    - chunjun-connectors/chunjun-connector-kudu/**/*
+MONGODB:
+    - chunjun-connectors/chunjun-connector-mongodb/**/*
+MYSQL:
+    - chunjun-connectors/chunjun-connector-mysql/**/*
+MYSQL-CDC:
+    - chunjun-connectors/chunjun-connector-mysqlcdc/**/*
+MYSQLD:
+    - chunjun-connectors/chunjun-connector-mysqld/**/*
+NEBULA:
+    - chunjun-connectors/chunjun-connector-nebula/**/*
+OCEANBASE:
+    - chunjun-connectors/chunjun-connector-oceanbase/**/*
+OCEANBASE-CDC:
+    - chunjun-connectors/chunjun-connector-oceanbasecdc/**/*
+ORACLE:
+    - chunjun-connectors/chunjun-connector-oracle/**/*
+ORACLELOGMINER:
+    - chunjun-connectors/chunjun-connector-oraclelogminer/**/*
+POSTGRESQL:
+    - chunjun-connectors/chunjun-connector-postgresql/**/*
+RABBITMQ:
+    - chunjun-connectors/chunjun-connector-rabbitmq/**/*
+REDIS:
+    - chunjun-connectors/chunjun-connector-redis/**/*
+ROCKETMQ:
+    - chunjun-connectors/chunjun-connector-rocketmq/**/*
+S3:
+    - chunjun-connectors/chunjun-connector-s3/**/*
+SAPHANA:
+    - chunjun-connectors/chunjun-connector-saphana/**/*
+SELECTDB:
+    - chunjun-connectors/chunjun-connector-selectdb-cloud/**/*
+SOCKET:
+    - chunjun-connectors/chunjun-connector-socket/**/*
+SOLR:
+    - chunjun-connectors/chunjun-connector-solr/**/*
+SQLSERVER:
+    - chunjun-connectors/chunjun-connector-sqlserver/**/*
+SQLSERVER-CDC:
+    - chunjun-connectors/chunjun-connector-sqlservercdc/**/*
+STARROCKS:
+    - chunjun-connectors/chunjun-connector-starrocks/**/*
+STREAM:
+    - chunjun-connectors/chunjun-connector-stream/**/*
+SYBASE:
+    - chunjun-connectors/chunjun-connector-sybase/**/*
+VERTICA:
+    - chunjun-connectors/chunjun-connector-vertica11/**/*
+
+
