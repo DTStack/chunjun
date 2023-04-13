@@ -23,6 +23,7 @@ import com.dtstack.chunjun.util.PwdUtil;
 import com.dtstack.chunjun.util.Splitter;
 import com.dtstack.chunjun.util.StringUtil;
 
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
@@ -83,5 +84,30 @@ public class SqlParser {
         insertStmtParser.setNextStmtParser(setStmtParser);
 
         return uploadFileStmtParser;
+    }
+
+    public static Configuration parseSqlSet(String sql) {
+        Configuration configuration = new Configuration();
+        if (StringUtils.isBlank(sql)) {
+            throw new IllegalArgumentException("SQL must be not empty!");
+        }
+        sql = StringUtil.dealSqlComment(sql);
+        Splitter splitter = new Splitter(SQL_DELIMITER);
+        List<String> stmts = splitter.splitEscaped(sql);
+        SetStmtParser setStmtParser = new SetStmtParser();
+        stmts.stream()
+                .filter(stmt -> !Strings.isNullOrEmpty(stmt.trim()))
+                .forEach(
+                        stmt -> {
+                            try {
+                                if (setStmtParser.canHandle(stmt)) {
+                                    configuration.addAll(setStmtParser.execStmt(stmt));
+                                }
+                            } catch (Exception e) {
+                                throw new ChunJunSqlParseException(
+                                        PwdUtil.desensitization(stmt), e.getMessage(), e);
+                            }
+                        });
+        return configuration;
     }
 }

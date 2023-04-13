@@ -84,6 +84,8 @@ public class Options {
 
     private Configuration flinkConfiguration = null;
 
+    private Configuration sqlSetConfiguration = null;
+
     public Configuration loadFlinkConfiguration() {
         if (flinkConfiguration == null) {
             Configuration dynamicConf = Configuration.fromMap(PropertiesUtil.confToMap(confProp));
@@ -235,6 +237,14 @@ public class Options {
         this.runMode = runMode;
     }
 
+    public Configuration getSqlSetConfiguration() {
+        return sqlSetConfiguration;
+    }
+
+    public void setSqlSetConfiguration(Configuration sqlSetConfiguration) {
+        this.sqlSetConfiguration = sqlSetConfiguration;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", Options.class.getSimpleName() + "[", "]")
@@ -255,6 +265,7 @@ public class Options {
                 .add("addShipfile='" + addShipfile + "'")
                 .add("runMode='" + runMode + "'")
                 .add("flinkConfiguration=" + flinkConfiguration)
+                .add("sqlSetConfiguration=" + sqlSetConfiguration)
                 .toString();
     }
 }

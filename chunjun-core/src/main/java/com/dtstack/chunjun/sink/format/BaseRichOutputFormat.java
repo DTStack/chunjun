@@ -67,6 +67,9 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.dtstack.chunjun.metrics.BaseMetric.DELAY_PERIOD_MILL;
+import static com.dtstack.chunjun.metrics.BaseMetric.DELAY_PERIOD_MILL_KEY;
+
 /**
  * Abstract Specification for all the OutputFormat defined in chunjun plugins
  *
@@ -233,6 +236,24 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
         ExecutionConfig.GlobalJobParameters params =
                 context.getExecutionConfig().getGlobalJobParameters();
+
+        // 0< sink.buffer-flush.interval <= DELAY_PERIOD_MILL
+
+        Map<String, String> confMap = params.toMap();
+        long delayPeriodMill;
+        if (confMap.containsKey(DELAY_PERIOD_MILL_KEY)) {
+            delayPeriodMill = Long.parseLong(String.valueOf(confMap.get(DELAY_PERIOD_MILL_KEY)));
+        } else {
+            delayPeriodMill = DELAY_PERIOD_MILL;
+        }
+        if (flushIntervalMills == 0 || delayPeriodMill == 0) {
+            throw new RuntimeException(
+                    "the key of chunjun.delay_period_mill or sink.buffer-flush.interval cannot be equal to 0");
+        }
+        if (flushIntervalMills > delayPeriodMill) {
+            this.flushIntervalMills = delayPeriodMill;
+        }
+
         DirtyConfig dc = DirtyConfUtil.parseFromMap(params.toMap());
         this.dirtyManager = new DirtyManager(dc, this.context);
 

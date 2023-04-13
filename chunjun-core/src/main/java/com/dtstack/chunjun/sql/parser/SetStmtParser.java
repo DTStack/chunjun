@@ -63,4 +63,17 @@ public class SetStmtParser extends AbstractStmtParser {
             }
         }
     }
+
+    public Configuration execStmt(String stmt) {
+        Configuration configuration = new Configuration();
+        if (SET_PATTERN.matcher(stmt).find()) {
+            Matcher matcher = SET_PATTERN.matcher(stmt);
+            if (matcher.find()) {
+                String key = matcher.group(1);
+                String value = matcher.group(2);
+                configuration.setString(key, value);
+            }
+        }
+        return configuration;
+    }
 }
