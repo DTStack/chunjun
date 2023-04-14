@@ -21,6 +21,7 @@ package com.dtstack.chunjun.metrics;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.util.ThreadUtil;
 
+import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.metrics.MetricGroup;
@@ -33,7 +34,9 @@ import java.util.Map;
 @Slf4j
 public class BaseMetric {
 
-    public static final Long DELAY_PERIOD_MILL = 20000L;
+    public static Long DELAY_PERIOD_MILL = 20000L;
+
+    public static final String DELAY_PERIOD_MILL_KEY = "chunjun.delay_period_mill";
 
     private final MetricGroup chunjunMetricGroup;
 
@@ -42,6 +45,14 @@ public class BaseMetric {
     private final Map<String, LongCounter> metricCounters = new HashMap<>();
 
     public BaseMetric(RuntimeContext runtimeContext) {
+
+        ExecutionConfig.GlobalJobParameters params =
+                runtimeContext.getExecutionConfig().getGlobalJobParameters();
+        Map<String, String> confMap = params.toMap();
+        this.DELAY_PERIOD_MILL =
+                Long.parseLong(
+                        String.valueOf(confMap.getOrDefault(DELAY_PERIOD_MILL_KEY, "20000")));
+
         chunjunMetricGroup =
                 runtimeContext
                         .getMetricGroup()

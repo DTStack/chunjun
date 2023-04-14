@@ -95,6 +95,7 @@ import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import static com.dtstack.chunjun.enums.EJobType.SQL;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
@@ -120,6 +121,9 @@ public class Main {
             replacedJob = JobUtil.replaceJobParameter(options.getP(), job);
         }
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
+        if (EJobType.getByName(options.getJobType()).equals(SQL)) {
+            options.setSqlSetConfiguration(SqlParser.parseSqlSet(replacedJob));
+        }
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =
                 EnvFactory.createStreamTableEnvironment(env, confProperties, options.getJobName());

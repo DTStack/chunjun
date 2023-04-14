@@ -43,6 +43,9 @@ public class EnvFactory {
     public static StreamExecutionEnvironment createStreamExecutionEnvironment(Options options) {
         Configuration flinkConf = new Configuration();
         Configuration cfg = Configuration.fromMap(PropertiesUtil.confToMap(options.getConfProp()));
+        if (options.getSqlSetConfiguration() != null) {
+            cfg.addAll(options.getSqlSetConfiguration());
+        }
         if (StringUtils.isNotEmpty(options.getFlinkConfDir())) {
             flinkConf = GlobalConfiguration.loadConfiguration(options.getFlinkConfDir());
         }
