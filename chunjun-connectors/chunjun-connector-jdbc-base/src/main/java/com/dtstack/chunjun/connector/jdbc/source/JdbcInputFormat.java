@@ -216,6 +216,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             }
             return finalRowData;
         } catch (Exception se) {
+            log.error(ExceptionUtil.getErrorMessage(se));
             throw new ReadRecordException("", se, 0, rowData);
         } finally {
             try {
