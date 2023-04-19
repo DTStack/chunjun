@@ -124,6 +124,11 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void writeSingleRecordInternal(RowData row) throws WriteRecordException {
         int index = 0;
         try {
+            if (dbConn.isClosed() || !dbConn.isValid(10)) {
+                dbConn = getConnection();
+                buildStmtProxy();
+                log.warn("write single record reconnecting");
+            }
             stmtProxy.writeSingleRecordInternal(row);
             if (Semantic.EXACTLY_ONCE == semantic) {
                 rowsOfCurrentTransaction += rows.size();
@@ -150,6 +155,19 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
         try {
+            // 解决写入时数据库连接无效问题
+            try {
+                if (!dbConn.isValid(10)) {
+                    dbConn = getConnection();
+                    buildStmtProxy();
+                    log.warn("write multiple records reconnecting");
+                }
+            } catch (Throwable e) {
+                // 解决 sqlserver JtdsConnection 没有实现 isValid 方法
+                if (!(e instanceof AbstractMethodError)) {
+                    e.printStackTrace();
+                }
+            }
             for (RowData row : rows) {
                 stmtProxy.convertToExternal(row);
                 stmtProxy.addBatch();

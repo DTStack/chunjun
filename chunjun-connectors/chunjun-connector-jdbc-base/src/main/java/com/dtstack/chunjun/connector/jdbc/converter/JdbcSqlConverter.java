@@ -112,6 +112,14 @@ public class JdbcSqlConverter
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
             Object field = resultSet.getObject(pos + 1);
+            if (resultSet.getMetaData().getColumnTypeName(pos + 1).equals("BIGINT UNSIGNED")
+                    && field != null) {
+                field = ((BigInteger) field).longValue();
+            }
+            if (resultSet.getMetaData().getColumnTypeName(pos + 1).equals("INT UNSIGNED")
+                    && field != null) {
+                field = ((Long) field).intValue();
+            }
             genericRowData.setField(pos, toInternalConverters.get(pos).deserialize(field));
         }
         return genericRowData;

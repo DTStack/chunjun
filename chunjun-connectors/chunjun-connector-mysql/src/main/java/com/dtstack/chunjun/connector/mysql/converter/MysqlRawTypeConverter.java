@@ -32,6 +32,10 @@ public class MysqlRawTypeConverter {
      * com.mysql.jdbc.ResultSetImpl.getObject(int)
      */
     public static DataType apply(String type) {
+        // 修复不识别带有小括号精度类型问题
+        if (type.indexOf("(") > -1) {
+            type = type.substring(0, type.indexOf("("));
+        }
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "BOOLEAN":
             case "BIT":
