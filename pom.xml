@@ -71,7 +71,7 @@
 		<jersey.version>1.19</jersey.version>
 		<javax.servlet.jap.version>2.1</javax.servlet.jap.version>
 		<hadoop.binary.version>2.7</hadoop.binary.version>
-		<jackson.version>2.12.6</jackson.version>
+		<jackson.version>2.12.7.1</jackson.version>
 		<fastjson.version>1.2.83</fastjson.version>
 		<hutool.version>5.8.4</hutool.version>
 		<protostuff.version>1.8.0</protostuff.version>
