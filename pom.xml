@@ -107,7 +107,7 @@
 		<commons.cli.version>1.4</commons.cli.version>
 		<commons.configuration.version>1.7</commons.configuration.version>
 		<commons.digester.version>1.8.1</commons.digester.version>
-		<commons-compress.version>1.20</commons-compress.version>
+		<commons-compress.version>1.21</commons-compress.version>
 		<commons-lang3.version>3.12.0</commons-lang3.version>
 		<commons-io.version>2.11.0</commons-io.version>
 		<commons-collections4.version>4.4</commons-collections4.version>
