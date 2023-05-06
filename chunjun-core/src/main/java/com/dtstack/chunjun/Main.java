@@ -70,9 +70,9 @@ import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableResult;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.expressions.ApiExpressionUtils;
-import org.apache.flink.table.expressions.Expression;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.logical.RowType;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
@@ -248,14 +248,10 @@ public class Main {
             StreamTableEnvironment tableEnv,
             SyncConfig config,
             DataStream<RowData> sourceDataStream) {
-        List<String> fieldNameList = config.getReader().getFieldNameList();
         Schema.Builder builder = Schema.newBuilder();
-        Expression[] expressions =
-                fieldNameList.stream()
-                        .map(ApiExpressionUtils::unresolvedRef)
-                        .toArray(Expression[]::new);
-        for (int i = 0; i < fieldNameList.size(); i++) {
-            builder.columnByExpression(fieldNameList.get(i), expressions[i]);
+        for (RowType.RowField rowField :
+                ((InternalTypeInfo<?>) sourceDataStream.getType()).toRowType().getFields()) {
+            builder.column(rowField.getName(), rowField.getType().asSerializableString());
         }
 
         Table sourceTable = tableEnv.fromDataStream(sourceDataStream, builder.build());

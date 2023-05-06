@@ -85,7 +85,7 @@ public class Launcher {
         List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(launcherOptions.getAddjar());
         ClassLoaderManager.loadExtraJar(jarUrlList, urlClassLoader);
         try (ClusterClient<?> client = clusterClientHelper.submit(jobDeployer)) {
-            if(null != client){
+            if (null != client) {
                 log.info(client.getClusterId() + " submit successfully.");
             }
         }

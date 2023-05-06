@@ -226,6 +226,72 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<!--exclude all log api and impls -->
+							<artifactSet>
+								<excludes>
+									<exclude>org.apache.logging.log4j:*</exclude>
+									<exclude>ch.qos.logback:*</exclude>
+									<exclude>ch.qos.reload4j:*</exclude>
+									<exclude>commons-logging:*</exclude>
+									<exclude>log4j:log4j</exclude>
+								</excludes>
+							</artifactSet>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<transformers>
+
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"/>
+								<!-- The service transformer is needed to merge META-INF/services files -->
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer"/>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>reference.conf</resource>
+								</transformer>
+
+								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
+									<resource>core-default.xml</resource>
+								</transformer>
+
+								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
+									<resource>core-site.xml</resource>
+								</transformer>
+
+								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
+									<resource>yarn-default.xml</resource>
+								</transformer>
+
+								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
+									<resource>mapred-default.xml</resource>
+								</transformer>
+
+								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
+									<resource>mapred-site.xml</resource>
+								</transformer>
+							</transformers>
+
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<executions>
 					<execution>
