@@ -113,6 +113,26 @@
 					<artifactId>commons-httpclient</artifactId>
 					<groupId>commons-httpclient</groupId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-yarn-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-yarn-common</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-yarn-server-applicationhistoryservice</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-yarn-server-common</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-yarn-server-resourcemanager</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -212,6 +232,28 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<filters>
+								<filter>
+									<artifact>org.apache.hive:hive-exec</artifact>
+									<excludes>
+										<exclude>parquet/**</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>

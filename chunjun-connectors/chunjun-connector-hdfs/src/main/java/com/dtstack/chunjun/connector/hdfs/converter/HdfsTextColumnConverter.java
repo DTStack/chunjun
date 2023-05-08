@@ -28,6 +28,7 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.ByteColumn;
+import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
@@ -76,13 +77,14 @@ public class HdfsTextColumnConverter
             GenericRowData genericRowData = (GenericRowData) input;
             List<FieldConfig> fieldConfigList = commonConfig.getColumn();
             for (int i = 0; i < input.getArity(); i++) {
-                row.addField(
-                        assembleFieldProps(
-                                fieldConfigList.get(i),
-                                (AbstractBaseColumn)
-                                        toInternalConverters
-                                                .get(i)
-                                                .deserialize(genericRowData.getField(i))));
+                AbstractBaseColumn baseColumn =
+                        (AbstractBaseColumn)
+                                toInternalConverters.get(i).deserialize(genericRowData.getField(i));
+                if (baseColumn != null) {
+                    row.addField(assembleFieldProps(fieldConfigList.get(i), baseColumn));
+                } else {
+                    row.addField(new NullColumn());
+                }
             }
         } else {
             throw new ChunJunRuntimeException(
