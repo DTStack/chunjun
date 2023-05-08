@@ -32,6 +32,7 @@ import org.apache.flink.api.common.functions.RuntimeContext;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -229,6 +230,13 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         }
         String currentFilePath = "";
         try {
+            // 在目标目录下生成一个指定文件名的空文件，例如：_SUCCESS 空文件
+            if (StringUtils.isNotBlank(hdfsConfig.getFinishedFileName())) {
+                String finishedFilePath =
+                        tmpPath + getHdfsPathChar() + hdfsConfig.getFinishedFileName();
+                fs.create(new Path(finishedFilePath), true);
+                log.info("Committed with finished file:{}", finishedFilePath);
+            }
             Path dir = new Path(outputFilePath);
             Path tmpDir = new Path(tmpPath);
 
