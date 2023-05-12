@@ -105,7 +105,8 @@
 
 		<!-- nebula -->
 		<module>chunjun-connector-nebula</module>
-	</modules>
+        <module>chunjun-connector-kingbase</module>
+    </modules>
 
 	<dependencies>
 		<dependency>
@@ -135,6 +136,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-shade-plugin</artifactId>
+					<version>3.1.0</version>
 					<executions>
 						<execution>
 							<phase>package</phase>
@@ -142,6 +144,7 @@
 								<goal>shade</goal>
 							</goals>
 							<configuration>
+								<createDependencyReducedPom>false</createDependencyReducedPom>
 								<artifactSet>
 									<excludes>
 										<exclude>org.slf4j:slf4j-api</exclude>
