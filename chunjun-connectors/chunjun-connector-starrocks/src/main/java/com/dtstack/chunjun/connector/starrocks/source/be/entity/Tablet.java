@@ -28,7 +28,7 @@ public class Tablet implements Serializable {
 
     private static final long serialVersionUID = 8313899328024578523L;
 
-    private List<String> routing;
+    private List<String> routings;
     private int version;
     private long versionHash;
     private long schemaHash;
