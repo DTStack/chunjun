@@ -42,7 +42,8 @@
 		<module>chunjun-assembly</module>
 		<module>chunjun-e2e</module>
 		<module>chunjun-local-test</module>
-	</modules>
+        <module>chunjun-connectors/chunjun-connector-hudi</module>
+    </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
