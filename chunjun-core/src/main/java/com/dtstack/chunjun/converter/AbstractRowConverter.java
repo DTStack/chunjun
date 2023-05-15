@@ -37,6 +37,7 @@ import java.sql.ResultSet;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.TimeZone;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
@@ -48,6 +49,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implements Serializable {
 
     private static final long serialVersionUID = -7797305256083360152L;
+    public static final TimeZone LOCAL_TZ = TimeZone.getDefault();
 
     protected RowType rowType;
     protected ArrayList<IDeserializationConverter> toInternalConverters;
