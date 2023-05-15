@@ -75,7 +75,6 @@ public class KingbaseDialect implements JdbcDialect {
      *
      * @param fieldNames
      * @param allReplace
-     *
      * @return
      */
     private String buildUpdateClause(String[] fieldNames, boolean allReplace) {
@@ -107,7 +106,6 @@ public class KingbaseDialect implements JdbcDialect {
      * @param schema
      * @param tableName
      * @param fieldNames
-     *
      * @return
      */
     @Override
