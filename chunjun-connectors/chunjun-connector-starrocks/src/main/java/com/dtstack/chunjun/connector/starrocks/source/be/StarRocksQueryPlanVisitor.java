@@ -86,7 +86,7 @@ public class StarRocksQueryPlanVisitor implements Serializable {
         int tabletCount = Integer.MAX_VALUE;
         String currentBeNode = "";
         // Allocate tablets equally for all BeNodes
-        for (String beNode : tablet.getRouting()) {
+        for (String beNode : tablet.getRoutings()) {
             if (!beXTablets.containsKey(beNode)) {
                 beXTablets.put(beNode, new HashSet<>());
                 currentBeNode = beNode;
