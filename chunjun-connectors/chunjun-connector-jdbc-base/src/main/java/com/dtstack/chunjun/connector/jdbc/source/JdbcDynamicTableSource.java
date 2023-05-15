@@ -35,12 +35,14 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.catalog.Column;
 import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
+import org.apache.flink.table.connector.Projection;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
+import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Preconditions;
 
@@ -62,6 +64,7 @@ public class JdbcDynamicTableSource
     protected final JdbcDialect jdbcDialect;
     protected final JdbcInputFormatBuilder builder;
     protected ResolvedSchema resolvedSchema;
+    private DataType physicalRowDataType;
 
     public JdbcDynamicTableSource(
             JdbcConfig jdbcConfig,
@@ -75,6 +78,7 @@ public class JdbcDynamicTableSource
         this.jdbcDialect = jdbcDialect;
         this.dialectName = jdbcDialect.dialectName();
         this.builder = builder;
+        this.physicalRowDataType = resolvedSchema.toPhysicalRowDataType();
     }
 
     @Override
@@ -115,8 +119,8 @@ public class JdbcDynamicTableSource
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        TypeInformation<RowData> typeInformation =
-                InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType());
+        final RowType rowType = (RowType) physicalRowDataType.getLogicalType();
+        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
         JdbcInputFormatBuilder builder = this.builder;
         List<Column> columns = resolvedSchema.getColumns();
@@ -207,10 +211,7 @@ public class JdbcDynamicTableSource
 
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConfig);
-        builder.setRowConverter(
-                jdbcDialect.getRowConverter(
-                        InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType())
-                                .toRowType()));
+        builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
@@ -227,6 +228,11 @@ public class JdbcDynamicTableSource
     public boolean supportsNestedProjection() {
         // JDBC doesn't support nested projection
         return false;
+    }
+
+    @Override
+    public void applyProjection(int[][] projectedFields, DataType producedDataType) {
+        this.physicalRowDataType = Projection.of(projectedFields).project(physicalRowDataType);
     }
 
     @Override
