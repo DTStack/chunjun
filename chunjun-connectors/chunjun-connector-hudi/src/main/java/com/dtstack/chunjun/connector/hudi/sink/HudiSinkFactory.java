@@ -53,7 +53,6 @@ public class HudiSinkFactory extends SinkFactory {
         } catch (TypeExtractionException e) {
             e.printStackTrace();
             System.exit(1);
-
         }
         return null;
     }
