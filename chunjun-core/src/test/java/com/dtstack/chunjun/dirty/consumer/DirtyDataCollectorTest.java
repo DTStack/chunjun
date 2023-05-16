@@ -67,8 +67,10 @@ class DirtyDataCollectorTest {
     @DisplayName("Should throw an exception when the consumed count exceed the max-consumed")
     void addConsumedWhenConsumedCountExceedMaxConsumedThenThrowException() {
         dirtyDataCollector.maxConsumed = 2L;
-        dirtyDataCollector.addConsumed(1L);
-        assertThrows(NoRestartException.class, () -> dirtyDataCollector.addConsumed(1L));
+        DirtyDataEntry dirty = new DirtyDataEntry();
+        dirty.setDirtyContent("{}");
+        dirtyDataCollector.addConsumed(1L, dirty);
+        assertThrows(NoRestartException.class, () -> dirtyDataCollector.addConsumed(1L, dirty));
     }
 
     @Test
