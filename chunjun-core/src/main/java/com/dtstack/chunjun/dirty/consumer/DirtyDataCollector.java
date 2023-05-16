@@ -27,6 +27,7 @@ import org.apache.flink.api.common.accumulators.LongCounter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
+import java.util.StringJoiner;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -70,7 +71,7 @@ public abstract class DirtyDataCollector implements Runnable, Serializable {
      */
     public synchronized void offer(DirtyDataEntry dirty) {
         consumeQueue.offer(dirty);
-        addConsumed(1L);
+        addConsumed(1L, dirty);
     }
 
     public void initializeConsumer(DirtyConfig conf) {
@@ -92,13 +93,19 @@ public abstract class DirtyDataCollector implements Runnable, Serializable {
         }
     }
 
-    protected void addConsumed(long count) {
+    protected void addConsumed(long count, DirtyDataEntry dirty) {
         consumedCounter.add(count);
         if (consumedCounter.getLocalValue() >= maxConsumed) {
+            StringJoiner dirtyMessage =
+                    new StringJoiner("\n")
+                            .add("\n****************Dirty Data Begin****************\n")
+                            .add(dirty.toString())
+                            .add("\n****************Dirty Data End******************\n");
             throw new NoRestartException(
                     String.format(
-                            "The dirty consumer shutdown, due to the consumed count exceed the max-consumed [%s]",
-                            maxConsumed));
+                                    "The dirty consumer shutdown, due to the consumed count exceed the max-consumed [%s]",
+                                    maxConsumed)
+                            + dirtyMessage);
         }
     }
 
