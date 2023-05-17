@@ -23,6 +23,7 @@ import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.enums.ColumnType;
+import com.dtstack.chunjun.throwable.ChunJunException;
 import com.dtstack.chunjun.util.DateUtil;
 
 import org.apache.flink.table.data.RowData;
@@ -99,7 +100,11 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
                     return IDeserializationConverter.deserialize(val);
                 } catch (Exception e) {
                     log.error("value [{}] convent failed ", val);
-                    throw e;
+                    String message =
+                            e.getMessage()
+                                    + "; "
+                                    + String.format("value [%s] convent failed ", val);
+                    throw new ChunJunException(message);
                 }
             }
         };
