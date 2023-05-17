@@ -3,6 +3,8 @@ package com.dtstack.chunjun.connector.hudi.source;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hudi.converter.HudiRawTypeConvertor;
+import com.dtstack.chunjun.connector.hudi.converter.HudiRowDataConvertorMap;
+import com.dtstack.chunjun.connector.hudi.converter.HudiRowDataMapping;
 import com.dtstack.chunjun.connector.hudi.utils.HudiConfigUtil;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.source.SourceFactory;
@@ -43,7 +45,7 @@ public class HudiSourceFactory extends SourceFactory {
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return HudiRawTypeConvertor::apply;
+        return HudiRowDataMapping::apply;
     }
 
     @Override
@@ -83,8 +85,10 @@ public class HudiSourceFactory extends SourceFactory {
                         flinkConf.getString(FlinkOptions.PARTITION_DEFAULT_NAME),
                         flinkConf);
 
+        HudiRawTypeConvertor convertor = new HudiRawTypeConvertor(fieldList);
+
         DataStreamScanProvider sourceProvider =
                 (DataStreamScanProvider) (hoodieTableSource.getScanRuntimeProvider(null));
-        return sourceProvider.produceDataStream(env);
+        return sourceProvider.produceDataStream(env).map(new HudiRowDataConvertorMap(convertor));
     }
 }

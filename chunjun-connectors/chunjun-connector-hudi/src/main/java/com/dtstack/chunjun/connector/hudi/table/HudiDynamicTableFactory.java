@@ -32,18 +32,6 @@ public class HudiDynamicTableFactory implements DynamicTableSourceFactory, Dynam
 
     public static final String FACTORY_ID = "hudi-x";
 
-
-
-
-
-
-
-
-
-
-
-
-
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
         FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
