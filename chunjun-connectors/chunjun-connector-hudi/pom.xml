@@ -23,6 +23,49 @@
 			<groupId>org.apache.hudi</groupId>
 			<artifactId>hudi-flink</artifactId>
 			<version>0.13.0</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>avro</artifactId>
+					<groupId>org.apache.avro</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-avro-confluent-registry</artifactId>
+			<version>${flink.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>avro</artifactId>
+					<groupId>org.apache.avro</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.avro</groupId>
+			<artifactId>avro</artifactId>
+			<version>1.10.0</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.parquet</groupId>
+			<artifactId>parquet-avro</artifactId>
+			<version>1.12.2</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>avro</artifactId>
+					<groupId>org.apache.avro</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
@@ -53,11 +96,6 @@
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-http</artifactId>
 			<version>${jetty.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.parquet</groupId>
-			<artifactId>parquet-avro</artifactId>
-			<version>1.12.2</version>
 		</dependency>
 	</dependencies>
 

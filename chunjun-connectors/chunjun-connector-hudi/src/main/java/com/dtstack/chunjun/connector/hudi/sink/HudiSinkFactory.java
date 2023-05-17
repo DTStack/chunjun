@@ -3,7 +3,7 @@ package com.dtstack.chunjun.connector.hudi.sink;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hudi.adaptor.HudiOnChunjunAdaptor;
-import com.dtstack.chunjun.connector.hudi.converter.HudiRawTypeConvertor;
+import com.dtstack.chunjun.connector.hudi.converter.HudiRowDataMapping;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.TableUtil;
@@ -39,7 +39,7 @@ public class HudiSinkFactory extends SinkFactory {
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return HudiRawTypeConvertor::apply;
+        return HudiRowDataMapping::apply;
     }
 
     @Override
