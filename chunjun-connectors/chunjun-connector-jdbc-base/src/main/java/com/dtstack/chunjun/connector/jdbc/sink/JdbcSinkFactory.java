@@ -49,6 +49,7 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 public abstract class JdbcSinkFactory extends SinkFactory {
 
@@ -103,15 +104,26 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         builder.setColumnTypeList(columnTypeList);
 
         AbstractRowConverter rowConverter;
+        AbstractRowConverter keyRowConverter;
         final RowType rowType =
                 TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
+        final RowType keyRowType =
+                TableUtil.createRowType(
+                        jdbcConf.getColumn().stream()
+                                .filter(field -> jdbcConf.getUniqueKey().contains(field.getName()))
+                                .collect(Collectors.toList()),
+                        getRawTypeConverter());
         // 同步任务使用transform
         if (!useAbstractBaseColumn) {
             rowConverter = jdbcDialect.getRowConverter(rowType);
+            keyRowConverter = jdbcDialect.getRowConverter(keyRowType);
         } else {
             rowConverter = jdbcDialect.getColumnConverter(rowType, jdbcConf);
+            keyRowConverter = jdbcDialect.getColumnConverter(keyRowType, jdbcConf);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
+        builder.setKeyRowType(keyRowType);
+        builder.setKeyRowConverter(keyRowConverter);
 
         return createOutput(dataSet, builder.finish());
     }
@@ -128,7 +140,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
 
     protected Pair<List<String>, List<String>> getTableMetaData(Connection dbConn) {
         Tuple3<String, String, String> tableIdentify =
-                jdbcDialect.getTableIdentify().apply(jdbcConf);
+                jdbcDialect.getTableIdentify(jdbcConf.getSchema(), jdbcConf.getTable());
         return JdbcUtil.getTableMetaData(
                 tableIdentify.f0, tableIdentify.f1, tableIdentify.f2, dbConn);
     }

@@ -185,7 +185,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     @Override
     public void initializeGlobal(int parallelism) {
-        // 任务开始前操作，在configure前调用。
+        // 任务开始前操作，在configure后调用。
     }
 
     @Override

@@ -23,6 +23,8 @@ import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
+import org.apache.flink.table.types.logical.RowType;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -46,6 +48,14 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder<JdbcOut
     @Override
     public void setRowConverter(AbstractRowConverter rowConverter) {
         format.setRowConverter(rowConverter);
+    }
+
+    public void setKeyRowType(RowType keyRowType) {
+        format.setKeyRowType(keyRowType);
+    }
+
+    public void setKeyRowConverter(AbstractRowConverter keyRowConverter) {
+        format.setKeyRowConverter(keyRowConverter);
     }
 
     public void setColumnNameList(List<String> columnNameList) {

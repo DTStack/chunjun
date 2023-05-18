@@ -176,7 +176,8 @@ public class DorisSinkFactory extends SinkFactory {
         Connection conn = JdbcUtil.getConnection(conf, dialect);
 
         // get table metadata
-        Tuple3<String, String, String> tableIdentify = dialect.getTableIdentify().apply(conf);
+        Tuple3<String, String, String> tableIdentify =
+                dialect.getTableIdentify(conf.getSchema(), conf.getTable());
         Pair<List<String>, List<String>> tableMetaData =
                 JdbcUtil.getTableMetaData(
                         tableIdentify.f0, tableIdentify.f1, tableIdentify.f2, conn);

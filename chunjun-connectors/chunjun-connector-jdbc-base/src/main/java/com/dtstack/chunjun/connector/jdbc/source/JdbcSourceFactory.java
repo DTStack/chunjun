@@ -188,7 +188,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
     protected Pair<List<String>, List<String>> getTableMetaData(Connection dbConn) {
         Tuple3<String, String, String> tableIdentify =
-                jdbcDialect.getTableIdentify().apply(jdbcConf);
+                jdbcDialect.getTableIdentify(jdbcConf.getSchema(), jdbcConf.getTable());
         return JdbcUtil.getTableMetaData(
                 tableIdentify.f0,
                 tableIdentify.f1,
