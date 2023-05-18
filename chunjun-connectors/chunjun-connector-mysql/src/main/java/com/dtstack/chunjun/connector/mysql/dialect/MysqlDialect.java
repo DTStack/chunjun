@@ -56,6 +56,11 @@ public class MysqlDialect implements JdbcDialect {
         return "`" + identifier + "`";
     }
 
+    @Override
+    public boolean supportUpsert() {
+        return true;
+    }
+
     /**
      * Mysql upsert query use DUPLICATE KEY UPDATE.
      *

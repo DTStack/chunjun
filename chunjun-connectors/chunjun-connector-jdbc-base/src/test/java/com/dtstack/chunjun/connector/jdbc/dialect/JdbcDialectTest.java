@@ -39,6 +39,7 @@ public class JdbcDialectTest {
     private static String schema = "schema";
     private static String table = "table";
     private static String[] fields = new String[] {"id", "name"};
+    private static String[] nullFields = new String[] {};
     private static String[] conditionFields = new String[] {"id"};
 
     @BeforeClass
@@ -87,9 +88,11 @@ public class JdbcDialectTest {
 
     @Test
     public void getDeleteStatementTest() {
-        when(jdbcDialect.getDeleteStatement(schema, table, fields)).thenCallRealMethod();
+        when(jdbcDialect.getDeleteStatement(schema, table, fields, nullFields))
+                .thenCallRealMethod();
         String expect = "DELETE FROM \"schema\".\"table\" WHERE \"id\" = :id AND \"name\" = :name";
-        Assert.assertEquals(expect, jdbcDialect.getDeleteStatement(schema, table, fields));
+        Assert.assertEquals(
+                expect, jdbcDialect.getDeleteStatement(schema, table, fields, nullFields));
     }
 
     @Test
