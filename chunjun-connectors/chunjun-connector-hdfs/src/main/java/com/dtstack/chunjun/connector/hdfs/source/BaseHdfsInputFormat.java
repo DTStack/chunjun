@@ -60,6 +60,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
     protected transient org.apache.hadoop.mapred.InputFormat inputFormat;
     protected transient JobConf hadoopJobConf;
     protected transient RecordReader recordReader;
+    protected String currentReadFilePath;
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
@@ -106,7 +107,14 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
     @Override
     @SuppressWarnings("unchecked")
     public boolean reachedEnd() throws IOException {
-        return !recordReader.next(key, value);
+        boolean reachedEnd;
+        try {
+            reachedEnd = !recordReader.next(key, value);
+        } catch (IOException e) {
+            throw new ChunJunRuntimeException(
+                    e.getMessage() + ", current read file path: " + currentReadFilePath);
+        }
+        return reachedEnd;
     }
 
     @Override
