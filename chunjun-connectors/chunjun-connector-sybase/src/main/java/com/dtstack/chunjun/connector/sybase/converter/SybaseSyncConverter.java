@@ -63,7 +63,13 @@ public class SybaseSyncConverter extends JdbcSyncConverter {
                     }
                 };
             case TINYINT:
-                return val -> new BigDecimalColumn(((Integer) val).byteValue());
+                return val -> {
+                    if (val instanceof Boolean) {
+                        return new BigDecimalColumn(((boolean) val) ? 1 : 0);
+                    } else {
+                        return new BigDecimalColumn((Integer) val);
+                    }
+                };
             case SMALLINT:
             case INTEGER:
                 return val -> new BigDecimalColumn((Integer) val);

@@ -46,6 +46,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 public abstract class JdbcSinkFactory extends SinkFactory {
 
@@ -103,15 +104,28 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         builder.setColumnTypeList(columnTypeList);
 
         AbstractRowConverter<?, ?, ?, ?> rowConverter;
+        AbstractRowConverter keyRowConverter;
         final RowType rowType =
                 TableUtil.createRowType(jdbcConfig.getColumn(), getRawTypeConverter());
+        final RowType keyRowType =
+                TableUtil.createRowType(
+                        jdbcConfig.getColumn().stream()
+                                .filter(
+                                        field ->
+                                                jdbcConfig.getUniqueKey().contains(field.getName()))
+                                .collect(Collectors.toList()),
+                        getRawTypeConverter());
         // 同步任务使用transform
         if (!useAbstractBaseColumn) {
             rowConverter = jdbcDialect.getRowConverter(rowType);
+            keyRowConverter = jdbcDialect.getRowConverter(keyRowType);
         } else {
             rowConverter = jdbcDialect.getColumnConverter(rowType, jdbcConfig);
+            keyRowConverter = jdbcDialect.getColumnConverter(keyRowType, jdbcConfig);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
+        builder.setKeyRowType(keyRowType);
+        builder.setKeyRowConverter(keyRowConverter);
 
         return createOutput(dataSet, builder.finish());
     }

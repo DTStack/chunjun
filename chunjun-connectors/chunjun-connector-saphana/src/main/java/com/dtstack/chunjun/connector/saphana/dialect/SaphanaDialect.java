@@ -63,6 +63,11 @@ public class SaphanaDialect implements JdbcDialect {
     }
 
     @Override
+    public boolean supportUpsert() {
+        return true;
+    }
+
+    @Override
     public Optional<String> getUpsertStatement(
             String schema,
             String tableName,
