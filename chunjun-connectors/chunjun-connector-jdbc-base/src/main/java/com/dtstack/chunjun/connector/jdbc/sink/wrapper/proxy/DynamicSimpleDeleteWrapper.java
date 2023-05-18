@@ -17,6 +17,7 @@
  */
 package com.dtstack.chunjun.connector.jdbc.sink.wrapper.proxy;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.sink.wrapper.SimpleStatementWrapper;
@@ -41,7 +42,7 @@ public class DynamicSimpleDeleteWrapper extends SimpleStatementWrapper {
 
     protected List<String> columnNameList = new ArrayList<>();
 
-    protected List<String> columnTypeList = new ArrayList<>();
+    protected List<TypeConfig> columnTypeList = new ArrayList<>();
     protected List<String> nullColumnNameList = new ArrayList<>();
 
     protected JdbcConfig jdbcConfig;
@@ -54,7 +55,7 @@ public class DynamicSimpleDeleteWrapper extends SimpleStatementWrapper {
 
     public static DynamicSimpleDeleteWrapper buildExecutor(
             List<String> columnNameList,
-            List<String> columnTypeList,
+            List<TypeConfig> columnTypeList,
             List<String> nullColumnNameList,
             String schemaName,
             String tableName,

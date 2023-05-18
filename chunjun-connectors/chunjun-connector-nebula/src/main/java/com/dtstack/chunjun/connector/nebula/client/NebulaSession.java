@@ -18,6 +18,7 @@
 
 package com.dtstack.chunjun.connector.nebula.client;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.utils.GraphUtil;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
@@ -30,7 +31,6 @@ import com.vesoft.nebula.client.graph.net.Session;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -147,9 +147,8 @@ public class NebulaSession implements Serializable {
         return session.execute(String.format("use %s;%s;", space, statement));
     }
 
-    private String convertToNebulaType(String type) {
-        String var = type.toLowerCase(Locale.ROOT).split("\\(")[0];
-        switch (var) {
+    private String convertToNebulaType(TypeConfig type) {
+        switch (type.getType().toLowerCase()) {
             case "bigint":
                 return "INT64";
             case "boolean":
@@ -180,8 +179,7 @@ public class NebulaSession implements Serializable {
             case "string":
                 return String.format("FIXED_STRING(%d)", nebulaConfig.getStringLength());
             default:
-                throw new UnsupportedTypeException(
-                        "nebula do not support data type: " + type.toLowerCase(Locale.ROOT));
+                throw new UnsupportedTypeException("nebula do not support data type: " + type);
         }
     }
 }

@@ -17,6 +17,7 @@
  */
 package com.dtstack.chunjun.connector.jdbc.sink.wrapper.proxy;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.NullColumn;
@@ -34,7 +35,7 @@ public class NoKeyDeleteWrapperProxy extends CachedWrapperProxy {
     private final String table;
     private final JdbcDialect jdbcDialect;
     private final List<String> columnNameList;
-    private final List<String> columnTypeList;
+    private final List<TypeConfig> columnTypeList;
 
     private List<String> nullColumnNameList = new ArrayList<>();
 
@@ -44,7 +45,7 @@ public class NoKeyDeleteWrapperProxy extends CachedWrapperProxy {
             String table,
             JdbcDialect jdbcDialect,
             List<String> columnNameList,
-            List<String> columnTypeList) {
+            List<TypeConfig> columnTypeList) {
         super(connection, 100, 10, true);
         this.schema = schema;
         this.table = table;

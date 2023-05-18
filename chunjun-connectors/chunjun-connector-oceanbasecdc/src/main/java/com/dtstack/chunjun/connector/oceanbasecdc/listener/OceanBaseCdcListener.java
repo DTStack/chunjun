@@ -22,7 +22,7 @@ import com.dtstack.chunjun.connector.oceanbasecdc.config.OceanBaseCdcConfig;
 import com.dtstack.chunjun.connector.oceanbasecdc.entity.OceanBaseCdcEventRow;
 import com.dtstack.chunjun.connector.oceanbasecdc.inputformat.OceanBaseCdcInputFormat;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.flink.table.data.RowData;
@@ -47,7 +47,7 @@ public class OceanBaseCdcListener implements Runnable {
 
     private final OceanBaseCdcInputFormat format;
     private final OceanBaseCdcConfig cdcConf;
-    private final AbstractCDCRowConverter rowConverter;
+    private final AbstractCDCRawTypeMapper rowConverter;
     private final List<DataMessage.Record.Type> categories;
 
     private final List<LogMessage> logMessageBuffer = new LinkedList<>();

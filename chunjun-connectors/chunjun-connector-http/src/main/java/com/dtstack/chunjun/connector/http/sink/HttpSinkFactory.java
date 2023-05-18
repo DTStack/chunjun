@@ -21,7 +21,7 @@ package com.dtstack.chunjun.connector.http.sink;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.http.common.HttpWriterConfig;
 import com.dtstack.chunjun.connector.http.outputformat.HttpOutputFormatBuilder;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 
@@ -34,7 +34,7 @@ public class HttpSinkFactory extends SinkFactory {
     protected HttpWriterConfig httpWriterConfig;
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return null;
     }
 

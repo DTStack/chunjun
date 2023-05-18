@@ -19,6 +19,7 @@ package com.dtstack.chunjun.connector.hudi.adaptor;
 
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
+
 import org.apache.flink.api.java.typeutils.TypeExtractionException;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;

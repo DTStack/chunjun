@@ -21,7 +21,7 @@ package com.dtstack.chunjun.connector.socket.source;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.socket.entity.SocketConfig;
 import com.dtstack.chunjun.connector.socket.inputformat.SocketInputFormatBuilder;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 
@@ -49,7 +49,7 @@ public class SocketSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return null;
     }
 }

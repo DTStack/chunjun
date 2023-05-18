@@ -18,7 +18,7 @@
 package com.dtstack.chunjun.connector.hdfs.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcColumnConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcSyncConverter;
 import com.dtstack.chunjun.connector.hdfs.enums.CompressType;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
@@ -116,9 +116,9 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             structFieldObjectInspectors.add(HdfsUtil.columnTypeToObjectInspetor(type));
         }
 
-        if (rowConverter instanceof HdfsOrcColumnConverter) {
-            ((HdfsOrcColumnConverter) rowConverter).setDecimalColInfo(decimalColInfo);
-            ((HdfsOrcColumnConverter) rowConverter)
+        if (rowConverter instanceof HdfsOrcSyncConverter) {
+            ((HdfsOrcSyncConverter) rowConverter).setDecimalColInfo(decimalColInfo);
+            ((HdfsOrcSyncConverter) rowConverter)
                     .setColumnNameList(
                             hdfsConfig.getColumn().stream()
                                     .map(FieldConfig::getName)

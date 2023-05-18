@@ -19,14 +19,14 @@
 package com.dtstack.chunjun.connector.elasticsearch7.sink;
 
 import com.dtstack.chunjun.config.SyncConfig;
-import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchColumnConverter;
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRawTypeMapper;
-import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRowConverter;
+import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchSqlConverter;
+import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchSyncConverter;
 import com.dtstack.chunjun.connector.elasticsearch7.Elasticsearch7ClientFactory;
 import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.JsonUtil;
@@ -74,24 +74,24 @@ public class Elasticsearch7SinkFactory extends SinkFactory {
         final RowType rowType =
                 getFormatDescription(
                         TableUtil.createRowType(
-                                elasticsearchConfig.getColumn(), getRawTypeConverter()));
+                                elasticsearchConfig.getColumn(), getRawTypeMapper()));
         ResolvedSchema schema =
-                TableUtil.createTableSchema(elasticsearchConfig.getColumn(), getRawTypeConverter());
+                TableUtil.createTableSchema(elasticsearchConfig.getColumn(), getRawTypeMapper());
 
         ElasticsearchOutputFormatBuilder builder =
                 new ElasticsearchOutputFormatBuilder(elasticsearchConfig, schema);
         AbstractRowConverter rowConverter;
         if (useAbstractBaseColumn) {
-            rowConverter = new ElasticsearchColumnConverter(rowType);
+            rowConverter = new ElasticsearchSyncConverter(rowType);
         } else {
-            rowConverter = new ElasticsearchRowConverter(rowType);
+            rowConverter = new ElasticsearchSqlConverter(rowType);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return ElasticsearchRawTypeMapper::apply;
     }
 

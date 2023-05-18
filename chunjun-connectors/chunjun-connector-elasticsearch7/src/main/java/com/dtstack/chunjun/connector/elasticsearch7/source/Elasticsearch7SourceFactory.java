@@ -20,12 +20,12 @@ package com.dtstack.chunjun.connector.elasticsearch7.source;
 
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
-import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchColumnConverter;
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRawTypeMapper;
-import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRowConverter;
+import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchSqlConverter;
+import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchSyncConverter;
 import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -63,19 +63,19 @@ public class Elasticsearch7SourceFactory extends SourceFactory {
         ElasticsearchInputFormatBuilder builder = new ElasticsearchInputFormatBuilder();
         builder.setEsConf(elasticsearchConfig);
         final RowType rowType =
-                TableUtil.createRowType(elasticsearchConfig.getColumn(), getRawTypeConverter());
+                TableUtil.createRowType(elasticsearchConfig.getColumn(), getRawTypeMapper());
         AbstractRowConverter rowConverter;
         if (useAbstractBaseColumn) {
-            rowConverter = new ElasticsearchColumnConverter(rowType);
+            rowConverter = new ElasticsearchSyncConverter(rowType);
         } else {
-            rowConverter = new ElasticsearchRowConverter(rowType);
+            rowConverter = new ElasticsearchSqlConverter(rowType);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return ElasticsearchRawTypeMapper::apply;
     }
 }

@@ -28,20 +28,25 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
 import com.dtstack.chunjun.element.column.DoubleColumn;
 import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
+import com.dtstack.chunjun.element.column.ZonedTimestampColumn;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
-import com.dtstack.chunjun.util.StringUtil;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
+import org.apache.flink.table.types.logical.ZonedTimestampType;
 
 import microsoft.sql.DateTimeOffset;
 import org.apache.commons.lang3.StringUtils;
@@ -55,6 +60,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
+
+import static com.dtstack.chunjun.connector.sqlserver.util.SqlUtil.timestampBytesToLong;
 
 public class SqlserverMicroSoftSyncConverter extends JdbcSyncConverter {
 
@@ -75,15 +82,10 @@ public class SqlserverMicroSoftSyncConverter extends JdbcSyncConverter {
             if (StringUtils.isBlank(fieldConfig.getValue())) {
                 Object field = resultSet.getObject(converterIndex + 1);
                 // in sqlserver, timestamp type is a binary array of 8 bytes.
-                if ("timestamp".equalsIgnoreCase(fieldConfig.getType())) {
-                    byte[] value = (byte[]) field;
-                    String hexString = StringUtil.bytesToHexString(value);
-                    baseColumn = new BigDecimalColumn(Long.parseLong(hexString, 16));
-                } else {
-                    baseColumn =
-                            (AbstractBaseColumn)
-                                    toInternalConverters.get(converterIndex).deserialize(field);
-                }
+                baseColumn =
+                        (AbstractBaseColumn)
+                                toInternalConverters.get(converterIndex).deserialize(field);
+
                 converterIndex++;
             }
             result.addField(assembleFieldProps(fieldConfig, baseColumn));
@@ -97,16 +99,22 @@ public class SqlserverMicroSoftSyncConverter extends JdbcSyncConverter {
             case BOOLEAN:
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
+                return val -> new ByteColumn(((Short) val).byteValue());
             case SMALLINT:
-                return val -> new BigDecimalColumn(((Short) val).byteValue());
+                return val -> new ShortColumn(((Short) val));
             case INTEGER:
-                return val -> new BigDecimalColumn((Integer) val);
+                return val -> new IntColumn((Integer) val);
             case FLOAT:
                 return val -> new FloatColumn((Float) val);
             case DOUBLE:
                 return val -> new DoubleColumn((Double) val);
             case BIGINT:
-                return val -> new BigDecimalColumn((Long) val);
+                if (type
+                        instanceof
+                        com.dtstack.chunjun.connector.sqlserver.converter.TimestampType) {
+                    return val -> new LongColumn(timestampBytesToLong((byte[]) val));
+                }
+                return val -> new LongColumn((Long) val);
             case DECIMAL:
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:
@@ -117,17 +125,15 @@ public class SqlserverMicroSoftSyncConverter extends JdbcSyncConverter {
             case TIME_WITHOUT_TIME_ZONE:
                 return val -> new TimeColumn((Time) val);
             case TIMESTAMP_WITH_TIME_ZONE:
+                int zonedPrecision = ((ZonedTimestampType) type).getPrecision();
                 return val -> {
-                    String[] timeAndTimeZone = String.valueOf(val).split(" ");
-                    if (timeAndTimeZone.length == 2) {
-                        Timestamp timestamp = Timestamp.valueOf(String.valueOf(val));
-                        long localTime =
-                                timestamp.getTime()
-                                        + (long) getMillSecondDiffWithTimeZone(timeAndTimeZone[1]);
-                        return new TimestampColumn(localTime, 7);
-                    } else {
-                        return new TimestampColumn(Timestamp.valueOf(timeAndTimeZone[0]), 7);
-                    }
+                    Timestamp timestamp = ((DateTimeOffset) val).getTimestamp();
+                    int millisecondOffset = ((DateTimeOffset) val).getMinutesOffset() * 60 * 1000;
+                    return new ZonedTimestampColumn(
+                            timestamp.getTime(),
+                            timestamp.getNanos(),
+                            millisecondOffset,
+                            zonedPrecision);
                 };
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (IDeserializationConverter<Object, AbstractBaseColumn>)
@@ -166,6 +172,14 @@ public class SqlserverMicroSoftSyncConverter extends JdbcSyncConverter {
                                 index, ((ColumnRowData) val).getField(index).asDouble());
 
             case BIGINT:
+                if (type
+                        instanceof
+                        com.dtstack.chunjun.connector.sqlserver.converter.TimestampType) {
+                    return (val, index, statement) -> {
+                        throw new UnsupportedTypeException(
+                                "The timestampType of SQLServer can be used only for query");
+                    };
+                }
                 return (val, index, statement) ->
                         statement.setLong(index, ((ColumnRowData) val).getField(index).asLong());
             case DECIMAL:
@@ -184,12 +198,21 @@ public class SqlserverMicroSoftSyncConverter extends JdbcSyncConverter {
                 return (val, index, statement) ->
                         statement.setTime(index, ((ColumnRowData) val).getField(index).asTime());
             case TIMESTAMP_WITH_TIME_ZONE:
-                return (val, index, statement) ->
+                return (val, index, statement) -> {
+                    AbstractBaseColumn field = ((ColumnRowData) val).getField(index);
+                    if (field instanceof ZonedTimestampColumn) {
+                        ZonedTimestampColumn zonedTimestampColumn = (ZonedTimestampColumn) field;
                         statement.setObject(
                                 index,
                                 DateTimeOffset.valueOf(
-                                        ((ColumnRowData) val).getField(index).asTimestamp(),
-                                        getMinutesOffset()));
+                                        zonedTimestampColumn.asTimestampWithUtc(),
+                                        zonedTimestampColumn.getMillisecondOffset() / 1000 / 60));
+                    } else {
+                        statement.setObject(
+                                index,
+                                DateTimeOffset.valueOf(field.asTimestamp(), getMinutesOffset()));
+                    }
+                };
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTimestamp(

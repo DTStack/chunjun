@@ -141,7 +141,7 @@ public class SyncConfig implements Serializable {
             }
 
             restore.setRestoreColumnIndex(fieldColumn.getIndex());
-            restore.setRestoreColumnType(fieldColumn.getType());
+            restore.setRestoreColumnType(fieldColumn.getType().getType());
         }
     }
 

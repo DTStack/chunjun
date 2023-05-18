@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.kudu.table;
 
 import com.dtstack.chunjun.connector.kudu.config.KuduLookupConfig;
 import com.dtstack.chunjun.connector.kudu.config.KuduSourceConfig;
-import com.dtstack.chunjun.connector.kudu.converter.KuduRowConverter;
+import com.dtstack.chunjun.connector.kudu.converter.KuduSqlConverter;
 import com.dtstack.chunjun.connector.kudu.source.KuduInputFormatBuilder;
 import com.dtstack.chunjun.connector.kudu.table.lookup.KuduAllTableFunction;
 import com.dtstack.chunjun.connector.kudu.table.lookup.KuduLruTableFunction;
@@ -71,7 +71,7 @@ public class KuduDynamicTableSource
         InternalTypeInfo<RowData> typeInfo = InternalTypeInfo.of(rowType);
 
         builder.setKuduSourceConf(sourceConf);
-        builder.setRowConverter(new KuduRowConverter(rowType, tableSchema.getColumnNames()));
+        builder.setRowConverter(new KuduSqlConverter(rowType, tableSchema.getColumnNames()));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInfo),
@@ -111,7 +111,7 @@ public class KuduDynamicTableSource
             return ParallelLookupFunctionProvider.of(
                     new KuduAllTableFunction(
                             kuduLookupConfig,
-                            new KuduRowConverter(rowType, columnNames),
+                            new KuduSqlConverter(rowType, columnNames),
                             columnNames.toArray(new String[0]),
                             keyNames),
                     kuduLookupConfig.getParallelism());
@@ -119,7 +119,7 @@ public class KuduDynamicTableSource
         return ParallelAsyncLookupFunctionProvider.of(
                 new KuduLruTableFunction(
                         kuduLookupConfig,
-                        new KuduRowConverter(rowType, columnNames),
+                        new KuduSqlConverter(rowType, columnNames),
                         columnNames.toArray(new String[0]),
                         keyNames),
                 kuduLookupConfig.getParallelism());

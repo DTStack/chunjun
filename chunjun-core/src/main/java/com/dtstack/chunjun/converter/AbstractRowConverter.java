@@ -122,7 +122,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
         String format = fieldConfig.getFormat();
         String parseFormat = fieldConfig.getParseFormat();
         if (StringUtils.isNotBlank(fieldConfig.getValue())) {
-            String type = fieldConfig.getType();
+            String type = fieldConfig.getType().getType();
             if ((ColumnType.isStringType(type) || ColumnType.isTimeType(type))
                     && StringUtils.isNotBlank(format)) {
                 SimpleDateFormat parseDateFormat = null;

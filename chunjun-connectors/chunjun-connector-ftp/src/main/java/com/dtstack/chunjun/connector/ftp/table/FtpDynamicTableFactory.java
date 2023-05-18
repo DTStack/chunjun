@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.ftp.table;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.options.FtpOptions;
 import com.dtstack.chunjun.connector.ftp.sink.FtpDynamicTableSink;
@@ -101,7 +102,8 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         for (Column column : columns) {
             FieldConfig field = new FieldConfig();
             field.setName(column.getName());
-            field.setType(column.getDataType().getLogicalType().asSummaryString());
+            field.setType(
+                    TypeConfig.fromString(column.getDataType().getLogicalType().asSummaryString()));
             field.setIndex(columns.indexOf(column));
             columnList.add(field);
         }

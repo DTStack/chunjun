@@ -19,7 +19,7 @@ package com.dtstack.chunjun.connector.hbase.table;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
-import com.dtstack.chunjun.connector.hbase.converter.HBaseRowConverter;
+import com.dtstack.chunjun.connector.hbase.converter.HBaseSqlConverter;
 import com.dtstack.chunjun.connector.hbase.sink.HBaseOutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
@@ -58,8 +58,8 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
         builder.setHbaseConfig(config.getHbaseConfig());
         builder.setTableName(config.getTable());
         builder.setWriteBufferSize(config.getWriteBufferSize());
-        HBaseRowConverter hbaseRowConverter = new HBaseRowConverter(hbaseSchema, nullStringLiteral);
-        builder.setRowConverter(hbaseRowConverter);
+        HBaseSqlConverter hbaseSqlConverter = new HBaseSqlConverter(hbaseSchema, nullStringLiteral);
+        builder.setRowConverter(hbaseSqlConverter);
         builder.setConfig(config);
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction<>(builder.finish()), config.getParallelism());

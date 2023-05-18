@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.sqlserver.dialect;
 
 import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -27,17 +28,18 @@ import com.dtstack.chunjun.connector.jdbc.util.key.DateTypeUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.NumericTypeUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.TimestampTypeUtil;
-import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverJtdsRawTypeConverter;
+import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverJtdsRawTypeMapper;
 import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverJtdsSyncConverter;
-import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftRawTypeConverter;
+import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftRawTypeMapper;
 import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftSqlConverter;
 import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftSyncConverter;
 import com.dtstack.chunjun.connector.sqlserver.util.increment.SqlserverTimestampTypeUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -54,6 +56,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor
@@ -87,11 +90,11 @@ public class SqlserverDialect implements JdbcDialect {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeConverter() {
         if (useJtdsDriver) {
-            return SqlserverJtdsRawTypeConverter::apply;
+            return SqlserverJtdsRawTypeMapper::apply;
         }
-        return SqlserverMicroSoftRawTypeConverter::apply;
+        return SqlserverMicroSoftRawTypeMapper::apply;
     }
 
     @Override
@@ -298,16 +301,16 @@ public class SqlserverDialect implements JdbcDialect {
     }
 
     @Override
-    public KeyUtil<?, BigInteger> initKeyUtil(String incrementName, String incrementType) {
-        switch (ColumnType.getType(incrementType)) {
+    public KeyUtil<?, BigInteger> initKeyUtil(String incrementName, TypeConfig incrementType) {
+        switch (ColumnType.getType(incrementType.getType())) {
             case TIMESTAMP:
                 return new SqlserverTimestampTypeUtil();
             case DATE:
                 return new DateTypeUtil();
             default:
-                if (ColumnType.isNumberType(incrementType)) {
+                if (ColumnType.isNumberType(incrementType.getType())) {
                     return new NumericTypeUtil();
-                } else if (ColumnType.isTimeType(incrementType)) {
+                } else if (ColumnType.isTimeType(incrementType.getType())) {
                     return new TimestampTypeUtil();
                 } else {
                     throw new ChunJunRuntimeException(
@@ -316,5 +319,18 @@ public class SqlserverDialect implements JdbcDialect {
                                     incrementType, incrementName));
                 }
         }
+    }
+
+    public Function<Tuple3<String, Integer, Integer>, TypeConfig> typeBuilder() {
+        return (typePsTuple -> {
+            String typeName = typePsTuple.f0.replace("identity", "");
+            if (typeName.endsWith("()")) {
+                typeName = typeName.replace("()", "").trim();
+            }
+            TypeConfig typeConfig = TypeConfig.fromString(typeName);
+            typeConfig.setPrecision(typePsTuple.f1);
+            typeConfig.setScale(typePsTuple.f2);
+            return typeConfig;
+        });
     }
 }

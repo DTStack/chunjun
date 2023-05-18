@@ -20,13 +20,13 @@ package com.dtstack.chunjun.connector.binlog.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.binlog.config.BinlogConfig;
-import com.dtstack.chunjun.connector.binlog.converter.BinlogColumnConverter;
-import com.dtstack.chunjun.connector.binlog.converter.BinlogRowConverter;
-import com.dtstack.chunjun.connector.binlog.converter.MysqlBinlogRawTypeConverter;
+import com.dtstack.chunjun.connector.binlog.converter.BinlogSqlConverter;
+import com.dtstack.chunjun.connector.binlog.converter.BinlogSyncConverter;
+import com.dtstack.chunjun.connector.binlog.converter.MysqlBinlogRawTypeMapper;
 import com.dtstack.chunjun.connector.binlog.format.TimestampFormat;
 import com.dtstack.chunjun.connector.binlog.inputformat.BinlogInputFormatBuilder;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -53,25 +53,25 @@ public class BinlogSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         BinlogInputFormatBuilder builder = new BinlogInputFormatBuilder();
         builder.setBinlogConf(binlogConfig);
-        AbstractCDCRowConverter rowConverter;
+        AbstractCDCRawTypeMapper rowConverter;
         if (useAbstractBaseColumn) {
             rowConverter =
-                    new BinlogColumnConverter(binlogConfig.isPavingData(), binlogConfig.isSplit());
+                    new BinlogSyncConverter(binlogConfig.isPavingData(), binlogConfig.isSplit());
         } else {
             final RowType rowType =
-                    TableUtil.createRowType(binlogConfig.getColumn(), getRawTypeConverter());
+                    TableUtil.createRowType(binlogConfig.getColumn(), getRawTypeMapper());
             TimestampFormat format =
                     "sql".equalsIgnoreCase(binlogConfig.getTimestampFormat())
                             ? TimestampFormat.SQL
                             : TimestampFormat.ISO_8601;
-            rowConverter = new BinlogRowConverter(rowType, format);
+            rowConverter = new BinlogSqlConverter(rowType, format);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return MysqlBinlogRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return MysqlBinlogRawTypeMapper::apply;
     }
 }

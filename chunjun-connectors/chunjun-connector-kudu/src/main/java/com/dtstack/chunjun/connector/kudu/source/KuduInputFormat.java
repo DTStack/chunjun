@@ -20,8 +20,8 @@ package com.dtstack.chunjun.connector.kudu.source;
 
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.kudu.config.KuduSourceConfig;
-import com.dtstack.chunjun.connector.kudu.converter.KuduColumnConverter;
-import com.dtstack.chunjun.connector.kudu.converter.KuduRawTypeConverter;
+import com.dtstack.chunjun.connector.kudu.converter.KuduRawTypeMapper;
+import com.dtstack.chunjun.connector.kudu.converter.KuduSyncConverter;
 import com.dtstack.chunjun.connector.kudu.util.KuduUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
@@ -91,8 +91,8 @@ public class KuduInputFormat extends BaseRichInputFormat {
             List<String> columnNames = new ArrayList<>();
             List<FieldConfig> fieldConfList = sourceConf.getColumn();
             fieldConfList.forEach(field -> columnNames.add(field.getName()));
-            RowType rowType = TableUtil.createRowType(fieldConfList, KuduRawTypeConverter::apply);
-            setRowConverter(new KuduColumnConverter(rowType, columnNames));
+            RowType rowType = TableUtil.createRowType(fieldConfList, KuduRawTypeMapper::apply);
+            setRowConverter(new KuduSyncConverter(rowType, columnNames));
         }
     }
 

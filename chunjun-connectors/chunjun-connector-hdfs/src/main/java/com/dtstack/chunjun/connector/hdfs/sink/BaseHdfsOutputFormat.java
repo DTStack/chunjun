@@ -86,11 +86,11 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         }
 
         if (CollectionUtils.isNotEmpty(hdfsConfig.getFullColumnType())) {
-            fullColumnTypeList = hdfsConfig.getFullColumnType();
+            List<String> fullColumnType = hdfsConfig.getFullColumnType();
         } else {
             fullColumnTypeList =
                     hdfsConfig.getColumn().stream()
-                            .map(FieldConfig::getType)
+                            .map(fieldConfig -> fieldConfig.getType().getType())
                             .collect(Collectors.toList());
             hdfsConfig.setFullColumnType(fullColumnTypeList);
         }

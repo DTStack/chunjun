@@ -20,11 +20,11 @@ package com.dtstack.chunjun.connector.starrocks.sink;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
-import com.dtstack.chunjun.connector.starrocks.converter.StarRocksColumnConverter;
-import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRawTypeConverter;
-import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRowConverter;
+import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRawTypeMapper;
+import com.dtstack.chunjun.connector.starrocks.converter.StarRocksSqlConverter;
+import com.dtstack.chunjun.connector.starrocks.converter.StarRocksSyncConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -53,8 +53,8 @@ public class StarRocksSinkFactory extends SinkFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return StarRocksRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return StarRocksRawTypeMapper::apply;
     }
 
     @Override
@@ -62,14 +62,13 @@ public class StarRocksSinkFactory extends SinkFactory {
         StarRocksOutputFormatBuilder builder =
                 new StarRocksOutputFormatBuilder(new StarRocksOutputFormat());
         builder.setStarRocksConf(starRocksConfig);
-        RowType rowType =
-                TableUtil.createRowType(starRocksConfig.getColumn(), getRawTypeConverter());
+        RowType rowType = TableUtil.createRowType(starRocksConfig.getColumn(), getRawTypeMapper());
         AbstractRowConverter rowConverter;
         if (useAbstractBaseColumn) {
-            rowConverter = new StarRocksColumnConverter(rowType, starRocksConfig);
+            rowConverter = new StarRocksSyncConverter(rowType, starRocksConfig);
         } else {
             rowConverter =
-                    new StarRocksRowConverter(
+                    new StarRocksSqlConverter(
                             rowType,
                             starRocksConfig.getColumn().stream()
                                     .map(FieldConfig::getName)

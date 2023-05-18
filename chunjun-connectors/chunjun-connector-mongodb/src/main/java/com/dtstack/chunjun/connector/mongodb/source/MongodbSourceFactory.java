@@ -19,11 +19,11 @@
 package com.dtstack.chunjun.connector.mongodb.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
-import com.dtstack.chunjun.connector.mongodb.converter.MongodbRawTypeConverter;
+import com.dtstack.chunjun.connector.mongodb.converter.MongodbRawTypeMapper;
 import com.dtstack.chunjun.connector.mongodb.datasync.MongoConverterFactory;
 import com.dtstack.chunjun.connector.mongodb.datasync.MongodbDataSyncConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 
@@ -49,8 +49,8 @@ public class MongodbSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return MongodbRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return MongodbRawTypeMapper::apply;
     }
 
     @Override

@@ -19,10 +19,11 @@
 package com.dtstack.chunjun.connector.cassandra.source;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.cassandra.config.CassandraLookupConfig;
 import com.dtstack.chunjun.connector.cassandra.config.CassandraSourceConfig;
 import com.dtstack.chunjun.connector.cassandra.converter.CassandraRawTypeConverter;
-import com.dtstack.chunjun.connector.cassandra.converter.CassandraRowConverter;
+import com.dtstack.chunjun.connector.cassandra.converter.CassandraSqlConverter;
 import com.dtstack.chunjun.connector.cassandra.lookup.CassandraAllTableFunction;
 import com.dtstack.chunjun.connector.cassandra.lookup.CassandraLruTableFunction;
 import com.dtstack.chunjun.enums.CacheType;
@@ -95,7 +96,8 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
             FieldConfig field = new FieldConfig();
 
             field.setName(name);
-            field.setType(column.getDataType().getLogicalType().asSummaryString());
+            field.setType(
+                    TypeConfig.fromString(column.getDataType().getLogicalType().asSummaryString()));
             field.setIndex(index);
 
             columnList.add(field);
@@ -106,7 +108,7 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
                 TableUtil.createRowType(sourceConfig.getColumn(), CassandraRawTypeConverter::apply);
 
         builder.setSourceConf(sourceConfig);
-        builder.setRowConverter(new CassandraRowConverter(rowType, columnNameList));
+        builder.setRowConverter(new CassandraSqlConverter(rowType, columnNameList));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInfo),
@@ -138,7 +140,7 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
             return ParallelLookupFunctionProvider.of(
                     new CassandraAllTableFunction(
                             cassandraLookupConfig,
-                            new CassandraRowConverter(
+                            new CassandraSqlConverter(
                                     InternalTypeInfo.of(dataType.getLogicalType()).toRowType(),
                                     tableSchema.getColumnNames()),
                             tableSchema.getColumnNames().toArray(new String[0]),
@@ -148,7 +150,7 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
         return ParallelAsyncLookupFunctionProvider.of(
                 new CassandraLruTableFunction(
                         cassandraLookupConfig,
-                        new CassandraRowConverter(
+                        new CassandraSqlConverter(
                                 InternalTypeInfo.of(dataType.getLogicalType()).toRowType(),
                                 tableSchema.getColumnNames()),
                         tableSchema.getColumnNames().toArray(new String[0]),

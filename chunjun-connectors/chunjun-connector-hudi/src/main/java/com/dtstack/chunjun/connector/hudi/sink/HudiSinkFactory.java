@@ -21,7 +21,7 @@ import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hudi.adaptor.HudiOnChunjunAdaptor;
 import com.dtstack.chunjun.connector.hudi.converter.HudiRowDataMapping;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.TableUtil;
 
@@ -55,7 +55,7 @@ public class HudiSinkFactory extends SinkFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return HudiRowDataMapping::apply;
     }
 
@@ -63,7 +63,7 @@ public class HudiSinkFactory extends SinkFactory {
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         //        RowType rowType = null;
         List<FieldConfig> fieldList = syncConfig.getWriter().getFieldList();
-        ResolvedSchema schema = TableUtil.createTableSchema(fieldList, getRawTypeConverter());
+        ResolvedSchema schema = TableUtil.createTableSchema(fieldList, getRawTypeMapper());
 
         try {
             return adaptor.createHudiSinkDataStream(dataSet, schema);

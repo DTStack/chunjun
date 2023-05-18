@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.oraclelogminer.source;
 
 import com.dtstack.chunjun.connector.oraclelogminer.config.LogMinerConfig;
-import com.dtstack.chunjun.connector.oraclelogminer.converter.LogMinerRowConverter;
+import com.dtstack.chunjun.connector.oraclelogminer.converter.LogMinerRawTypeMapper;
 import com.dtstack.chunjun.connector.oraclelogminer.format.TimestampFormat;
 import com.dtstack.chunjun.connector.oraclelogminer.inputformat.OracleLogMinerInputFormatBuilder;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
@@ -54,7 +54,7 @@ public class OraclelogminerDynamicTableSource implements ScanTableSource {
         OracleLogMinerInputFormatBuilder builder = new OracleLogMinerInputFormatBuilder();
         builder.setLogMinerConfig(logMinerConfig);
         builder.setRowConverter(
-                new LogMinerRowConverter(
+                new LogMinerRawTypeMapper(
                         InternalTypeInfo.of(schema.toPhysicalRowDataType().getLogicalType())
                                 .toRowType()));
 

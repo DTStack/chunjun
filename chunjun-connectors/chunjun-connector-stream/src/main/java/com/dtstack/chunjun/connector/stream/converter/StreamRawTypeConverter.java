@@ -18,22 +18,20 @@
 
 package com.dtstack.chunjun.connector.stream.converter;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
-import java.util.Locale;
-
 public class StreamRawTypeConverter {
 
-    public static DataType apply(String type) throws UnsupportedTypeException {
-        switch (type.toUpperCase(Locale.ENGLISH)) {
+    public static DataType apply(TypeConfig type) throws UnsupportedTypeException {
+        switch (type.getType()) {
             case "TINYINT":
-            case "YEAR":
                 return DataTypes.TINYINT();
-            case "SMALLINT":
             case "SHORT":
+            case "SMALLINT":
                 return DataTypes.SMALLINT();
             case "INT":
             case "INTEGER":
@@ -48,6 +46,14 @@ public class StreamRawTypeConverter {
                 return DataTypes.DOUBLE();
             case "DECIMAL":
                 return DataTypes.DECIMAL(38, 18);
+            case "BINARY":
+                return DataTypes.BYTES();
+            case "CHAR":
+            case "CHARACTER":
+                return DataTypes.CHAR(1);
+            case "STRING":
+            case "VARCHAR":
+                return DataTypes.STRING();
             case "DATE":
                 return DataTypes.DATE();
             case "TIME":
@@ -60,9 +66,8 @@ public class StreamRawTypeConverter {
                 return DataTypes.TIMESTAMP_WITH_LOCAL_TIME_ZONE();
             case "BOOLEAN":
                 return DataTypes.BOOLEAN();
-
             default:
-                return DataTypes.STRING();
+                throw new UnsupportedTypeException(type);
         }
     }
 }

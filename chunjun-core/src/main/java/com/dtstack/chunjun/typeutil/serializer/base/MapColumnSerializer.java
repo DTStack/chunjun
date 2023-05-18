@@ -21,6 +21,7 @@ package com.dtstack.chunjun.typeutil.serializer.base;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.MapColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.JsonUtil;
 
 import org.apache.flink.api.common.typeutils.SimpleTypeSerializerSnapshot;
@@ -40,6 +41,7 @@ public class MapColumnSerializer extends TypeSerializerSingleton<AbstractBaseCol
     /** Sharable instance of the MapColumnSerializer. */
     public static final MapColumnSerializer INSTANCE = new MapColumnSerializer();
 
+    private static final NullColumn REUSE_NULL = new NullColumn();
     private final StringSerializer stringSerializer = StringSerializer.INSTANCE;
 
     private static final MapColumn EMPTY = new MapColumn(null);
@@ -72,21 +74,24 @@ public class MapColumnSerializer extends TypeSerializerSingleton<AbstractBaseCol
     @Override
     public void serialize(AbstractBaseColumn record, DataOutputView target) throws IOException {
         if (record == null || record instanceof NullColumn) {
-            target.writeBoolean(false);
+            target.write(0);
         } else {
-            target.writeBoolean(true);
+            target.write(1);
             stringSerializer.serialize(JsonUtil.toJson(record.getData()), target);
         }
     }
 
     @Override
     public AbstractBaseColumn deserialize(DataInputView source) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        if (isNotNull) {
-            return MapColumn.from(
-                    JsonUtil.toObject(stringSerializer.deserialize(source), Map.class));
-        } else {
-            return new NullColumn();
+        byte type = source.readByte();
+        switch (type) {
+            case 0:
+                return REUSE_NULL;
+            case 1:
+                return MapColumn.from(
+                        JsonUtil.toObject(stringSerializer.deserialize(source), Map.class));
+            default:
+                throw new ChunJunRuntimeException("you should not be here");
         }
     }
 
@@ -98,10 +103,12 @@ public class MapColumnSerializer extends TypeSerializerSingleton<AbstractBaseCol
 
     @Override
     public void copy(DataInputView source, DataOutputView target) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        target.writeBoolean(isNotNull);
-        if (isNotNull) {
+        byte type = source.readByte();
+        target.write(type);
+        if (type == 1) {
             stringSerializer.copy(source, target);
+        } else if (type != 0) {
+            throw new ChunJunRuntimeException("you should not be here");
         }
     }
 

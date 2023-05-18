@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.jdbc.sink;
 
 import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
@@ -27,7 +28,7 @@ import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.table.options.SinkOptions;
 import com.dtstack.chunjun.util.GsonUtil;
@@ -54,7 +55,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
     protected JdbcDialect jdbcDialect;
 
     protected List<String> columnNameList;
-    protected List<String> columnTypeList;
+    protected List<TypeConfig> columnTypeList;
 
     public JdbcSinkFactory(SyncConfig syncConfig, JdbcDialect jdbcDialect) {
         super(syncConfig);
@@ -105,8 +106,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
 
         AbstractRowConverter<?, ?, ?, ?> rowConverter;
         AbstractRowConverter keyRowConverter;
-        final RowType rowType =
-                TableUtil.createRowType(jdbcConfig.getColumn(), getRawTypeConverter());
+        final RowType rowType = TableUtil.createRowType(jdbcConfig.getColumn(), getRawTypeMapper());
         final RowType keyRowType =
                 TableUtil.createRowType(
                         jdbcConfig.getColumn().stream()
@@ -114,7 +114,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
                                         field ->
                                                 jdbcConfig.getUniqueKey().contains(field.getName()))
                                 .collect(Collectors.toList()),
-                        getRawTypeConverter());
+                        getRawTypeMapper());
         // 同步任务使用transform
         if (!useAbstractBaseColumn) {
             rowConverter = jdbcDialect.getRowConverter(rowType);
@@ -132,15 +132,15 @@ public abstract class JdbcSinkFactory extends SinkFactory {
 
     protected void initColumnInfo() {
         Connection conn = getConn();
-        Pair<List<String>, List<String>> tableMetaData = getTableMetaData(conn);
-        Pair<List<String>, List<String>> selectedColumnInfo =
+        Pair<List<String>, List<TypeConfig>> tableMetaData = getTableMetaData(conn);
+        Pair<List<String>, List<TypeConfig>> selectedColumnInfo =
                 JdbcUtil.buildColumnWithMeta(jdbcConfig, tableMetaData, null);
         columnNameList = selectedColumnInfo.getLeft();
         columnTypeList = selectedColumnInfo.getRight();
         JdbcUtil.closeDbResources(null, null, conn, false);
     }
 
-    protected Pair<List<String>, List<String>> getTableMetaData(Connection dbConn) {
+    protected Pair<List<String>, List<TypeConfig>> getTableMetaData(Connection dbConn) {
         return jdbcDialect.getTableMetaData(dbConn, jdbcConfig);
     }
 
@@ -149,7 +149,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return jdbcDialect.getRawTypeConverter();
     }
 
