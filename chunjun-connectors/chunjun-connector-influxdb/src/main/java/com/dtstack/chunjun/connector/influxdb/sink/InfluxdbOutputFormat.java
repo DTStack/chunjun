@@ -20,8 +20,8 @@ package com.dtstack.chunjun.connector.influxdb.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.influxdb.config.InfluxdbSinkConfig;
-import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbColumnConverter;
-import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbRawTypeConverter;
+import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbRawTypeMapper;
+import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbSyncConverter;
 import com.dtstack.chunjun.connector.influxdb.enums.TimePrecisionEnums;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
@@ -98,9 +98,9 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
         columnTypeList = column.stream().map(FieldConfig::getType).collect(Collectors.toList());
         RowType rowType =
                 TableUtil.createRowType(
-                        columnNameList, columnTypeList, InfluxdbRawTypeConverter::apply);
+                        columnNameList, columnTypeList, InfluxdbRawTypeMapper::apply);
         setRowConverter(
-                new InfluxdbColumnConverter(
+                new InfluxdbSyncConverter(
                         rowType, sinkConfig, columnNameList, tags, timestamp, precision));
     }
 

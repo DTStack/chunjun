@@ -27,7 +27,7 @@ import com.dtstack.chunjun.connector.sqlservercdc.entity.TxLogPosition;
 import com.dtstack.chunjun.connector.sqlservercdc.inputFormat.SqlServerCdcInputFormat;
 import com.dtstack.chunjun.connector.sqlservercdc.util.SqlServerCdcUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.Clock;
@@ -58,7 +58,7 @@ public class SqlServerCdcListener implements Runnable {
     private final Set<Integer> cat;
     private final Duration pollInterval;
     private final SnowflakeIdWorker idWorker;
-    private final AbstractCDCRowConverter rowConverter;
+    private final AbstractCDCRawTypeMapper rowConverter;
 
     public SqlServerCdcListener(SqlServerCdcInputFormat format) throws SQLException {
         this.format = format;

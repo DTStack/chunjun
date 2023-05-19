@@ -21,7 +21,7 @@ package com.dtstack.chunjun.connector.kafka.converter;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.kafka.conf.KafkaConfig;
 import com.dtstack.chunjun.constants.CDCConstantValue;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -64,7 +64,7 @@ import static com.dtstack.chunjun.constants.CDCConstantValue.DATABASE;
 import static com.dtstack.chunjun.constants.CDCConstantValue.SCHEMA;
 import static com.dtstack.chunjun.constants.CDCConstantValue.TABLE;
 
-public class KafkaCdcSyncConverter extends AbstractCDCRowConverter<RowEntity, String> {
+public class KafkaCdcSyncConverter extends AbstractCDCRawTypeMapper<RowEntity, String> {
 
     /** kafka Conf */
     private final KafkaConfig kafkaConfig;
@@ -248,7 +248,8 @@ public class KafkaCdcSyncConverter extends AbstractCDCRowConverter<RowEntity, St
                 ArrayList<IDeserializationConverter> iDeserializationConverters1 =
                         new ArrayList<>();
                 for (FieldConfig fieldConfig : columnForTable.get(key)) {
-                    iDeserializationConverters1.add(createInternalConverter(fieldConfig.getType()));
+                    iDeserializationConverters1.add(
+                            createInternalConverter(fieldConfig.getType().getType()));
                 }
                 cdcConverterCacheMap.put(key, iDeserializationConverters1);
             }

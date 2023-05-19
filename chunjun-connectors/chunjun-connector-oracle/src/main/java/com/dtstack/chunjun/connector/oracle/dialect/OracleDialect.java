@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.oracle.dialect;
 
 import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.conf.TableIdentify;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -29,7 +30,7 @@ import com.dtstack.chunjun.connector.oracle.converter.OracleSqlConverter;
 import com.dtstack.chunjun.connector.oracle.converter.OracleSyncConverter;
 import com.dtstack.chunjun.connector.oracle.util.increment.OracleTimestampTypeUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
@@ -61,7 +62,7 @@ public class OracleDialect implements JdbcDialect {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeConverter() {
         return OracleRawTypeConverter::apply;
     }
 
@@ -185,13 +186,13 @@ public class OracleDialect implements JdbcDialect {
     }
 
     @Override
-    public KeyUtil<?, BigInteger> initKeyUtil(String incrementName, String incrementType) {
-        switch (ColumnType.getType(incrementType)) {
+    public KeyUtil<?, BigInteger> initKeyUtil(String incrementName, TypeConfig incrementType) {
+        switch (ColumnType.getType(incrementType.getType())) {
             case TIMESTAMP:
             case DATE:
                 return new OracleTimestampTypeUtil();
             default:
-                if (ColumnType.isNumberType(incrementType)) {
+                if (ColumnType.isNumberType(incrementType.getType())) {
                     return new NumericTypeUtil();
                 } else {
                     throw new ChunJunRuntimeException(

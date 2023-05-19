@@ -17,6 +17,7 @@
  */
 package com.dtstack.chunjun.connector.jdbc.sink;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -61,7 +62,7 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder<JdbcOut
         format.setColumnNameList(columnNameList);
     }
 
-    public void setColumnTypeList(List<String> columnTypeList) {
+    public void setColumnTypeList(List<TypeConfig> columnTypeList) {
         format.setColumnTypeList(columnTypeList);
     }
 

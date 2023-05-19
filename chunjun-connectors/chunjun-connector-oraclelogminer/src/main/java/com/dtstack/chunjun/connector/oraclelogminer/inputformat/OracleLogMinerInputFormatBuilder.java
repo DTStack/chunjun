@@ -22,7 +22,7 @@ import com.dtstack.chunjun.connector.oraclelogminer.entity.OracleInfo;
 import com.dtstack.chunjun.connector.oraclelogminer.listener.LogMinerConnection;
 import com.dtstack.chunjun.connector.oraclelogminer.util.SqlUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.chunjun.util.ClassUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
@@ -60,7 +60,7 @@ public class OracleLogMinerInputFormatBuilder
         format.logMinerConfig = logMinerConfig;
     }
 
-    public void setRowConverter(AbstractCDCRowConverter rowConverter) {
+    public void setRowConverter(AbstractCDCRawTypeMapper rowConverter) {
         this.format.setRowConverter(rowConverter);
     }
 

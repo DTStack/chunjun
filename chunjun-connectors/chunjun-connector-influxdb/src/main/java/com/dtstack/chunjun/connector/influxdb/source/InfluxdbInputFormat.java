@@ -19,9 +19,10 @@
 
 package com.dtstack.chunjun.connector.influxdb.source;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.influxdb.config.InfluxdbSourceConfig;
-import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbColumnConverter;
-import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbRawTypeConverter;
+import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbRawTypeMapper;
+import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbSyncConverter;
 import com.dtstack.chunjun.connector.influxdb.enums.TimePrecisionEnums;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
@@ -89,19 +90,19 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
 
         connect();
 
-        Pair<List<String>, List<String>> pair = getTableMetadata();
-        Pair<List<String>, List<String>> columnPair =
+        Pair<List<String>, List<TypeConfig>> pair = getTableMetadata();
+        Pair<List<String>, List<TypeConfig>> columnPair =
                 ColumnBuildUtil.handleColumnList(
                         config.getColumn(), pair.getLeft(), pair.getRight());
         columnNameList = columnPair.getLeft();
         columnTypeList = columnPair.getRight();
         RowType rowType =
                 TableUtil.createRowType(
-                        columnNameList, columnTypeList, InfluxdbRawTypeConverter::apply);
+                        columnNameList, columnTypeList, InfluxdbRawTypeMapper::apply);
 
         // TODO add InfluxdbRawConverter
         setRowConverter(
-                new InfluxdbColumnConverter(
+                new InfluxdbSyncConverter(
                         rowType, config, columnNameList, config.getFormat(), precision));
 
         InfluxdbQuerySqlBuilder queryInfluxQLBuilder =
@@ -222,9 +223,9 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
      *
      * @return fields list
      */
-    private Pair<List<String>, List<String>> getTableMetadata() {
+    private Pair<List<String>, List<TypeConfig>> getTableMetadata() {
         List<String> columnNames = new ArrayList<>();
-        List<String> columnTypes = new ArrayList<>();
+        List<TypeConfig> columnTypes = new ArrayList<>();
         QueryResult queryResult =
                 influxDB.query(
                         new Query(
@@ -234,7 +235,7 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
         if (!CollectionUtils.isEmpty(seriesList)) {
             for (List<Object> value : seriesList.get(0).getValues()) {
                 columnNames.add(String.valueOf(value.get(0)));
-                columnTypes.add(String.valueOf(value.get(1)));
+                columnTypes.add(TypeConfig.fromString(String.valueOf(value.get(1))));
             }
         }
 
@@ -253,12 +254,12 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
             for (List<Object> value : seriesList.get(0).getValues()) {
                 columnNames.add(String.valueOf(value.get(0)));
                 // Tag keys and tag values are both strings.
-                columnTypes.add("string");
+                columnTypes.add(TypeConfig.fromString("string"));
             }
         }
         // add time field.
         columnNames.add("time");
-        columnTypes.add("long");
+        columnTypes.add(TypeConfig.fromString("long"));
         return Pair.of(columnNames, columnTypes);
     }
 
@@ -310,12 +311,12 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
      * @param splitPk splitPk
      */
     private void judgeSplitPkCompliant(
-            List<String> columnNames, List<String> columnTypes, String splitPk) {
+            List<String> columnNames, List<TypeConfig> columnTypes, String splitPk) {
         Optional<String> key =
                 columnNames.stream().filter(name -> StringUtils.equals(splitPk, name)).findFirst();
         if (key.isPresent()) {
             int index = columnNames.indexOf(key.get());
-            if (!StringUtils.equalsIgnoreCase("integer", columnTypes.get(index))) {
+            if (!StringUtils.equalsIgnoreCase("integer", columnTypes.get(index).getType())) {
                 String errorMessage =
                         "spiltPk must be of type integer, but is actually "
                                 + columnTypes.get(index);

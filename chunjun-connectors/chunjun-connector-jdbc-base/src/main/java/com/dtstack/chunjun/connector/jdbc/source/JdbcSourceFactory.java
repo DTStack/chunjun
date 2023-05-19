@@ -20,6 +20,7 @@ package com.dtstack.chunjun.connector.jdbc.source;
 
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
@@ -31,7 +32,7 @@ import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.NumericTypeUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.GsonUtil;
@@ -68,7 +69,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     protected KeyUtil<?, BigInteger> splitKeyUtil = new NumericTypeUtil();
     protected KeyUtil<?, BigInteger> restoreKeyUtil = new NumericTypeUtil();
     protected List<String> columnNameList;
-    protected List<String> columnTypeList;
+    protected List<TypeConfig> columnTypeList;
 
     public JdbcSourceFactory(
             SyncConfig syncConfig, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
@@ -134,12 +135,12 @@ public abstract class JdbcSourceFactory extends SourceFactory {
             checkConstant(jdbcConfig);
             rowConverter =
                     jdbcDialect.getRowConverter(
-                            TableUtil.createRowType(jdbcConfig.getColumn(), getRawTypeConverter()));
+                            TableUtil.createRowType(jdbcConfig.getColumn(), getRawTypeMapper()));
         } else {
             rowConverter =
                     jdbcDialect.getColumnConverter(
                             TableUtil.createRowType(
-                                    columnNameList, columnTypeList, getRawTypeConverter()),
+                                    columnNameList, columnTypeList, getRawTypeMapper()),
                             jdbcConfig);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
@@ -169,8 +170,8 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
     protected void initColumnInfo() {
         Connection conn = getConn();
-        Pair<List<String>, List<String>> tableMetaData = getTableMetaData(conn);
-        Pair<List<String>, List<String>> selectedColumnInfo =
+        Pair<List<String>, List<TypeConfig>> tableMetaData = getTableMetaData(conn);
+        Pair<List<String>, List<TypeConfig>> selectedColumnInfo =
                 JdbcUtil.buildColumnWithMeta(jdbcConfig, tableMetaData, getConstantType());
         JdbcUtil.closeDbResources(null, null, conn, false);
         columnNameList = selectedColumnInfo.getLeft();
@@ -182,7 +183,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         return JdbcUtil.getConnection(jdbcConfig, jdbcDialect);
     }
 
-    protected Pair<List<String>, List<String>> getTableMetaData(Connection dbConn) {
+    protected Pair<List<String>, List<TypeConfig>> getTableMetaData(Connection dbConn) {
         return jdbcDialect.getTableMetaData(dbConn, jdbcConfig);
     }
 
@@ -199,7 +200,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
             if (fieldConfig != null) {
                 jdbcConfig.setRestoreColumn(name);
                 jdbcConfig.setRestoreColumnIndex(fieldConfig.getIndex());
-                jdbcConfig.setRestoreColumnType(fieldConfig.getType());
+                jdbcConfig.setRestoreColumnType(fieldConfig.getType().getType());
                 restoreKeyUtil =
                         jdbcDialect.initKeyUtil(fieldConfig.getName(), fieldConfig.getType());
             } else {
@@ -222,7 +223,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         // 增量字段不为空，表示任务为增量或间隔轮询任务
         if (StringUtils.isNotBlank(increColumn)) {
             List<FieldConfig> fieldConfigList = jdbcConfig.getColumn();
-            String type = null;
+            TypeConfig type = null;
             String name = null;
             int index = -1;
 
@@ -260,11 +261,11 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
             jdbcConfig.setIncrement(true);
             jdbcConfig.setIncreColumn(name);
-            jdbcConfig.setIncreColumnType(type);
+            jdbcConfig.setIncreColumnType(type.getType());
             jdbcConfig.setIncreColumnIndex(index);
 
             jdbcConfig.setRestoreColumn(name);
-            jdbcConfig.setRestoreColumnType(type);
+            jdbcConfig.setRestoreColumnType(type.getType());
             jdbcConfig.setRestoreColumnIndex(index);
 
             incrementKeyUtil = jdbcDialect.initKeyUtil(name, type);
@@ -303,7 +304,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return jdbcDialect.getRawTypeConverter();
     }
 

@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.jdbc.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.enums.EWriteMode;
@@ -88,13 +89,15 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         List<Column> columns = tableSchema.getColumns();
 
         List<String> columnNameList = new ArrayList<>(columns.size());
-        List<String> columnTypeList = new ArrayList<>(columns.size());
+        List<TypeConfig> columnTypeList = new ArrayList<>(columns.size());
         List<FieldConfig> columnList = new ArrayList<>(columns.size());
 
         columns.forEach(
                 column -> {
                     String name = column.getName();
-                    String type = column.getDataType().getLogicalType().asSummaryString();
+                    TypeConfig type =
+                            TypeConfig.fromString(
+                                    column.getDataType().getLogicalType().asSummaryString());
                     FieldConfig field = new FieldConfig();
                     columnNameList.add(name);
                     columnTypeList.add(type);

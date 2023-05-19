@@ -55,7 +55,7 @@ public class ChunjunRowDataConvertMap implements MapFunction<RowData, RowData> {
                 } else {
                     index = column.getIndex();
                 }
-                String type = column.getType();
+                String type = column.getType().getType();
                 Object value = getRowDataByType(row, type, index);
                 convertedData.setField(column.getIndex(), value);
             }

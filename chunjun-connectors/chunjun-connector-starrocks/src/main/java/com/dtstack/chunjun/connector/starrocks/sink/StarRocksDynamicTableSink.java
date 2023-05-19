@@ -19,8 +19,9 @@
 package com.dtstack.chunjun.connector.starrocks.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
-import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRowConverter;
+import com.dtstack.chunjun.connector.starrocks.converter.StarRocksSqlConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.table.catalog.ResolvedSchema;
@@ -63,7 +64,7 @@ public class StarRocksDynamicTableSink implements DynamicTableSink {
 
         sinkConfig.setColumn(getFieldConfigFromSchema());
         builder.setRowConverter(
-                new StarRocksRowConverter(
+                new StarRocksSqlConverter(
                         InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType())
                                 .toRowType(),
                         Arrays.asList(resolvedSchema.getColumnNames().toArray(new String[0]))));
@@ -91,7 +92,11 @@ public class StarRocksDynamicTableSink implements DynamicTableSink {
                             FieldConfig fieldConfig = new FieldConfig();
                             fieldConfig.setName(tableColumn.getName());
                             fieldConfig.setType(
-                                    tableColumn.getDataType().getLogicalType().asSummaryString());
+                                    TypeConfig.fromString(
+                                            tableColumn
+                                                    .getDataType()
+                                                    .getLogicalType()
+                                                    .asSummaryString()));
                             return fieldConfig;
                         })
                 .collect(Collectors.toList());

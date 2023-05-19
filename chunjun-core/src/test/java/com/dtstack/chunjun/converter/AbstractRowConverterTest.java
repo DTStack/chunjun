@@ -20,6 +20,7 @@ package com.dtstack.chunjun.converter;
 
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 
 import org.apache.flink.table.data.RowData;
@@ -59,7 +60,7 @@ class AbstractRowConverterTest {
     void assembleFieldPropsWhenValueIsNotBlankThenReturnStringColumn() {
         FieldConfig fieldConfig = mock(FieldConfig.class);
         when(fieldConfig.getValue()).thenReturn("value");
-        when(fieldConfig.getType()).thenReturn("string");
+        when(fieldConfig.getType()).thenReturn(TypeConfig.fromString("string"));
         when(fieldConfig.getFormat()).thenReturn("format");
 
         AbstractBaseColumn baseColumn = mock(AbstractBaseColumn.class);

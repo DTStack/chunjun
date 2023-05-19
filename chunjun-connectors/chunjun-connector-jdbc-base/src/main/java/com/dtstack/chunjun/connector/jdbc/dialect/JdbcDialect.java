@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.jdbc.dialect;
 
 import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.conf.TableIdentify;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcSqlConverter;
@@ -31,10 +32,11 @@ import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.NumericTypeUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.TimestampTypeUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.types.logical.LogicalType;
@@ -54,6 +56,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.jdbc.util.JdbcUtil.checkTableExist;
@@ -78,7 +81,7 @@ public interface JdbcDialect extends Serializable {
     boolean canHandle(String url);
 
     /** get jdbc RawTypeConverter */
-    RawTypeConverter getRawTypeConverter();
+    RawTypeMapper getRawTypeConverter();
 
     /**
      * Get converter that convert jdbc object and Flink internal object each other.
@@ -437,15 +440,15 @@ public interface JdbcDialect extends Serializable {
                 quoteIdentifier(splitPkName), split.getTotalNumberOfSplits(), split.getMod());
     }
 
-    default KeyUtil<?, BigInteger> initKeyUtil(String incrementName, String incrementType) {
-        switch (ColumnType.getType(incrementType)) {
+    default KeyUtil<?, BigInteger> initKeyUtil(String incrementName, TypeConfig incrementType) {
+        switch (ColumnType.getType(incrementType.getType())) {
             case TIMESTAMP:
             case DATETIME:
                 return new TimestampTypeUtil();
             case DATE:
                 return new DateTypeUtil();
             default:
-                if (ColumnType.isNumberType(incrementType)) {
+                if (ColumnType.isNumberType(incrementType.getType())) {
                     return new NumericTypeUtil();
                 } else {
                     throw new ChunJunRuntimeException(
@@ -456,7 +459,7 @@ public interface JdbcDialect extends Serializable {
         }
     }
 
-    default Pair<List<String>, List<String>> getTableMetaData(
+    default Pair<List<String>, List<TypeConfig>> getTableMetaData(
             Connection dbConn, JdbcConfig jdbcConfig) {
         return getTableMetaData(
                 dbConn,
@@ -471,7 +474,7 @@ public interface JdbcDialect extends Serializable {
                         .collect(Collectors.toList()));
     }
 
-    default Pair<List<String>, List<String>> getTableMetaData(
+    default Pair<List<String>, List<TypeConfig>> getTableMetaData(
             Connection dbConn,
             String schema,
             String table,
@@ -487,7 +490,7 @@ public interface JdbcDialect extends Serializable {
         String metadataQuerySql =
                 getMetadataQuerySql(selectedColumnList, customSql, tableIdentify.getTableInfo());
 
-        return JdbcUtil.getTableMetaData(dbConn, metadataQuerySql, queryTimeout);
+        return JdbcUtil.getTableMetaData(dbConn, metadataQuerySql, queryTimeout, typeBuilder());
     }
 
     default String getMetadataQuerySql(
@@ -507,6 +510,16 @@ public interface JdbcDialect extends Serializable {
 
     default String getMetadataQuerySql() {
         return "select %s from %s where 1=2";
+    }
+
+    default Function<Tuple3<String, Integer, Integer>, TypeConfig> typeBuilder() {
+        return (typePsTuple -> {
+            String typeName = typePsTuple.f0;
+            TypeConfig typeConfig = TypeConfig.fromString(typeName);
+            typeConfig.setPrecision(typePsTuple.f1);
+            typeConfig.setScale(typePsTuple.f2);
+            return typeConfig;
+        });
     }
 
     default TableIdentify getTableIdentify(String confSchema, String confTable) {

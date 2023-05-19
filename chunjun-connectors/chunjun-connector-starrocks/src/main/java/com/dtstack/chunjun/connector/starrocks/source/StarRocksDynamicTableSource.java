@@ -19,8 +19,9 @@
 package com.dtstack.chunjun.connector.starrocks.source;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
-import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRowConverter;
+import com.dtstack.chunjun.connector.starrocks.converter.StarRocksSqlConverter;
 import com.dtstack.chunjun.enums.CacheType;
 import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
@@ -72,7 +73,7 @@ public class StarRocksDynamicTableSource
                             starRocksConfig,
                             lookupConfig,
                             keyIndexes,
-                            new StarRocksRowConverter(
+                            new StarRocksSqlConverter(
                                     InternalTypeInfo.of(
                                                     tableSchema
                                                             .toPhysicalRowDataType()
@@ -86,7 +87,7 @@ public class StarRocksDynamicTableSource
                         starRocksConfig,
                         lookupConfig,
                         keyIndexes,
-                        new StarRocksRowConverter(
+                        new StarRocksSqlConverter(
                                 InternalTypeInfo.of(
                                                 tableSchema
                                                         .toPhysicalRowDataType()
@@ -110,13 +111,14 @@ public class StarRocksDynamicTableSource
         for (Column column : columns) {
             FieldConfig fieldConfig = new FieldConfig();
             fieldConfig.setName(column.getName());
-            fieldConfig.setType(column.getDataType().getLogicalType().asSummaryString());
+            fieldConfig.setType(
+                    TypeConfig.fromString(column.getDataType().getLogicalType().asSummaryString()));
             fieldConfList.add(fieldConfig);
         }
         starRocksConfig.setColumn(fieldConfList);
         builder.setStarRocksConf(starRocksConfig);
         builder.setRowConverter(
-                new StarRocksRowConverter(
+                new StarRocksSqlConverter(
                         InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType())
                                 .toRowType(),
                         tableSchema.getColumnNames()));

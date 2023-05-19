@@ -20,8 +20,8 @@ package com.dtstack.chunjun.connector.emqx.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.emqx.config.EmqxConfig;
-import com.dtstack.chunjun.connector.emqx.converter.EmqxColumnConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.connector.emqx.converter.EmqxSyncConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 
@@ -44,7 +44,7 @@ public class EmqxSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return null;
     }
 
@@ -55,7 +55,7 @@ public class EmqxSourceFactory extends SourceFactory {
         }
         EmqxInputFormatBuilder builder = new EmqxInputFormatBuilder();
         builder.setEmqxConf(emqxConfig);
-        builder.setRowConverter(new EmqxColumnConverter(emqxConfig), useAbstractBaseColumn);
+        builder.setRowConverter(new EmqxSyncConverter(emqxConfig), useAbstractBaseColumn);
         return createInput(builder.finish());
     }
 }

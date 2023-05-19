@@ -22,9 +22,9 @@ import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.ftp.config.ConfigConstants;
 import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
-import com.dtstack.chunjun.connector.ftp.converter.FtpColumnConverter;
-import com.dtstack.chunjun.connector.ftp.converter.FtpRawTypeConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.connector.ftp.converter.FtpRawTypeMapper;
+import com.dtstack.chunjun.connector.ftp.converter.FtpSyncConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.StringUtil;
@@ -74,15 +74,14 @@ public class FtpSinkFactory extends SinkFactory {
                                 })
                         .collect(Collectors.toList());
         ftpConfig.setColumn(fieldConfList);
-        final RowType rowType =
-                TableUtil.createRowType(ftpConfig.getColumn(), getRawTypeConverter());
-        builder.setRowConverter(new FtpColumnConverter(rowType, ftpConfig), useAbstractBaseColumn);
+        final RowType rowType = TableUtil.createRowType(ftpConfig.getColumn(), getRawTypeMapper());
+        builder.setRowConverter(new FtpSyncConverter(rowType, ftpConfig), useAbstractBaseColumn);
 
         return createOutput(dataSet, builder.finish());
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return FtpRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return FtpRawTypeMapper::apply;
     }
 }

@@ -22,8 +22,8 @@ import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.cassandra.config.CassandraSourceConfig;
 import com.dtstack.chunjun.connector.cassandra.converter.CassandraRawTypeConverter;
-import com.dtstack.chunjun.connector.cassandra.converter.CassandraRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.connector.cassandra.converter.CassandraSqlConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -52,7 +52,7 @@ public class CassandraSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return CassandraRawTypeConverter::apply;
     }
 
@@ -66,9 +66,9 @@ public class CassandraSourceFactory extends SourceFactory {
         List<String> columnNameList = new ArrayList<>();
         fieldConfList.forEach(fieldConfig -> columnNameList.add(fieldConfig.getName()));
 
-        final RowType rowType = TableUtil.createRowType(fieldConfList, getRawTypeConverter());
+        final RowType rowType = TableUtil.createRowType(fieldConfList, getRawTypeMapper());
         builder.setRowConverter(
-                new CassandraRowConverter(rowType, columnNameList), useAbstractBaseColumn);
+                new CassandraSqlConverter(rowType, columnNameList), useAbstractBaseColumn);
 
         return createInput(builder.finish());
     }

@@ -20,16 +20,16 @@ package com.dtstack.chunjun.connector.hive3.util;
 
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
-import com.dtstack.chunjun.connector.hive3.converter.HdfsOrcColumnConverter;
-import com.dtstack.chunjun.connector.hive3.converter.HdfsOrcRowConverter;
-import com.dtstack.chunjun.connector.hive3.converter.HdfsParquetColumnConverter;
-import com.dtstack.chunjun.connector.hive3.converter.HdfsParquetRowConverter;
-import com.dtstack.chunjun.connector.hive3.converter.HdfsTextColumnConverter;
-import com.dtstack.chunjun.connector.hive3.converter.HdfsTextRowConverter;
+import com.dtstack.chunjun.connector.hive3.converter.HdfsOrcSqlConverter;
+import com.dtstack.chunjun.connector.hive3.converter.HdfsOrcSyncConverter;
+import com.dtstack.chunjun.connector.hive3.converter.HdfsParquetSqlConverter;
+import com.dtstack.chunjun.connector.hive3.converter.HdfsParquetSyncConverter;
+import com.dtstack.chunjun.connector.hive3.converter.HdfsTextSqlConverter;
+import com.dtstack.chunjun.connector.hive3.converter.HdfsTextSyncConverter;
 import com.dtstack.chunjun.connector.hive3.enums.FileType;
 import com.dtstack.chunjun.connector.hive3.source.HdfsPathFilter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.security.KerberosUtil;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
@@ -156,20 +156,20 @@ public class Hive3Util {
             boolean useAbstractBaseColumn,
             String fileType,
             List<FieldConfig> fieldConfList,
-            RawTypeConverter rawTypeConverter,
+            RawTypeMapper rawTypeMapper,
             HdfsConfig hdfsConfig) {
         AbstractRowConverter rowConverter;
-        RowType rowType = TableUtil.createRowType(fieldConfList, rawTypeConverter);
+        RowType rowType = TableUtil.createRowType(fieldConfList, rawTypeMapper);
         if (useAbstractBaseColumn) {
             switch (FileType.getByName(fileType)) {
                 case ORC:
-                    rowConverter = new HdfsOrcColumnConverter(rowType, hdfsConfig);
+                    rowConverter = new HdfsOrcSyncConverter(rowType, hdfsConfig);
                     break;
                 case PARQUET:
-                    rowConverter = new HdfsParquetColumnConverter(rowType, hdfsConfig);
+                    rowConverter = new HdfsParquetSyncConverter(rowType, hdfsConfig);
                     break;
                 case TEXT:
-                    rowConverter = new HdfsTextColumnConverter(rowType, hdfsConfig);
+                    rowConverter = new HdfsTextSyncConverter(rowType, hdfsConfig);
                     break;
                 default:
                     throw new UnsupportedTypeException(fileType);
@@ -177,13 +177,13 @@ public class Hive3Util {
         } else {
             switch (FileType.getByName(fileType)) {
                 case ORC:
-                    rowConverter = new HdfsOrcRowConverter(rowType, hdfsConfig);
+                    rowConverter = new HdfsOrcSqlConverter(rowType, hdfsConfig);
                     break;
                 case PARQUET:
-                    rowConverter = new HdfsParquetRowConverter(rowType, hdfsConfig);
+                    rowConverter = new HdfsParquetSqlConverter(rowType, hdfsConfig);
                     break;
                 case TEXT:
-                    rowConverter = new HdfsTextRowConverter(rowType, hdfsConfig);
+                    rowConverter = new HdfsTextSqlConverter(rowType, hdfsConfig);
                     break;
                 default:
                     throw new UnsupportedTypeException(fileType);

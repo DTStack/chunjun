@@ -68,14 +68,13 @@ public class CommonConfigTest {
         CommonConfig commonConfig = new CommonConfig();
         FieldConfig fieldConfig = new FieldConfig();
         fieldConfig.setName("name");
-        fieldConfig.setType("type");
+        fieldConfig.setType(TypeConfig.fromString("type"));
         fieldConfig.setIndex(1);
         fieldConfig.setValue("value");
         fieldConfig.setFormat("format");
         fieldConfig.setSplitter("splitter");
         fieldConfig.setIsPart(true);
         fieldConfig.setNotNull(true);
-        fieldConfig.setLength(1);
         fieldConfig.setParseFormat("parseFormat");
 
         List<FieldConfig> column = new ArrayList<>();

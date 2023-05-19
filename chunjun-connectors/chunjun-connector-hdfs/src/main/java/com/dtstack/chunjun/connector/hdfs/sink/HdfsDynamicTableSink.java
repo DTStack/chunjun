@@ -18,10 +18,11 @@
 package com.dtstack.chunjun.connector.hdfs.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcRowConverter;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetRowConverter;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsTextRowConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcSqlConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetSqlConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsTextSqlConverter;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
@@ -63,7 +64,9 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
         columns.forEach(
                 column -> {
                     String name = column.getName();
-                    String type = column.getDataType().getLogicalType().asSummaryString();
+                    TypeConfig type =
+                            TypeConfig.fromString(
+                                    column.getDataType().getLogicalType().asSummaryString());
                     FieldConfig field = new FieldConfig();
                     field.setName(name);
                     field.setType(type);
@@ -78,7 +81,7 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
         switch (FileType.getByName(hdfsConfig.getFileType())) {
             case ORC:
                 rowConverter =
-                        new HdfsOrcRowConverter(
+                        new HdfsOrcSqlConverter(
                                 InternalTypeInfo.of(
                                                 tableSchema
                                                         .toPhysicalRowDataType()
@@ -87,7 +90,7 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
                 break;
             case PARQUET:
                 rowConverter =
-                        new HdfsParquetRowConverter(
+                        new HdfsParquetSqlConverter(
                                 InternalTypeInfo.of(
                                                 tableSchema
                                                         .toPhysicalRowDataType()
@@ -96,7 +99,7 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
                 break;
             default:
                 rowConverter =
-                        new HdfsTextRowConverter(
+                        new HdfsTextSqlConverter(
                                 (InternalTypeInfo.of(
                                                 tableSchema
                                                         .toPhysicalRowDataType()

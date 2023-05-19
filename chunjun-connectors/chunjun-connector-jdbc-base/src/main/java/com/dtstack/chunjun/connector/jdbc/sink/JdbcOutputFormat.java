@@ -21,6 +21,7 @@ import com.dtstack.chunjun.cdc.DdlRowData;
 import com.dtstack.chunjun.cdc.EventType;
 import com.dtstack.chunjun.cdc.ddl.DdlRowDataConvented;
 import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.sink.wrapper.InsertOrUpdateStatementWrapper;
@@ -551,7 +552,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         this.columnNameList = columnNameList;
     }
 
-    public void setColumnTypeList(List<String> columnTypeList) {
+    public void setColumnTypeList(List<TypeConfig> columnTypeList) {
         this.columnTypeList = columnTypeList;
     }
 

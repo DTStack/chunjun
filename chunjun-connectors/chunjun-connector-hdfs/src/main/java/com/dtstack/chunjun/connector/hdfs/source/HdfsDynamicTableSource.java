@@ -18,10 +18,11 @@
 package com.dtstack.chunjun.connector.hdfs.source;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcRowConverter;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetRowConverter;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsTextRowConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcSqlConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetSqlConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsTextSqlConverter;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
@@ -67,7 +68,8 @@ public class HdfsDynamicTableSource implements ScanTableSource {
             String fieldName = column.getName();
             FieldConfig field = new FieldConfig();
             field.setName(fieldName);
-            field.setType(column.getDataType().getLogicalType().asSummaryString());
+            field.setType(
+                    TypeConfig.fromString(column.getDataType().getLogicalType().asSummaryString()));
             field.setIndex(i);
             if (partitionKeyList.contains(fieldName)) {
                 field.setIsPart(true);
@@ -81,7 +83,7 @@ public class HdfsDynamicTableSource implements ScanTableSource {
         switch (FileType.getByName(hdfsConfig.getFileType())) {
             case ORC:
                 rowConverter =
-                        new HdfsOrcRowConverter(
+                        new HdfsOrcSqlConverter(
                                 InternalTypeInfo.of(
                                                 tableSchema
                                                         .toPhysicalRowDataType()
@@ -90,7 +92,7 @@ public class HdfsDynamicTableSource implements ScanTableSource {
                 break;
             case PARQUET:
                 rowConverter =
-                        new HdfsParquetRowConverter(
+                        new HdfsParquetSqlConverter(
                                 InternalTypeInfo.of(
                                                 tableSchema
                                                         .toPhysicalRowDataType()
@@ -99,7 +101,7 @@ public class HdfsDynamicTableSource implements ScanTableSource {
                 break;
             default:
                 rowConverter =
-                        new HdfsTextRowConverter(
+                        new HdfsTextSqlConverter(
                                 InternalTypeInfo.of(
                                                 tableSchema
                                                         .toPhysicalRowDataType()

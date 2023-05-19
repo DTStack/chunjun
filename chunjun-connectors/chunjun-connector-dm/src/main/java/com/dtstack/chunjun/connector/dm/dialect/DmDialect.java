@@ -25,7 +25,7 @@ import com.dtstack.chunjun.connector.dm.converter.DmSyncConverter;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.flink.table.types.logical.LogicalType;
@@ -55,7 +55,7 @@ public class DmDialect implements JdbcDialect {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeConverter() {
         return DmRawTypeConverter::apply;
     }
 

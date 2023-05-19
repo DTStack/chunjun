@@ -17,6 +17,7 @@
  */
 package com.dtstack.chunjun.connector.jdbc.sink.wrapper;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.conf.TableIdentify;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.sink.wrapper.buffer.InsertDeleteCompactionWrapper;
@@ -62,10 +63,10 @@ public class StatementWrapperUtil {
         schema = tableIdentify.getSchema();
         table = tableIdentify.getTable();
         List<String> columnNameList = getSelectedNameColumnList(columnRowData);
-        List<String> columnTypeList =
+        List<TypeConfig> columnTypeList =
                 getColumnTypeFromMetadata(
                         connection, jdbcDialect, catalog, schema, table, columnNameList);
-        Pair<List<String>, List<String>> primaryKeyInfoPair =
+        Pair<List<String>, List<TypeConfig>> primaryKeyInfoPair =
                 getSelectedPrimaryKeyList(
                         connection, catalog, schema, table, columnNameList, columnTypeList);
 
@@ -91,7 +92,7 @@ public class StatementWrapperUtil {
             String table,
             JdbcDialect jdbcDialect,
             List<String> columnNameList,
-            List<String> columnTypeList)
+            List<TypeConfig> columnTypeList)
             throws SQLException {
         SimpleStatementWrapper insertStatementExecutor =
                 getInsertStatementExecutor(
@@ -111,9 +112,9 @@ public class StatementWrapperUtil {
             String table,
             JdbcDialect jdbcDialect,
             List<String> columnNameList,
-            List<String> columnTypeList,
+            List<TypeConfig> columnTypeList,
             List<String> primaryColumnNameList,
-            List<String> primaryColumnTypeList)
+            List<TypeConfig> primaryColumnTypeList)
             throws SQLException {
         SimpleStatementWrapper insertStatementExecutor =
                 getInsertStatementExecutor(
@@ -147,7 +148,7 @@ public class StatementWrapperUtil {
             String table,
             JdbcDialect jdbcDialect,
             List<String> columnNameList,
-            List<String> columnTypeList)
+            List<TypeConfig> columnTypeList)
             throws SQLException {
         String insertStatement =
                 jdbcDialect.getInsertIntoStatement(
@@ -163,7 +164,7 @@ public class StatementWrapperUtil {
     }
 
     /** only use for restoreMode,get fieldType for selectedColumn */
-    public static List<String> getColumnTypeFromMetadata(
+    public static List<TypeConfig> getColumnTypeFromMetadata(
             Connection connection,
             JdbcDialect jdbcDialect,
             String catalog,
@@ -171,11 +172,11 @@ public class StatementWrapperUtil {
             String table,
             List<String> selectedColumnNameList) {
         try {
-            Pair<List<String>, List<String>> tableMetaData =
+            Pair<List<String>, List<TypeConfig>> tableMetaData =
                     jdbcDialect.getTableMetaData(
                             connection, schema, table, 300, null, selectedColumnNameList);
             List<String> metaColumnNameList = tableMetaData.getLeft();
-            List<String> metaColumnTypeList = tableMetaData.getRight();
+            List<TypeConfig> metaColumnTypeList = tableMetaData.getRight();
             if (selectedColumnNameList.size() != metaColumnNameList.size()) {
                 throw new RuntimeException(
                         "The length of the field on the source end is inconsistent with that on the sink end, and the sink table fields is "
@@ -183,7 +184,7 @@ public class StatementWrapperUtil {
                                 + "  and the source table field is "
                                 + GsonUtil.GSON.toJson(selectedColumnNameList));
             }
-            List<String> columnTypeList = new ArrayList<>(selectedColumnNameList.size());
+            List<TypeConfig> columnTypeList = new ArrayList<>(selectedColumnNameList.size());
             for (String columnName : selectedColumnNameList) {
                 int j = 0;
                 for (; j < metaColumnNameList.size(); j++) {
@@ -212,22 +213,22 @@ public class StatementWrapperUtil {
         }
     }
 
-    public static Pair<List<String>, List<String>> getSelectedPrimaryKeyList(
+    public static Pair<List<String>, List<TypeConfig>> getSelectedPrimaryKeyList(
             Connection connection,
             String catalog,
             String schema,
             String table,
             List<String> selectedColumnNameList,
-            List<String> selectedColumnTypeList) {
+            List<TypeConfig> selectedColumnTypeList) {
         try {
             List<String> primaryColumnNameList = new ArrayList<>();
-            List<String> primaryColumnTypeList = new ArrayList<>();
+            List<TypeConfig> primaryColumnTypeList = new ArrayList<>();
             ResultSet resultSet = connection.getMetaData().getPrimaryKeys(catalog, schema, table);
             while (resultSet.next()) {
                 String primaryColumnName = resultSet.getString("COLUMN_NAME");
                 for (int i = 0; i < selectedColumnNameList.size(); i++) {
                     String columnName = selectedColumnNameList.get(i);
-                    String columnType = selectedColumnTypeList.get(i);
+                    TypeConfig columnType = selectedColumnTypeList.get(i);
                     if (columnName.equals(primaryColumnName)) {
                         primaryColumnNameList.add(columnName);
                         primaryColumnTypeList.add(columnType);

@@ -21,9 +21,9 @@ package com.dtstack.chunjun.connector.solr.sink;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.solr.SolrConfig;
 import com.dtstack.chunjun.connector.solr.SolrConverterFactory;
-import com.dtstack.chunjun.connector.solr.converter.SolrRawTypeConverter;
+import com.dtstack.chunjun.connector.solr.converter.SolrRawTypeMapper;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 
@@ -47,8 +47,8 @@ public class SolrSinkFactory extends SinkFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return SolrRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return SolrRawTypeMapper::apply;
     }
 
     @Override

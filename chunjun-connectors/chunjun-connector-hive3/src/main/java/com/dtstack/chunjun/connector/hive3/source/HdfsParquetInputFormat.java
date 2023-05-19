@@ -138,7 +138,11 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                 } else if (fieldConfig.getIndex() != null
                         && fieldConfig.getIndex() < fullColNames.size()) {
                     if (currentLine.getFieldRepetitionCount(fieldConfig.getIndex()) > 0) {
-                        obj = getData(currentLine, fieldConfig.getType(), fieldConfig.getIndex());
+                        obj =
+                                getData(
+                                        currentLine,
+                                        fieldConfig.getType().getType(),
+                                        fieldConfig.getIndex());
                     }
                 }
                 genericRowData.setField(i, obj);

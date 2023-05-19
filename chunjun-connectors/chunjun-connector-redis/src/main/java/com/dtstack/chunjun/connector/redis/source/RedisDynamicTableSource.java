@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.redis.source;
 
 import com.dtstack.chunjun.connector.redis.config.RedisConfig;
-import com.dtstack.chunjun.connector.redis.converter.RedisRowConverter;
+import com.dtstack.chunjun.connector.redis.converter.RedisSqlConverter;
 import com.dtstack.chunjun.connector.redis.lookup.RedisAllTableFunction;
 import com.dtstack.chunjun.connector.redis.lookup.RedisLruTableFunction;
 import com.dtstack.chunjun.enums.CacheType;
@@ -72,14 +72,14 @@ public class RedisDynamicTableSource
                             lookupConfig,
                             physicalSchema.getColumnNames().toArray(new String[0]),
                             keyNames,
-                            new RedisRowConverter(InternalTypeInfo.of(logicalType).toRowType())),
+                            new RedisSqlConverter(InternalTypeInfo.of(logicalType).toRowType())),
                     lookupConfig.getParallelism());
         }
         return ParallelAsyncLookupFunctionProvider.of(
                 new RedisLruTableFunction(
                         redisConfig,
                         lookupConfig,
-                        new RedisRowConverter(InternalTypeInfo.of(logicalType).toRowType())),
+                        new RedisSqlConverter(InternalTypeInfo.of(logicalType).toRowType())),
                 lookupConfig.getParallelism());
     }
 
@@ -110,7 +110,7 @@ public class RedisDynamicTableSource
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(logicalType);
         builder.setRedisConf(redisConfig);
         builder.setRowConverter(
-                new RedisRowConverter(InternalTypeInfo.of(logicalType).toRowType()));
+                new RedisSqlConverter(InternalTypeInfo.of(logicalType).toRowType()));
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
                 false,

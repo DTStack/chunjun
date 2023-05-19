@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.hbase.table;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
@@ -75,7 +76,7 @@ public abstract class BaseHBaseDynamicTableSource
         for (int i = 0; i < fieldNames.length; i++) {
             FieldConfig field = new FieldConfig();
             field.setName(fieldNames[i]);
-            field.setType(rowType.getTypeAt(i).asSummaryString());
+            field.setType(TypeConfig.fromString(rowType.getTypeAt(i).asSummaryString()));
             field.setIndex(i);
             columnList.add(field);
         }

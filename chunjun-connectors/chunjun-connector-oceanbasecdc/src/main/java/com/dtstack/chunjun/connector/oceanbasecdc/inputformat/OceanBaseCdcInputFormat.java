@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.oceanbasecdc.inputformat;
 
 import com.dtstack.chunjun.connector.oceanbasecdc.config.OceanBaseCdcConfig;
 import com.dtstack.chunjun.connector.oceanbasecdc.listener.OceanBaseCdcListener;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
@@ -50,7 +50,7 @@ public class OceanBaseCdcInputFormat extends BaseRichInputFormat {
 
     private OceanBaseCdcConfig cdcConf;
 
-    private AbstractCDCRowConverter rowConverter;
+    private AbstractCDCRawTypeMapper rowConverter;
 
     private transient Thread cdcListenerThread;
 
@@ -127,11 +127,11 @@ public class OceanBaseCdcInputFormat extends BaseRichInputFormat {
         this.cdcConf = cdcConf;
     }
 
-    public AbstractCDCRowConverter getCdcRowConverter() {
+    public AbstractCDCRawTypeMapper getCdcRowConverter() {
         return rowConverter;
     }
 
-    public void setRowConverter(AbstractCDCRowConverter rowConverter) {
+    public void setRowConverter(AbstractCDCRawTypeMapper rowConverter) {
         this.rowConverter = rowConverter;
     }
 }

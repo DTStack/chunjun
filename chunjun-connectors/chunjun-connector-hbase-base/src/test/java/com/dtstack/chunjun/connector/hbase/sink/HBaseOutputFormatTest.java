@@ -20,8 +20,8 @@ package com.dtstack.chunjun.connector.hbase.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
-import com.dtstack.chunjun.connector.hbase.converter.HBaseColumnConverter;
-import com.dtstack.chunjun.connector.hbase.converter.HBaseRawTypeConverter;
+import com.dtstack.chunjun.connector.hbase.converter.HBaseRawTypeMapper;
+import com.dtstack.chunjun.connector.hbase.converter.HBaseSyncConverter;
 import com.dtstack.chunjun.connector.hbase.util.HBaseHelperTest;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -230,8 +230,8 @@ public class HBaseOutputFormatTest {
         conf.setVersionColumnIndex(1);
         conf.setVersionColumnValue("VERSION");
 
-        RowType rowType = TableUtil.createRowType(conf.getColumn(), HBaseRawTypeConverter.INSTANCE);
-        converter = new HBaseColumnConverter(conf, rowType);
+        RowType rowType = TableUtil.createRowType(conf.getColumn(), HBaseRawTypeMapper.INSTANCE);
+        converter = new HBaseSyncConverter(conf, rowType);
 
         HBaseOutputFormatBuilder formatBuilder = new HBaseOutputFormatBuilder();
 
