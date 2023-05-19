@@ -19,23 +19,29 @@
 
 package com.dtstack.chunjun.connector.vertica11.converter;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
-import java.util.Locale;
+import java.sql.SQLException;
 
 public class Vertica11RawTypeConverter {
 
-    private static final Integer MAX_BINARY_LENGTH = 65000; // vertica binary max length
-    private static final Integer MAX_VARBINARY_LENGTH = 65000; // vertica varbinary max length
+    private static final Integer MAX_BINARY_LENGTH = 65000; // vertica binary 最大长度
+    private static final Integer MAX_VARBINARY_LENGTH = 65000; // vertica varbinary 最大长度
     private static final Integer MAX_LONG_VARBINARY_LENGTH =
-            32000000; // vertica long varbinary max length
-
-    public static DataType apply(String type) {
-        type = type.toUpperCase(Locale.ENGLISH);
-        switch (type) {
+            32000000; // vertica long varbinary 最大长度
+    /**
+     * 将Vertica数据库中的类型，转换成flink的DataType类型。
+     *
+     * @param type
+     * @return
+     * @throws SQLException
+     */
+    public static DataType apply(TypeConfig type) {
+        switch (type.getType()) {
             case "VARCHAR":
             case "CHAR":
             case "LONG VARCHAR":
@@ -48,11 +54,10 @@ public class Vertica11RawTypeConverter {
                 return DataTypes.BINARY(MAX_LONG_VARBINARY_LENGTH);
             case "BOOLEAN":
                 return DataTypes.BOOLEAN();
-            case "SMALLINT":
             case "TINYINT":
+            case "SMALLINT":
             case "INT":
             case "INTEGER":
-                return DataTypes.INT();
             case "BIGINT":
                 return DataTypes.BIGINT();
             case "FLOAT":

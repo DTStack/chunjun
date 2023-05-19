@@ -68,7 +68,8 @@ public interface FieldNamedPreparedStatement extends AutoCloseable {
      */
     static FieldNamedPreparedStatement prepareStatement(
             Connection connection, String sql, String[] fieldNames) throws SQLException {
-        return FieldNamedPreparedStatementImpl.prepareStatement(connection, sql, fieldNames);
+        return FieldNamedPreparedStatementImpl.prepareStatement(
+                connection, sql, fieldNames, new String[0]);
     }
 
     /**
@@ -253,6 +254,8 @@ public interface FieldNamedPreparedStatement extends AutoCloseable {
     void setClob(int fieldIndex, Reader reader) throws SQLException;
 
     void setArray(int fieldIndex, Array array) throws SQLException;
+
+    boolean isDelete();
 
     /**
      * Releases this <code>Statement</code> object's database and JDBC resources immediately instead

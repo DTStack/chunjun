@@ -20,11 +20,11 @@ package com.dtstack.chunjun.connector.stream.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.stream.config.StreamConfig;
-import com.dtstack.chunjun.connector.stream.converter.StreamColumnConverter;
 import com.dtstack.chunjun.connector.stream.converter.StreamRawTypeConverter;
-import com.dtstack.chunjun.connector.stream.converter.StreamRowConverter;
+import com.dtstack.chunjun.connector.stream.converter.StreamSqlConverter;
+import com.dtstack.chunjun.connector.stream.converter.StreamSyncConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -53,12 +53,12 @@ public class StreamSourceFactory extends SourceFactory {
         builder.setStreamConf(streamConfig);
         AbstractRowConverter rowConverter;
         if (useAbstractBaseColumn) {
-            rowConverter = new StreamColumnConverter(streamConfig);
+            rowConverter = new StreamSyncConverter(streamConfig);
         } else {
             checkConstant(streamConfig);
             final RowType rowType =
-                    TableUtil.createRowType(streamConfig.getColumn(), getRawTypeConverter());
-            rowConverter = new StreamRowConverter(rowType);
+                    TableUtil.createRowType(streamConfig.getColumn(), getRawTypeMapper());
+            rowConverter = new StreamSqlConverter(rowType);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
 
@@ -66,7 +66,7 @@ public class StreamSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return StreamRawTypeConverter::apply;
     }
 }

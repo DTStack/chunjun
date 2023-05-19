@@ -20,13 +20,13 @@ package com.dtstack.chunjun.connector.sqlservercdc.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.sqlservercdc.config.SqlServerCdcConfig;
-import com.dtstack.chunjun.connector.sqlservercdc.convert.SqlServerCdcColumnConverter;
-import com.dtstack.chunjun.connector.sqlservercdc.convert.SqlServerCdcRawTypeConverter;
-import com.dtstack.chunjun.connector.sqlservercdc.convert.SqlServerCdcRowConverter;
+import com.dtstack.chunjun.connector.sqlservercdc.convert.SqlServerCdcRawTypeMapper;
+import com.dtstack.chunjun.connector.sqlservercdc.convert.SqlServerCdcSqlConverter;
+import com.dtstack.chunjun.connector.sqlservercdc.convert.SqlServerCdcSyncConverter;
 import com.dtstack.chunjun.connector.sqlservercdc.format.TimestampFormat;
 import com.dtstack.chunjun.connector.sqlservercdc.inputFormat.SqlServerCdcInputFormatBuilder;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -54,26 +54,26 @@ public class SqlservercdcSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         SqlServerCdcInputFormatBuilder builder = new SqlServerCdcInputFormatBuilder();
         builder.setSqlServerCdcConf(sqlServerCdcConfig);
-        AbstractCDCRowConverter rowConverter;
+        AbstractCDCRawTypeMapper rowConverter;
         if (useAbstractBaseColumn) {
             rowConverter =
-                    new SqlServerCdcColumnConverter(
+                    new SqlServerCdcSyncConverter(
                             sqlServerCdcConfig.isPavingData(), sqlServerCdcConfig.isSplitUpdate());
         } else {
             final RowType rowType =
-                    TableUtil.createRowType(sqlServerCdcConfig.getColumn(), getRawTypeConverter());
+                    TableUtil.createRowType(sqlServerCdcConfig.getColumn(), getRawTypeMapper());
             TimestampFormat format =
                     "sql".equalsIgnoreCase(sqlServerCdcConfig.getTimestampFormat())
                             ? TimestampFormat.SQL
                             : TimestampFormat.ISO_8601;
-            rowConverter = new SqlServerCdcRowConverter(rowType, format);
+            rowConverter = new SqlServerCdcSqlConverter(rowType, format);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return SqlServerCdcRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return SqlServerCdcRawTypeMapper::apply;
     }
 }

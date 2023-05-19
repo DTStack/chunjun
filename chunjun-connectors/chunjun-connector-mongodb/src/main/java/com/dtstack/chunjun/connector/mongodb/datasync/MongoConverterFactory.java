@@ -19,9 +19,10 @@
 package com.dtstack.chunjun.connector.mongodb.datasync;
 
 import com.dtstack.chunjun.config.FieldConfig;
-import com.dtstack.chunjun.connector.mongodb.converter.MongodbColumnConverter;
-import com.dtstack.chunjun.connector.mongodb.converter.MongodbRawTypeConverter;
-import com.dtstack.chunjun.connector.mongodb.converter.MongodbRowConverter;
+import com.dtstack.chunjun.config.TypeConfig;
+import com.dtstack.chunjun.connector.mongodb.converter.MongodbRawTypeMapper;
+import com.dtstack.chunjun.connector.mongodb.converter.MongodbSqlConverter;
+import com.dtstack.chunjun.connector.mongodb.converter.MongodbSyncConverter;
 import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.table.types.logical.RowType;
@@ -33,7 +34,7 @@ public class MongoConverterFactory {
 
     RowType rowType;
     List<String> fieldNames;
-    List<String> fieldTypes;
+    List<TypeConfig> fieldTypes;
     MongodbDataSyncConfig mongodbDataSyncConfig;
 
     public MongoConverterFactory(MongodbDataSyncConfig mongodbDataSyncConfig) {
@@ -45,14 +46,14 @@ public class MongoConverterFactory {
             fieldNames.add(field.getName());
             fieldTypes.add(field.getType());
         }
-        rowType = TableUtil.createRowType(fieldNames, fieldTypes, MongodbRawTypeConverter::apply);
+        rowType = TableUtil.createRowType(fieldNames, fieldTypes, MongodbRawTypeMapper::apply);
     }
 
-    public MongodbRowConverter createRowConverter() {
-        return new MongodbRowConverter(rowType, fieldNames.toArray(new String[] {}));
+    public MongodbSqlConverter createRowConverter() {
+        return new MongodbSqlConverter(rowType, fieldNames.toArray(new String[] {}));
     }
 
-    public MongodbColumnConverter createColumnConverter() {
-        return new MongodbColumnConverter(rowType, mongodbDataSyncConfig);
+    public MongodbSyncConverter createColumnConverter() {
+        return new MongodbSyncConverter(rowType, mongodbDataSyncConfig);
     }
 }

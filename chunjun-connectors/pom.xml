@@ -76,6 +76,7 @@
 		<module>chunjun-connector-hive3</module>
 		<module>chunjun-connector-iceberg</module>
 		<module>chunjun-connector-s3</module>
+		<module>chunjun-connector-hudi</module>
 
 		<!--NoSql-->
 		<module>chunjun-connector-hbase-base</module>

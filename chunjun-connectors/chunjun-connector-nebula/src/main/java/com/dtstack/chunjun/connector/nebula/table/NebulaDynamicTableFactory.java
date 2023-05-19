@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.nebula.table;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.config.NebulaSSLParam;
 import com.dtstack.chunjun.connector.nebula.sink.NebulaDynamicTableSink;
@@ -122,10 +123,11 @@ public class NebulaDynamicTableFactory
             FieldConfig field = new FieldConfig();
             field.setName(fieldNames[i]);
             field.setType(
-                    (InternalTypeInfo.of(tuple3.f0.toPhysicalRowDataType().getLogicalType())
-                                    .toRowType())
-                            .getTypeAt(i)
-                            .asSummaryString());
+                    TypeConfig.fromString(
+                            (InternalTypeInfo.of(tuple3.f0.toPhysicalRowDataType().getLogicalType())
+                                            .toRowType())
+                                    .getTypeAt(i)
+                                    .asSummaryString()));
             field.setIndex(i);
             columnList.add(field);
         }

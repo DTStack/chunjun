@@ -21,7 +21,7 @@ package com.dtstack.chunjun.connector.oraclelogminer.listener;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.EventRow;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.EventRowData;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.QueueData;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.util.SnowflakeIdWorker;
 
@@ -254,7 +254,7 @@ public class LogParser {
         return value;
     }
 
-    public LinkedList<RowData> parse(QueueData pair, AbstractCDCRowConverter rowConverter)
+    public LinkedList<RowData> parse(QueueData pair, AbstractCDCRawTypeMapper rowConverter)
             throws Exception {
         ColumnRowData logData = (ColumnRowData) pair.getData();
 

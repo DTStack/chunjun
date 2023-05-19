@@ -20,10 +20,10 @@ package com.dtstack.chunjun.connector.elasticsearch6.source;
 
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
-import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchColumnConverter;
 import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRawTypeMapper;
+import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchSyncConverter;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -61,13 +61,13 @@ public class Elasticsearch6SourceFactory extends SourceFactory {
         Elasticsearch6InputFormatBuilder builder = new Elasticsearch6InputFormatBuilder();
         builder.setEsConf(elasticsearchConfig);
         final RowType rowType =
-                TableUtil.createRowType(elasticsearchConfig.getColumn(), getRawTypeConverter());
-        builder.setRowConverter(new ElasticsearchColumnConverter(rowType));
+                TableUtil.createRowType(elasticsearchConfig.getColumn(), getRawTypeMapper());
+        builder.setRowConverter(new ElasticsearchSyncConverter(rowType));
         return createInput(builder.finish());
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return ElasticsearchRawTypeMapper::apply;
     }
 }

@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.stream.table;
 
 import com.dtstack.chunjun.connector.stream.config.StreamConfig;
-import com.dtstack.chunjun.connector.stream.converter.StreamRowConverter;
+import com.dtstack.chunjun.connector.stream.converter.StreamSqlConverter;
 import com.dtstack.chunjun.connector.stream.source.StreamInputFormatBuilder;
 import com.dtstack.chunjun.connector.stream.util.StreamConfigUtil;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
@@ -56,7 +56,7 @@ public class StreamDynamicTableSource implements ScanTableSource {
 
         StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
         builder.setRowConverter(
-                new StreamRowConverter(
+                new StreamSqlConverter(
                         InternalTypeInfo.of(physicalRowDataType.getLogicalType()).toRowType()));
         builder.setStreamConf(streamConfig);
 

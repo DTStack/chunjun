@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.jdbc.source;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.lookup.JdbcAllTableFunction;
@@ -128,7 +129,8 @@ public class JdbcDynamicTableSource
         for (Column column : columns) {
             FieldConfig field = new FieldConfig();
             field.setName(column.getName());
-            field.setType(column.getDataType().getLogicalType().asSummaryString());
+            field.setType(
+                    TypeConfig.fromString(column.getDataType().getLogicalType().asSummaryString()));
             field.setIndex(columns.indexOf(column));
             columnList.add(field);
         }
@@ -148,7 +150,7 @@ public class JdbcDynamicTableSource
                     FieldConfig.getSameNameMetaColumn(jdbcConfig.getColumn(), restoreColumn);
             if (fieldConfig != null) {
                 jdbcConfig.setRestoreColumnIndex(fieldConfig.getIndex());
-                jdbcConfig.setRestoreColumnType(fieldConfig.getType());
+                jdbcConfig.setRestoreColumnType(fieldConfig.getType().getType());
                 restoreKeyUtil =
                         jdbcDialect.initKeyUtil(fieldConfig.getName(), fieldConfig.getType());
             } else {
@@ -175,7 +177,7 @@ public class JdbcDynamicTableSource
                     FieldConfig.getSameNameMetaColumn(jdbcConfig.getColumn(), incrementColumn);
             int index;
             String name;
-            String type;
+            TypeConfig type;
             if (fieldConfig != null) {
                 index = fieldConfig.getIndex();
                 name = fieldConfig.getName();
@@ -186,12 +188,12 @@ public class JdbcDynamicTableSource
                         "unknown increment column name: " + incrementColumn);
             }
             jdbcConfig.setIncreColumn(name);
-            jdbcConfig.setIncreColumnType(type);
+            jdbcConfig.setIncreColumnType(type.getType());
             jdbcConfig.setIncreColumnIndex(index);
 
             jdbcConfig.setRestoreColumn(name);
             jdbcConfig.setRestoreColumnIndex(index);
-            jdbcConfig.setRestoreColumnType(type);
+            jdbcConfig.setRestoreColumnType(type.getType());
             restoreKeyUtil = incrementKeyUtil;
 
             if (StringUtils.isBlank(jdbcConfig.getSplitPk())) {

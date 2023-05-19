@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.kafka.converter;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.kafka.conf.KafkaConfig;
 import com.dtstack.chunjun.constants.CDCConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -102,14 +103,14 @@ public class KafkaSyncConverter
         // Only json need to extract the fields
         if (!CollectionUtils.isEmpty(kafkaConfig.getColumn())
                 && DEFAULT_CODEC.defaultValue().equals(kafkaConfig.getCodec())) {
-            List<String> typeList =
+            List<TypeConfig> typeList =
                     kafkaConfig.getColumn().stream()
                             .map(FieldConfig::getType)
                             .collect(Collectors.toList());
             this.toInternalConverters = new ArrayList<>();
-            for (String s : typeList) {
+            for (TypeConfig s : typeList) {
                 toInternalConverters.add(
-                        wrapIntoNullableInternalConverter(createInternalConverter(s)));
+                        wrapIntoNullableInternalConverter(createInternalConverter(s.getType())));
             }
         }
     }

@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.mongodb.table.lookup;
 
 import com.dtstack.chunjun.connector.mongodb.MongoClientFactory;
 import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
-import com.dtstack.chunjun.connector.mongodb.converter.MongodbRowConverter;
+import com.dtstack.chunjun.connector.mongodb.converter.MongodbSqlConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
 import com.dtstack.chunjun.lookup.config.LookupConfig;
 
@@ -49,7 +49,7 @@ public class MongoAllTableFunction extends AbstractAllTableFunction {
             RowType rowType,
             String[] keyNames,
             String[] fieldNames) {
-        super(fieldNames, keyNames, lookupConfig, new MongodbRowConverter(rowType, fieldNames));
+        super(fieldNames, keyNames, lookupConfig, new MongodbSqlConverter(rowType, fieldNames));
         this.mongoClientConfig = mongoClientConfig;
         this.fetchSize = lookupConfig.getFetchSize();
     }
@@ -69,7 +69,7 @@ public class MongoAllTableFunction extends AbstractAllTableFunction {
         for (Document doc : findIterable) {
             Map<String, Object> row = Maps.newHashMap();
             GenericRowData rowData =
-                    (GenericRowData) ((MongodbRowConverter) rowConverter).toInternal(doc);
+                    (GenericRowData) ((MongodbSqlConverter) rowConverter).toInternal(doc);
             for (int i = 0; i < fieldsName.length; i++) {
                 Object object = rowData.getField(i);
                 row.put(fieldsName[i].trim(), object);

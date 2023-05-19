@@ -18,7 +18,7 @@
 package com.dtstack.chunjun.connector.rocketmq.source;
 
 import com.dtstack.chunjun.connector.rocketmq.config.RocketMQConfig;
-import com.dtstack.chunjun.connector.rocketmq.converter.RocketMQRowConverter;
+import com.dtstack.chunjun.connector.rocketmq.converter.RocketMQSqlConverter;
 import com.dtstack.chunjun.connector.rocketmq.source.deserialization.KeyValueDeserializationSchema;
 import com.dtstack.chunjun.connector.rocketmq.source.deserialization.RowKeyValueDeserializationSchema;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -66,7 +66,7 @@ public class RocketMQScanTableSource implements ScanTableSource, SupportsReading
 
         String[] fieldNames = schema.getColumnNames().toArray(new String[0]);
         converter =
-                new RocketMQRowConverter(
+                new RocketMQSqlConverter(
                         InternalTypeInfo.of(logicalType).toRowType(),
                         rocketMQConfig.getEncoding(),
                         fieldNames);

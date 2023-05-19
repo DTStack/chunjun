@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.oceanbasecdc.source;
 
 import com.dtstack.chunjun.connector.oceanbasecdc.config.OceanBaseCdcConfig;
-import com.dtstack.chunjun.connector.oceanbasecdc.converter.OceanBaseCdcRowConverter;
+import com.dtstack.chunjun.connector.oceanbasecdc.converter.OceanBaseCdcSqlConverter;
 import com.dtstack.chunjun.connector.oceanbasecdc.format.TimestampFormat;
 import com.dtstack.chunjun.connector.oceanbasecdc.inputformat.OceanBaseCdcInputFormatBuilder;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
@@ -65,7 +65,7 @@ public class OceanBaseCdcDynamicTableSource implements ScanTableSource {
         OceanBaseCdcInputFormatBuilder builder = new OceanBaseCdcInputFormatBuilder();
         builder.setOceanBaseCdcConf(config);
         builder.setRowConverter(
-                new OceanBaseCdcRowConverter(
+                new OceanBaseCdcSqlConverter(
                         InternalTypeInfo.of(schema.toPhysicalRowDataType().getLogicalType())
                                 .toRowType(),
                         this.timestampFormat));

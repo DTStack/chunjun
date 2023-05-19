@@ -28,7 +28,7 @@ import com.dtstack.chunjun.connector.kafka.enums.StartupMode;
 import com.dtstack.chunjun.connector.kafka.serialization.RowDeserializationSchema;
 import com.dtstack.chunjun.connector.kafka.util.FormatNameConvertUtil;
 import com.dtstack.chunjun.connector.kafka.util.KafkaUtil;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.PluginUtil;
@@ -161,7 +161,7 @@ public class KafkaSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return KafkaRawTypeMapping::apply;
     }
 }

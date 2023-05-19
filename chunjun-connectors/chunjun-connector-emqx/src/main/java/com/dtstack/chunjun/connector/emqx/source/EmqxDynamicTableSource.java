@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.emqx.source;
 
 import com.dtstack.chunjun.connector.emqx.config.EmqxConfig;
-import com.dtstack.chunjun.connector.emqx.converter.EmqxRowConverter;
+import com.dtstack.chunjun.connector.emqx.converter.EmqxSqlConverter;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 
@@ -65,7 +65,7 @@ public class EmqxDynamicTableSource implements ScanTableSource {
         EmqxInputFormatBuilder builder = new EmqxInputFormatBuilder();
         builder.setEmqxConf(emqxConfig);
         builder.setRowConverter(
-                new EmqxRowConverter(
+                new EmqxSqlConverter(
                         valueDecodingFormat.createRuntimeDecoder(
                                 runtimeProviderContext, physicalSchema.toPhysicalRowDataType())));
 

@@ -21,9 +21,9 @@ package com.dtstack.chunjun.connector.cassandra.sink;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.cassandra.config.CassandraSinkConfig;
-import com.dtstack.chunjun.connector.cassandra.converter.CassandraColumnConverter;
 import com.dtstack.chunjun.connector.cassandra.converter.CassandraRawTypeConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.connector.cassandra.converter.CassandraSyncConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -50,7 +50,7 @@ public class CassandraSinkFactory extends SinkFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return CassandraRawTypeConverter::apply;
     }
 
@@ -61,9 +61,9 @@ public class CassandraSinkFactory extends SinkFactory {
         builder.setSinkConfig(sinkConfig);
         List<FieldConfig> fieldList = sinkConfig.getColumn();
 
-        final RowType rowType = TableUtil.createRowType(fieldList, getRawTypeConverter());
+        final RowType rowType = TableUtil.createRowType(fieldList, getRawTypeMapper());
         builder.setRowConverter(
-                new CassandraColumnConverter(rowType, fieldList), useAbstractBaseColumn);
+                new CassandraSyncConverter(rowType, fieldList), useAbstractBaseColumn);
 
         return createOutput(dataSet, builder.finish());
     }

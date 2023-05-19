@@ -20,10 +20,10 @@ package com.dtstack.chunjun.connector.oceanbase.dialect;
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.chunjun.connector.oceanbase.converter.OceanbaseRawTypeConverter;
+import com.dtstack.chunjun.connector.oceanbase.converter.OceanbaseRawTypeMapper;
 import com.dtstack.chunjun.connector.oceanbase.converter.OceanbaseSyncConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -58,8 +58,8 @@ public class OceanbaseDialect implements JdbcDialect {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return OceanbaseRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeConverter() {
+        return OceanbaseRawTypeMapper::apply;
     }
 
     @Override

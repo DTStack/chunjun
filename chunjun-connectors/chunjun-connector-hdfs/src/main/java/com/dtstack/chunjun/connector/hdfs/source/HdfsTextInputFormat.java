@@ -40,6 +40,7 @@ import org.apache.hadoop.mapred.TextInputFormat;
 
 import java.io.IOException;
 import java.security.PrivilegedAction;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -63,11 +64,15 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
                 inputFormat.getSplits(hadoopJobConf, minNumSplits);
 
         if (splits != null) {
-            HdfsTextInputSplit[] hdfsTextInputSplits = new HdfsTextInputSplit[splits.length];
+            List<HdfsTextInputSplit> splitList = new ArrayList<>();
             for (int i = 0; i < splits.length; ++i) {
-                hdfsTextInputSplits[i] = new HdfsTextInputSplit(splits[i], i);
+                HdfsTextInputSplit split = new HdfsTextInputSplit(splits[i], i);
+                if (split.getTextSplit().getLength() == 0) {
+                    continue;
+                }
+                splitList.add(split);
             }
-            return hdfsTextInputSplits;
+            return splitList.toArray(new HdfsTextInputSplit[splitList.size()]);
         }
         return null;
     }
@@ -104,6 +109,7 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
                 super.inputFormat.getRecordReader(fileSplit, super.hadoopJobConf, Reporter.NULL);
         super.key = new LongWritable();
         super.value = new Text();
+        super.currentReadFilePath = ((FileSplit) fileSplit).getPath().toString();
     }
 
     @Override

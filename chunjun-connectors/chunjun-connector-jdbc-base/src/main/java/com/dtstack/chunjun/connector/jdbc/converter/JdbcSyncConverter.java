@@ -29,10 +29,14 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
 import com.dtstack.chunjun.element.column.DoubleColumn;
 import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -52,6 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Time;
@@ -145,53 +150,39 @@ public class JdbcSyncConverter
             case BOOLEAN:
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
-                return val -> {
-                    if (val instanceof Boolean) {
-                        return new BigDecimalColumn(
-                                (Boolean) val ? BigDecimal.ONE : BigDecimal.ZERO);
-                    }
-                    return new BigDecimalColumn(((Integer) val).byteValue());
-                };
+                return val -> new ByteColumn((Byte) val);
             case SMALLINT:
+                return val -> new ShortColumn((Short) val);
             case INTEGER:
-                return val -> new BigDecimalColumn((Integer) val);
+                return val -> new IntColumn((Integer) val);
             case INTERVAL_YEAR_MONTH:
-                return (IDeserializationConverter<Object, AbstractBaseColumn>)
-                        val -> {
-                            YearMonthIntervalType yearMonthIntervalType =
-                                    (YearMonthIntervalType) type;
-                            switch (yearMonthIntervalType.getResolution()) {
-                                case YEAR:
-                                    return new BigDecimalColumn(
-                                            Integer.parseInt(String.valueOf(val).substring(0, 4)));
-                                case MONTH:
-                                case YEAR_TO_MONTH:
-                                default:
-                                    throw new UnsupportedOperationException(
-                                            "jdbc converter only support YEAR");
-                            }
-                        };
+                return getYearMonthDeserialization((YearMonthIntervalType) type);
             case FLOAT:
-                return val -> new FloatColumn(new BigDecimal(val.toString()).floatValue());
+                return val -> new FloatColumn((Float) val);
             case DOUBLE:
-                return val -> new DoubleColumn(new BigDecimal(val.toString()).doubleValue());
+                return val -> new DoubleColumn((Double) val);
             case BIGINT:
-                return val -> new BigDecimalColumn((new BigDecimal(val.toString()).longValue()));
+                return val -> new LongColumn((Long) val);
             case DECIMAL:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()));
+                return val -> {
+                    if (val instanceof BigInteger) {
+                        return new BigDecimalColumn((BigInteger) val);
+                    }
+                    return new BigDecimalColumn((BigDecimal) val);
+                };
             case CHAR:
             case VARCHAR:
-                return val -> new StringColumn(val.toString());
+                return val -> new StringColumn((String) val);
             case DATE:
                 return val -> new SqlDateColumn((Date) val);
             case TIME_WITHOUT_TIME_ZONE:
                 return val -> new TimeColumn((Time) val);
             case TIMESTAMP_WITH_TIME_ZONE:
+                return getZonedTimestampDeserialization((ZonedTimestampType) type);
             case TIMESTAMP_WITHOUT_TIME_ZONE:
+                int precision = ((TimestampType) (type)).getPrecision();
                 return (IDeserializationConverter<Object, AbstractBaseColumn>)
-                        val ->
-                                new TimestampColumn(
-                                        (Timestamp) val, ((TimestampType) (type)).getPrecision());
+                        val -> new TimestampColumn((Timestamp) val, precision);
 
             case BINARY:
             case VARBINARY:
@@ -213,17 +204,10 @@ public class JdbcSyncConverter
                 return (val, index, statement) -> statement.setByte(index, val.getByte(index));
             case SMALLINT:
             case INTEGER:
+                return (val, index, statement) ->
+                        statement.setInt(index, ((ColumnRowData) val).getField(index).asInt());
             case INTERVAL_YEAR_MONTH:
-                return (val, index, statement) -> {
-                    int a = 0;
-                    try {
-                        a = ((ColumnRowData) val).getField(index).asYearInt();
-                    } catch (Exception e) {
-                        log.error("val {}, index{}", val, index, e);
-                    }
-
-                    statement.setInt(index, a);
-                };
+                return getYearMonthSerialization((YearMonthIntervalType) type);
             case FLOAT:
                 return (val, index, statement) ->
                         statement.setFloat(index, ((ColumnRowData) val).getField(index).asFloat());
@@ -251,11 +235,11 @@ public class JdbcSyncConverter
                 return (val, index, statement) ->
                         statement.setTime(index, ((ColumnRowData) val).getField(index).asTime());
             case TIMESTAMP_WITH_TIME_ZONE:
+                return getZonedTimestampSerialization();
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTimestamp(
                                 index, ((ColumnRowData) val).getField(index).asTimestamp());
-
             case BINARY:
             case VARBINARY:
                 return (val, index, statement) ->

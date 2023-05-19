@@ -21,10 +21,10 @@ package com.dtstack.chunjun.connector.hive3.sink;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
-import com.dtstack.chunjun.connector.hive3.converter.HdfsRawTypeConverter;
+import com.dtstack.chunjun.connector.hive3.converter.HdfsRawTypeMapper;
 import com.dtstack.chunjun.connector.hive3.util.Hive3Util;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 
@@ -57,8 +57,8 @@ public class Hive3SinkFactory extends SinkFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return HdfsRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return HdfsRawTypeMapper::apply;
     }
 
     @Override
@@ -71,7 +71,7 @@ public class Hive3SinkFactory extends SinkFactory {
                         useAbstractBaseColumn,
                         hdfsConfig.getFileType(),
                         hdfsConfig.getColumn(),
-                        getRawTypeConverter(),
+                        getRawTypeMapper(),
                         hdfsConfig);
 
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
@@ -98,7 +98,7 @@ public class Hive3SinkFactory extends SinkFactory {
             for (; j < fieldConfList.size(); j++) {
                 FieldConfig fieldConfig = fieldConfList.get(j);
                 if (columnName.equalsIgnoreCase(fieldConfig.getName())) {
-                    fullColumnTypeList.add(fieldConfig.getType());
+                    fullColumnTypeList.add(fieldConfig.getType().getType());
                     break;
                 }
             }

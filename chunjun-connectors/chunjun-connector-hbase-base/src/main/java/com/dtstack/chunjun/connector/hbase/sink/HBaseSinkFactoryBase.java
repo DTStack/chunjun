@@ -22,11 +22,11 @@ import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
-import com.dtstack.chunjun.connector.hbase.converter.HBaseColumnConverter;
 import com.dtstack.chunjun.connector.hbase.converter.HBaseFlatRowConverter;
-import com.dtstack.chunjun.connector.hbase.converter.HBaseRawTypeConverter;
+import com.dtstack.chunjun.connector.hbase.converter.HBaseRawTypeMapper;
+import com.dtstack.chunjun.connector.hbase.converter.HBaseSyncConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -88,18 +88,18 @@ public class HBaseSinkFactoryBase extends SinkFactory {
         builder.setWriteBufferSize(hBaseConfig.getWriteBufferSize());
         // if you use transform, use HBaseFlatRowConverter
         final RowType rowType =
-                TableUtil.createRowType(hBaseConfig.getColumn(), getRawTypeConverter());
+                TableUtil.createRowType(hBaseConfig.getColumn(), getRawTypeMapper());
         AbstractRowConverter<?, ?, ?, ?> rowConverter =
                 useAbstractBaseColumn
-                        ? new HBaseColumnConverter(hBaseConfig, rowType)
+                        ? new HBaseSyncConverter(hBaseConfig, rowType)
                         : new HBaseFlatRowConverter(hBaseConfig, rowType);
         builder.setRowConverter(rowConverter);
         return createOutput(dataSet, builder.finish());
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return HBaseRawTypeConverter.INSTANCE;
+    public RawTypeMapper getRawTypeMapper() {
+        return HBaseRawTypeMapper.INSTANCE;
     }
 
     /** Compatible with old formats */
@@ -138,10 +138,10 @@ public class HBaseSinkFactoryBase extends SinkFactory {
     HBaseTableSchema buildHBaseTableSchema(String tableName, List<FieldConfig> FieldConfigList) {
         HBaseTableSchema hbaseSchema = new HBaseTableSchema();
         hbaseSchema.setTableName(tableName);
-        RawTypeConverter rawTypeConverter = getRawTypeConverter();
+        RawTypeMapper rawTypeMapper = getRawTypeMapper();
         for (FieldConfig config : FieldConfigList) {
             String fieldName = config.getName();
-            DataType dataType = rawTypeConverter.apply(config.getType());
+            DataType dataType = rawTypeMapper.apply(config.getType());
             if ("rowkey".equalsIgnoreCase(fieldName)) {
                 hbaseSchema.setRowKey(fieldName, dataType);
             } else if (fieldName.contains(":")) {

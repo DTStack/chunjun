@@ -19,10 +19,10 @@
 package com.dtstack.chunjun.connector.doris.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
-import com.dtstack.chunjun.connector.doris.converter.DorisRowTypeConverter;
+import com.dtstack.chunjun.connector.doris.converter.DorisRawTypeMapper;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -33,7 +33,7 @@ public class DorisSourceFactory extends JdbcSourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return DorisRowTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return DorisRawTypeMapper::apply;
     }
 }

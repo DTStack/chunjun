@@ -25,7 +25,7 @@ import com.dtstack.chunjun.connector.kafka.converter.KafkaSyncConverter;
 import com.dtstack.chunjun.connector.kafka.enums.StartupMode;
 import com.dtstack.chunjun.connector.kafka.partitioner.CustomerFlinkPartition;
 import com.dtstack.chunjun.connector.kafka.serialization.RowSerializationSchema;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 
@@ -139,7 +139,7 @@ public class KafkaSinkFactory extends SinkFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return KafkaRawTypeMapping::apply;
     }
 }

@@ -48,7 +48,7 @@ public class FieldConfigTest {
     public void toStringWhenAllFieldsAreNotNull() {
         FieldConfig fieldConfig = new FieldConfig();
         fieldConfig.setName("name");
-        fieldConfig.setType("type");
+        fieldConfig.setType(TypeConfig.of("type"));
         fieldConfig.setIndex(1);
         fieldConfig.setValue("value");
         fieldConfig.setFormat("format");
@@ -56,7 +56,6 @@ public class FieldConfigTest {
         fieldConfig.setSplitter("splitter");
         fieldConfig.setIsPart(true);
         fieldConfig.setNotNull(true);
-        fieldConfig.setLength(1);
 
         String expected =
                 "FieldConfig[name='name', type='type', index=1, value='value', format='format', parseFormat='parseFormat', splitter='splitter', isPart=true, notNull=true, length=1]";
@@ -92,7 +91,6 @@ public class FieldConfigTest {
         assertEquals(fieldConfig.getSplitter(), "splitter");
         assertTrue(fieldConfig.getIsPart());
         assertTrue(fieldConfig.getNotNull());
-        assertEquals(fieldConfig.getLength(), Integer.valueOf(1));
     }
 
     /** Should return a FieldConfig object when the map is empty */
@@ -182,14 +180,6 @@ public class FieldConfigTest {
         assertFalse(fieldConfig.getNotNull());
     }
 
-    /** Should return the length of the field */
-    @Test
-    public void getLengthShouldReturnTheLengthOfTheField() {
-        FieldConfig fieldConfig = new FieldConfig();
-        fieldConfig.setLength(10);
-        assertEquals(10, (long) fieldConfig.getLength());
-    }
-
     /** Should return true when the field is part */
     @Test
     public void getPartWhenFieldIsPart() {
@@ -258,8 +248,8 @@ public class FieldConfigTest {
     @Test
     public void getTypeWhenTypeIsNotNull() {
         FieldConfig fieldConfig = new FieldConfig();
-        fieldConfig.setType("type");
-        assertEquals("type", fieldConfig.getType());
+        fieldConfig.setType(TypeConfig.fromString("TYPE"));
+        assertEquals("TYPE", fieldConfig.getType().getType());
     }
 
     /** Should return null when the type is null */
