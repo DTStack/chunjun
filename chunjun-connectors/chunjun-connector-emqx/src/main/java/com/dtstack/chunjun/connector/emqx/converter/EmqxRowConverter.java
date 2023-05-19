@@ -54,6 +54,11 @@ public class EmqxRowConverter
 
     @Override
     public MqttMessage toExternal(RowData rowData, MqttMessage output) {
+      try {
+            valueSerialization.open(null);
+           } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         final byte[] valueSerialized = valueSerialization.serialize(rowData);
         output.setPayload(valueSerialized);
         return output;
