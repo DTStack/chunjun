@@ -19,7 +19,7 @@ package com.dtstack.chunjun.connector.hudi.converter;
 
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
-
+import com.dtstack.chunjun.config.TypeConfig;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.BinaryType;
@@ -27,8 +27,8 @@ import org.apache.flink.table.types.logical.BinaryType;
 import java.util.Locale;
 
 public class HudiRowDataMapping {
-    public static DataType apply(String type) throws UnsupportedTypeException {
-        type = type.toUpperCase(Locale.ENGLISH);
+    public static DataType apply(TypeConfig type) throws UnsupportedTypeException {
+        type = type.getType().toUpperCase(Locale.ENGLISH);
         int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
         int right = type.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
         String leftStr = type;
