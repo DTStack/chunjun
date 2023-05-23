@@ -22,7 +22,7 @@ import com.dtstack.chunjun.connector.sqlservercdc.entity.Lsn;
 import com.dtstack.chunjun.connector.sqlservercdc.entity.TxLogPosition;
 import com.dtstack.chunjun.connector.sqlservercdc.listener.SqlServerCdcListener;
 import com.dtstack.chunjun.connector.sqlservercdc.util.SqlServerCdcUtil;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
@@ -65,7 +65,7 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
 
     private volatile boolean running = false;
 
-    private AbstractCDCRowConverter rowConverter;
+    private AbstractCDCRawTypeMapper rowConverter;
 
     @Override
     protected void openInternal(InputSplit inputSplit) {
@@ -177,11 +177,11 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
         return logPosition;
     }
 
-    public AbstractCDCRowConverter getCdcRowConverter() {
+    public AbstractCDCRawTypeMapper getCdcRowConverter() {
         return rowConverter;
     }
 
-    public void setRowConverter(AbstractCDCRowConverter rowConverter) {
+    public void setRowConverter(AbstractCDCRawTypeMapper rowConverter) {
         this.rowConverter = rowConverter;
     }
 

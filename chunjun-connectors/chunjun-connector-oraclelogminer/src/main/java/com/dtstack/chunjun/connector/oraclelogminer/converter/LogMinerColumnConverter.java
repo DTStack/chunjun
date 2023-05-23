@@ -17,6 +17,7 @@
  */
 package com.dtstack.chunjun.connector.oraclelogminer.converter;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.EventRow;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.EventRowData;
@@ -24,9 +25,9 @@ import com.dtstack.chunjun.connector.oraclelogminer.entity.TableMetaData;
 import com.dtstack.chunjun.connector.oraclelogminer.listener.LogParser;
 import com.dtstack.chunjun.constants.CDCConstantValue;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
@@ -65,7 +66,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, String> {
+public class LogMinerColumnConverter extends AbstractCDCRawTypeMapper<EventRow, String> {
 
     private static final long serialVersionUID = -5819041803414698030L;
 
@@ -90,7 +91,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
                     }
 
                     @Override
-                    public RawTypeConverter getRawTypeConverter() {
+                    public RawTypeMapper getRawTypeConverter() {
                         return null;
                     }
 
@@ -197,7 +198,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
                         .map(EventRowData::getName)
                         .collect(Collectors.toCollection(HashSet::new))
                         .containsAll(metadata.getFieldList())) {
-            Pair<List<String>, List<String>> latestMetaData =
+            Pair<List<String>, List<TypeConfig>> latestMetaData =
                     defaultDialect.getTableMetaData(connection, schema, table, 120, null, null);
             this.converters =
                     Arrays.asList(
@@ -205,7 +206,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
                                     .map(
                                             x ->
                                                     wrapIntoNullableInternalConverter(
-                                                            createInternalConverter(x)))
+                                                            createInternalConverter(x.getType())))
                                     .toArray(IDeserializationConverter[]::new));
             metadata =
                     new TableMetaData(

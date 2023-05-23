@@ -140,7 +140,7 @@ public abstract class SourceFactory implements RawTypeConvertible {
         if (typeInformation == null) {
             typeInformation =
                     TableUtil.getTypeInformation(
-                            fieldList, getRawTypeConverter(), useAbstractBaseColumn);
+                            fieldList, getRawTypeMapper(), useAbstractBaseColumn);
         }
         return typeInformation;
     }

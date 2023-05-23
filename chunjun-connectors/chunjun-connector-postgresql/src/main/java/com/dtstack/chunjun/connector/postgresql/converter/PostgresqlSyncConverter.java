@@ -22,6 +22,15 @@ package com.dtstack.chunjun.connector.postgresql.converter;
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcSyncConverter;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.chunjun.connector.postgresql.converter.logical.BitType;
+import com.dtstack.chunjun.connector.postgresql.converter.logical.JsonType;
+import com.dtstack.chunjun.connector.postgresql.converter.logical.JsonbType;
+import com.dtstack.chunjun.connector.postgresql.converter.logical.MoneyType;
+import com.dtstack.chunjun.connector.postgresql.converter.logical.PgCustomType;
+import com.dtstack.chunjun.connector.postgresql.converter.logical.PointType;
+import com.dtstack.chunjun.connector.postgresql.converter.logical.UuidType;
+import com.dtstack.chunjun.connector.postgresql.converter.logical.VarbitType;
+import com.dtstack.chunjun.connector.postgresql.converter.logical.XmlType;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
@@ -31,77 +40,48 @@ import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
 import com.dtstack.chunjun.element.column.DoubleColumn;
 import com.dtstack.chunjun.element.column.FloatColumn;
-import com.dtstack.chunjun.element.column.SqlArrayColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
+import com.dtstack.chunjun.element.column.YearMonthColumn;
+import com.dtstack.chunjun.util.DateUtil;
 
-import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.logical.YearMonthIntervalType;
 
 import org.postgresql.core.BaseConnection;
-import org.postgresql.core.Oid;
 import org.postgresql.jdbc.PgArray;
+import org.postgresql.jdbc.PgSQLXML;
+import org.postgresql.util.PGobject;
 
 import java.math.BigDecimal;
-import java.sql.Array;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
 public class PostgresqlSyncConverter extends JdbcSyncConverter {
 
     private static final long serialVersionUID = -5872074166105206892L;
 
-    private List<String> fieldTypeList;
     private transient BaseConnection connection;
-    private static final Map<String, Integer> arrayType = new HashMap<>();
 
     public PostgresqlSyncConverter(RowType rowType, CommonConfig commonConfig) {
         super(rowType, commonConfig);
-    }
-
-    static {
-        arrayType.put("_int4", Oid.INT4_ARRAY);
-        arrayType.put("_int8", Oid.INT8_ARRAY);
-        arrayType.put("_float4", Oid.FLOAT4_ARRAY);
-        arrayType.put("_text", Oid.TEXT_ARRAY);
-    }
-
-    @Override
-    public FieldNamedPreparedStatement toExternal(
-            RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
-        for (int index = 0; index < fieldTypes.length; index++) {
-            if (arrayType.containsKey(fieldTypeList.get(index))) {
-                // eg: {1000,1000,10001}、{{1000,1000,10001},{1,2,3}}
-                String field = ((ColumnRowData) rowData).getField(index).asString();
-                Array array =
-                        new PgArray(connection, arrayType.get(fieldTypeList.get(index)), field);
-                AbstractBaseColumn arrayColumn = new SqlArrayColumn(array);
-                ((ColumnRowData) rowData).setField(index, arrayColumn);
-            }
-            toExternalConverters.get(index).serialize(rowData, index, statement);
-        }
-        return statement;
     }
 
     @Override
     protected IDeserializationConverter createInternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
             case BOOLEAN:
-                return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
-            case TINYINT:
-                return val -> new BigDecimalColumn(((Integer) val).byteValue());
-            case SMALLINT:
+                return val -> new BooleanColumn((Boolean) val);
             case INTEGER:
-                return val -> new BigDecimalColumn((Integer) val);
+                return val -> new IntColumn((Integer) val);
             case INTERVAL_YEAR_MONTH:
                 return (IDeserializationConverter<Object, AbstractBaseColumn>)
                         val -> {
@@ -109,7 +89,7 @@ public class PostgresqlSyncConverter extends JdbcSyncConverter {
                                     (YearMonthIntervalType) type;
                             switch (yearMonthIntervalType.getResolution()) {
                                 case YEAR:
-                                    return new BigDecimalColumn(
+                                    return new YearMonthColumn(
                                             Integer.parseInt(String.valueOf(val).substring(0, 4)));
                                 case MONTH:
                                 case YEAR_TO_MONTH:
@@ -123,12 +103,24 @@ public class PostgresqlSyncConverter extends JdbcSyncConverter {
             case DOUBLE:
                 return val -> new DoubleColumn((Double) val);
             case BIGINT:
-                return val -> new BigDecimalColumn((Long) val);
+                return val -> new LongColumn((Long) val);
             case DECIMAL:
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:
             case VARCHAR:
-                return val -> new StringColumn((String) val);
+                if (type instanceof PgCustomType && ((PgCustomType) type).isArray()) {
+                    return val -> new StringColumn(val.toString());
+                } else if (type instanceof JsonType
+                        || type instanceof JsonbType
+                        || type instanceof VarbitType
+                        || type instanceof PointType) {
+                    return val -> new StringColumn(((PGobject) val).getValue());
+                } else if (type instanceof UuidType) {
+                    return val -> new StringColumn(((UUID) val).toString());
+                } else if (type instanceof XmlType) {
+                    return val -> new StringColumn(((PgSQLXML) val).getString());
+                }
+                return val -> new StringColumn(val.toString());
             case DATE:
                 return val -> new SqlDateColumn((Date) val);
             case TIME_WITHOUT_TIME_ZONE:
@@ -136,17 +128,18 @@ public class PostgresqlSyncConverter extends JdbcSyncConverter {
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (IDeserializationConverter<Object, AbstractBaseColumn>)
-                        val ->
-                                new TimestampColumn(
-                                        (Timestamp) val, ((TimestampType) (type)).getPrecision());
+                        val -> {
+                            if (val instanceof PGobject) {
+                                return new TimestampColumn(
+                                        DateUtil.convertToTimestampWithZone(val.toString()), 0);
+                            }
 
+                            return new TimestampColumn(
+                                    (Timestamp) val, ((TimestampType) (type)).getPrecision());
+                        };
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
-            case ARRAY:
-                // integer[] -> {1000,1000,10001}
-                // integer[][]-> {{1000,1000,10001},{1,2,3}}
-                return val -> new StringColumn(((Array) val).toString());
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
@@ -157,24 +150,36 @@ public class PostgresqlSyncConverter extends JdbcSyncConverter {
             LogicalType type) {
         switch (type.getTypeRoot()) {
             case BOOLEAN:
+                PGobject pgObject = new PGobject();
+                pgObject.setType("bit");
+                if (type instanceof BitType) {
+                    return (val, index, statement) -> {
+                        pgObject.setValue(
+                                ((ColumnRowData) val).getField(index).asBoolean() ? "1" : "0");
+                        statement.setObject(index, pgObject);
+                    };
+                }
                 return (val, index, statement) ->
                         statement.setBoolean(
                                 index, ((ColumnRowData) val).getField(index).asBoolean());
-            case TINYINT:
-                return (val, index, statement) -> statement.setByte(index, val.getByte(index));
-            case SMALLINT:
             case INTEGER:
-            case INTERVAL_YEAR_MONTH:
                 return (val, index, statement) ->
-                        statement.setInt(index, ((ColumnRowData) val).getField(index).asYearInt());
+                        statement.setInt(index, ((ColumnRowData) val).getField(index).asInt());
             case FLOAT:
                 return (val, index, statement) ->
                         statement.setFloat(index, ((ColumnRowData) val).getField(index).asFloat());
             case DOUBLE:
+                if (type instanceof MoneyType) {
+                    PGobject pGobject = new PGobject();
+                    pGobject.setType("money");
+                    return (val, index, statement) -> {
+                        pGobject.setValue(((ColumnRowData) val).getField(index).asString());
+                        statement.setObject(index, pGobject);
+                    };
+                }
                 return (val, index, statement) ->
                         statement.setDouble(
                                 index, ((ColumnRowData) val).getField(index).asDouble());
-
             case BIGINT:
                 return (val, index, statement) ->
                         statement.setLong(index, ((ColumnRowData) val).getField(index).asLong());
@@ -184,6 +189,61 @@ public class PostgresqlSyncConverter extends JdbcSyncConverter {
                                 index, ((ColumnRowData) val).getField(index).asBigDecimal());
             case CHAR:
             case VARCHAR:
+                if (type instanceof PgCustomType && ((PgCustomType) type).isArray()) {
+                    final int oid = ((PgCustomType) type).getArrayOid();
+                    return (val, index, statement) ->
+                            statement.setArray(
+                                    index,
+                                    new PgArray(
+                                            connection,
+                                            oid,
+                                            (String)
+                                                    ((ColumnRowData) val)
+                                                            .getField(index)
+                                                            .getData()));
+                } else if (type instanceof JsonType) {
+                    PGobject jsonObject = new PGobject();
+                    jsonObject.setType("json");
+                    return (val, index, statement) -> {
+                        jsonObject.setValue(((ColumnRowData) val).getField(index).asString());
+                        statement.setObject(index, jsonObject);
+                    };
+                } else if (type instanceof JsonbType) {
+                    PGobject jsonObject = new PGobject();
+                    jsonObject.setType("jsonb");
+                    return (val, index, statement) -> {
+                        jsonObject.setValue(((ColumnRowData) val).getField(index).asString());
+                        statement.setObject(index, jsonObject);
+                    };
+                } else if (type instanceof VarbitType) {
+                    PGobject jsonObject = new PGobject();
+                    jsonObject.setType("varbit");
+                    return (val, index, statement) -> {
+                        jsonObject.setValue(((ColumnRowData) val).getField(index).asString());
+                        statement.setObject(index, jsonObject);
+                    };
+                } else if (type instanceof XmlType) {
+                    PGobject jsonObject = new PGobject();
+                    jsonObject.setType("xml");
+                    return (val, index, statement) -> {
+                        jsonObject.setValue(((ColumnRowData) val).getField(index).asString());
+                        statement.setObject(index, jsonObject);
+                    };
+                } else if (type instanceof UuidType) {
+                    PGobject jsonObject = new PGobject();
+                    jsonObject.setType("uuid");
+                    return (val, index, statement) -> {
+                        jsonObject.setValue(((ColumnRowData) val).getField(index).asString());
+                        statement.setObject(index, jsonObject);
+                    };
+                } else if (type instanceof PointType) {
+                    PGobject jsonObject = new PGobject();
+                    jsonObject.setType("point");
+                    return (val, index, statement) -> {
+                        jsonObject.setValue(((ColumnRowData) val).getField(index).asString());
+                        statement.setObject(index, jsonObject);
+                    };
+                }
                 return (val, index, statement) ->
                         statement.setString(
                                 index, ((ColumnRowData) val).getField(index).asString());
@@ -203,17 +263,9 @@ public class PostgresqlSyncConverter extends JdbcSyncConverter {
             case VARBINARY:
                 return (val, index, statement) ->
                         statement.setBytes(index, ((ColumnRowData) val).getField(index).asBytes());
-            case ARRAY:
-                return (val, index, statement) ->
-                        statement.setArray(
-                                index, (Array) ((ColumnRowData) val).getField(index).getData());
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
-    }
-
-    public void setFieldTypeList(List<String> fieldTypeList) {
-        this.fieldTypeList = fieldTypeList;
     }
 
     public void setConnection(BaseConnection connection) {

@@ -18,6 +18,8 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.entity;
 
+import com.dtstack.chunjun.config.TypeConfig;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
@@ -33,5 +35,5 @@ public class TableMetaData {
     private final String tableName;
     private final List<String> fieldList;
     /** field type * */
-    private final List<String> typeList;
+    private final List<TypeConfig> typeList;
 }

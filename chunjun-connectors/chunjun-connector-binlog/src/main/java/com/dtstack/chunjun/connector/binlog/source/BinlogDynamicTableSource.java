@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.binlog.source;
 
 import com.dtstack.chunjun.connector.binlog.config.BinlogConfig;
-import com.dtstack.chunjun.connector.binlog.converter.BinlogRowConverter;
+import com.dtstack.chunjun.connector.binlog.converter.BinlogSqlConverter;
 import com.dtstack.chunjun.connector.binlog.format.TimestampFormat;
 import com.dtstack.chunjun.connector.binlog.inputformat.BinlogInputFormatBuilder;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
@@ -59,7 +59,7 @@ public class BinlogDynamicTableSource implements ScanTableSource {
         BinlogInputFormatBuilder builder = new BinlogInputFormatBuilder();
         builder.setBinlogConf(binlogConfig);
         builder.setRowConverter(
-                new BinlogRowConverter(
+                new BinlogSqlConverter(
                         InternalTypeInfo.of(dataType.getLogicalType()).toRowType(),
                         this.timestampFormat));
 

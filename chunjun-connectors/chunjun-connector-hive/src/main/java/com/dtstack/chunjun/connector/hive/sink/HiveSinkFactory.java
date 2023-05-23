@@ -18,10 +18,10 @@
 package com.dtstack.chunjun.connector.hive.sink;
 
 import com.dtstack.chunjun.config.SyncConfig;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsRawTypeConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsRawTypeMapper;
 import com.dtstack.chunjun.connector.hive.config.HiveConfig;
 import com.dtstack.chunjun.connector.hive.util.HiveUtil;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 
@@ -72,7 +72,7 @@ public class HiveSinkFactory extends SinkFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return HdfsRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return HdfsRawTypeMapper::apply;
     }
 }

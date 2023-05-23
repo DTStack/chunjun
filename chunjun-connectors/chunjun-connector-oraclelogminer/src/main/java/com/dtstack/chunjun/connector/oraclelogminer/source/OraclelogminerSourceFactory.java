@@ -21,11 +21,11 @@ package com.dtstack.chunjun.connector.oraclelogminer.source;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.oraclelogminer.config.LogMinerConfig;
 import com.dtstack.chunjun.connector.oraclelogminer.converter.LogMinerColumnConverter;
-import com.dtstack.chunjun.connector.oraclelogminer.converter.LogMinerRowConverter;
-import com.dtstack.chunjun.connector.oraclelogminer.converter.OracleRawTypeConverter;
+import com.dtstack.chunjun.connector.oraclelogminer.converter.LogMinerRawTypeMapper;
+import com.dtstack.chunjun.connector.oraclelogminer.converter.OracleRawTypeMapper;
 import com.dtstack.chunjun.connector.oraclelogminer.inputformat.OracleLogMinerInputFormatBuilder;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -65,22 +65,22 @@ public class OraclelogminerSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         OracleLogMinerInputFormatBuilder builder = new OracleLogMinerInputFormatBuilder();
         builder.setLogMinerConfig(logMinerConfig);
-        AbstractCDCRowConverter rowConverter;
+        AbstractCDCRawTypeMapper rowConverter;
         if (useAbstractBaseColumn) {
             rowConverter =
                     new LogMinerColumnConverter(
                             logMinerConfig.isPavingData(), logMinerConfig.isSplit());
         } else {
             final RowType rowType =
-                    TableUtil.createRowType(logMinerConfig.getColumn(), getRawTypeConverter());
-            rowConverter = new LogMinerRowConverter(rowType);
+                    TableUtil.createRowType(logMinerConfig.getColumn(), getRawTypeMapper());
+            rowConverter = new LogMinerRawTypeMapper(rowType);
         }
         builder.setRowConverter(rowConverter);
         return createInput(builder.finish());
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return OracleRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return OracleRawTypeMapper::apply;
     }
 }

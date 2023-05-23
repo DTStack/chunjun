@@ -58,10 +58,10 @@ public class Vertica11SyncConverter extends JdbcSyncConverter {
             case TINYINT:
             case SMALLINT:
             case INTEGER:
-            case DOUBLE:
             case BIGINT:
                 return val -> new BigDecimalColumn((Long) val);
             case FLOAT:
+            case DOUBLE:
             case DECIMAL:
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:

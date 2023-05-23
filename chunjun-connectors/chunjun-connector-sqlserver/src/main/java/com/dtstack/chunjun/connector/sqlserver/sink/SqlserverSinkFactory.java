@@ -22,10 +22,10 @@ import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
-import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverJtdsRawTypeConverter;
-import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftRawTypeConverter;
+import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverJtdsRawTypeMapper;
+import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftRawTypeMapper;
 import com.dtstack.chunjun.connector.sqlserver.dialect.SqlserverDialect;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,11 +45,11 @@ public class SqlserverSinkFactory extends JdbcSinkFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         if (useJtdsDriver) {
-            return SqlserverJtdsRawTypeConverter::apply;
+            return SqlserverJtdsRawTypeMapper::apply;
         }
-        return SqlserverMicroSoftRawTypeConverter::apply;
+        return SqlserverMicroSoftRawTypeMapper::apply;
     }
 
     /** table字段有可能是[schema].[table]格式 需要转换为对应的schema 和 table 字段* */

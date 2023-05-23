@@ -36,6 +36,9 @@ public class ConstantValue {
     public static final String LEFT_PARENTHESIS_SYMBOL = "(";
     public static final String RIGHT_PARENTHESIS_SYMBOL = ")";
 
+    public static final String LESS_THAN_SIGN = "<";
+    public static final String GREATER_THAN_SIGN = ">";
+
     public static final String DATA_TYPE_UNSIGNED = "UNSIGNED";
     public static final String DATA_TYPE_UNSIGNED_LOWER = "unsigned";
 

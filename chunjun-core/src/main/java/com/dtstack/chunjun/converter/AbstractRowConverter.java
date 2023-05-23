@@ -23,6 +23,7 @@ import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.enums.ColumnType;
+import com.dtstack.chunjun.throwable.ChunJunException;
 import com.dtstack.chunjun.util.DateUtil;
 
 import org.apache.flink.table.data.RowData;
@@ -37,6 +38,7 @@ import java.sql.ResultSet;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.TimeZone;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
@@ -48,6 +50,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implements Serializable {
 
     private static final long serialVersionUID = -7797305256083360152L;
+    public static final TimeZone LOCAL_TZ = TimeZone.getDefault();
 
     protected RowType rowType;
     protected ArrayList<IDeserializationConverter> toInternalConverters;
@@ -97,7 +100,11 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
                     return IDeserializationConverter.deserialize(val);
                 } catch (Exception e) {
                     log.error("value [{}] convent failed ", val);
-                    throw e;
+                    String message =
+                            e.getMessage()
+                                    + "; "
+                                    + String.format("value [%s] convent failed ", val);
+                    throw new ChunJunException(message);
                 }
             }
         };
@@ -115,7 +122,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
         String format = fieldConfig.getFormat();
         String parseFormat = fieldConfig.getParseFormat();
         if (StringUtils.isNotBlank(fieldConfig.getValue())) {
-            String type = fieldConfig.getType();
+            String type = fieldConfig.getType().getType();
             if ((ColumnType.isStringType(type) || ColumnType.isTimeType(type))
                     && StringUtils.isNotBlank(format)) {
                 SimpleDateFormat parseDateFormat = null;

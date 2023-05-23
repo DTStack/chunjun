@@ -76,6 +76,7 @@
 		<module>chunjun-connector-hive3</module>
 		<module>chunjun-connector-iceberg</module>
 		<module>chunjun-connector-s3</module>
+		<module>chunjun-connector-hudi</module>
 
 		<!--NoSql-->
 		<module>chunjun-connector-hbase-base</module>
@@ -105,7 +106,8 @@
 
 		<!-- nebula -->
 		<module>chunjun-connector-nebula</module>
-	</modules>
+        <module>chunjun-connector-kingbase</module>
+    </modules>
 
 	<dependencies>
 		<dependency>
@@ -135,6 +137,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-shade-plugin</artifactId>
+					<version>3.1.0</version>
 					<executions>
 						<execution>
 							<phase>package</phase>
@@ -142,6 +145,7 @@
 								<goal>shade</goal>
 							</goals>
 							<configuration>
+								<createDependencyReducedPom>false</createDependencyReducedPom>
 								<artifactSet>
 									<excludes>
 										<exclude>org.slf4j:slf4j-api</exclude>

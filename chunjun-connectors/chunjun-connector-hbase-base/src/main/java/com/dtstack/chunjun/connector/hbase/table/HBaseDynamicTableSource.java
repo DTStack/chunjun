@@ -19,7 +19,7 @@ package com.dtstack.chunjun.connector.hbase.table;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
-import com.dtstack.chunjun.connector.hbase.converter.HBaseRowConverter;
+import com.dtstack.chunjun.connector.hbase.converter.HBaseSqlConverter;
 import com.dtstack.chunjun.connector.hbase.source.HBaseInputFormatBuilder;
 import com.dtstack.chunjun.connector.hbase.table.lookup.HBaseAllTableFunction;
 import com.dtstack.chunjun.connector.hbase.table.lookup.HBaseLruTableFunction;
@@ -76,14 +76,14 @@ public class HBaseDynamicTableSource extends BaseHBaseDynamicTableSource {
         builder.setConfig(hBaseConfig);
         builder.setHbaseConfig(hBaseConfig.getHbaseConfig());
         // 投影下推后, hbaseSchema 会被过滤无用的字段，而 tableSchema 不变, 后面根据 hbaseSchema 生成 hbase scan
-        AbstractRowConverter rowConverter = new HBaseRowConverter(hbaseSchema, nullStringLiteral);
+        AbstractRowConverter rowConverter = new HBaseSqlConverter(hbaseSchema, nullStringLiteral);
         builder.setRowConverter(rowConverter);
         return builder;
     }
 
     @Override
     protected AbstractLruTableFunction getAbstractLruTableFunction() {
-        AbstractRowConverter rowConverter = new HBaseRowConverter(hbaseSchema, nullStringLiteral);
+        AbstractRowConverter rowConverter = new HBaseSqlConverter(hbaseSchema, nullStringLiteral);
         return new HBaseLruTableFunction(lookupConfig, hbaseSchema, hBaseConfig, rowConverter);
     }
 

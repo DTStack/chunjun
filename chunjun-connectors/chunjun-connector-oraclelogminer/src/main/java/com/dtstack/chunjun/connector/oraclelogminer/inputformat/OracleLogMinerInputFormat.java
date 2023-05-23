@@ -21,7 +21,7 @@ package com.dtstack.chunjun.connector.oraclelogminer.inputformat;
 import com.dtstack.chunjun.connector.oraclelogminer.config.LogMinerConfig;
 import com.dtstack.chunjun.connector.oraclelogminer.listener.LogMinerListener;
 import com.dtstack.chunjun.connector.oraclelogminer.listener.PositionManager;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 
@@ -42,7 +42,7 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
 
     private transient PositionManager positionManager;
 
-    private AbstractCDCRowConverter rowConverter;
+    private AbstractCDCRawTypeMapper rowConverter;
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int i) {
@@ -105,7 +105,7 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
         }
     }
 
-    public void setRowConverter(AbstractCDCRowConverter rowConverter) {
+    public void setRowConverter(AbstractCDCRawTypeMapper rowConverter) {
         this.rowConverter = rowConverter;
     }
 }

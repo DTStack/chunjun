@@ -76,4 +76,10 @@ public class HdfsOptions extends BaseFileOptions {
     private static boolean hasHadoopConfig(Map<String, String> tableOptions) {
         return tableOptions.keySet().stream().anyMatch((k) -> k.startsWith("properties."));
     }
+
+    public static final ConfigOption<String> SINK_COMMIT_FINISHED_FILE_NAME =
+            ConfigOptions.key("sink.commit.finished-file.name")
+                    .stringType()
+                    .defaultValue("")
+                    .withDescription("The file name for finished-file partition commit policy");
 }

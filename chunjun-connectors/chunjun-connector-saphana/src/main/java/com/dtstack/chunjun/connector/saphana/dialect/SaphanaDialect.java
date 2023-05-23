@@ -21,10 +21,10 @@ package com.dtstack.chunjun.connector.saphana.dialect;
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.chunjun.connector.saphana.converter.SaphanaRawTypeConverter;
+import com.dtstack.chunjun.connector.saphana.converter.SaphanaRawTypeMapper;
 import com.dtstack.chunjun.connector.saphana.converter.SaphanaSyncConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -53,13 +53,18 @@ public class SaphanaDialect implements JdbcDialect {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return SaphanaRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeConverter() {
+        return SaphanaRawTypeMapper::apply;
     }
 
     @Override
     public Optional<String> defaultDriverName() {
         return Optional.of("com.sap.db.jdbc.Driver");
+    }
+
+    @Override
+    public boolean supportUpsert() {
+        return true;
     }
 
     @Override

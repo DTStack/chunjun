@@ -37,6 +37,7 @@ public class BytesColumnSerializer extends TypeSerializerSingleton<AbstractBaseC
     /** Sharable instance of the BytesColumnSerializer. */
     public static final BytesColumnSerializer INSTANCE = new BytesColumnSerializer();
 
+    private static final NullColumn REUSE_NULL = new NullColumn();
     private static final BytesColumn EMPTY = new BytesColumn(new byte[0]);
 
     @Override
@@ -73,10 +74,9 @@ public class BytesColumnSerializer extends TypeSerializerSingleton<AbstractBaseC
     @Override
     public void serialize(AbstractBaseColumn record, DataOutputView target) throws IOException {
         if (record == null || record instanceof NullColumn) {
-            target.writeBoolean(false);
+            target.writeInt(-1);
         } else {
-            target.writeBoolean(true);
-            byte[] bytes = record.asBytes();
+            byte[] bytes = (byte[]) record.getData();
             target.writeInt(bytes.length);
             target.write(bytes);
         }
@@ -84,14 +84,13 @@ public class BytesColumnSerializer extends TypeSerializerSingleton<AbstractBaseC
 
     @Override
     public AbstractBaseColumn deserialize(DataInputView source) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        if (isNotNull) {
-            final int len = source.readInt();
+        int len = source.readInt();
+        if (len == -1) {
+            return REUSE_NULL;
+        } else {
             byte[] result = new byte[len];
             source.readFully(result);
             return BytesColumn.from(result);
-        } else {
-            return new NullColumn();
         }
     }
 
@@ -103,14 +102,10 @@ public class BytesColumnSerializer extends TypeSerializerSingleton<AbstractBaseC
 
     @Override
     public void copy(DataInputView source, DataOutputView target) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        target.writeBoolean(isNotNull);
-        if (isNotNull) {
-            int len = source.readInt();
-            byte[] result = new byte[len];
-            source.readFully(result);
-            target.writeInt(len);
-            target.write(result);
+        int len = source.readInt();
+        target.writeInt(len);
+        if (len != -1) {
+            target.write(source, len);
         }
     }
 

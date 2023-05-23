@@ -27,7 +27,7 @@ import com.dtstack.chunjun.connector.oraclelogminer.entity.ColumnInfo;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.QueueData;
 import com.dtstack.chunjun.connector.oraclelogminer.util.OraUtil;
 import com.dtstack.chunjun.connector.oraclelogminer.util.SqlUtil;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.ErrorMsgRowData;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -78,7 +78,7 @@ public class LogMinerListener implements Runnable {
 
     private final LogMinerConfig logMinerConfig;
     private final PositionManager positionManager;
-    private final AbstractCDCRowConverter rowConverter;
+    private final AbstractCDCRawTypeMapper rowConverter;
     private final LogMinerHelper logMinerHelper;
     private BlockingQueue<QueueData> queue;
     private ExecutorService executor;
@@ -91,7 +91,7 @@ public class LogMinerListener implements Runnable {
     public LogMinerListener(
             LogMinerConfig logMinerConfig,
             PositionManager positionManager,
-            AbstractCDCRowConverter rowConverter) {
+            AbstractCDCRawTypeMapper rowConverter) {
         this.positionManager = positionManager;
         this.logMinerConfig = logMinerConfig;
         this.listener = this;

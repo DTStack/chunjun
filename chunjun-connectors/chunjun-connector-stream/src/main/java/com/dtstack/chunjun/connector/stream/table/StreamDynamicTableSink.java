@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.stream.table;
 
 import com.dtstack.chunjun.connector.stream.config.StreamConfig;
-import com.dtstack.chunjun.connector.stream.converter.StreamRowConverter;
+import com.dtstack.chunjun.connector.stream.converter.StreamSqlConverter;
 import com.dtstack.chunjun.connector.stream.sink.StreamOutputFormatBuilder;
 import com.dtstack.chunjun.connector.stream.util.StreamConfigUtil;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
@@ -57,7 +57,7 @@ public class StreamDynamicTableSink implements DynamicTableSink {
 
         StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
         builder.setStreamConfig(streamConfig);
-        builder.setRowConverter(new StreamRowConverter(typeInformation.toRowType()));
+        builder.setRowConverter(new StreamSqlConverter(typeInformation.toRowType()));
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction<>(builder.finish()), streamConfig.getParallelism());

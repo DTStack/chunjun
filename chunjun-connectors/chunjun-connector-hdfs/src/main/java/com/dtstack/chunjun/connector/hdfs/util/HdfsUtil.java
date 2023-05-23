@@ -19,15 +19,15 @@ package com.dtstack.chunjun.connector.hdfs.util;
 
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcColumnConverter;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcRowConverter;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetColumnConverter;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetRowConverter;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsTextColumnConverter;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsTextRowConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcSqlConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcSyncConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetSqlConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetSyncConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsTextSqlConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsTextSyncConverter;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.util.TableUtil;
 
@@ -318,31 +318,31 @@ public class HdfsUtil {
             boolean useAbstractBaseColumn,
             String fileType,
             List<FieldConfig> fieldConfList,
-            RawTypeConverter converter,
+            RawTypeMapper converter,
             HdfsConfig hdfsConfig) {
         AbstractRowConverter rowConverter;
         if (useAbstractBaseColumn) {
             switch (FileType.getByName(fileType)) {
                 case ORC:
-                    rowConverter = new HdfsOrcColumnConverter(fieldConfList, hdfsConfig);
+                    rowConverter = new HdfsOrcSyncConverter(fieldConfList, hdfsConfig);
                     break;
                 case PARQUET:
-                    rowConverter = new HdfsParquetColumnConverter(fieldConfList, hdfsConfig);
+                    rowConverter = new HdfsParquetSyncConverter(fieldConfList, hdfsConfig);
                     break;
                 default:
-                    rowConverter = new HdfsTextColumnConverter(fieldConfList, hdfsConfig);
+                    rowConverter = new HdfsTextSyncConverter(fieldConfList, hdfsConfig);
             }
         } else {
             RowType rowType = TableUtil.createRowType(fieldConfList, converter);
             switch (FileType.getByName(fileType)) {
                 case ORC:
-                    rowConverter = new HdfsOrcRowConverter(rowType);
+                    rowConverter = new HdfsOrcSqlConverter(rowType);
                     break;
                 case PARQUET:
-                    rowConverter = new HdfsParquetRowConverter(rowType);
+                    rowConverter = new HdfsParquetSqlConverter(rowType);
                     break;
                 default:
-                    rowConverter = new HdfsTextRowConverter(rowType);
+                    rowConverter = new HdfsTextSqlConverter(rowType);
             }
         }
         return rowConverter;

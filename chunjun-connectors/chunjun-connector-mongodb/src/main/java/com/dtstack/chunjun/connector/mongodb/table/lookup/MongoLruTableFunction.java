@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.mongodb.table.lookup;
 
 import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
-import com.dtstack.chunjun.connector.mongodb.converter.MongodbRowConverter;
+import com.dtstack.chunjun.connector.mongodb.converter.MongodbSqlConverter;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
 import com.dtstack.chunjun.lookup.config.LookupConfig;
 
@@ -60,7 +60,7 @@ public class MongoLruTableFunction extends AbstractLruTableFunction {
             RowType rowType,
             String[] keyNames,
             String[] fieldNames) {
-        super(lookupConfig, new MongodbRowConverter(rowType, fieldNames));
+        super(lookupConfig, new MongodbSqlConverter(rowType, fieldNames));
         this.mongoClientConfig = mongoClientConfig;
         this.keyNames = keyNames;
     }
@@ -88,7 +88,7 @@ public class MongoLruTableFunction extends AbstractLruTableFunction {
                 (document) -> {
                     RowData row = null;
                     try {
-                        row = ((MongodbRowConverter) rowConverter).toInternalLookup(document);
+                        row = ((MongodbSqlConverter) rowConverter).toInternalLookup(document);
                     } catch (Exception e) {
                         log.error("", e);
                     }
