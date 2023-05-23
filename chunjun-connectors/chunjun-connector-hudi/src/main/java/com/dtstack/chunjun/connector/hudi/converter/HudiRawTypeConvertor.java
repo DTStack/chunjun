@@ -50,7 +50,7 @@ public class HudiRawTypeConvertor extends AbstractRowConverter<RowData, RowData,
         this.fieldList = fieldList;
         this.toInternalConverters = new ArrayList<>();
         for (FieldConfig fieldConfig : fieldList) {
-            String type = fieldConfig.getType();
+            String type = fieldConfig.getType().getType();
             int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
             int right = type.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
             if (left > 0 && right > 0) {
