@@ -47,6 +47,7 @@ import com.dtstack.chunjun.util.DateUtil;
 import com.dtstack.chunjun.util.MapUtil;
 
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.CollectionUtil;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -80,8 +81,8 @@ public class KafkaSyncConverter
     /** kafka sink out fields */
     private List<String> outList;
 
-    public KafkaSyncConverter(KafkaConfig kafkaConfig, List<String> keyTypeList) {
-        super(null, kafkaConfig);
+    public KafkaSyncConverter(RowType rowType, KafkaConfig kafkaConfig, List<String> keyTypeList) {
+        super(rowType, kafkaConfig);
         this.kafkaConfig = kafkaConfig;
         this.outList = keyTypeList;
         if (DEFAULT_CODEC.defaultValue().equals(kafkaConfig.getCodec())) {
@@ -91,8 +92,8 @@ public class KafkaSyncConverter
         }
     }
 
-    public KafkaSyncConverter(KafkaConfig kafkaConfig) {
-        super(null, kafkaConfig);
+    public KafkaSyncConverter(RowType rowType, KafkaConfig kafkaConfig) {
+        super(rowType, kafkaConfig);
         this.commonConfig = this.kafkaConfig = kafkaConfig;
         if (DEFAULT_CODEC.defaultValue().equals(kafkaConfig.getCodec())) {
             this.decode = new JsonDecoder(kafkaConfig.isAddMessage());
