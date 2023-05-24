@@ -49,6 +49,9 @@ public class HiveInputFormat extends JdbcInputFormat {
         connectionInfo.setJdbcUrl(jdbcConfig.getJdbcUrl());
         connectionInfo.setUsername(jdbcConfig.getUsername());
         connectionInfo.setPassword(jdbcConfig.getPassword());
+        if (jdbcConfig.getQueryTimeOut() > 0) {
+            connectionInfo.setTimeout(jdbcConfig.getQueryTimeOut());
+        }
         this.currentJdbcInputSplit = (JdbcInputSplit) inputSplit;
         initMetric(currentJdbcInputSplit);
         if (!canReadData(currentJdbcInputSplit)) {
