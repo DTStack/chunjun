@@ -175,7 +175,7 @@ public class HiveDbUtil {
             ClassUtil.forName(
                     "org.apache.hive.jdbc.HiveDriver",
                     Thread.currentThread().getContextClassLoader());
-            return getHiveConnection(connectionInfo.getJdbcUrl(), prop);
+            return getHiveConnection(connectionInfo, prop);
         } catch (SQLException e) {
             if (SQLSTATE_USERNAME_PWD_ERROR.equals(e.getSQLState())) {
                 throw new RuntimeException("user name or password wrong.");
@@ -197,7 +197,9 @@ public class HiveDbUtil {
         }
     }
 
-    private static Connection getHiveConnection(String url, Properties prop) throws Exception {
+    private static Connection getHiveConnection(ConnectionInfo connectionInfo, Properties prop)
+            throws Exception {
+        String url = connectionInfo.getJdbcUrl();
         Matcher matcher = HIVE_JDBC_PATTERN.matcher(url);
         String db = null;
         String host = null;
@@ -213,6 +215,7 @@ public class HiveDbUtil {
         if (StringUtils.isNotEmpty(host) && StringUtils.isNotEmpty(db)) {
             param = param == null ? "" : param;
             url = String.format("jdbc:hive2://%s:%s/%s", host, port, param);
+            DriverManager.setLoginTimeout(connectionInfo.getTimeout());
             Connection connection = DriverManager.getConnection(url, prop);
             if (StringUtils.isNotEmpty(db)) {
                 try (Statement statement = connection.createStatement()) {
