@@ -20,11 +20,15 @@ package com.dtstack.chunjun.config;
 import com.dtstack.chunjun.cdc.CdcConfig;
 import com.dtstack.chunjun.mapping.MappingConfig;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.io.Serializable;
 
-@Data
+@Getter
+@Setter
+@ToString
 public class ContentConfig implements Serializable {
 
     private static final long serialVersionUID = -4879980246136110446L;
@@ -37,6 +41,6 @@ public class ContentConfig implements Serializable {
 
     private MappingConfig nameMapping;
 
-    /** cdc restore conf */
+    /** cdc restore config */
     private CdcConfig restoration = new CdcConfig();
 }

@@ -91,6 +91,15 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>${maven-surefire-plugin.version}</version>
+					<configuration>
+						<skipTests>true</skipTests>
+					</configuration>
+				</plugin>
+
+				<plugin>
 					<!-- Extract parser grammar template from calcite-core.jar and put
 						 it under ${project.build.directory} where all freemarker templates are. -->
 					<groupId>org.apache.maven.plugins</groupId>

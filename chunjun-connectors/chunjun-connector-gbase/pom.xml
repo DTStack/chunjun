@@ -31,6 +31,11 @@
 	<artifactId>chunjun-connector-gbase</artifactId>
 	<name>ChunJun : Connectors : GBase</name>
 
+	<properties>
+		<connector.dir>gbase</connector.dir>
+		<driver.version>8.3.81.53</driver.version>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
@@ -43,6 +48,13 @@
 			<version>8.3.81.53</version>
 		</dependency>
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>icm</id>
+			<url>http://maven.icm.edu.pl/artifactory/repo/</url>
+		</repository>
+	</repositories>
 
 	<build>
 		<plugins>

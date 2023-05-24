@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -58,7 +59,7 @@ public class FieldConfigTest {
         fieldConfig.setNotNull(true);
 
         String expected =
-                "FieldConfig[name='name', type='type', index=1, value='value', format='format', parseFormat='parseFormat', splitter='splitter', isPart=true, notNull=true, length=1]";
+                "FieldConfig(name=name, scriptType=TypeConfig{type='TYPE', precision=null, scale=null}, index=1, value=value, format=format, parseFormat=parseFormat, splitter=splitter, isPart=true, notNull=true)";
 
         assertEquals(expected, fieldConfig.toString());
     }
@@ -83,7 +84,7 @@ public class FieldConfigTest {
         FieldConfig fieldConfig = FieldConfig.getField(map, 1);
 
         assertEquals(fieldConfig.getName(), "name");
-        assertEquals(fieldConfig.getType(), "type");
+        assertEquals(fieldConfig.getType().getType(), "type".toUpperCase(Locale.ROOT));
         assertEquals(fieldConfig.getIndex(), Integer.valueOf(1));
         assertEquals(fieldConfig.getValue(), "value");
         assertEquals(fieldConfig.getFormat(), "format");

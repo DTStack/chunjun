@@ -20,7 +20,9 @@ package com.dtstack.chunjun.config;
 import com.dtstack.chunjun.constants.ConfigConstant;
 import com.dtstack.chunjun.util.GsonUtil;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -30,7 +32,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-@Data
+@Getter
+@Setter
+@ToString(doNotUseGetters = true)
 public class OperatorConfig implements Serializable {
 
     private static final long serialVersionUID = 3226232793890188454L;

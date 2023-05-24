@@ -15,54 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.chunjun.connector.arctic.conf;
+package com.dtstack.chunjun.connector.arctic.config;
 
 import com.dtstack.chunjun.config.CommonConfig;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ArcticReaderConf extends CommonConfig {
+@ToString
+@Getter
+@Setter
+public class ArcticReaderConfig extends CommonConfig {
     private String path;
 
     private String defaultFS;
     private String fileType;
     private Map<String, Object> hadoopConfig = new HashMap<>(16);
-
-    public String getDefaultFS() {
-        return defaultFS;
-    }
-
-    public void setDefaultFS(String defaultFS) {
-        this.defaultFS = defaultFS;
-    }
-
-    public String getFileType() {
-        return fileType;
-    }
-
-    public void setFileType(String fileType) {
-        this.fileType = fileType;
-    }
-
-    public Map<String, Object> getHadoopConfig() {
-        return hadoopConfig;
-    }
-
-    public void setHadoopConfig(Map<String, Object> hadoopConfig) {
-        this.hadoopConfig = hadoopConfig;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    @Override
-    public String toString() {
-        return "IcebergReaderConf{" + "path='" + path + '\'' + '}';
-    }
 }

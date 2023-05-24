@@ -68,7 +68,6 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.reflect.Whitebox.setInternalState;
 
-/** @author liuliu 2022/8/22 */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
     DistributedJdbcInputFormat.class,

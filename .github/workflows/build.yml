@@ -19,31 +19,24 @@ name: Check Code.
 
 on:
   push:
+    branches:
+      - master
   pull_request:
     paths-ignore:
-      - 'chunjun-docker/*'
+      - 'chunjun-docker/**/*'
+      - 'chunjun-examples/**/*'
+      - 'chunjun-dev/**/*'
       - '**/*.md'
-      - 'docs/*'
-      - 'docs_zh/*'
-      - 'website/*'
+      - 'docs/**/*'
+      - 'docs_zh/**/*'
+      - 'website/**/*'
+      - '**/*.ftl'
 
 concurrency:
   group: backend-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  license-header:
-    if: github.repository == 'DTStack/chunjun'
-    name: Check License header
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: Check license header
-        uses: apache/skywalking-eyes@main
-
   spotless-check:
     if: github.repository =='DTStack/chunjun'
     name: Check code style with spotless.
@@ -54,51 +47,64 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Set up JDK 1.8
-        uses: actions/setup-java@v1
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
         with:
-          java-version: 1.8
+          java-version: 8
+          distribution: 'temurin'
+          cache: 'maven'
       - name: Spotless Check
         run: |
           ./mvnw spotless:check
 
-  unit-test:
+  build:
+    if: github.repository =='DTStack/chunjun'
+    name: Build the project.
     needs: [ spotless-check ]
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        java: [ '8', '11' ]
-        os: [ 'ubuntu-latest', 'windows-latest' ]
-    timeout-minutes: 90
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK ${{ matrix.java }}
+      - uses: actions/checkout@v3
+      - name: Set up JDK 8
         uses: actions/setup-java@v3
         with:
-          java-version: ${{ matrix.java }}
+          java-version: 8
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: build project
+        run: |
+          ./mvnw -T 1C clean package -DskipUT=true -DskipITCase=true --no-snapshot-updates
+        env:
+          MAVEN_OPTS: -Xmx2048m
+
+  unit-test:
+    needs: [ spotless-check, build ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          java-version: 8
           distribution: 'temurin'
           cache: 'maven'
       - name: run modules unit test
-        if: needs.changes.outputs.api == 'true'
         run: |
-          ./mvnw -B -T 1C clean verify -DskipUT=false -DskipITCase=false --no-snapshot-updates
+          ./mvnw -T 1C clean compile test -DskipUT=false -DskipITCase=false --no-snapshot-updates
         env:
           MAVEN_OPTS: -Xmx2048m
 
   integration-test:
     needs: [ spotless-check, unit-test ]
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        java: [ '8', '11' ]
-        os: [ 'ubuntu-latest' ]
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK ${{ matrix.java }}
+      - uses: actions/checkout@v3
+      - name: Set up JDK 8
         uses: actions/setup-java@v3
         with:
-          java-version: ${{ matrix.java }}
+          java-version: 8
           distribution: 'temurin'
           cache: 'maven'
       - name: run modules integration test

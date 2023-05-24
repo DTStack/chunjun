@@ -77,8 +77,8 @@ public class JdbcSyncConverterTest {
         ResultSet resultSet = mock(ResultSet.class);
         when(resultSet.getObject(1)).thenReturn(1);
         when(resultSet.getObject(2)).thenReturn(true);
-        when(resultSet.getObject(3)).thenReturn(1);
-        when(resultSet.getObject(4)).thenReturn(11);
+        when(resultSet.getObject(3)).thenReturn((byte) 1);
+        when(resultSet.getObject(4)).thenReturn((short) 11);
         when(resultSet.getObject(5)).thenReturn(12);
         when(resultSet.getObject(6)).thenReturn(13L);
         when(resultSet.getObject(7)).thenReturn(14.14f);
