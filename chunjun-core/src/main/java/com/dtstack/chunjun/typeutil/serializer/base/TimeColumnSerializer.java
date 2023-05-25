@@ -53,7 +53,7 @@ public class TimeColumnSerializer extends TypeSerializerSingleton<AbstractBaseCo
 
     @Override
     public AbstractBaseColumn copy(AbstractBaseColumn from) {
-        if (from instanceof NullColumn) {
+        if (from instanceof NullColumn || from == null) {
             return new NullColumn();
         }
         return TimeColumn.from(from.asTime());
