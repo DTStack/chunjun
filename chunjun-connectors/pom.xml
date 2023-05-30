@@ -68,6 +68,7 @@
 		<module>chunjun-connector-selectdb-cloud</module>
 
 		<!--File-->
+		<module>chunjun-connector-arctic</module>
 		<module>chunjun-connector-file</module>
 		<!--		<module>chunjun-connector-filesystem</module>-->
 		<module>chunjun-connector-ftp</module>
