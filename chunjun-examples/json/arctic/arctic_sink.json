@@ -1,0 +1,109 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "column": [
+              {
+                "name": "c_custkey",
+                "type": "int"
+              },
+              {
+                "name": "c_name",
+                "type": "string"
+              },
+              {
+                "name": "c_address",
+                "type": "string"
+              },
+              {
+                "name": "c_city",
+                "type": "string"
+              },
+              {
+                "name": "c_nation",
+                "type": "string"
+              },
+              {
+                "name": "c_region",
+                "type": "string"
+              },
+              {
+                "name": "c_phone",
+                "type": "string"
+              },
+              {
+                "name": "c_mktsegment",
+                "type": "string"
+              }
+            ],
+            "sliceRecordCount": [
+              "30"
+            ],
+            "permitsPerSecond": 1
+          },
+          "table": {
+            "tableName": "sourceTable"
+          },
+          "name": "streamreader"
+        },
+        "writer": {
+          "parameter": {
+            "amsUrl": "thrift://127.0.0.1:1631/hive_catalog",
+            "tableMode": "keyed",
+            "isOverWrite": "false",
+            "databaseName": "your_database",
+            "tableName": "your_table_name",
+            "column": [
+              {
+                "name": "c_custkey",
+                "type": "int"
+              },
+              {
+                "name": "c_name",
+                "type": "string"
+              },
+              {
+                "name": "c_address",
+                "type": "string"
+              },
+              {
+                "name": "c_city",
+                "type": "string"
+              },
+              {
+                "name": "c_nation",
+                "type": "string"
+              },
+              {
+                "name": "c_region",
+                "type": "string"
+              },
+              {
+                "name": "c_phone",
+                "type": "string"
+              },
+              {
+                "name": "c_mktsegment",
+                "type": "string"
+              }
+            ]
+          },
+          "name": "arcticwriter"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 100
+      },
+      "speed": {
+        "bytes": 0,
+        "channel": 1,
+        "readerChannel": 1,
+        "writerChannel": 1
+      }
+    }
+  }
+}
