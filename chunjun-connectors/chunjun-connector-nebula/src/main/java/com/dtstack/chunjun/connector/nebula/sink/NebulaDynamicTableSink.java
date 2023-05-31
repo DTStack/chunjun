@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.nebula.sink;
 
 import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
-import com.dtstack.chunjun.connector.nebula.converter.NebulaRowConverter;
+import com.dtstack.chunjun.connector.nebula.converter.NebulaSqlConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.table.catalog.ResolvedSchema;
@@ -61,7 +61,7 @@ public class NebulaDynamicTableSink implements DynamicTableSink {
                 InternalTypeInfo.of(tableSchema.toPhysicalRowDataType().getLogicalType())
                         .toRowType();
         builder.setNebulaConfig(nebulaConfig);
-        builder.setRowConverter(new NebulaRowConverter(rowType));
+        builder.setRowConverter(new NebulaSqlConverter(rowType));
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction<>(builder.finish()), nebulaConfig.getWriteTasks());
     }

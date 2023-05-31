@@ -21,9 +21,9 @@ package com.dtstack.chunjun.connector.selectdbcloud.sink;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.selectdbcloud.common.LoadConstants;
-import com.dtstack.chunjun.connector.selectdbcloud.converter.SelectdbcloudRowTypeConverter;
+import com.dtstack.chunjun.connector.selectdbcloud.converter.SelectdbcloudRawTypeMapper;
 import com.dtstack.chunjun.connector.selectdbcloud.options.SelectdbcloudConfig;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 
@@ -45,15 +45,15 @@ public class SelectdbcloudSinkFactory extends SinkFactory {
                 conf.getColumn().stream().map(FieldConfig::getName).toArray(String[]::new));
         conf.setFieldDataTypes(
                 conf.getColumn().stream()
-                        .map(t -> SelectdbcloudRowTypeConverter.apply(t.getType().toUpperCase()))
+                        .map(t -> SelectdbcloudRawTypeMapper.apply(t.getType()))
                         .toArray(DataType[]::new));
         setDefaults(conf);
         super.initCommonConf(conf);
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return SelectdbcloudRowTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return SelectdbcloudRawTypeMapper::apply;
     }
 
     @Override

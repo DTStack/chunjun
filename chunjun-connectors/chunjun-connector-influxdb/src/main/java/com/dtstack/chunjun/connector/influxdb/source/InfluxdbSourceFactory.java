@@ -21,8 +21,8 @@ package com.dtstack.chunjun.connector.influxdb.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.influxdb.config.InfluxdbSourceConfig;
-import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbRawTypeConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbRawTypeMapper;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 
@@ -68,8 +68,8 @@ public class InfluxdbSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return InfluxdbRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return InfluxdbRawTypeMapper::apply;
     }
 
     @Override

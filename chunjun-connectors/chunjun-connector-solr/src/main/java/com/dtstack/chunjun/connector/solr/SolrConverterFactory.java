@@ -19,9 +19,10 @@
 package com.dtstack.chunjun.connector.solr;
 
 import com.dtstack.chunjun.config.FieldConfig;
-import com.dtstack.chunjun.connector.solr.converter.SolrColumnConverter;
-import com.dtstack.chunjun.connector.solr.converter.SolrRawTypeConverter;
-import com.dtstack.chunjun.connector.solr.converter.SolrRowConverter;
+import com.dtstack.chunjun.config.TypeConfig;
+import com.dtstack.chunjun.connector.solr.converter.SolrRawTypeMapper;
+import com.dtstack.chunjun.connector.solr.converter.SolrSqlConverter;
+import com.dtstack.chunjun.connector.solr.converter.SolrSyncConverter;
 import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.table.types.logical.RowType;
@@ -36,21 +37,21 @@ public class SolrConverterFactory {
 
     public SolrConverterFactory(SolrConfig solrConfig) {
         fieldNames = new ArrayList<>();
-        List<String> fieldTypes = new ArrayList<>();
+        List<TypeConfig> fieldTypes = new ArrayList<>();
         List<FieldConfig> fields = solrConfig.getColumn();
         for (FieldConfig field : fields) {
             fieldNames.add(field.getName());
             fieldTypes.add(field.getType());
         }
 
-        rowType = TableUtil.createRowType(fieldNames, fieldTypes, SolrRawTypeConverter::apply);
+        rowType = TableUtil.createRowType(fieldNames, fieldTypes, SolrRawTypeMapper::apply);
     }
 
-    public SolrRowConverter createRowConverter() {
-        return new SolrRowConverter(rowType, fieldNames.toArray(new String[] {}));
+    public SolrSqlConverter createRowConverter() {
+        return new SolrSqlConverter(rowType, fieldNames.toArray(new String[] {}));
     }
 
-    public SolrColumnConverter createColumnConverter() {
-        return new SolrColumnConverter(rowType, fieldNames.toArray(new String[] {}));
+    public SolrSyncConverter createColumnConverter() {
+        return new SolrSyncConverter(rowType, fieldNames.toArray(new String[] {}));
     }
 }

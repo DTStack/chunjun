@@ -19,8 +19,9 @@
 package com.dtstack.chunjun.connector.hbase.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.hbase.util.HBaseTestUtil;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -58,8 +59,10 @@ public class HBaseSourceFactoryTest {
                 SyncConfig.parseJob(HBaseTestUtil.readFile("hbase_stream_with_transform.json"));
         HBaseSourceFactoryBase factory = new TestSourceFactory(conf, env);
 
-        RawTypeConverter converter = factory.getRawTypeConverter();
-        Assert.assertThrows(UnsupportedTypeException.class, () -> converter.apply("Test"));
+        RawTypeMapper converter = factory.getRawTypeMapper();
+        Assert.assertThrows(
+                UnsupportedTypeException.class,
+                () -> converter.apply(TypeConfig.fromString("Test")));
 
         when(env.addSource(any(), anyString(), any()))
                 .thenAnswer((Answer<DataStreamSource<RowData>>) answer -> stream);
@@ -72,8 +75,10 @@ public class HBaseSourceFactoryTest {
         SyncConfig conf = SyncConfig.parseJob(HBaseTestUtil.readFile("hbase_stream.json"));
         HBaseSourceFactoryBase factory = new TestSourceFactory(conf, env);
 
-        RawTypeConverter converter = factory.getRawTypeConverter();
-        Assert.assertThrows(UnsupportedTypeException.class, () -> converter.apply("Test"));
+        RawTypeMapper converter = factory.getRawTypeMapper();
+        Assert.assertThrows(
+                UnsupportedTypeException.class,
+                () -> converter.apply(TypeConfig.fromString("Test")));
 
         when(env.addSource(any(), anyString(), any()))
                 .thenAnswer((Answer<DataStreamSource<RowData>>) answer -> stream);

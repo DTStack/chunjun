@@ -33,5 +33,5 @@ public interface RawTypeConvertible {
     String NO_SUPPORT_MSG = " connector don't support to set raw type.";
 
     /** @return Connector RawTypeConverter for parse data type string. */
-    RawTypeConverter getRawTypeConverter();
+    RawTypeMapper getRawTypeMapper();
 }

@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.binlog.inputformat;
 import com.dtstack.chunjun.cdc.EventType;
 import com.dtstack.chunjun.connector.binlog.config.BinlogConfig;
 import com.dtstack.chunjun.connector.binlog.util.BinlogUtil;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.chunjun.util.ClassUtil;
@@ -53,11 +53,11 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogI
         this.format.setBinlogConfig(binlogConfig);
     }
 
-    public void setRowConverter(AbstractCDCRowConverter rowConverter) {
+    public void setRowConverter(AbstractCDCRawTypeMapper rowConverter) {
         setRowConverter(rowConverter, false);
     }
 
-    public void setRowConverter(AbstractCDCRowConverter rowConverter, boolean useAbstractColumn) {
+    public void setRowConverter(AbstractCDCRawTypeMapper rowConverter, boolean useAbstractColumn) {
         this.format.setCdcRowConverter(rowConverter);
         format.setUseAbstractColumn(useAbstractColumn);
     }

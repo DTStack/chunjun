@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.elasticsearch7.table;
 
-import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRowConverter;
+import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchSqlConverter;
 import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
 import com.dtstack.chunjun.connector.elasticsearch7.source.ElasticsearchInputFormatBuilder;
 import com.dtstack.chunjun.connector.elasticsearch7.table.lookup.ElasticsearchAllTableFunction;
@@ -81,7 +81,7 @@ public class ElasticsearchDynamicTableSource
 
         ElasticsearchInputFormatBuilder builder = new ElasticsearchInputFormatBuilder();
         builder.setRowConverter(
-                new ElasticsearchRowConverter(InternalTypeInfo.of(logicalType).toRowType()));
+                new ElasticsearchSqlConverter(InternalTypeInfo.of(logicalType).toRowType()));
         String[] fieldNames = physicalSchema.getColumnNames().toArray(new String[0]);
         elasticsearchConfig.setFieldNames(fieldNames);
         builder.setEsConf(elasticsearchConfig);
@@ -108,7 +108,7 @@ public class ElasticsearchDynamicTableSource
                             lookupConfig,
                             physicalSchema.getColumnNames().toArray(new String[0]),
                             keyNames,
-                            new ElasticsearchRowConverter(
+                            new ElasticsearchSqlConverter(
                                     InternalTypeInfo.of(logicalType).toRowType())),
                     lookupConfig.getParallelism());
         }
@@ -118,7 +118,7 @@ public class ElasticsearchDynamicTableSource
                         lookupConfig,
                         physicalSchema.getColumnNames().toArray(new String[0]),
                         keyNames,
-                        new ElasticsearchRowConverter(
+                        new ElasticsearchSqlConverter(
                                 InternalTypeInfo.of(logicalType).toRowType())),
                 lookupConfig.getParallelism());
     }

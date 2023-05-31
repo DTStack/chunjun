@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.redis.sink;
 
 import com.dtstack.chunjun.connector.redis.config.RedisConfig;
-import com.dtstack.chunjun.connector.redis.converter.RedisRowConverter;
+import com.dtstack.chunjun.connector.redis.converter.RedisSqlConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.table.catalog.ResolvedSchema;
@@ -59,7 +59,7 @@ public class RedisDynamicTableSink implements DynamicTableSink {
         redisConfig.setKeyIndexes(Lists.newArrayList(1));
         builder.setRedisConf(redisConfig);
         builder.setRowConverter(
-                new RedisRowConverter(InternalTypeInfo.of(logicalType).toRowType(), redisConfig));
+                new RedisSqlConverter(InternalTypeInfo.of(logicalType).toRowType(), redisConfig));
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction<>(builder.finish()), redisConfig.getParallelism());

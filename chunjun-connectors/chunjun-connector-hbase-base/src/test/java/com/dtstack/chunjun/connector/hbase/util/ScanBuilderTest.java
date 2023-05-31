@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.hbase.util;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 
 import org.apache.flink.table.api.DataTypes;
@@ -43,11 +44,11 @@ public class ScanBuilderTest {
 
         FieldConfig id = new FieldConfig();
         id.setName("stu.id");
-        id.setType("int");
+        id.setType(TypeConfig.fromString("int"));
 
         FieldConfig address = new FieldConfig();
         address.setName("msg.address");
-        address.setType("string");
+        address.setType(TypeConfig.fromString("string"));
 
         confList.add(id);
         confList.add(address);

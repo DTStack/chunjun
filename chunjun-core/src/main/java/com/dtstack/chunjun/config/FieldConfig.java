@@ -22,7 +22,7 @@ import com.dtstack.chunjun.util.GsonUtil;
 
 import lombok.Data;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -38,33 +38,22 @@ public class FieldConfig implements Serializable {
 
     /** 字段名称 */
     private String name;
-
     /** 字段类型 */
-    private String type;
-
+    private TypeConfig type;
     /** 字段索引 */
     private Integer index;
-
     /** 字段常量值 */
     private String value;
-
     /** 如果字段是时间字符串，可以指定时间的格式，将字段类型转为日期格式返回 */
     private String format;
-
     /** 与format字段组合使用，用于时间字符串格式转换 parseFormat->时间戳->format */
     private String parseFormat;
-
     /** 字段分隔符 */
     private String splitter;
-
     /** 是否为分区字段 */
     private Boolean isPart = false;
-
     /** 字段是否可空 */
     private Boolean notNull = false;
-
-    /** 字段长度 */
-    private Integer length;
 
     public static List<FieldConfig> getFieldList(List fieldList) {
         List<FieldConfig> list;
@@ -106,7 +95,7 @@ public class FieldConfig implements Serializable {
         field.setName(name != null ? String.valueOf(name) : null);
 
         Object type = map.get("type");
-        field.setType(type != null ? String.valueOf(type) : null);
+        field.setType(type == null ? null : TypeConfig.fromString(String.valueOf(type)));
 
         Object colIndex = map.get("index");
         if (Objects.nonNull(colIndex)) {
@@ -136,9 +125,6 @@ public class FieldConfig implements Serializable {
 
         Object notNull = map.get("notNull");
         field.setNotNull(notNull != null ? (Boolean) notNull : false);
-
-        Object length = map.get("length");
-        field.setLength(length != null ? (Integer) length : null);
 
         return field;
     }

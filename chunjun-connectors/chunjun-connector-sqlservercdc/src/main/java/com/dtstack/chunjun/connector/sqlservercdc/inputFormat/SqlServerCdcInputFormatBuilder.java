@@ -22,7 +22,7 @@ import com.dtstack.chunjun.connector.sqlservercdc.entity.Lsn;
 import com.dtstack.chunjun.connector.sqlservercdc.entity.SqlServerCdcEnum;
 import com.dtstack.chunjun.connector.sqlservercdc.util.SqlServerCdcUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.chunjun.util.ClassUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
@@ -59,12 +59,12 @@ public class SqlServerCdcInputFormatBuilder
         this.format.setSqlServerCdcConf(sqlServerCdcConfig);
     }
 
-    public void setRowConverter(AbstractCDCRowConverter rowConverter) {
+    public void setRowConverter(AbstractCDCRawTypeMapper rowConverter) {
         setRowConverter(rowConverter, false);
     }
 
     public void setRowConverter(
-            AbstractCDCRowConverter rowConverter, boolean useAbstractBaseColumn) {
+            AbstractCDCRawTypeMapper rowConverter, boolean useAbstractBaseColumn) {
         this.format.setRowConverter(rowConverter);
         this.format.setUseAbstractColumn(useAbstractBaseColumn);
     }

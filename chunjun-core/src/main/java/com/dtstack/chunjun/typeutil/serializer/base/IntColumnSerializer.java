@@ -19,8 +19,9 @@
 package com.dtstack.chunjun.typeutil.serializer.base;
 
 import com.dtstack.chunjun.element.AbstractBaseColumn;
-import com.dtstack.chunjun.element.column.BigDecimalColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.flink.api.common.typeutils.SimpleTypeSerializerSnapshot;
 import org.apache.flink.api.common.typeutils.TypeSerializerSnapshot;
@@ -29,7 +30,6 @@ import org.apache.flink.core.memory.DataInputView;
 import org.apache.flink.core.memory.DataOutputView;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 
 public class IntColumnSerializer extends TypeSerializerSingleton<AbstractBaseColumn> {
 
@@ -38,7 +38,7 @@ public class IntColumnSerializer extends TypeSerializerSingleton<AbstractBaseCol
     /** Sharable instance of the IntColumnSerializer. */
     public static final IntColumnSerializer INSTANCE = new IntColumnSerializer();
 
-    private static final BigDecimalColumn EMPTY = new BigDecimalColumn(0);
+    private static final IntColumn EMPTY = new IntColumn(0);
 
     @Override
     public boolean isImmutableType() {
@@ -68,20 +68,23 @@ public class IntColumnSerializer extends TypeSerializerSingleton<AbstractBaseCol
     @Override
     public void serialize(AbstractBaseColumn record, DataOutputView target) throws IOException {
         if (record == null || record instanceof NullColumn) {
-            target.writeBoolean(false);
+            target.write(0);
         } else {
-            target.writeBoolean(true);
-            target.writeInt(record.asInt());
+            target.write(1);
+            target.writeInt((int) record.getData());
         }
     }
 
     @Override
     public AbstractBaseColumn deserialize(DataInputView source) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        if (isNotNull) {
-            return BigDecimalColumn.from(BigDecimal.valueOf(source.readInt()));
-        } else {
-            return new NullColumn();
+        byte type = source.readByte();
+        switch (type) {
+            case 0:
+                return new NullColumn();
+            case 1:
+                return IntColumn.from(source.readInt());
+            default:
+                throw new ChunJunRuntimeException("you should not be here");
         }
     }
 
@@ -93,10 +96,12 @@ public class IntColumnSerializer extends TypeSerializerSingleton<AbstractBaseCol
 
     @Override
     public void copy(DataInputView source, DataOutputView target) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        target.writeBoolean(isNotNull);
-        if (isNotNull) {
+        byte type = source.readByte();
+        target.write(type);
+        if (type == 1) {
             target.writeInt(source.readInt());
+        } else if (type != 0) {
+            throw new ChunJunRuntimeException("you should not be here");
         }
     }
 

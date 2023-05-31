@@ -1,0 +1,47 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader" : {
+          "parameter" :
+          {"hudiConfig": {
+            "path": '/home/blues/IdeaProjects/chunjun-test-1.16/src/main/java/com/bonc/hudi/table/t1',
+            "table.type": "MERGE_ON_READ",
+            'hoodie.table.name': 't1',
+            "write.recordkey.field": "uuid",
+            "write.precombine.field": "ts"},
+            "column" : [
+              {"name": "uuid", "type": "string"},
+              {"name": "name", "type": "string"},
+              {"name": "age", "type": "int"},
+              {"name": "ts", "type": "bigint"},
+              {"name": "partition", "type": "string"}
+            ] },
+          "name" : "hudireader" },
+        "writer": {
+          "parameter" :
+          {"hudiConfig": {
+            "path": '/home/blues/IdeaProjects/chunjun-test-1.16/src/main/java/com/bonc/hudi/table/t2',
+            "table.type": "MERGE_ON_READ",
+            'hoodie.table.name': 't2',
+            "hoodie.datasource.write.recordkey.field": "uuid",
+            "hoodie.datasource.write.partitionpath.field": "partition",
+            "precombine.field": "ts"},
+            "column" : [
+              {"name": "uuid", "type": "string"},
+              {"name": "name", "type": "string"},
+              {"name": "age", "type": "int"},
+              {"name": "ts", "type": "bigint"},
+              {"name": "partition", "type": "string"}
+            ] },
+          "name" : "hudiwriter" }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}

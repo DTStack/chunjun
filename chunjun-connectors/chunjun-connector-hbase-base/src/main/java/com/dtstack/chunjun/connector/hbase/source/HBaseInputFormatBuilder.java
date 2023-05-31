@@ -18,6 +18,7 @@
 package com.dtstack.chunjun.connector.hbase.source;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.hbase.config.HBaseConfigConstants;
 import com.dtstack.chunjun.connector.hbase.util.ScanBuilder;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
@@ -62,7 +63,7 @@ public class HBaseInputFormatBuilder extends BaseRichInputFormatBuilder<HBaseInp
         format.columnValues = columnValues;
     }
 
-    public void setColumnTypes(List<String> columnTypes) {
+    public void setColumnTypes(List<TypeConfig> columnTypes) {
         format.columnTypes = columnTypes;
     }
 
@@ -90,10 +91,11 @@ public class HBaseInputFormatBuilder extends BaseRichInputFormatBuilder<HBaseInp
 
         if (format.columnFormats != null) {
             for (int i = 0; i < format.columnTypes.size(); ++i) {
-                Preconditions.checkArgument(StringUtils.isNotEmpty(format.columnTypes.get(i)));
+                Preconditions.checkArgument(
+                        StringUtils.isNotEmpty(format.columnTypes.get(i).getType()));
                 Preconditions.checkArgument(
                         StringUtils.isNotEmpty(format.columnNames.get(i))
-                                || StringUtils.isNotEmpty(format.columnTypes.get(i)));
+                                || StringUtils.isNotEmpty(format.columnTypes.get(i).getType()));
             }
         }
     }
@@ -103,7 +105,7 @@ public class HBaseInputFormatBuilder extends BaseRichInputFormatBuilder<HBaseInp
             List<String> nameList =
                     columMetaInfos.stream().map(FieldConfig::getName).collect(Collectors.toList());
             setColumnNames(nameList);
-            List<String> typeList =
+            List<TypeConfig> typeList =
                     columMetaInfos.stream().map(FieldConfig::getType).collect(Collectors.toList());
             setColumnTypes(typeList);
             List<String> valueList =

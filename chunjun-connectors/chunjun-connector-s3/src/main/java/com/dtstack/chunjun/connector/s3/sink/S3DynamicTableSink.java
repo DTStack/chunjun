@@ -19,8 +19,9 @@
 package com.dtstack.chunjun.connector.s3.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.s3.config.S3Config;
-import com.dtstack.chunjun.connector.s3.converter.S3RowConverter;
+import com.dtstack.chunjun.connector.s3.converter.S3SqlConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.table.catalog.Column;
@@ -58,7 +59,8 @@ public class S3DynamicTableSink implements DynamicTableSink {
             Column column = columns.get(i);
             FieldConfig field = new FieldConfig();
             field.setName(column.getName());
-            field.setType(column.getDataType().getLogicalType().asSummaryString());
+            field.setType(
+                    TypeConfig.fromString(column.getDataType().getLogicalType().asSummaryString()));
             field.setIndex(i);
             columnList.add(field);
         }
@@ -66,7 +68,7 @@ public class S3DynamicTableSink implements DynamicTableSink {
         S3OutputFormatBuilder builder = new S3OutputFormatBuilder(new S3OutputFormat());
         builder.setS3Conf(s3Config);
         builder.setRowConverter(
-                new S3RowConverter(InternalTypeInfo.of(logicalType).toRowType(), s3Config));
+                new S3SqlConverter(InternalTypeInfo.of(logicalType).toRowType(), s3Config));
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()), 1);
     }

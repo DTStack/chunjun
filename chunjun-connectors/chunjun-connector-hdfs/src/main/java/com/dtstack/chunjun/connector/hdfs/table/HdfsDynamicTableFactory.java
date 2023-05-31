@@ -74,6 +74,7 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         options.add(HdfsOptions.FILTER_REGEX);
         options.add(HdfsOptions.FIELD_DELIMITER);
         options.add(HdfsOptions.ENABLE_DICTIONARY);
+        options.add(HdfsOptions.SINK_COMMIT_FINISHED_FILE_NAME);
         return options;
     }
 
@@ -141,6 +142,7 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         hdfsConfig.setFieldDelimiter(
                 StringEscapeUtils.unescapeJava(config.get(HdfsOptions.FIELD_DELIMITER)));
         hdfsConfig.setEnableDictionary(config.get(HdfsOptions.ENABLE_DICTIONARY));
+        hdfsConfig.setFinishedFileName(config.get(HdfsOptions.SINK_COMMIT_FINISHED_FILE_NAME));
 
         return hdfsConfig;
     }

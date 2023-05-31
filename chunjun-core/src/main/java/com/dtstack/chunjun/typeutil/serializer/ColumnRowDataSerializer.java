@@ -97,12 +97,20 @@ public class ColumnRowDataSerializer extends TypeSerializer<RowData> {
 
     @Override
     public RowData copy(RowData from) {
-        return from;
+        ColumnRowData that = (ColumnRowData) from;
+        ColumnRowData columnRowData = new ColumnRowData(that.getRowKind(), size);
+        columnRowData.setHeader(that.getHeaderInfo());
+        columnRowData.setExtHeader(that.getExtHeader());
+        for (int i = 0; i < size; i++) {
+            columnRowData.addField(fieldSerializers[i].copy(that.getField(i)));
+        }
+        columnRowData.setByteSize(that.getByteSize());
+        return columnRowData;
     }
 
     @Override
     public RowData copy(RowData from, RowData reuse) {
-        return from;
+        return copy(from);
     }
 
     @Override
@@ -153,7 +161,7 @@ public class ColumnRowDataSerializer extends TypeSerializer<RowData> {
 
         int infoSize = source.readInt();
         if (infoSize >= 0) {
-            final LinkedHashMap<String, Integer> headerInfo = new LinkedHashMap<>();
+            final LinkedHashMap<String, Integer> headerInfo = new LinkedHashMap<>(infoSize);
             for (int i = 0; i < infoSize; i++) {
                 String key = stringSerializer.deserialize(source);
                 boolean isNotNull = source.readBoolean();

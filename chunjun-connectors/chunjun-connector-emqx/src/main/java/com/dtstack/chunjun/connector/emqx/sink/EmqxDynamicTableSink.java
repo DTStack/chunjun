@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.emqx.sink;
 
 import com.dtstack.chunjun.connector.emqx.config.EmqxConfig;
-import com.dtstack.chunjun.connector.emqx.converter.EmqxRowConverter;
+import com.dtstack.chunjun.connector.emqx.converter.EmqxSqlConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.api.common.serialization.SerializationSchema;
@@ -59,7 +59,7 @@ public class EmqxDynamicTableSink implements DynamicTableSink {
         EmqxOutputFormatBuilder builder = new EmqxOutputFormatBuilder();
         builder.setEmqxConf(emqxConfig);
         builder.setRowConverter(
-                new EmqxRowConverter(
+                new EmqxSqlConverter(
                         valueEncodingFormat.createRuntimeEncoder(
                                 runtimeProviderContext, physicalSchema.toPhysicalRowDataType())));
 

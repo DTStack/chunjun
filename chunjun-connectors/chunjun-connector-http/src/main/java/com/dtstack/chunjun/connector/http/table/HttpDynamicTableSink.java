@@ -19,7 +19,7 @@ package com.dtstack.chunjun.connector.http.table;
 
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.http.common.HttpWriterConfig;
-import com.dtstack.chunjun.connector.http.converter.HttpRowConverter;
+import com.dtstack.chunjun.connector.http.converter.HttpSqlConverter;
 import com.dtstack.chunjun.connector.http.outputformat.HttpOutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
@@ -72,7 +72,7 @@ public class HttpDynamicTableSink implements DynamicTableSink {
         }
         restapiWriterConf.setColumn(fieldList);
         HttpOutputFormatBuilder builder = new HttpOutputFormatBuilder();
-        builder.setRowConverter(new HttpRowConverter(rowType));
+        builder.setRowConverter(new HttpSqlConverter(rowType));
         builder.setConfig(restapiWriterConf);
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()), 1);

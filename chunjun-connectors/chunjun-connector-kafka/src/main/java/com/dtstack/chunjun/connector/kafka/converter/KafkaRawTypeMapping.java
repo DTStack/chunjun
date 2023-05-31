@@ -18,25 +18,16 @@
 
 package com.dtstack.chunjun.connector.kafka.converter;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
-import com.dtstack.chunjun.util.ColumnTypeUtil;
 
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
-import java.util.Locale;
-
 public class KafkaRawTypeMapping {
 
-    public static DataType apply(String type) {
-        ColumnTypeUtil.DecimalInfo decimalInfo = null;
-        if (ColumnTypeUtil.isDecimalType(type)) {
-            decimalInfo = ColumnTypeUtil.getDecimalInfo(type, null);
-            if (decimalInfo != null) {
-                type = ColumnTypeUtil.TYPE_NAME;
-            }
-        }
-        switch (type.toUpperCase(Locale.ROOT)) {
+    public static DataType apply(TypeConfig type) {
+        switch (type.getType()) {
             case "INT":
             case "INTEGER":
                 return DataTypes.INT();
@@ -55,8 +46,7 @@ public class KafkaRawTypeMapping {
             case "FLOAT":
                 return DataTypes.FLOAT();
             case "DECIMAL":
-                assert decimalInfo != null;
-                return DataTypes.DECIMAL(decimalInfo.getPrecision(), decimalInfo.getScale());
+                return type.toDecimalDataType();
             case "DOUBLE":
                 return DataTypes.DOUBLE();
             case "CHAR":
@@ -66,10 +56,11 @@ public class KafkaRawTypeMapping {
             case "TEXT":
                 return DataTypes.STRING();
             case "DATE":
-            case "YEAR":
                 return DataTypes.DATE();
             case "TIME":
                 return DataTypes.TIME();
+            case "YEAR":
+                return DataTypes.DATE();
             case "TIMESTAMP":
             case "DATETIME":
                 return DataTypes.TIMESTAMP();

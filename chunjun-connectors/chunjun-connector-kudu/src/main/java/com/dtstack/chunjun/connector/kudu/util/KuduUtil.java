@@ -163,7 +163,7 @@ public class KuduUtil {
         columns.forEach(
                 item -> {
                     String name = item.getName();
-                    String type = item.getType();
+                    String type = item.getType().getType();
                     nameTypeMap.put(name, getType(type));
                 });
 

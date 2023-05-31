@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.jdbc.source;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.lookup.JdbcAllTableFunction;
@@ -35,12 +36,14 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.catalog.Column;
 import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
+import org.apache.flink.table.connector.Projection;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
+import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Preconditions;
 
@@ -62,6 +65,7 @@ public class JdbcDynamicTableSource
     protected final JdbcDialect jdbcDialect;
     protected final JdbcInputFormatBuilder builder;
     protected ResolvedSchema resolvedSchema;
+    private DataType physicalRowDataType;
 
     public JdbcDynamicTableSource(
             JdbcConfig jdbcConfig,
@@ -75,6 +79,7 @@ public class JdbcDynamicTableSource
         this.jdbcDialect = jdbcDialect;
         this.dialectName = jdbcDialect.dialectName();
         this.builder = builder;
+        this.physicalRowDataType = resolvedSchema.toPhysicalRowDataType();
     }
 
     @Override
@@ -115,8 +120,8 @@ public class JdbcDynamicTableSource
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        TypeInformation<RowData> typeInformation =
-                InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType());
+        final RowType rowType = (RowType) physicalRowDataType.getLogicalType();
+        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
         JdbcInputFormatBuilder builder = this.builder;
         List<Column> columns = resolvedSchema.getColumns();
@@ -124,7 +129,8 @@ public class JdbcDynamicTableSource
         for (Column column : columns) {
             FieldConfig field = new FieldConfig();
             field.setName(column.getName());
-            field.setType(column.getDataType().getLogicalType().asSummaryString());
+            field.setType(
+                    TypeConfig.fromString(column.getDataType().getLogicalType().asSummaryString()));
             field.setIndex(columns.indexOf(column));
             columnList.add(field);
         }
@@ -144,7 +150,7 @@ public class JdbcDynamicTableSource
                     FieldConfig.getSameNameMetaColumn(jdbcConfig.getColumn(), restoreColumn);
             if (fieldConfig != null) {
                 jdbcConfig.setRestoreColumnIndex(fieldConfig.getIndex());
-                jdbcConfig.setRestoreColumnType(fieldConfig.getType());
+                jdbcConfig.setRestoreColumnType(fieldConfig.getType().getType());
                 restoreKeyUtil =
                         jdbcDialect.initKeyUtil(fieldConfig.getName(), fieldConfig.getType());
             } else {
@@ -171,7 +177,7 @@ public class JdbcDynamicTableSource
                     FieldConfig.getSameNameMetaColumn(jdbcConfig.getColumn(), incrementColumn);
             int index;
             String name;
-            String type;
+            TypeConfig type;
             if (fieldConfig != null) {
                 index = fieldConfig.getIndex();
                 name = fieldConfig.getName();
@@ -182,12 +188,12 @@ public class JdbcDynamicTableSource
                         "unknown increment column name: " + incrementColumn);
             }
             jdbcConfig.setIncreColumn(name);
-            jdbcConfig.setIncreColumnType(type);
+            jdbcConfig.setIncreColumnType(type.getType());
             jdbcConfig.setIncreColumnIndex(index);
 
             jdbcConfig.setRestoreColumn(name);
             jdbcConfig.setRestoreColumnIndex(index);
-            jdbcConfig.setRestoreColumnType(type);
+            jdbcConfig.setRestoreColumnType(type.getType());
             restoreKeyUtil = incrementKeyUtil;
 
             if (StringUtils.isBlank(jdbcConfig.getSplitPk())) {
@@ -207,10 +213,7 @@ public class JdbcDynamicTableSource
 
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConfig);
-        builder.setRowConverter(
-                jdbcDialect.getRowConverter(
-                        InternalTypeInfo.of(resolvedSchema.toPhysicalRowDataType().getLogicalType())
-                                .toRowType()));
+        builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
@@ -227,6 +230,11 @@ public class JdbcDynamicTableSource
     public boolean supportsNestedProjection() {
         // JDBC doesn't support nested projection
         return false;
+    }
+
+    @Override
+    public void applyProjection(int[][] projectedFields, DataType producedDataType) {
+        this.physicalRowDataType = Projection.of(projectedFields).project(physicalRowDataType);
     }
 
     @Override

@@ -24,8 +24,8 @@ import com.dtstack.chunjun.connector.jdbc.config.ConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.config.SourceConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.chunjun.connector.mysqlcdc.config.MysqlCdcConfig;
-import com.dtstack.chunjun.connector.mysqlcdc.converter.MysqlCdcRawTypeConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.connector.mysqlcdc.converter.MysqlCdcRawTypeMapper;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 
@@ -67,8 +67,8 @@ public class MysqlcdcSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return MysqlCdcRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return MysqlCdcRawTypeMapper::apply;
     }
 
     @Override
@@ -85,7 +85,7 @@ public class MysqlcdcSourceFactory extends SourceFactory {
                             dataTypes.add(
                                     DataTypes.FIELD(
                                             fieldConfig.getName(),
-                                            getRawTypeConverter().apply(fieldConfig.getType())));
+                                            getRawTypeMapper().apply(fieldConfig.getType())));
                         });
         final DataType dataType = DataTypes.ROW(dataTypes.toArray(new DataTypes.Field[0]));
 

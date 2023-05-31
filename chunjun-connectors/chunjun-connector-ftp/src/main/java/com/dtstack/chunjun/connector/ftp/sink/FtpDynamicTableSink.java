@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.ftp.sink;
 
 import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
-import com.dtstack.chunjun.connector.ftp.converter.FtpRowConverter;
+import com.dtstack.chunjun.connector.ftp.converter.FtpSqlConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.api.common.serialization.SerializationSchema;
@@ -55,7 +55,7 @@ public class FtpDynamicTableSink implements DynamicTableSink {
         FtpOutputFormatBuilder builder = new FtpOutputFormatBuilder();
         builder.setFtpConfig(ftpConfig);
         builder.setRowConverter(
-                new FtpRowConverter(
+                new FtpSqlConverter(
                         valueEncodingFormat.createRuntimeEncoder(
                                 context, resolvedSchema.toPhysicalRowDataType())));
 

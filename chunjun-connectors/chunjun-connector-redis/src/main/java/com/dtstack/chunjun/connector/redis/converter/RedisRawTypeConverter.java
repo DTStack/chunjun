@@ -18,16 +18,15 @@
 
 package com.dtstack.chunjun.connector.redis.converter;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
-import java.util.Locale;
-
 public class RedisRawTypeConverter {
-    public static DataType apply(String type) {
-        switch (type.toUpperCase(Locale.ENGLISH)) {
+    public static DataType apply(TypeConfig type) {
+        switch (type.getType()) {
             case "STRING":
                 return DataTypes.STRING();
             default:

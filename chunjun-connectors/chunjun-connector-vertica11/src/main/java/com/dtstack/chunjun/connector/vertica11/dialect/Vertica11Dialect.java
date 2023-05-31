@@ -25,7 +25,7 @@ import com.dtstack.chunjun.connector.vertica11.converter.Vertica11RawTypeConvert
 import com.dtstack.chunjun.connector.vertica11.converter.Vertica11SqlConverter;
 import com.dtstack.chunjun.connector.vertica11.converter.Vertica11SyncConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -59,7 +59,7 @@ public class Vertica11Dialect implements JdbcDialect {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeConverter() {
         return Vertica11RawTypeConverter::apply;
     }
 

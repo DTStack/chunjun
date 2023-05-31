@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.elasticsearch6.table;
 
-import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRowConverter;
+import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchSqlConverter;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.connector.elasticsearch6.source.Elasticsearch6InputFormatBuilder;
 import com.dtstack.chunjun.connector.elasticsearch6.table.lookup.Elasticsearch6AllTableFunction;
@@ -81,7 +81,7 @@ public class Elasticsearch6DynamicTableSource
 
         Elasticsearch6InputFormatBuilder builder = new Elasticsearch6InputFormatBuilder();
         builder.setRowConverter(
-                new ElasticsearchRowConverter(InternalTypeInfo.of(logicalType).toRowType()));
+                new ElasticsearchSqlConverter(InternalTypeInfo.of(logicalType).toRowType()));
         String[] fieldNames = physicalSchema.getColumnNames().toArray(new String[0]);
         elasticsearchConfig.setFieldNames(fieldNames);
         builder.setEsConf(elasticsearchConfig);
@@ -110,7 +110,7 @@ public class Elasticsearch6DynamicTableSource
                             lookupConfig,
                             physicalSchema.getColumnNames().toArray(new String[0]),
                             keyNames,
-                            new ElasticsearchRowConverter(
+                            new ElasticsearchSqlConverter(
                                     InternalTypeInfo.of(logicalType).toRowType())),
                     lookupConfig.getParallelism());
         }
@@ -120,7 +120,7 @@ public class Elasticsearch6DynamicTableSource
                         lookupConfig,
                         physicalSchema.getColumnNames().toArray(new String[0]),
                         keyNames,
-                        new ElasticsearchRowConverter(
+                        new ElasticsearchSqlConverter(
                                 InternalTypeInfo.of(logicalType).toRowType())),
                 lookupConfig.getParallelism());
     }
