@@ -26,7 +26,7 @@ import com.dtstack.chunjun.connector.binlog.listener.BinlogPositionManager;
 import com.dtstack.chunjun.connector.binlog.listener.HeartBeatController;
 import com.dtstack.chunjun.connector.binlog.util.BinlogUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.util.ClassUtil;
@@ -67,7 +67,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     protected BinlogConfig binlogConfig;
     protected volatile EntryPosition entryPosition;
     protected List<String> categories = new ArrayList<>();
-    protected AbstractCDCRowConverter cdcRowConverter;
+    protected AbstractCDCRawTypeMapper cdcRowConverter;
 
     protected transient MysqlEventParser controller;
     protected transient BinlogEventSink binlogEventSink;

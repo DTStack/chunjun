@@ -22,7 +22,7 @@ import com.dtstack.chunjun.cdc.DdlRowDataBuilder;
 import com.dtstack.chunjun.cdc.EventType;
 import com.dtstack.chunjun.connector.binlog.config.BinlogConfig;
 import com.dtstack.chunjun.connector.binlog.inputformat.BinlogInputFormat;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.element.ErrorMsgRowData;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.ClassUtil;
@@ -62,7 +62,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
 
     private final BinlogInputFormat format;
     private final LinkedBlockingDeque<RowData> queue;
-    private final AbstractCDCRowConverter rowConverter;
+    private final AbstractCDCRawTypeMapper rowConverter;
 
     private final String OFFSET_LENGTH;
 

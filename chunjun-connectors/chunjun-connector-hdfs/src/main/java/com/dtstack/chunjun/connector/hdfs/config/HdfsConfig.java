@@ -44,4 +44,5 @@ public class HdfsConfig extends BaseFileConfig {
     private boolean enableDictionary = true;
     private List<String> fullColumnName;
     private List<String> fullColumnType;
+    private String finishedFileName;
 }

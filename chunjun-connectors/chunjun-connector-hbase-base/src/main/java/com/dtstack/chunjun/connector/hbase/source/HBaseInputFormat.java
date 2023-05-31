@@ -18,6 +18,7 @@
 
 package com.dtstack.chunjun.connector.hbase.source;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.hbase.util.HBaseHelper;
 import com.dtstack.chunjun.connector.hbase.util.ScanBuilder;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
@@ -54,7 +55,7 @@ public class HBaseInputFormat extends BaseRichInputFormat {
     protected List<String> columnNames;
     protected List<String> columnValues;
     protected List<String> columnFormats;
-    protected List<String> columnTypes;
+    protected List<TypeConfig> columnTypes;
     protected boolean isBinaryRowkey;
     /** 客户端每次 rpc fetch 的行数 */
     protected int scanCacheSize = 1000;

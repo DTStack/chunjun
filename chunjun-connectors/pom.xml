@@ -106,7 +106,9 @@
 
 		<!-- nebula -->
 		<module>chunjun-connector-nebula</module>
-	</modules>
+		<module>chunjun-connector-kingbase</module>
+        <module>chunjun-connector-hudi</module>
+    </modules>
 
 	<dependencies>
 		<dependency>

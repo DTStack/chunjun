@@ -18,8 +18,9 @@
 package com.dtstack.chunjun.util;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.typeutil.ColumnRowDataTypeInfo;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -28,8 +29,6 @@ import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.DataType;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.google.common.collect.Lists;
@@ -43,12 +42,11 @@ import java.util.stream.Collectors;
 public class TableUtil {
 
     public static TypeInformation<RowData> getTypeInformation(
-            List<FieldConfig> fieldList,
-            RawTypeConverter converter,
-            boolean useAbstractBaseColumn) {
+            List<FieldConfig> fieldList, RawTypeMapper converter, boolean useAbstractBaseColumn) {
         List<String> fieldName =
                 fieldList.stream().map(FieldConfig::getName).collect(Collectors.toList());
-        String[] fieldTypes = fieldList.stream().map(FieldConfig::getType).toArray(String[]::new);
+        TypeConfig[] fieldTypes =
+                fieldList.stream().map(FieldConfig::getType).toArray(TypeConfig[]::new);
         String[] fieldFormat =
                 fieldList.stream().map(FieldConfig::getFormat).toArray(String[]::new);
         String[] fieldNames = fieldList.stream().map(FieldConfig::getName).toArray(String[]::new);
@@ -77,19 +75,10 @@ public class TableUtil {
         RowType rowType = getRowType(dataTypes, fieldNames, fieldFormat);
 
         if (useAbstractBaseColumn) {
-            if (useGenericTypeInfo(rowType)) {
-                return new GenericTypeInfo<>(RowData.class);
-            }
             return ColumnRowDataTypeInfo.of(rowType);
         } else {
             return InternalTypeInfo.of(getRowType(dataTypes, fieldNames, fieldFormat));
         }
-    }
-
-    public static boolean useGenericTypeInfo(RowType rowType) {
-        return rowType.getChildren().stream()
-                .map(LogicalType::getTypeRoot)
-                .anyMatch(logicalTypeRoot -> logicalTypeRoot == LogicalTypeRoot.ARRAY);
     }
 
     public static RowType getRowType(
@@ -112,7 +101,7 @@ public class TableUtil {
     }
 
     public static RowType createRowType(
-            List<String> fieldNames, List<String> types, RawTypeConverter converter) {
+            List<String> fieldNames, List<TypeConfig> types, RawTypeMapper converter) {
         List<DataType> dataTypeList = Lists.newLinkedList();
         for (int i = 0; i < types.size(); i++) {
             dataTypeList.add(i, converter.apply(types.get(i)));
@@ -129,7 +118,7 @@ public class TableUtil {
      * @param fields List<FieldConfig>, field information name, type etc.
      * @return
      */
-    public static RowType createRowType(List<FieldConfig> fields, RawTypeConverter converter) {
+    public static RowType createRowType(List<FieldConfig> fields, RawTypeMapper converter) {
         return (RowType)
                 createTableSchema(fields, converter).toPhysicalRowDataType().getLogicalType();
     }
@@ -141,9 +130,10 @@ public class TableUtil {
      * @return
      */
     public static ResolvedSchema createTableSchema(
-            List<FieldConfig> fields, RawTypeConverter converter) {
+            List<FieldConfig> fields, RawTypeMapper converter) {
         String[] fieldNames = fields.stream().map(FieldConfig::getName).toArray(String[]::new);
-        String[] fieldTypes = fields.stream().map(FieldConfig::getType).toArray(String[]::new);
+        TypeConfig[] fieldTypes =
+                fields.stream().map(FieldConfig::getType).toArray(TypeConfig[]::new);
         DataType[] dataTypes = new DataType[fieldTypes.length];
         for (int i = 0; i < fieldTypes.length; i++) {
             dataTypes[i] = converter.apply(fieldTypes[i]);

@@ -19,9 +19,10 @@
 package com.dtstack.chunjun.connector.hbase.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
-import com.dtstack.chunjun.connector.hbase.converter.HBaseColumnConverter;
-import com.dtstack.chunjun.connector.hbase.converter.HBaseRawTypeConverter;
+import com.dtstack.chunjun.connector.hbase.converter.HBaseRawTypeMapper;
+import com.dtstack.chunjun.connector.hbase.converter.HBaseSyncConverter;
 import com.dtstack.chunjun.connector.hbase.util.HBaseHelperTest;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -124,77 +125,77 @@ public class HBaseOutputFormatTest {
 
         FieldConfig id = new FieldConfig();
         id.setName("stu:id");
-        id.setType("int");
+        id.setType(TypeConfig.fromString("int"));
         rowData.addField(new BigDecimalColumn(1));
 
         FieldConfig decimal_val = new FieldConfig();
         decimal_val.setName("msg:decimal_val");
-        decimal_val.setType("decimal(38, 18)");
+        decimal_val.setType(TypeConfig.fromString("decimal(38, 18)"));
         rowData.addField(new BigDecimalColumn(3));
 
         FieldConfig float_val = new FieldConfig();
         float_val.setName("msg:float_val");
-        float_val.setType("float");
+        float_val.setType(TypeConfig.fromString("float"));
         rowData.addField(new FloatColumn(3.33f));
 
         FieldConfig smallint_val = new FieldConfig();
         smallint_val.setName("msg:smallint_val");
-        smallint_val.setType("smallint");
+        smallint_val.setType(TypeConfig.fromString("smallint"));
         rowData.addField(new BigDecimalColumn(3));
 
         FieldConfig bigint_val = new FieldConfig();
         bigint_val.setName("msg:bigint_val");
-        bigint_val.setType("bigint");
+        bigint_val.setType(TypeConfig.fromString("bigint"));
         rowData.addField(new BigDecimalColumn(1));
 
         FieldConfig boolean_val = new FieldConfig();
         boolean_val.setName("msg:boolean_val");
-        boolean_val.setType("boolean");
+        boolean_val.setType(TypeConfig.fromString("boolean"));
         rowData.addField(new BooleanColumn(false));
 
         FieldConfig tinyint_val = new FieldConfig();
         tinyint_val.setName("msg:tinyint_val");
-        tinyint_val.setType("tinyint");
+        tinyint_val.setType(TypeConfig.fromString("tinyint"));
         rowData.addField(new BigDecimalColumn(1));
 
         FieldConfig date_val = new FieldConfig();
         date_val.setName("msg:date_val");
-        date_val.setType("date");
+        date_val.setType(TypeConfig.fromString("date"));
         rowData.addField(new SqlDateColumn(Date.valueOf("2022-08-26")));
 
         FieldConfig time_val = new FieldConfig();
         time_val.setName("msg:time_val");
-        time_val.setType("time");
+        time_val.setType(TypeConfig.fromString("time"));
         rowData.addField(new TimeColumn(Time.valueOf("11:06:14")));
 
         FieldConfig timestamp_val = new FieldConfig();
         timestamp_val.setName("msg:timestamp_val");
-        timestamp_val.setType("timestamp(3)");
+        timestamp_val.setType(TypeConfig.fromString("timestamp(3)"));
         rowData.addField(new TimestampColumn(System.currentTimeMillis()));
 
         FieldConfig datetime_val = new FieldConfig();
         datetime_val.setName("msg:datetime_val");
-        datetime_val.setType("datetime");
+        datetime_val.setType(TypeConfig.fromString("datetime"));
         rowData.addField(new TimestampColumn(System.currentTimeMillis()));
 
         FieldConfig bytes_val = new FieldConfig();
         bytes_val.setName("msg:bytes_val");
-        bytes_val.setType("bytes");
+        bytes_val.setType(TypeConfig.fromString("bytes"));
         rowData.addField(new BytesColumn("test".getBytes(StandardCharsets.UTF_8)));
 
         FieldConfig varchar_val = new FieldConfig();
         varchar_val.setName("msg:varchar_val");
-        varchar_val.setType("varchar(255)");
+        varchar_val.setType(TypeConfig.fromString("varchar(255)"));
         rowData.addField(new StringColumn("test"));
 
         FieldConfig double_val = new FieldConfig();
         double_val.setName("msg:double_val");
-        double_val.setType("double");
+        double_val.setType(TypeConfig.fromString("double"));
         rowData.addField(new DoubleColumn(3.33));
 
         FieldConfig val_1 = new FieldConfig();
         val_1.setName("val_1");
-        val_1.setType("string");
+        val_1.setType(TypeConfig.fromString("string"));
         val_1.setValue("val_1");
 
         columnList.add(id);
@@ -230,8 +231,8 @@ public class HBaseOutputFormatTest {
         conf.setVersionColumnIndex(1);
         conf.setVersionColumnValue("VERSION");
 
-        RowType rowType = TableUtil.createRowType(conf.getColumn(), HBaseRawTypeConverter.INSTANCE);
-        converter = new HBaseColumnConverter(conf, rowType);
+        RowType rowType = TableUtil.createRowType(conf.getColumn(), HBaseRawTypeMapper.INSTANCE);
+        converter = new HBaseSyncConverter(conf, rowType);
 
         HBaseOutputFormatBuilder formatBuilder = new HBaseOutputFormatBuilder();
 

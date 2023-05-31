@@ -61,7 +61,7 @@ public class ClickhouseInputFormatBuilder extends JdbcInputFormatBuilder {
                         FieldConfig.getSameNameMetaColumn(config.getColumn(), config.getSplitPk());
                 if (field == null) {
                     sb.append("split column must in columns;\n");
-                } else if (!ColumnType.isNumberType(field.getType())) {
+                } else if (!ColumnType.isNumberType(field.getType().getType())) {
                     sb.append("split column's type must be number type;\n");
                 }
             }

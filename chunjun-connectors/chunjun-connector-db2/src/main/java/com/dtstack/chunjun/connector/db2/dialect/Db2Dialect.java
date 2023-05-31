@@ -25,7 +25,7 @@ import com.dtstack.chunjun.connector.jdbc.conf.TableIdentify;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -59,7 +59,7 @@ public class Db2Dialect implements JdbcDialect {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeConverter() {
         return Db2RawTypeConverter::apply;
     }
 
@@ -129,6 +129,11 @@ public class Db2Dialect implements JdbcDialect {
                 .append(")");
 
         return Optional.of(mergeIntoSql.toString());
+    }
+
+    @Override
+    public boolean supportUpsert() {
+        return true;
     }
 
     /** build T1."A"=T2."A" or T1."A"=nvl(T2."A",T1."A") */

@@ -28,14 +28,16 @@ import com.dtstack.chunjun.connector.kafka.enums.StartupMode;
 import com.dtstack.chunjun.connector.kafka.serialization.RowDeserializationSchema;
 import com.dtstack.chunjun.connector.kafka.util.FormatNameConvertUtil;
 import com.dtstack.chunjun.connector.kafka.util.KafkaUtil;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.PluginUtil;
+import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -113,8 +115,11 @@ public class KafkaSourceFactory extends SourceFactory {
         Properties props = new Properties();
         props.put("group.id", kafkaConfig.getGroupId());
         props.putAll(kafkaConfig.getConsumerSettings());
+        RowType rowType =
+                TableUtil.createRowType(kafkaConfig.getColumn(), KafkaRawTypeMapping::apply);
         DynamicKafkaDeserializationSchema deserializationSchema =
-                new RowDeserializationSchema(kafkaConfig, new KafkaSyncConverter(kafkaConfig));
+                new RowDeserializationSchema(
+                        kafkaConfig, new KafkaSyncConverter(rowType, kafkaConfig));
         KafkaConsumerWrapper consumer =
                 new KafkaConsumerWrapper(topics, deserializationSchema, props);
         switch (kafkaConfig.getMode()) {
@@ -161,7 +166,7 @@ public class KafkaSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return KafkaRawTypeMapping::apply;
     }
 }

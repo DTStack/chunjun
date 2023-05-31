@@ -19,7 +19,8 @@
 package com.dtstack.chunjun.util;
 
 import com.dtstack.chunjun.config.FieldConfig;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.config.TypeConfig;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.DataTypes;
@@ -66,17 +67,17 @@ public class TableUtilTest {
                                         3))
                         .build();
 
-        RawTypeConverter converter = new MockRawTypeConverter();
+        RawTypeMapper converter = new MockRawTypeMapper();
         TypeInformation<RowData> typeInformation =
                 TableUtil.getTypeInformation(fieldConfigList, converter, false);
         assertEquals(1, typeInformation.getTotalFields());
     }
 
-    private class MockRawTypeConverter implements RawTypeConverter {
+    private class MockRawTypeMapper implements RawTypeMapper {
 
         @Override
-        public DataType apply(String type) {
-            switch (type) {
+        public DataType apply(TypeConfig type) {
+            switch (type.getType()) {
                 case "string":
                     return DataTypes.STRING();
                 case "int":

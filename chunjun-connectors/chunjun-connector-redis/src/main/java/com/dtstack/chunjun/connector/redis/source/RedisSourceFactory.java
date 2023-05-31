@@ -22,11 +22,11 @@ import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.redis.adapter.RedisDataModeAdapter;
 import com.dtstack.chunjun.connector.redis.adapter.RedisDataTypeAdapter;
 import com.dtstack.chunjun.connector.redis.config.RedisConfig;
-import com.dtstack.chunjun.connector.redis.converter.RedisColumnConverter;
 import com.dtstack.chunjun.connector.redis.converter.RedisRawTypeConverter;
+import com.dtstack.chunjun.connector.redis.converter.RedisSyncConverter;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataMode;
 import com.dtstack.chunjun.connector.redis.enums.RedisDataType;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 
@@ -56,7 +56,7 @@ public class RedisSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return RedisRawTypeConverter::apply;
     }
 
@@ -67,7 +67,7 @@ public class RedisSourceFactory extends SourceFactory {
         }
         RedisInputFormatBuilder builder = new RedisInputFormatBuilder();
         builder.setRedisConf(redisConfig);
-        builder.setRowConverter(new RedisColumnConverter(redisConfig));
+        builder.setRowConverter(new RedisSyncConverter(redisConfig));
         return createInput(builder.finish());
     }
 }

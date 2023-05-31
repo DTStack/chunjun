@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.file.table;
 
 import com.dtstack.chunjun.config.BaseFileConfig;
-import com.dtstack.chunjun.connector.file.converter.FileRowConverter;
+import com.dtstack.chunjun.connector.file.converter.FileSqlConverter;
 import com.dtstack.chunjun.connector.file.source.FileInputFormatBuilder;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
@@ -65,7 +65,7 @@ public class FileDynamicTableSource implements ScanTableSource {
         FileInputFormatBuilder builder = new FileInputFormatBuilder();
         builder.setFileConf(fileConfig);
         builder.setRowConverter(
-                new FileRowConverter(
+                new FileSqlConverter(
                         decodingFormat.createRuntimeDecoder(runtimeProviderContext, dataType)));
 
         return ParallelSourceFunctionProvider.of(

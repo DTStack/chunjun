@@ -40,6 +40,7 @@
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-connector-hdfs</artifactId>
 			<version>${project.version}</version>
+			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<artifactId>hive-serde</artifactId>
@@ -72,6 +73,7 @@
 			<groupId>org.apache.hive</groupId>
 			<artifactId>hive-exec</artifactId>
 			<version>2.1.0</version>
+			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<artifactId>log4j-api</artifactId>
@@ -122,6 +124,7 @@
 			<groupId>org.apache.hive</groupId>
 			<artifactId>hive-serde</artifactId>
 			<version>2.1.0</version>
+			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-cli</artifactId>
@@ -150,6 +153,26 @@
 				<exclusion>
 					<artifactId>log4j-1.2-api</artifactId>
 					<groupId>org.apache.logging.log4j</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-yarn-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-yarn-common</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-yarn-server-applicationhistoryservice</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-yarn-server-common</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-yarn-server-resourcemanager</artifactId>
+					<groupId>org.apache.hadoop</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -272,6 +295,12 @@
 					<groupId>log4j</groupId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-jdbc-base</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 

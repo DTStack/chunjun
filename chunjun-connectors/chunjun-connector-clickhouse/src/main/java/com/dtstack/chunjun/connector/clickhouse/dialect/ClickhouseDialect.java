@@ -18,13 +18,18 @@
 
 package com.dtstack.chunjun.connector.clickhouse.dialect;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.clickhouse.converter.ClickhouseRawTypeConverter;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
+import org.apache.flink.api.java.tuple.Tuple3;
+
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 public class ClickhouseDialect implements JdbcDialect {
 
@@ -41,7 +46,7 @@ public class ClickhouseDialect implements JdbcDialect {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeConverter() {
         return ClickhouseRawTypeConverter::apply;
     }
 
@@ -63,7 +68,17 @@ public class ClickhouseDialect implements JdbcDialect {
     }
 
     @Override
-    public String getDeleteStatement(String schema, String tableName, String[] conditionFields) {
+    public String getKeyedDeleteStatement(
+            String schema, String tableName, List<String> conditionFieldList) {
+        throw new ChunJunRuntimeException("Clickhouse does not support delete sql");
+    }
+
+    @Override
+    public String getDeleteStatement(
+            String schema,
+            String tableName,
+            String[] conditionFields,
+            String[] nullConditionFields) {
         throw new ChunJunRuntimeException("Clickhouse does not support delete sql");
     }
 
@@ -72,5 +87,23 @@ public class ClickhouseDialect implements JdbcDialect {
         return String.format(
                 " modulo(%s,%s) = %s",
                 quoteIdentifier(splitPkName), split.getTotalNumberOfSplits(), split.getMod());
+    }
+
+    @Override
+    public Function<Tuple3<String, Integer, Integer>, TypeConfig> typeBuilder() {
+        return typeInfoTuple3 -> {
+            String type = typeInfoTuple3.f0;
+            TypeConfig typeConfig = TypeConfig.fromString(type);
+            if (typeConfig.getType().contains("DATETIME64")) {
+                return typeConfig;
+            }
+            if (typeInfoTuple3.f1 != null) {
+                typeConfig.setPrecision(typeInfoTuple3.f1);
+            }
+            if (typeInfoTuple3.f2 != null) {
+                typeConfig.setScale(typeInfoTuple3.f2);
+            }
+            return typeConfig;
+        };
     }
 }

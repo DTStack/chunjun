@@ -19,9 +19,10 @@
 package com.dtstack.chunjun.connector.cassandra.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.cassandra.config.CassandraSinkConfig;
 import com.dtstack.chunjun.connector.cassandra.converter.CassandraRawTypeConverter;
-import com.dtstack.chunjun.connector.cassandra.converter.CassandraRowConverter;
+import com.dtstack.chunjun.connector.cassandra.converter.CassandraSqlConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 import com.dtstack.chunjun.util.TableUtil;
 
@@ -77,7 +78,8 @@ public class CassandraDynamicTableSink implements DynamicTableSink {
 
             FieldConfig field = new FieldConfig();
             field.setName(name);
-            field.setType(column.getDataType().getLogicalType().asSummaryString());
+            field.setType(
+                    TypeConfig.fromString(column.getDataType().getLogicalType().asSummaryString()));
             field.setIndex(index);
             columnList.add(field);
         }
@@ -88,7 +90,7 @@ public class CassandraDynamicTableSink implements DynamicTableSink {
                 TableUtil.createRowType(sinkConf.getColumn(), CassandraRawTypeConverter::apply);
 
         builder.setSinkConfig(sinkConf);
-        builder.setRowConverter(new CassandraRowConverter(rowType, columnNameList));
+        builder.setRowConverter(new CassandraSqlConverter(rowType, columnNameList));
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction<>(builder.finish()), sinkConf.getParallelism());

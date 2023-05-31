@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.ftp.source;
 
 import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
-import com.dtstack.chunjun.connector.ftp.converter.FtpRowConverter;
+import com.dtstack.chunjun.connector.ftp.converter.FtpSqlConverter;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 
@@ -62,7 +62,7 @@ public class FtpDynamicTableSource implements ScanTableSource {
         FtpInputFormatBuilder builder = new FtpInputFormatBuilder();
         builder.setFtpConfig(ftpConfig);
         builder.setRowConverter(
-                new FtpRowConverter(
+                new FtpSqlConverter(
                         decodingFormat.createRuntimeDecoder(runtimeProviderContext, dataType)));
 
         return ParallelSourceFunctionProvider.of(

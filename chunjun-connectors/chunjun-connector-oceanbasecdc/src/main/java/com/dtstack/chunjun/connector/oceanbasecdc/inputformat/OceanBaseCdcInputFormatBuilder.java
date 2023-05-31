@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.oceanbasecdc.inputformat;
 
 import com.dtstack.chunjun.connector.oceanbasecdc.config.OceanBaseCdcConfig;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import com.oceanbase.clogproxy.client.config.ObReaderConfig;
@@ -37,11 +37,11 @@ public class OceanBaseCdcInputFormatBuilder
         this.format.setCdcConf(cdcConf);
     }
 
-    public void setRowConverter(AbstractCDCRowConverter rowConverter) {
+    public void setRowConverter(AbstractCDCRawTypeMapper rowConverter) {
         this.setRowConverter(rowConverter, false);
     }
 
-    public void setRowConverter(AbstractCDCRowConverter rowConverter, boolean useAbstractColumn) {
+    public void setRowConverter(AbstractCDCRawTypeMapper rowConverter, boolean useAbstractColumn) {
         this.format.setRowConverter(rowConverter);
         format.setUseAbstractColumn(useAbstractColumn);
     }

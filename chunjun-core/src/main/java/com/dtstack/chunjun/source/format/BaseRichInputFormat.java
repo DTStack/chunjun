@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.source.format;
 
 import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.dirty.DirtyConfig;
@@ -104,7 +105,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     /** A collection of field names filled in user scripts with constants removed */
     protected List<String> columnNameList = new ArrayList<>();
     /** A collection of field types filled in user scripts with constants removed */
-    protected List<String> columnTypeList = new ArrayList<>();
+    protected List<TypeConfig> columnTypeList = new ArrayList<>();
     /** dirty manager which collects the dirty data. */
     protected DirtyManager dirtyManager;
     /** BaseRichInputFormat是否已经初始化 */

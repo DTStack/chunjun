@@ -20,7 +20,6 @@ package com.dtstack.chunjun.typeutil.serializer.base;
 
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
-import com.dtstack.chunjun.element.column.BytesColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.typeutil.SerializerTestBase;
 import com.dtstack.chunjun.typeutil.serializer.DeeplyEqualsChecker;
@@ -36,14 +35,9 @@ public class BooleanColumnSerializerTest extends SerializerTestBase<AbstractBase
     protected Tuple2<BiFunction<Object, Object, Boolean>, DeeplyEqualsChecker.CustomEqualityChecker>
             getCustomChecker() {
         return Tuple2.of(
-                new BiFunction<Object, Object, Boolean>() {
-                    @Override
-                    public Boolean apply(Object o, Object o2) {
-                        return (o instanceof BooleanColumn && o2 instanceof BooleanColumn)
-                                || (o instanceof BytesColumn && o2 instanceof BytesColumn)
-                                || (o instanceof NullColumn && o2 instanceof NullColumn);
-                    }
-                },
+                (o, o2) ->
+                        (o instanceof BooleanColumn && o2 instanceof BooleanColumn)
+                                || (o instanceof NullColumn && o2 instanceof NullColumn),
                 new BooleanColumnChecker());
     }
 
@@ -64,9 +58,7 @@ public class BooleanColumnSerializerTest extends SerializerTestBase<AbstractBase
 
     @Override
     protected AbstractBaseColumn[] getTestData() {
-        return new AbstractBaseColumn[] {
-            new NullColumn(), new BooleanColumn(true), new BytesColumn(new byte[] {1, 2})
-        };
+        return new AbstractBaseColumn[] {new NullColumn(), new BooleanColumn(true)};
     }
 
     public static class BooleanColumnChecker implements DeeplyEqualsChecker.CustomEqualityChecker {
@@ -74,19 +66,7 @@ public class BooleanColumnSerializerTest extends SerializerTestBase<AbstractBase
         @Override
         public boolean check(Object o1, Object o2, DeeplyEqualsChecker checker) {
             if (o1 instanceof BooleanColumn && o2 instanceof BooleanColumn) {
-                return ((BooleanColumn) o1).getData() == ((BooleanColumn) o2).getData();
-            } else if (o1 instanceof BytesColumn && o2 instanceof BytesColumn) {
-                byte[] wantBytes = ((BytesColumn) o1).asBytes();
-                byte[] wasBytes = ((BytesColumn) o2).asBytes();
-                if (wantBytes.length == wasBytes.length) {
-                    for (int i = 0; i < wantBytes.length; i++) {
-                        if (wantBytes[i] != wasBytes[i]) {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-                return false;
+                return ((BooleanColumn) o1).asBoolean() == ((BooleanColumn) o2).asBoolean();
             } else {
                 return o1 instanceof NullColumn && o2 instanceof NullColumn;
             }

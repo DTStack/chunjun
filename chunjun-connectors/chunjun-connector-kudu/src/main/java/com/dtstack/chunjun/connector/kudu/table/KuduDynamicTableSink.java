@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.kudu.table;
 
 import com.dtstack.chunjun.connector.kudu.config.KuduSinkConfig;
-import com.dtstack.chunjun.connector.kudu.converter.KuduRowConverter;
+import com.dtstack.chunjun.connector.kudu.converter.KuduSqlConverter;
 import com.dtstack.chunjun.connector.kudu.sink.KuduOutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
@@ -57,7 +57,7 @@ public class KuduDynamicTableSink implements DynamicTableSink {
 
         builder.setSinkConfig(sinkConfig);
         builder.setRowConverter(
-                new KuduRowConverter((RowType) logicalType, tableSchema.getColumnNames()));
+                new KuduSqlConverter((RowType) logicalType, tableSchema.getColumnNames()));
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction<>(builder.finish()), sinkConfig.getParallelism());

@@ -21,11 +21,11 @@ package com.dtstack.chunjun.connector.starrocks.source;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
-import com.dtstack.chunjun.connector.starrocks.converter.StarRocksColumnConverter;
-import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRawTypeConverter;
-import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRowConverter;
+import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRawTypeMapper;
+import com.dtstack.chunjun.connector.starrocks.converter.StarRocksSqlConverter;
+import com.dtstack.chunjun.connector.starrocks.converter.StarRocksSyncConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -54,11 +54,11 @@ public class StarRocksSourceFactory extends SourceFactory {
         List<FieldConfig> fieldList = syncConfig.getReader().getFieldList();
         List<String> fieldNameList = new ArrayList<>();
         List<DataType> dataTypeList = new ArrayList<>();
-        RawTypeConverter rawTypeConverter = getRawTypeConverter();
+        RawTypeMapper rawTypeMapper = getRawTypeMapper();
         for (FieldConfig fieldConfig : fieldList) {
             if (StringUtils.isBlank(fieldConfig.getValue())) {
                 fieldNameList.add(fieldConfig.getName());
-                dataTypeList.add(rawTypeConverter.apply(fieldConfig.getType()));
+                dataTypeList.add(rawTypeMapper.apply(fieldConfig.getType()));
             }
         }
 
@@ -68,8 +68,8 @@ public class StarRocksSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return StarRocksRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return StarRocksRawTypeMapper::apply;
     }
 
     @Override
@@ -77,13 +77,12 @@ public class StarRocksSourceFactory extends SourceFactory {
         StarRocksInputFormatBuilder inputFormatBuilder =
                 new StarRocksInputFormatBuilder(new StarRocksInputFormat());
         inputFormatBuilder.setStarRocksConf(starRocksConfig);
-        RowType rowType =
-                TableUtil.createRowType(starRocksConfig.getColumn(), getRawTypeConverter());
+        RowType rowType = TableUtil.createRowType(starRocksConfig.getColumn(), getRawTypeMapper());
         AbstractRowConverter rowConverter;
         if (useAbstractBaseColumn) {
-            rowConverter = new StarRocksColumnConverter(rowType, starRocksConfig);
+            rowConverter = new StarRocksSyncConverter(rowType, starRocksConfig);
         } else {
-            rowConverter = new StarRocksRowConverter(rowType, null);
+            rowConverter = new StarRocksSqlConverter(rowType, null);
         }
         inputFormatBuilder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(inputFormatBuilder.finish());

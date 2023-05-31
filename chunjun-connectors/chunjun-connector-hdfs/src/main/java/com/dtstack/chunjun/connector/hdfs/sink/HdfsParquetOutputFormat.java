@@ -18,8 +18,8 @@
 package com.dtstack.chunjun.connector.hdfs.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetColumnConverter;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetRowConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetSqlConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetSyncConverter;
 import com.dtstack.chunjun.connector.hdfs.enums.CompressType;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
@@ -77,11 +77,11 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                 hdfsConfig.getColumn().stream()
                         .map(FieldConfig::getName)
                         .collect(Collectors.toList());
-        if (rowConverter instanceof HdfsParquetColumnConverter) {
-            ((HdfsParquetColumnConverter) rowConverter).setColumnNameList(columnNameList);
-            ((HdfsParquetColumnConverter) rowConverter).setDecimalColInfo(decimalColInfo);
-        } else if (rowConverter instanceof HdfsParquetRowConverter) {
-            ((HdfsParquetRowConverter) rowConverter).setColumnNameList(columnNameList);
+        if (rowConverter instanceof HdfsParquetSyncConverter) {
+            ((HdfsParquetSyncConverter) rowConverter).setColumnNameList(columnNameList);
+            ((HdfsParquetSyncConverter) rowConverter).setDecimalColInfo(decimalColInfo);
+        } else if (rowConverter instanceof HdfsParquetSqlConverter) {
+            ((HdfsParquetSqlConverter) rowConverter).setColumnNameList(columnNameList);
         }
     }
 

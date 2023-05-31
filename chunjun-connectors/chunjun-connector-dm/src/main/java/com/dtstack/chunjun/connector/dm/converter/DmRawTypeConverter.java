@@ -18,21 +18,24 @@
 
 package com.dtstack.chunjun.connector.dm.converter;
 
+import com.dtstack.chunjun.config.TypeConfig;
+import com.dtstack.chunjun.connector.dm.converter.logical.BlobType;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
 import org.apache.flink.table.api.DataTypes;
+import org.apache.flink.table.types.AtomicDataType;
 import org.apache.flink.table.types.DataType;
-
-import java.util.Locale;
+import org.apache.flink.table.types.logical.LogicalTypeRoot;
 
 public class DmRawTypeConverter {
 
     /**
-     * inspired by dm doc. <a
-     * href="https://www.dameng.com/form/login/s/L3ZpZXdfNjEuaHRtbA%3D%3D.html">...</a>
+     * inspired by dm doc.
+     *
+     * <p><a href="https://www.dameng.com/form/login/s/L3ZpZXdfNjEuaHRtbA%3D%3D.html">...</a>
      */
-    public static DataType apply(String type) {
-        switch (type.toUpperCase(Locale.ENGLISH)) {
+    public static DataType apply(TypeConfig type) {
+        switch (type.getType()) {
             case "CHAR":
             case "CHARACTER":
             case "VARCHAR":
@@ -55,7 +58,6 @@ public class DmRawTypeConverter {
                 return DataTypes.INT();
             case "TINYINT":
             case "BYTE":
-            case "BYTES":
                 return DataTypes.TINYINT();
             case "SMALLINT":
                 return DataTypes.SMALLINT();
@@ -63,14 +65,16 @@ public class DmRawTypeConverter {
                 return DataTypes.BIGINT();
             case "BINARY":
             case "VARBINARY":
+            case "GEOMETRY":
+            case "BYTES":
+                // BYTES 底层调用的是VARBINARY最大长度
+                return DataTypes.BYTES();
             case "BLOB":
             case "TINYBLOB":
             case "MEDIUMBLOB":
             case "LONGBLOB":
-            case "GEOMETRY":
             case "IMAGE":
-                // BYTES 底层调用的是VARBINARY最大长度
-                return DataTypes.BYTES();
+                return new AtomicDataType(new BlobType(true, LogicalTypeRoot.VARBINARY));
             case "REAL":
                 return DataTypes.FLOAT();
             case "FLOAT":
