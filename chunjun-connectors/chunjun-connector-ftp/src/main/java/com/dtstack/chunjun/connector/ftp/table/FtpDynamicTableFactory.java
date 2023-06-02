@@ -68,6 +68,7 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         ftpConfig.setMaxFileSize(config.get(BaseFileOptions.MAX_FILE_SIZE));
         ftpConfig.setCompressType(config.get(FtpOptions.COMPRESS_TYPE));
         ftpConfig.setFileType(config.get(FtpOptions.FILE_TYPE));
+        ftpConfig.setNextCheckRows(config.get(BaseFileOptions.NEXT_CHECK_ROWS));
 
         if (!ConfigConstants.DEFAULT_FIELD_DELIMITER.equals(
                 config.get(FtpOptions.FIELD_DELIMITER))) {
@@ -179,6 +180,7 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         options.add(FtpOptions.FIRST_LINE_HEADER);
         options.add(FtpOptions.FIELD_DELIMITER);
         options.add(FtpOptions.COMPRESS_TYPE);
+        options.add(BaseFileOptions.NEXT_CHECK_ROWS);
         return options;
     }
 }

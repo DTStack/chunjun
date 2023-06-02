@@ -43,11 +43,13 @@ public class FtpSqlConverter extends AbstractRowConverter<String, String, String
 
     @Override
     public RowData toInternal(String input) throws Exception {
+        valueDeserialization.open(new DummyInitializationContext());
         return valueDeserialization.deserialize(input.getBytes());
     }
 
     @Override
     public String toExternal(RowData rowData, String output) throws Exception {
+        valueSerialization.open(new DummyInitializationContext());
         byte[] serialize = valueSerialization.serialize(rowData);
         return new String(serialize);
     }
