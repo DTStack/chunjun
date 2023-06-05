@@ -54,7 +54,7 @@ public class ConcurrentZipCompressSplit extends DefaultFileSplit {
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 fileSplits.add(
                         new FtpFileSplit(
-                                0, zipEntry.getSize(), filePath, zipEntry.getName(), compressType));
+                                0, zipEntry.getSize(), zipEntry.getName(), filePath, compressType));
             }
             return fileSplits;
         } catch (Exception e) {

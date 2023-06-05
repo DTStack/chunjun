@@ -49,6 +49,8 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     /** 换行符 */
     private static final int NEWLINE = 10;
 
+    private static final String SP = "/";
+
     private static final long serialVersionUID = -3331910729974811530L;
 
     protected FtpConfig ftpConfig;
@@ -101,7 +103,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         if (writer != null) {
             return;
         }
-        String currentBlockTmpPath = tmpPath + File.separatorChar + currentFileName;
+        String currentBlockTmpPath = tmpPath + SP + currentFileName;
         try {
             os = ftpHandler.getOutputStream(currentBlockTmpPath);
             writer =
@@ -212,7 +214,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 String fileName =
                         handleUserSpecificFileName(
                                 tmpDataFile.getName(), dataFiles.size(), copyList, ftpHandler);
-                String newFilePath = outputFilePath + File.separatorChar + fileName;
+                String newFilePath = outputFilePath + SP + fileName;
                 ftpHandler.rename(currentFilePath, newFilePath);
                 copyList.add(newFilePath);
                 log.info("copy temp file:{} to dir:{}", currentFilePath, outputFilePath);
@@ -253,7 +255,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                         List<String> copyList = new ArrayList<>();
                         for (String dataFile : dataFiles) {
                             File tmpDataFile = new File(dataFile);
-                            dataFilePath = tmpDataFile.getAbsolutePath();
+                            dataFilePath = dataFile;
 
                             String fileName =
                                     handleUserSpecificFileName(
@@ -261,8 +263,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                                             dataFiles.size(),
                                             copyList,
                                             handler);
-                            String newDataFilePath =
-                                    ftpConfig.getPath() + File.separatorChar + fileName;
+                            String newDataFilePath = ftpConfig.getPath() + SP + fileName;
                             handler.rename(dataFilePath, newDataFilePath);
                             copyList.add(newDataFilePath);
                             log.info("move temp file:{} to dir:{}", dataFilePath, outputFilePath);
@@ -285,12 +286,15 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected String getExtension() {
+        if (StringUtils.isNotBlank(ftpConfig.getFileType())) {
+            return ftpConfig.getFileType();
+        }
         return "";
     }
 
     @Override
     protected long getCurrentFileSize() {
-        String path = tmpPath + File.separatorChar + currentFileName;
+        String path = tmpPath + SP + currentFileName;
         try {
             return ftpHandler.getFileSize(path);
         } catch (IOException e) {
@@ -351,7 +355,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     private String filepathCheck(String filename, List<String> copyList, DTFtpHandler handler)
             throws IOException {
         if (WriteMode.NONCONFLICT.name().equalsIgnoreCase(ftpConfig.getWriteMode())) {
-            if (handler.isFileExist(ftpConfig.getPath() + File.separatorChar + filename)) {
+            if (handler.isFileExist(ftpConfig.getPath() + SP + filename)) {
                 handler.deleteAllFilesInDir(tmpPath, null);
                 if (!copyList.isEmpty()) {
                     for (String filePath : copyList) {
@@ -367,7 +371,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                         String.format("the file: %s already exists", filename));
             }
         } else if (WriteMode.INSERT.name().equalsIgnoreCase(ftpConfig.getWriteMode())) {
-            if (handler.isFileExist(ftpConfig.getPath() + File.separatorChar + filename)) {
+            if (handler.isFileExist(ftpConfig.getPath() + SP + filename)) {
                 String suffix =
                         StringUtils.isNotBlank(ftpConfig.getSuffix())
                                 ? "_" + ftpConfig.getSuffix()
