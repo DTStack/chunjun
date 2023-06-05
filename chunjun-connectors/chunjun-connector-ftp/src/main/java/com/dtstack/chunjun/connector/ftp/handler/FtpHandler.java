@@ -149,14 +149,19 @@ public class FtpHandler implements DTFtpHandler {
     @Override
     public boolean isFileExist(String filePath) throws IOException {
         ftpClient.enterLocalPassiveMode();
-        try (InputStream inputStream = ftpClient.retrieveFileStream(encodePath(filePath))) {
-            return inputStream != null && ftpClient.getReplyCode() != 550;
+        InputStream inputStream = null;
+        try {
+            inputStream = ftpClient.retrieveFileStream(encodePath(filePath));
+            return inputStream != null && ftpClient.getReplyCode() != FTPReply.FILE_UNAVAILABLE;
         } catch (IOException e) {
             throw new ChunJunRuntimeException(
                     "An exception occurred when judging whether the file exists. filepath: "
                             + filePath);
         } finally {
-            ftpClient.completePendingCommand();
+            if (inputStream != null) {
+                inputStream.close();
+                ftpClient.completePendingCommand();
+            }
         }
     }
 
