@@ -39,7 +39,7 @@ public class FieldConfig implements Serializable {
     /** 字段名称 */
     private String name;
     /** 字段类型 */
-    private TypeConfig type;
+    private TypeConfig scriptType;
     /** 字段索引 */
     private Integer index;
     /** 字段常量值 */
@@ -88,6 +88,14 @@ public class FieldConfig implements Serializable {
         return list;
     }
 
+    public TypeConfig getType() {
+        return scriptType;
+    }
+
+    public void setType(TypeConfig type) {
+        this.scriptType = type;
+    }
+
     public static FieldConfig getField(Map map, int index) {
         FieldConfig field = new FieldConfig();
 
@@ -95,7 +103,7 @@ public class FieldConfig implements Serializable {
         field.setName(name != null ? String.valueOf(name) : null);
 
         Object type = map.get("type");
-        field.setType(type == null ? null : TypeConfig.fromString(String.valueOf(type)));
+        field.setScriptType(type == null ? null : TypeConfig.fromString(String.valueOf(type)));
 
         Object colIndex = map.get("index");
         if (Objects.nonNull(colIndex)) {

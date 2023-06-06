@@ -20,10 +20,13 @@ package com.dtstack.chunjun.connector.ftp.table;
 
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.TypeConfig;
+import com.dtstack.chunjun.connector.ftp.config.ConfigConstants;
 import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
 import com.dtstack.chunjun.connector.ftp.options.FtpOptions;
 import com.dtstack.chunjun.connector.ftp.sink.FtpDynamicTableSink;
 import com.dtstack.chunjun.connector.ftp.source.FtpDynamicTableSource;
+import com.dtstack.chunjun.table.options.BaseFileOptions;
+import com.dtstack.chunjun.util.StringUtil;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SerializationSchema;
@@ -60,7 +63,19 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         ftpConfig.setPassword(config.get(FtpOptions.PASSWORD));
 
         ftpConfig.setEncoding(config.get(FtpOptions.ENCODING));
+        ftpConfig.setFirstLineHeader(config.get(FtpOptions.FIRST_LINE_HEADER));
+        ftpConfig.setFtpFileName(config.get(FtpOptions.FILE_NAME));
+        ftpConfig.setMaxFileSize(config.get(BaseFileOptions.MAX_FILE_SIZE));
+        ftpConfig.setCompressType(config.get(FtpOptions.COMPRESS_TYPE));
         ftpConfig.setFileType(config.get(FtpOptions.FILE_TYPE));
+        ftpConfig.setNextCheckRows(config.get(BaseFileOptions.NEXT_CHECK_ROWS));
+
+        if (!ConfigConstants.DEFAULT_FIELD_DELIMITER.equals(
+                config.get(FtpOptions.FIELD_DELIMITER))) {
+            String fieldDelimiter =
+                    StringUtil.convertRegularExpr(config.get(FtpOptions.FIELD_DELIMITER));
+            ftpConfig.setFieldDelimiter(fieldDelimiter);
+        }
 
         if (config.get(FtpOptions.TIMEOUT) != null) {
             ftpConfig.setTimeout(config.get(FtpOptions.TIMEOUT));
@@ -76,8 +91,8 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
             ftpConfig.setPort(config.get(FtpOptions.PORT));
         }
 
-        if (config.get(FtpOptions.isFirstLineHeader) != null) {
-            ftpConfig.setFirstLineHeader(config.get(FtpOptions.isFirstLineHeader));
+        if (config.get(FtpOptions.FIRST_LINE_HEADER) != null) {
+            ftpConfig.setFirstLineHeader(config.get(FtpOptions.FIRST_LINE_HEADER));
         }
         return ftpConfig;
     }
@@ -117,7 +132,7 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         final FactoryUtil.TableFactoryHelper helper =
                 FactoryUtil.createTableFactoryHelper(this, context);
         final ReadableConfig config = helper.getOptions();
-        helper.validate();
+        helper.validateExcept("csv.");
 
         ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
@@ -159,8 +174,13 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         options.add(FtpOptions.ENCODING);
         options.add(FtpOptions.MAX_FILE_SIZE);
         options.add(FtpOptions.FORMAT);
-        options.add(FtpOptions.isFirstLineHeader);
+        options.add(FtpOptions.PORT);
         options.add(FtpOptions.FILE_TYPE);
+        options.add(FtpOptions.CONNECT_PATTERN);
+        options.add(FtpOptions.FIRST_LINE_HEADER);
+        options.add(FtpOptions.FIELD_DELIMITER);
+        options.add(FtpOptions.COMPRESS_TYPE);
+        options.add(BaseFileOptions.NEXT_CHECK_ROWS);
         return options;
     }
 }
