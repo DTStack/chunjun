@@ -23,11 +23,14 @@ import com.dtstack.chunjun.connector.elasticsearch.table.IndexGenerator;
 import com.dtstack.chunjun.connector.elasticsearch7.Elasticsearch7ClientFactory;
 import com.dtstack.chunjun.connector.elasticsearch7.Elasticsearch7RequestFactory;
 import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
+import com.dtstack.chunjun.sink.WriteMode;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 
 import org.apache.flink.table.data.RowData;
 
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -37,11 +40,16 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.MatchAllQueryBuilder;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
 
     private static final long serialVersionUID = 4075917714665517802L;
@@ -58,6 +66,38 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
             ElasticsearchConfig elasticsearchConfig, IndexGenerator indexGenerator) {
         this.elasticsearchConfig = elasticsearchConfig;
         this.indexGenerator = indexGenerator;
+    }
+
+    @Override
+    public void initializeGlobal(int parallelism) {
+        if (WriteMode.OVERWRITE.name().equalsIgnoreCase(elasticsearchConfig.getWriteMode())) {
+            DeleteByQueryRequest request = new DeleteByQueryRequest(elasticsearchConfig.getIndex());
+            // 批量更新内容的时候，可能会遇到文档版本冲突的情况，需要设置版本冲突的时候如何处理。
+            // 版本冲突解决方案如下：
+            // proceed - 忽略版本冲突，继续执行
+            // abort - 遇到版本冲突，中断执行
+            request.setConflicts("proceed");
+            // 设置删除时的查询条件
+            request.setQuery(new MatchAllQueryBuilder());
+            try (RestHighLevelClient rhlClient =
+                    Elasticsearch7ClientFactory.createClient(elasticsearchConfig, null)) {
+                // 执行请求
+                BulkByScrollResponse bulkResponse =
+                        rhlClient.deleteByQuery(request, RequestOptions.DEFAULT);
+                // 操作消耗时间
+                TimeValue timeTaken = bulkResponse.getTook();
+                // 成功删除文档数量
+                long deletedDocs = bulkResponse.getDeleted();
+                log.info(
+                        "Number of documents successfully deleted : "
+                                + deletedDocs
+                                + ", time : "
+                                + timeTaken.toString());
+            } catch (IOException e) {
+                throw new ChunJunRuntimeException(
+                        "cannot empty data by index : " + elasticsearchConfig.getIndex(), e);
+            }
+        }
     }
 
     @Override

@@ -56,4 +56,17 @@ public class Elasticsearch7Options {
                     .defaultValue(10)
                     .withDescription(
                             "Elasticsearch client connection assigns maximum connection per route value. default:10");
+
+    public static final ConfigOption<String> SEARCH_QUERY =
+            ConfigOptions.key("search-query")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("The query parameter of Elasticsearch");
+
+    public static final ConfigOption<String> WRITE_MODE =
+            ConfigOptions.key("write-mode")
+                    .stringType()
+                    .defaultValue("append")
+                    .withDescription(
+                            "Data cleaning processing mode before elasticsearch writer write:");
 }
