@@ -136,11 +136,11 @@ public class SaphanaDialect implements JdbcDialect {
         return sb.toString();
     }
 
-    /** build sql part e.g: T1.`A` = T2.`A`, T1.`B` = T2.`B` */
+    /** build sql part e.g: T1.`A` = T2.`A` and T1.`B` = T2.`B` */
     private String buildEqualConditions(String[] uniqueKeyFields) {
         return Arrays.stream(uniqueKeyFields)
                 .map(col -> "T1." + quoteIdentifier(col) + " = T2." + quoteIdentifier(col))
-                .collect(Collectors.joining(", "));
+                .collect(Collectors.joining(" and "));
     }
 
     /** build T1."A"=T2."A" or T1."A"=nvl(T2."A",T1."A") */
