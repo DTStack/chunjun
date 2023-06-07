@@ -46,6 +46,7 @@ public class MongodbSourceFactory extends SourceFactory {
                 gson.fromJson(
                         gson.toJson(syncConfig.getReader().getParameter()),
                         MongodbDataSyncConfig.class);
+        mongodbDataSyncConfig.setColumn(syncConfig.getReader().getFieldList());
     }
 
     @Override
