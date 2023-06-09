@@ -22,6 +22,7 @@ import com.dtstack.chunjun.connector.elasticsearch.KeyExtractor;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6ClientFactory;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6RequestFactory;
+import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 
@@ -112,7 +113,9 @@ public class Elasticsearch6OutputFormat extends BaseRichOutputFormat {
                             new WriteRecordException(
                                     itemResponds.getFailureMessage(),
                                     itemResponds.getFailure().getCause());
-                    dirtyManager.collect(response, exception, null);
+                    long globalErrors =
+                            accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
+                    dirtyManager.collect(response, exception, null, globalErrors);
                 }
 
                 if (errCounter != null) {

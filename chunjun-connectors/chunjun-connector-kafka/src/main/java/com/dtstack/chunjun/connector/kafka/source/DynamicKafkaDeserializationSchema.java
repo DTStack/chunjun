@@ -231,7 +231,9 @@ public class DynamicKafkaDeserializationSchema implements KafkaDeserializationSc
             if (record.value() != null) {
                 data = new String(record.value(), StandardCharsets.UTF_8);
             }
-            dirtyManager.collect(data, e, null);
+            long globalErrors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
+
+            dirtyManager.collect(data, e, null, globalErrors);
         }
     }
 

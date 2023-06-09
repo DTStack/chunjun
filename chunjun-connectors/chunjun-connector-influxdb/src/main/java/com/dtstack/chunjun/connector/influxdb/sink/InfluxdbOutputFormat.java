@@ -23,6 +23,7 @@ import com.dtstack.chunjun.connector.influxdb.config.InfluxdbSinkConfig;
 import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbRawTypeMapper;
 import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbSyncConverter;
 import com.dtstack.chunjun.connector.influxdb.enums.TimePrecisionEnums;
+import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.ExceptionUtil;
@@ -135,7 +136,10 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
                     options.exceptionHandler(
                                     (iterable, e) -> {
                                         for (Point point : iterable) {
-                                            dirtyManager.collect(point, e, null);
+                                            long globalErrors =
+                                                    accumulatorCollector.getAccumulatorValue(
+                                                            Metrics.NUM_ERRORS, false);
+                                            dirtyManager.collect(point, e, null, globalErrors);
                                         }
                                         if (log.isTraceEnabled()) {
                                             log.trace(

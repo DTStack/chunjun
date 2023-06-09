@@ -23,6 +23,7 @@ import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.streamload.StarRocksSinkBufferEntity;
 import com.dtstack.chunjun.connector.starrocks.streamload.StarRocksStreamLoadFailedException;
 import com.dtstack.chunjun.connector.starrocks.streamload.StreamLoadManager;
+import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
@@ -103,7 +104,10 @@ public class StarRocksOutputFormat extends BaseRichOutputFormat {
                     String errMessage = handleErrMessage(exception);
                     StarRocksSinkBufferEntity entity = exception.getEntity();
                     for (byte[] data : entity.getBuffer()) {
-                        dirtyManager.collect(new String(data), new Throwable(errMessage), null);
+                        long globalErrors =
+                                accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
+                        dirtyManager.collect(
+                                new String(data), new Throwable(errMessage), null, globalErrors);
                     }
                 } else {
                     throw new ChunJunRuntimeException("write starRocks failed.", e);

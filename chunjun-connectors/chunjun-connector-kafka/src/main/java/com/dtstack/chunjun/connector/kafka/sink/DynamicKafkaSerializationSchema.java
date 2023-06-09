@@ -265,7 +265,8 @@ public class DynamicKafkaSerializationSchema
                     valueSerialized,
                     readMetadata(consumedRow, KafkaDynamicSink.WritableMetadata.HEADERS));
         } catch (Exception e) {
-            dirtyManager.collect(consumedRow, e, null);
+            long globalErrors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
+            dirtyManager.collect(consumedRow, e, null, globalErrors);
         }
         return null;
     }

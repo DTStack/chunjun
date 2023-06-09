@@ -23,6 +23,7 @@ import com.dtstack.chunjun.connector.nebula.client.NebulaSession;
 import com.dtstack.chunjun.connector.nebula.client.NebulaStorageClient;
 import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
 import com.dtstack.chunjun.connector.nebula.row.NebulaRows;
+import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
@@ -134,7 +135,9 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
                             new WriteRecordException(
                                     res.getErrorMessage(),
                                     new ChunJunRuntimeException(res.getErrorMessage()));
-                    dirtyManager.collect(row, exception, null);
+                    long globalErrors =
+                            accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
+                    dirtyManager.collect(row, exception, null, globalErrors);
                 }
                 if (errCounter != null) {
                     errCounter.add(rows.size());
@@ -145,7 +148,9 @@ public class NebulaOutputFormat extends BaseRichOutputFormat {
             WriteRecordException exception;
             for (RowData row : rows) {
                 exception = new WriteRecordException(e.getMessage(), e);
-                dirtyManager.collect(row, exception, null);
+                long globalErrors =
+                        accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
+                dirtyManager.collect(row, exception, null, globalErrors);
             }
 
             if (errCounter != null) {

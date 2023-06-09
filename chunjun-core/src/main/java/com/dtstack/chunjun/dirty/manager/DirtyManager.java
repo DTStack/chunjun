@@ -116,7 +116,7 @@ public class DirtyManager implements Serializable {
         return consumer.getFailedConsumed();
     }
 
-    public void collect(Object data, Throwable cause, String field) {
+    public void collect(Object data, Throwable cause, String field, long globalErrors) {
         if (executor == null) {
             execute();
         }
@@ -131,7 +131,7 @@ public class DirtyManager implements Serializable {
         entity.setFieldName(field);
         entity.setErrorMessage(ExceptionUtil.getErrorMessage(cause));
 
-        consumer.offer(entity);
+        consumer.offer(entity, globalErrors);
         errorCounter.add(1L);
     }
 
