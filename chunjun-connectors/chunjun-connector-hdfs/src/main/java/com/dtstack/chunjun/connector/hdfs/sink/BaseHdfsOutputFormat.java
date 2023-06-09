@@ -170,15 +170,27 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
     @Override
     protected long getCurrentFileSize() {
         String path = tmpPath + getHdfsPathChar() + currentFileName;
-        try {
-            if (hdfsConfig.getMaxFileSize() > ConstantValue.STORE_SIZE_G) {
-                return fs.getFileStatus(new Path(path)).getLen();
-            } else {
-                return fs.open(new Path(path)).available();
+        int retryTimes = 1;
+        while (retryTimes <= 3) {
+            try {
+                if (hdfsConfig.getMaxFileSize() > ConstantValue.STORE_SIZE_G) {
+                    return fs.getFileStatus(new Path(path)).getLen();
+                } else {
+                    return fs.open(new Path(path)).available();
+                }
+            } catch (IOException e) {
+                if (++retryTimes <= 3) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ignore) {
+                    }
+                } else {
+                    throw new ChunJunRuntimeException(
+                            "can't get file size from hdfs, file = " + path, e);
+                }
             }
-        } catch (IOException e) {
-            throw new ChunJunRuntimeException("can't get file size from hdfs, file = " + path, e);
         }
+        return 0;
     }
 
     @Override
