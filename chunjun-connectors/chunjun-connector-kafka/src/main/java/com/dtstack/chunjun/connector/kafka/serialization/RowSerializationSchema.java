@@ -21,6 +21,7 @@ import com.dtstack.chunjun.cdc.DdlRowData;
 import com.dtstack.chunjun.connector.kafka.conf.KafkaConfig;
 import com.dtstack.chunjun.connector.kafka.sink.DynamicKafkaSerializationSchema;
 import com.dtstack.chunjun.constants.CDCConstantValue;
+import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -99,7 +100,8 @@ public class RowSerializationSchema extends DynamicKafkaSerializationSchema {
                     null,
                     valueSerialized);
         } catch (Exception e) {
-            dirtyManager.collect(element, e, null);
+            long globalErrors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
+            dirtyManager.collect(element, e, null, globalErrors);
         }
         return null;
     }

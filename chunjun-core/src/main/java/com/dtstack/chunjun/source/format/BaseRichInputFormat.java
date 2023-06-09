@@ -198,7 +198,9 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         try {
             internalRow = nextRecordInternal(rowData);
         } catch (ReadRecordException e) {
-            dirtyManager.collect(e.getRowData(), e, null);
+            // 脏数据总数应是所有slot的脏数据总数，而不是单个的
+            long globalErrors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
+            dirtyManager.collect(e.getRowData(), e, null, globalErrors);
         }
         if (internalRow != null) {
             updateDuration();

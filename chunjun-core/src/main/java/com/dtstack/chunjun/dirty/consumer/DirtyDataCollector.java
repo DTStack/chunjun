@@ -69,9 +69,9 @@ public abstract class DirtyDataCollector implements Runnable, Serializable {
      *
      * @param dirty dirty data.
      */
-    public synchronized void offer(DirtyDataEntry dirty) {
+    public synchronized void offer(DirtyDataEntry dirty, long globalErrors) {
         consumeQueue.offer(dirty);
-        addConsumed(1L, dirty);
+        addConsumed(1L, dirty, globalErrors);
     }
 
     public void initializeConsumer(DirtyConfig conf) {
@@ -93,9 +93,17 @@ public abstract class DirtyDataCollector implements Runnable, Serializable {
         }
     }
 
-    protected void addConsumed(long count, DirtyDataEntry dirty) {
+    protected void addConsumed(long count, DirtyDataEntry dirty, long globalErrors) {
         consumedCounter.add(count);
-        if (consumedCounter.getLocalValue() >= maxConsumed) {
+        // 因为总体的脏数据需要tm和jm进行通讯（每tm心跳+1s），会有延迟，且当单slot运行时误差将达到最大
+        // 所以这里需要判断延迟情况
+        long max =
+                consumedCounter.getLocalValue() >= globalErrors
+                        ? consumedCounter.getLocalValue()
+                        : globalErrors;
+        // 但这里仍然有误差：此时如果所有的slot都消费了脏数据那么其他slot的脏数据就记录不到。也就是会多消费脏数据
+        // 所以这里要有取舍：是否要消费完全准确的脏数据
+        if (max >= maxConsumed) {
             StringJoiner dirtyMessage =
                     new StringJoiner("\n")
                             .add("\n****************Dirty Data Begin****************\n")
