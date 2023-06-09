@@ -42,6 +42,13 @@ public class MongodbInputFormatBuilder extends BaseRichInputFormatBuilder<Mongod
         return new MongodbInputFormatBuilder(format);
     }
 
+    public static MongodbInputFormatBuilder newBuild(
+            MongoClientConfig mongoClientConf, String filter, int fetchSize) {
+        MongodbInputFormat format =
+                new MongodbInputFormat(mongoClientConf, parseFilter(filter), fetchSize);
+        return new MongodbInputFormatBuilder(format);
+    }
+
     private MongodbInputFormatBuilder(MongodbInputFormat format) {
         super(format);
     }

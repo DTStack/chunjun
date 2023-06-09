@@ -56,6 +56,11 @@ public class MongodbOutputFormatBuilder extends BaseRichOutputFormatBuilder<Mong
 
     @Override
     protected void checkFormat() {
+        // mongodbDataSyncConf 是json模式下的实体类
+        // sql 模式这里跳过检查
+        if (mongodbDataSyncConfig == null) {
+            return;
+        }
         if (!StringUtils.isBlank(upsertKey)) {
             List<FieldConfig> fields = mongodbDataSyncConfig.getColumn();
             boolean flag = false;
