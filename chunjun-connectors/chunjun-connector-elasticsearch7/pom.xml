@@ -40,6 +40,12 @@
 			<groupId>org.elasticsearch.client</groupId>
 			<artifactId>elasticsearch-rest-high-level-client</artifactId>
 			<version>7.5.1</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>log4j-api</artifactId>
+					<groupId>org.apache.logging.log4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -63,6 +69,52 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.2.0</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<relocations>
+								<relocation>
+									<pattern>org.apache.http</pattern>
+									<shadedPattern>com.dtstack.chunjun.connector.elasticsearch7.org.apache.http</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>org.elasticsearch</pattern>
+									<shadedPattern>com.dtstack.chunjun.connector.elasticsearch7.org.elasticsearch</shadedPattern>
+								</relocation>
+							</relocations>
+							<artifactSet>
+								<excludes>
+									<exclude>com.data-artisans:*</exclude>
+									<exclude>org.scala-lang:*</exclude>
+									<exclude>io.netty:*</exclude>
+									<exclude>org.slf4j:slf4j-api</exclude>
+									<exclude>log4j:log4j</exclude>
+									<exclude>ch.qos.logback:*</exclude>
+								</excludes>
+							</artifactSet>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>

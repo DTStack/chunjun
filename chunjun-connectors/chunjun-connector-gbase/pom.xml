@@ -28,12 +28,8 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>chunjun-connector-dm</artifactId>
-	<name>ChunJun : Connector : Dm</name>
-
-	<properties>
-		<connector.dir>dm</connector.dir>
-	</properties>
+	<artifactId>chunjun-connector-gbase</artifactId>
+	<name>ChunJun : Connectors : GBase</name>
 
 	<dependencies>
 		<dependency>
@@ -41,15 +37,12 @@
 			<artifactId>chunjun-connector-jdbc-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/com.dameng/DmJdbcDriver18 -->
 		<dependency>
-			<groupId>com.dameng</groupId>
-			<artifactId>DmJdbcDriver18</artifactId>
-			<version>8.1.2.141</version>
+			<groupId>com.esen.jdbc</groupId>
+			<artifactId>gbase</artifactId>
+			<version>8.3.81.53</version>
 		</dependency>
 	</dependencies>
-
 
 	<build>
 		<plugins>

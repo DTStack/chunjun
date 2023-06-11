@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.elasticsearch7;
 
 import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.sink.WriteMode;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -76,4 +77,7 @@ public class ElasticsearchConfig extends CommonConfig implements Serializable {
 
     /** Filter condition expression */
     protected Map query;
+
+    /** write mode * */
+    private String writeMode = WriteMode.APPEND.name();
 }

@@ -152,10 +152,6 @@
 					<groupId>org.springframework</groupId>
 				</exclusion>
 				<exclusion>
-					<artifactId>spring-core</artifactId>
-					<groupId>org.springframework</groupId>
-				</exclusion>
-				<exclusion>
 					<artifactId>spring-context</artifactId>
 					<groupId>org.springframework</groupId>
 				</exclusion>

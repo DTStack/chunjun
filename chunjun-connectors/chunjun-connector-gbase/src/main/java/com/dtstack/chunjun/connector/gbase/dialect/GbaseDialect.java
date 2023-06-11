@@ -16,55 +16,53 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.saphana.dialect;
+package com.dtstack.chunjun.connector.gbase.dialect;
 
-import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.connector.gbase.converter.GbaseRawTypeConverter;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
-import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.chunjun.connector.saphana.converter.SaphanaRawTypeMapper;
-import com.dtstack.chunjun.connector.saphana.converter.SaphanaSyncConverter;
-import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeMapper;
 
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
-import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
-import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class SaphanaDialect implements JdbcDialect {
+public class GbaseDialect implements JdbcDialect {
 
-    private static final long serialVersionUID = 3485113286486596308L;
+    private static final String GBASE_QUOTATION_MASK = "`";
 
     @Override
     public String dialectName() {
-        return "SapHana";
+        return "GBase";
     }
 
     @Override
     public boolean canHandle(String url) {
-        return url.startsWith("jdbc:sap:");
+        return url.startsWith("jdbc:gbase:");
     }
 
     @Override
     public RawTypeMapper getRawTypeConverter() {
-        return SaphanaRawTypeMapper::apply;
+        return GbaseRawTypeConverter::apply;
     }
 
     @Override
     public Optional<String> defaultDriverName() {
-        return Optional.of("com.sap.db.jdbc.Driver");
+        return Optional.of("com.gbase.jdbc.Driver");
     }
 
-    @Override
-    public boolean supportUpsert() {
-        return true;
+    /** build select sql , such as (SELECT :A "A",? "B" FROM DUAL) */
+    public String buildDualQueryStatement(String[] column) {
+        StringBuilder sb = new StringBuilder("SELECT count(1),");
+        String placeholders =
+                Arrays.stream(column)
+                        .map(f -> ":" + f + " as " + quoteIdentifier(f))
+                        .collect(Collectors.joining(", "));
+        sb.append(placeholders);
+
+        return sb.toString();
     }
 
     @Override
@@ -81,6 +79,9 @@ public class SaphanaDialect implements JdbcDialect {
                 .append(tableName)
                 .append(" T1 USING (")
                 .append(buildDualQueryStatement(fieldNames))
+                .append(" FROM ")
+                .append(tableName)
+                .append(" limit 1 ")
                 .append(") T2 ON (")
                 .append(buildEqualConditions(uniqueKeyFields))
                 .append(") ");
@@ -109,40 +110,6 @@ public class SaphanaDialect implements JdbcDialect {
         return Optional.of(mergeIntoSql.toString());
     }
 
-    @Override
-    public String quoteIdentifier(String identifier) {
-        return "\"" + identifier + "\"";
-    }
-
-    @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType, CommonConfig commonConfig) {
-        return new SaphanaSyncConverter(rowType, commonConfig);
-    }
-
-    @Override
-    public String getRowNumColumn(String orderBy) {
-        return "rownum as CHUNJUN_ROWNUM";
-    }
-
-    /** build select sql , such as (SELECT ? "A",? "B" FROM DUAL) */
-    public String buildDualQueryStatement(String[] column) {
-        StringBuilder sb = new StringBuilder("SELECT ");
-        String collect =
-                Arrays.stream(column)
-                        .map(col -> ":" + col + " " + quoteIdentifier(col))
-                        .collect(Collectors.joining(", "));
-        sb.append(collect).append(" FROM \"SYS\".\"DUMMY\"");
-        return sb.toString();
-    }
-
-    /** build sql part e.g: T1.`A` = T2.`A` and T1.`B` = T2.`B` */
-    private String buildEqualConditions(String[] uniqueKeyFields) {
-        return Arrays.stream(uniqueKeyFields)
-                .map(col -> "T1." + quoteIdentifier(col) + " = T2." + quoteIdentifier(col))
-                .collect(Collectors.joining(" and "));
-    }
-
     /** build T1."A"=T2."A" or T1."A"=nvl(T2."A",T1."A") */
     private String buildUpdateConnection(
             String[] fieldNames, String[] uniqueKeyFields, boolean allReplace) {
@@ -159,13 +126,45 @@ public class SaphanaDialect implements JdbcDialect {
      */
     private String buildConnectString(boolean allReplace, String col) {
         return allReplace
-                ? "T1." + quoteIdentifier(col) + " = T2." + quoteIdentifier(col)
-                : "T1."
+                ? quoteIdentifier("T1")
+                        + "."
                         + quoteIdentifier(col)
-                        + " =IFNULL(T2."
+                        + " = "
+                        + quoteIdentifier("T2")
+                        + "."
                         + quoteIdentifier(col)
-                        + ",T1."
+                : quoteIdentifier("T1")
+                        + "."
+                        + quoteIdentifier(col)
+                        + " =NVL("
+                        + quoteIdentifier("T2")
+                        + "."
+                        + quoteIdentifier(col)
+                        + ","
+                        + quoteIdentifier("T1")
+                        + "."
                         + quoteIdentifier(col)
                         + ")";
+    }
+
+    /** build sql part e.g: T1.`A` = T2.`A`, T1.`B` = T2.`B` */
+    private String buildEqualConditions(String[] uniqueKeyFields) {
+        return Arrays.stream(uniqueKeyFields)
+                .map(col -> "T1." + quoteIdentifier(col) + " = T2." + quoteIdentifier(col))
+                .collect(Collectors.joining(", "));
+    }
+
+    @Override
+    public String quoteIdentifier(String identifier) {
+        if (identifier.startsWith(GBASE_QUOTATION_MASK)
+                && identifier.endsWith(GBASE_QUOTATION_MASK)) {
+            return identifier;
+        }
+        return GBASE_QUOTATION_MASK + identifier + GBASE_QUOTATION_MASK;
+    }
+
+    @Override
+    public String getRowNumColumn(String orderBy) {
+        return "ROWID as " + getRowNumColumnAlias();
     }
 }
