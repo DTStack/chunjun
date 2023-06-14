@@ -74,7 +74,7 @@ jobs:
       - name: add dependencies
         run: |
           wget http://nexus.dev.dtstack.cn/nexus/content/repositories/dtstack-release/com/esen/jdbc/gbase/8.3.81.53/gbase-8.3.81.53.jar
-          ./mvnw install:install-file -DgroupId=com.esen.jdbc -DartifactId=gbase -Dversion=8.3.81.53 -Dpackaging=jar -Dfile=.gbase-8.3.81.53.jar
+          ./mvnw install:install-file -DgroupId=com.esen.jdbc -DartifactId=gbase -Dversion=8.3.81.53 -Dpackaging=jar -Dfile=./gbase-8.3.81.53.jar
       - name: build project
         run: |
           ./mvnw -T 1C clean package -DskipUT=true -DskipITCase=true --no-snapshot-updates
