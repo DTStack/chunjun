@@ -201,10 +201,18 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void writeSingleRecordInternal(RowData row) throws WriteRecordException {
         int index = 0;
         try {
-            if (dbConn.isClosed() || !dbConn.isValid(10)) {
-                dbConn = getConnection();
-                buildStatementWrapper();
-                log.warn("write single record reconnecting");
+            // 解决写入时数据库连接无效问题
+            try {
+                if (!dbConn.isValid(10)) {
+                    dbConn = getConnection();
+                    buildStatementWrapper();
+                    log.warn("write single record reconnecting");
+                }
+            } catch (Throwable e) {
+                // 解决 sqlserver JtdsConnection 没有实现 isValid 方法
+                if (!(e instanceof AbstractMethodError)) {
+                    throw new WriteRecordException("write single record error", e, 0, row);
+                }
             }
             statementWrapper.writeSingleRecord(row);
             if (Semantic.EXACTLY_ONCE == semantic) {
@@ -242,7 +250,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             } catch (Throwable e) {
                 // 解决 sqlserver JtdsConnection 没有实现 isValid 方法
                 if (!(e instanceof AbstractMethodError)) {
-                    e.printStackTrace();
+                    throw e;
                 }
             }
             for (RowData row : rows) {
