@@ -44,7 +44,7 @@
 	</dependencies>
 
 	<properties>
-		<sql.dir>mysql</sql.dir>
+		<ddl.dir>mysql</ddl.dir>
 	</properties>
 
 	<build>

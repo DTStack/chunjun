@@ -77,7 +77,7 @@ jobs:
           ./mvnw install:install-file -DgroupId=com.esen.jdbc -DartifactId=gbase -Dversion=8.3.81.53 -Dpackaging=jar -Dfile=./gbase-8.3.81.53.jar
       - name: build project
         run: |
-          ./mvnw -T 1C clean package -DskipUT=true -DskipITCase=true --no-snapshot-updates
+          ./mvnw clean package -Dmaven.test.skip --no-snapshot-updates
         env:
           MAVEN_OPTS: -Xmx2048m
 

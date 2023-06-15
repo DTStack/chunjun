@@ -49,13 +49,6 @@
 		</dependency>
 	</dependencies>
 
-	<repositories>
-		<repository>
-			<id>icm</id>
-			<url>http://maven.icm.edu.pl/artifactory/repo/</url>
-		</repository>
-	</repositories>
-
 	<build>
 		<plugins>
 			<plugin>
