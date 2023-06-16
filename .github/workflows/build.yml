@@ -93,6 +93,10 @@ jobs:
           java-version: 8
           distribution: 'temurin'
           cache: 'maven'
+      - name: add dependencies
+        run: |
+          wget http://nexus.dev.dtstack.cn/nexus/content/repositories/dtstack-release/com/esen/jdbc/gbase/8.3.81.53/gbase-8.3.81.53.jar
+          ./mvnw install:install-file -DgroupId=com.esen.jdbc -DartifactId=gbase -Dversion=8.3.81.53 -Dpackaging=jar -Dfile=./gbase-8.3.81.53.jar
       - name: run modules unit test
         run: |
           ./mvnw -T 1C clean compile test -DskipUT=false -DskipITCase=false --no-snapshot-updates
@@ -111,6 +115,10 @@ jobs:
           java-version: 8
           distribution: 'temurin'
           cache: 'maven'
+      - name: add dependencies
+        run: |
+          wget http://nexus.dev.dtstack.cn/nexus/content/repositories/dtstack-release/com/esen/jdbc/gbase/8.3.81.53/gbase-8.3.81.53.jar
+          ./mvnw install:install-file -DgroupId=com.esen.jdbc -DartifactId=gbase -Dversion=8.3.81.53 -Dpackaging=jar -Dfile=./gbase-8.3.81.53.jar
       - name: run modules integration test
         run: |
           ./mvnw -T 1C -B verify -DskipUT=true -DskipIT=false --no-snapshot-updates -pl chunjun-e2e -am
