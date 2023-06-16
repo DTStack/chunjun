@@ -78,48 +78,10 @@ jobs:
       - name: build project
         run: |
           ./mvnw clean package -Dmaven.test.skip --no-snapshot-updates
-        env:
-          MAVEN_OPTS: -Xmx2048m
-
-  unit-test:
-    needs: [ spotless-check, build ]
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up JDK 8
-        uses: actions/setup-java@v3
-        with:
-          java-version: 8
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: add dependencies
-        run: |
-          wget http://nexus.dev.dtstack.cn/nexus/content/repositories/dtstack-release/com/esen/jdbc/gbase/8.3.81.53/gbase-8.3.81.53.jar
-          ./mvnw install:install-file -DgroupId=com.esen.jdbc -DartifactId=gbase -Dversion=8.3.81.53 -Dpackaging=jar -Dfile=./gbase-8.3.81.53.jar
-      - name: run modules unit test
+      - name: unit-test
         run: |
           ./mvnw -T 1C clean compile test -DskipUT=false -DskipITCase=false --no-snapshot-updates
-        env:
-          MAVEN_OPTS: -Xmx2048m
-
-  integration-test:
-    needs: [ spotless-check, unit-test ]
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up JDK 8
-        uses: actions/setup-java@v3
-        with:
-          java-version: 8
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: add dependencies
-        run: |
-          wget http://nexus.dev.dtstack.cn/nexus/content/repositories/dtstack-release/com/esen/jdbc/gbase/8.3.81.53/gbase-8.3.81.53.jar
-          ./mvnw install:install-file -DgroupId=com.esen.jdbc -DartifactId=gbase -Dversion=8.3.81.53 -Dpackaging=jar -Dfile=./gbase-8.3.81.53.jar
-      - name: run modules integration test
+      - name: integration-test
         run: |
           ./mvnw -T 1C -B verify -DskipUT=true -DskipIT=false --no-snapshot-updates -pl chunjun-e2e -am
         env:
