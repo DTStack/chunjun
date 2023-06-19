@@ -19,9 +19,9 @@
 package com.dtstack.chunjun.connector.arctic.sink;
 
 import com.dtstack.chunjun.config.SyncConfig;
-import com.dtstack.chunjun.connector.arctic.conf.ArcticWriterConf;
-import com.dtstack.chunjun.connector.arctic.converter.ArcticRawTypeConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.connector.arctic.config.ArcticWriterConfig;
+import com.dtstack.chunjun.connector.arctic.converter.ArcticRawTypeMapper;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -42,14 +42,14 @@ import com.netease.arctic.table.TableIdentifier;
 
 public class ArcticSinkFactory extends SinkFactory {
 
-    private final ArcticWriterConf writerConf;
+    private final ArcticWriterConfig writerConf;
 
     public ArcticSinkFactory(SyncConfig config) {
         super(config);
         writerConf =
                 GsonUtil.GSON.fromJson(
                         GsonUtil.GSON.toJson(config.getWriter().getParameter()),
-                        ArcticWriterConf.class);
+                        ArcticWriterConfig.class);
         writerConf.setColumn(config.getWriter().getFieldList());
         super.initCommonConf(writerConf);
     }
@@ -87,14 +87,14 @@ public class ArcticSinkFactory extends SinkFactory {
         TableSchema FLINK_SCHEMA =
                 TableSchema.fromResolvedSchema(
                         TableUtil.createTableSchema(
-                                writerConf.getColumn(), ArcticRawTypeConverter::apply));
+                                writerConf.getColumn(), ArcticRawTypeMapper::apply));
 
         SingleOutputStreamOperator<RowData> streamOperator =
                 dataSet.map(new ArcticMetricsMapFunction(writerConf));
-        DataStreamSink<RowData> dataDataStreamSink = null;
+        DataStreamSink<RowData> dataDataStreamSink;
 
         String tableMode = writerConf.getTableMode();
-        if (tableMode.toUpperCase().equals(ArcticWriterConf.UNKEYED_TABLE_MODE)
+        if (tableMode.equalsIgnoreCase(ArcticWriterConfig.UNKEYED_TABLE_MODE)
                 && writerConf.isOverwrite()) {
             dataDataStreamSink =
                     (DataStreamSink<RowData>)
@@ -103,9 +103,9 @@ public class ArcticSinkFactory extends SinkFactory {
                                     .overwrite(true)
                                     .flinkSchema(FLINK_SCHEMA)
                                     .build();
-        } else if ((tableMode.toUpperCase().equals(ArcticWriterConf.UNKEYED_TABLE_MODE)
+        } else if ((tableMode.equalsIgnoreCase(ArcticWriterConfig.UNKEYED_TABLE_MODE)
                         && !writerConf.isOverwrite())
-                || tableMode.toUpperCase().equals(ArcticWriterConf.KEYED_TABLE_MODE)) {
+                || tableMode.equalsIgnoreCase(ArcticWriterConfig.KEYED_TABLE_MODE)) {
             dataDataStreamSink =
                     (DataStreamSink<RowData>)
                             FlinkSink.forRowData(streamOperator)
@@ -124,7 +124,7 @@ public class ArcticSinkFactory extends SinkFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return null;
+    public RawTypeMapper getRawTypeMapper() {
+        return ArcticRawTypeMapper::apply;
     }
 }

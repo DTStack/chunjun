@@ -31,7 +31,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-/** @author liuliu 2022/8/22 */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({JdbcDialect.class, JdbcInputSplit.class})
 public class JdbcDialectTest {
@@ -81,7 +80,7 @@ public class JdbcDialectTest {
     public void getUpdateStatementTest() {
         when(jdbcDialect.getUpdateStatement(schema, table, fields, conditionFields))
                 .thenCallRealMethod();
-        String expect = "UPDATE \"schema\".\"table\" SET \"id\" = ?, \"name\" = ? WHERE \"id\" = ?";
+        String expect = "UPDATE \"schema\".\"table\" SET \"name\" = :name WHERE \"id\" = :id";
         Assert.assertEquals(
                 expect, jdbcDialect.getUpdateStatement(schema, table, fields, conditionFields));
     }

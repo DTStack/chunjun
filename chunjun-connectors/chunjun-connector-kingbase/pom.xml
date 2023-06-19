@@ -33,7 +33,7 @@
 
 	<properties>
 		<connector.dir>kingbase</connector.dir>
-		<kingbase.version>8.2.0</kingbase.version>
+		<kingbase.version>8.6.0</kingbase.version>
 	</properties>
 
 	<dependencies>

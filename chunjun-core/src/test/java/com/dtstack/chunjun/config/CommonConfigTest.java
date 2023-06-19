@@ -57,7 +57,7 @@ public class CommonConfigTest {
         commonConfig.setMetricProps(metricProps);
 
         String expected =
-                "CommonConfig[speedBytes=1, errorRecord=2, errorPercentage=3, dirtyDataPath='dirtyDataPath', dirtyDataHadoopConf={key=value}, fieldNameList=null, checkFormat=true, parallelism=4, column=null, batchSize=5, flushIntervalMills=6, executeDdlAble=false, savePointPath='null', metricPluginRoot='metricPluginRoot', metricPluginName='metricPluginName', rowSizeCalculatorType='null', semantic='at-least-once', metricProps={key=value}]";
+                "CommonConfig(speedBytes=1, errorRecord=2, errorPercentage=3, dirtyDataPath=dirtyDataPath, dirtyDataHadoopConf={key=value}, fieldNameList=null, checkFormat=true, parallelism=4, column=null, batchSize=5, flushIntervalMills=6, executeDdlAble=false, savePointPath=null, metricPluginRoot=metricPluginRoot, metricPluginName=metricPluginName, rowSizeCalculatorType=objectSizeCalculator, semantic=at-least-once, metricProps={key=value})";
 
         assertEquals(expected, commonConfig.toString());
     }
