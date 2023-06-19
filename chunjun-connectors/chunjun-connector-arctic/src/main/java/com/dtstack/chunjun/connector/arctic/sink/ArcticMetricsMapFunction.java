@@ -45,7 +45,7 @@ public class ArcticMetricsMapFunction extends RichMapFunction<RowData, RowData> 
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
     /** 对象大小计算器 */
-    protected RowSizeCalculator rowSizeCalculator;
+    protected RowSizeCalculator<RowData> rowSizeCalculator;
 
     protected LongCounter bytesWriteCounter;
     protected LongCounter durationCounter;
@@ -95,7 +95,7 @@ public class ArcticMetricsMapFunction extends RichMapFunction<RowData, RowData> 
     }
 
     @Override
-    public RowData map(RowData rowData) throws Exception {
+    public RowData map(RowData rowData) {
         numWriteCounter.add(1L);
         updateDuration();
         bytesWriteCounter.add(rowSizeCalculator.getObjectSize(rowData));

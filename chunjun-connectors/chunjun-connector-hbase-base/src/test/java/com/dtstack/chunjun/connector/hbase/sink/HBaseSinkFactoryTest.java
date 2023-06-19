@@ -54,7 +54,7 @@ public class HBaseSinkFactoryTest {
 
     @Test
     public void testGetRawTypeConverter() throws IOException {
-        String job = HBaseTestUtil.readFile("stream_hbase.json");
+        String job = HBaseTestUtil.readFile("stream_hbase_2.json");
         SyncConfig conf = SyncConfig.parseJob(job);
         HBaseSinkFactoryBase sinkFactory = new TestSinkFactory(conf);
         RawTypeMapper converter = sinkFactory.getRawTypeMapper();
@@ -68,7 +68,7 @@ public class HBaseSinkFactoryTest {
 
     @Test
     public void testCreateSink() throws IOException {
-        String job = HBaseTestUtil.readFile("stream_hbase.json");
+        String job = HBaseTestUtil.readFile("stream_hbase_2.json");
         HBaseSinkFactoryBase sinkFactory = new TestSinkFactory(SyncConfig.parseJob(job));
         when(dataStream.addSink(any())).thenReturn(dataStreamSink);
         sinkFactory.createSink(dataStream);

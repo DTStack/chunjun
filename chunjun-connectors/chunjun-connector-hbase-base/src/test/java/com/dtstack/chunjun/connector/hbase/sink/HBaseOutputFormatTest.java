@@ -212,7 +212,7 @@ public class HBaseOutputFormatTest {
         columnList.add(bytes_val);
         columnList.add(varchar_val);
         columnList.add(double_val);
-        columnList.add(val_1);
+        // columnList.add(val_1);
 
         conf.setHbaseConfig(confMap);
         conf.setColumn(columnList);

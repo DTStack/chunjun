@@ -113,7 +113,7 @@ public class HBaseSyncConverter
 
     private final List<FieldConfig> fieldList;
 
-    private byte[][][] familyAndQualifier;
+    private final byte[][][] familyAndQualifier;
 
     private final byte[][][] familyAndQualifierBack;
 
@@ -164,6 +164,7 @@ public class HBaseSyncConverter
             } else if (!StringUtils.isBlank(fieldConfig.getValue())) {
                 familyAndQualifier[i] = new byte[2][];
                 familyAndQualifierBack[i] = new byte[2][];
+                columnConfig.add(i, null);
             } else {
                 throw new IllegalArgumentException(
                         "hbase 中，column 的列配置格式应该是：列族:列名. 您配置的列错误：" + name);

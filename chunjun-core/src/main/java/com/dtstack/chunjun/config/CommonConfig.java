@@ -72,7 +72,7 @@ public class CommonConfig implements Serializable {
     private String metricPluginRoot;
 
     /** metrics plugin name */
-    private String metricPluginName;
+    private String metricPluginName = "prometheus";
 
     /** calculate rowData size */
     private String rowSizeCalculatorType = "objectSizeCalculator";
