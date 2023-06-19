@@ -32,7 +32,7 @@
 	<name>ChunJun : DDL : Oracle</name>
 
 	<properties>
-		<sql.dir>oracle</sql.dir>
+		<ddl.dir>oracle</ddl.dir>
 	</properties>
 
 	<dependencies>
@@ -50,6 +50,11 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>

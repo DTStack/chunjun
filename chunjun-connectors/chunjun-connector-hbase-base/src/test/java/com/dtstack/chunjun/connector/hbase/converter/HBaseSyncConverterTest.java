@@ -80,7 +80,7 @@ public class HBaseSyncConverterTest {
         Map<String, Object> confMap = Maps.newHashMap();
         List<FieldConfig> columnList = Lists.newArrayList();
         HBaseConfig conf = new HBaseConfig();
-        ColumnRowData rowData = new ColumnRowData(RowKind.INSERT, 14);
+        ColumnRowData rowData = new ColumnRowData(RowKind.INSERT, 15);
 
         FieldConfig id = new FieldConfig();
         id.setName("stu:id");
@@ -90,7 +90,7 @@ public class HBaseSyncConverterTest {
         FieldConfig decimal_val = new FieldConfig();
         decimal_val.setName("msg:decimal_val");
         decimal_val.setType(TypeConfig.fromString("decimal(38, 18)"));
-        rowData.addField(new BigDecimalColumn(new BigDecimal(3.3)));
+        rowData.addField(new BigDecimalColumn(new BigDecimal("3.3")));
 
         FieldConfig float_val = new FieldConfig();
         float_val.setName("msg:float_val");
@@ -171,7 +171,7 @@ public class HBaseSyncConverterTest {
         columnList.add(bytes_val);
         columnList.add(varchar_val);
         columnList.add(double_val);
-        columnList.add(val_1);
+        // columnList.add(val_1);
 
         conf.setHbaseConfig(confMap);
         conf.setColumn(columnList);

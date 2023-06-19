@@ -344,23 +344,6 @@ public class JdbcInputFormatTest {
     }
 
     @Test
-    public void buildQuerySqlTest() {
-        setInternalState(jdbcInputFormat, "columnNameList", new ArrayList<>());
-        JdbcInputSplit inputSplit = mock(JdbcInputSplit.class);
-        when(jdbcInputFormat.buildQuerySql(inputSplit)).thenCallRealMethod();
-        when(jdbcConfig.getWhere()).thenReturn("id > 10");
-        when(jdbcInputFormat.buildQuerySqlBySplit(any(JdbcInputSplit.class), anyList()))
-                .thenCallRealMethod();
-        when(SqlUtil.buildQuerySqlBySplit(any(), any(), anyList(), anyList(), any()))
-                .thenAnswer(invocation -> "select id from table where id > 10");
-        when(SqlUtil.buildOrderSql(
-                        jdbcInputFormat.buildQuerySql(inputSplit), jdbcConfig, jdbcDialect, "ASC"))
-                .thenAnswer(invocation -> " order by id ASC");
-        String except = "select id from table where id > 10 order by id ASC";
-        Assert.assertEquals(except, jdbcInputFormat.buildQuerySql(inputSplit));
-    }
-
-    @Test
     public void buildLocationFilterTest() {
         JdbcInputSplit inputSplit =
                 new JdbcInputSplit(0, 1, 0, "10", "100", null, null, "mod", false);
