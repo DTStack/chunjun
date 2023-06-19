@@ -43,7 +43,7 @@ public class MetricParamTest {
         MetricParam metricParam = new MetricParam(null, true, metricPluginConf);
 
         assertEquals(
-                "MetricParam[context=null, makeTaskFailedWhenReportFailed=true, metricPluginConfig={pluginName=prometheus, pluginProp={}, rowSizeCalculatorType=objectSizeCalculator}]",
+                "MetricParam(context=null, makeTaskFailedWhenReportFailed=true, metricPluginConf={pluginName=prometheus, pluginProp={}, rowSizeCalculatorType=objectSizeCalculator})",
                 metricParam.toString());
     }
 

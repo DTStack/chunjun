@@ -16,11 +16,18 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.arctic.conf;
+package com.dtstack.chunjun.connector.arctic.config;
 
 import com.dtstack.chunjun.config.CommonConfig;
 
-public class ArcticWriterConf extends CommonConfig {
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@ToString
+@Getter
+@Setter
+public class ArcticWriterConfig extends CommonConfig {
     private String amsUrl;
     private String tableMode;
     private boolean isOverwrite;
@@ -28,49 +35,4 @@ public class ArcticWriterConf extends CommonConfig {
     private String tableName;
     public static final String KEYED_TABLE_MODE = "KEYED";
     public static final String UNKEYED_TABLE_MODE = "UNKEYED";
-
-    public String getAmsUrl() {
-        return amsUrl;
-    }
-
-    public void setAmsUrl(String amsUrl) {
-        this.amsUrl = amsUrl;
-    }
-
-    public String getTableMode() {
-        return tableMode;
-    }
-
-    public void setTableMode(String tableMode) {
-        this.tableMode = tableMode;
-    }
-
-    public boolean isOverwrite() {
-        return isOverwrite;
-    }
-
-    public void setOverwrite(boolean overwrite) {
-        isOverwrite = overwrite;
-    }
-
-    public String getDatabaseName() {
-        return databaseName;
-    }
-
-    public void setDatabaseName(String databaseName) {
-        this.databaseName = databaseName;
-    }
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-
-    @Override
-    public String toString() {
-        return "ArcticWriterConf{" + "amsUrl='" + amsUrl + '\'' + '}';
-    }
 }

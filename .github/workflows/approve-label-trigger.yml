@@ -1,4 +1,3 @@
-#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -17,37 +16,13 @@
 # under the License.
 #
 
-header:
-  license:
-    spdx-id: Apache-2.0
-    copyright-owner: Apache Software Foundation
+name: Label-when-reviewed
+on: pull_request_review
+jobs:
 
-    paths-ignore:
-      - 'website/**/*'
-      - 'docs/**/*'
-      - 'docs_zh/**/*'
-      - 'chunjun-example/**/*'
-      - 'chunjun-docker/**/*'
-      - 'chunjun-dev/**/*'
-      - '.github/ISSUE_TEMPLATE'
-      - '.github/workflows'
-      - '.mvn'
-      - 'mvnw.cmd'
-      - '**/*.md'
-      - '**/*.MD'
-      - '**/*.json'
-      - '**/*.sql'
-      - '**/*.ftl'
-      - '**/target/**'
-      - '**/*.iml'
-      - '**/*.ini'
-      - '**/*.crt'
-      - '**/*.pem'
-      - '**/*.svg'
-      - '**/.gitignore'
-      - '**/LICENSE'
-      - '**/NOTICE'
-      - 'LICENSE'
-      - 'NOTICE'
-
-  comment: on-failure
+  label-when-reviewed:
+    name: "Label PRs when reviewed"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Do nothing. Only trigger corresponding workflow_run event"
+        run: echo
