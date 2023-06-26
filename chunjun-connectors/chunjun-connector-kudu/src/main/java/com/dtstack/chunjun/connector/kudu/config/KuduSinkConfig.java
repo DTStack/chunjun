@@ -32,6 +32,7 @@ import static com.dtstack.chunjun.connector.kudu.table.KuduOptions.MUTATION_BUFF
 import static com.dtstack.chunjun.connector.kudu.table.KuduOptions.WRITE_MODE;
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
+import static com.dtstack.chunjun.table.options.SinkOptions.SINK_PARALLELISM;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -58,6 +59,7 @@ public class KuduSinkConfig extends KuduCommonConfig {
         config.setMaxBufferSize(readableConfig.get(MUTATION_BUFFER_SPACE));
         config.setFlushMode(readableConfig.get(FLUSH_MODE));
         config.setFlushInterval(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
+        config.setParallelism(readableConfig.get(SINK_PARALLELISM));
 
         return config;
     }
