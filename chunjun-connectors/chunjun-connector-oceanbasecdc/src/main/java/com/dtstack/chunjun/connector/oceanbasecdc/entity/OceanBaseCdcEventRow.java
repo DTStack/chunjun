@@ -22,10 +22,8 @@ import com.oceanbase.oms.logmessage.DataMessage;
 import com.oceanbase.oms.logmessage.LogMessage;
 
 import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class OceanBaseCdcEventRow implements Serializable {
 
@@ -68,14 +66,20 @@ public class OceanBaseCdcEventRow implements Serializable {
      */
     @SuppressWarnings("rawtypes")
     public static Map toValueMap(Map<String, DataMessage.Record.Field> fields) {
-        return fields.entrySet().stream()
-                .collect(
-                        Collectors.toMap(
-                                Map.Entry::getKey,
-                                entry ->
-                                        entry.getValue()
-                                                .getValue()
-                                                .toString(StandardCharsets.UTF_8.name())));
+        Map<String, String> map = new HashMap<>();
+        fields.forEach(
+                (name, field) -> {
+                    if (field.getValue() == null) {
+                        map.put(name, null);
+                    } else {
+                        if ("binary".equalsIgnoreCase(field.getEncoding())) {
+                            map.put(name, field.getValue().toString("utf8"));
+                        } else {
+                            map.put(name, field.getValue().toString(field.getEncoding()));
+                        }
+                    }
+                });
+        return map;
     }
 
     public String getDatabase() {
