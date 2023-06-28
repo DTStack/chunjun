@@ -70,6 +70,7 @@ public class StarRocksDynamicTableSink implements DynamicTableSink {
                         Arrays.asList(resolvedSchema.getColumnNames().toArray(new String[0]))));
         builder.setStarRocksConf(sinkConfig);
 
+        builder.checkFormat();
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction<>(builder.finish()), sinkConfig.getParallelism());
     }

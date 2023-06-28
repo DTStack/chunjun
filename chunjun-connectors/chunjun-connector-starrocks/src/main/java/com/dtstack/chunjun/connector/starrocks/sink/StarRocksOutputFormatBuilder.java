@@ -46,6 +46,9 @@ public class StarRocksOutputFormatBuilder
                     "starRocks database is required when nameMapped is not enable");
             Preconditions.checkNotNull(
                     conf.getTable(), "starRocks table is required when nameMapped is not enable");
+            // cache is not necessary because we only have one table
+            conf.setCacheTableStruct(false);
+            conf.setCheckStructFirstTime(false);
         }
         Preconditions.checkNotNull(conf.getUsername(), "starRocks username is required");
         Preconditions.checkNotNull(conf.getPassword(), "starRocks password is required");
