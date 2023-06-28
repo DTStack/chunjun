@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.starrocks.sink;
 
 import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
+import com.dtstack.chunjun.connector.starrocks.streamload.StarRocksSinkBufferEntity;
 import com.dtstack.chunjun.connector.starrocks.streamload.StreamLoadManager;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 
@@ -44,6 +45,10 @@ public class NormalWriteProcessor extends StarRocksWriteProcessor {
         super(streamLoadManager, starRocksConfig);
         this.rowConverter = converter;
         this.columnNameList = columnNameList;
+
+        streamLoadManager.validateTableStructure(
+                new StarRocksSinkBufferEntity(
+                        starRocksConfig.getDatabase(), starRocksConfig.getTable(), columnNameList));
     }
 
     @Override
@@ -54,6 +59,6 @@ public class NormalWriteProcessor extends StarRocksWriteProcessor {
         for (RowData rowData : rowDataList) {
             values.add(rowConverter.toExternal(rowData, new HashMap<>(columnNameList.size())));
         }
-        streamLoadManager.write(identify, columnNameList, values);
+        streamLoadManager.write(identify, columnNameList, values, false);
     }
 }

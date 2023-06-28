@@ -23,6 +23,20 @@ import org.apache.flink.configuration.ConfigOptions;
 
 public class StarRocksSinkOptions {
 
+    public static final ConfigOption<Boolean> SINK_CACHE_TABLE_STRUCT =
+            ConfigOptions.key("cache_table_struct")
+                    .booleanType()
+                    .defaultValue(true)
+                    .withDescription(
+                            "Whether to save the table structure information obtained from the source for each tableIdentify");
+
+    public static final ConfigOption<Boolean> SINK_CHECK_STRUCT_FIRST_TIME =
+            ConfigOptions.key("check_struct_first_time")
+                    .booleanType()
+                    .defaultValue(true)
+                    .withDescription(
+                            "In a multi-table write scenario, whether to check the table structure only once for each table.This parameter is valid only when CACHE_TABLE_STRUCT=true");
+
     public static final ConfigOption<String> SINK_SEMANTIC =
             ConfigOptions.key("semantic")
                     .stringType()
