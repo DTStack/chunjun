@@ -87,7 +87,8 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() != 0, "hbaseConfig不能为空Map结构!");
 
         try {
-            connection = HBaseHelper.getHbaseConnection(hbaseConfig);
+            connection =
+                    HBaseHelper.getHbaseConnection(hbaseConfig, jobId, String.valueOf(taskNumber));
             org.apache.hadoop.conf.Configuration hConfiguration =
                     HBaseHelper.getConfig(hbaseConfig);
             try (Admin admin = this.connection.getAdmin()) {

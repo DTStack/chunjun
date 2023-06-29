@@ -72,7 +72,9 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
                     FileSystemUtil.getUGI(
                             hdfsConfig.getHadoopConfig(),
                             hdfsConfig.getDefaultFS(),
-                            distributedCache);
+                            distributedCache,
+                            jobId,
+                            String.valueOf(indexOfSubTask));
             log.info("user:{}, ", ugi.getShortUserName());
             return ugi.doAs(
                     (PrivilegedAction<InputSplit[]>)
@@ -100,7 +102,9 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
                     FileSystemUtil.getUGI(
                             hdfsConfig.getHadoopConfig(),
                             hdfsConfig.getDefaultFS(),
-                            getRuntimeContext().getDistributedCache());
+                            getRuntimeContext().getDistributedCache(),
+                            jobId,
+                            String.valueOf(indexOfSubTask));
         }
     }
 

@@ -52,10 +52,13 @@ public class FileSystemUtil {
     public static FileSystem getFileSystem(
             Map<String, Object> hadoopConfigMap,
             String defaultFs,
-            DistributedCache distributedCache)
+            DistributedCache distributedCache,
+            String jobId,
+            String taskNumber)
             throws Exception {
         if (isOpenKerberos(hadoopConfigMap)) {
-            return getFsWithKerberos(hadoopConfigMap, defaultFs, distributedCache);
+            return getFsWithKerberos(
+                    hadoopConfigMap, defaultFs, distributedCache, jobId, taskNumber);
         }
 
         Configuration conf = getConfiguration(hadoopConfigMap, defaultFs);
@@ -93,9 +96,14 @@ public class FileSystemUtil {
     }
 
     private static FileSystem getFsWithKerberos(
-            Map<String, Object> hadoopConfig, String defaultFs, DistributedCache distributedCache)
+            Map<String, Object> hadoopConfig,
+            String defaultFs,
+            DistributedCache distributedCache,
+            String jobId,
+            String taskNumber)
             throws Exception {
-        UserGroupInformation ugi = getUGI(hadoopConfig, defaultFs, distributedCache);
+        UserGroupInformation ugi =
+                getUGI(hadoopConfig, defaultFs, distributedCache, jobId, taskNumber);
 
         return ugi.doAs(
                 (PrivilegedAction<FileSystem>)
@@ -110,12 +118,18 @@ public class FileSystemUtil {
     }
 
     public static UserGroupInformation getUGI(
-            Map<String, Object> hadoopConfig, String defaultFs, DistributedCache distributedCache)
+            Map<String, Object> hadoopConfig,
+            String defaultFs,
+            DistributedCache distributedCache,
+            String jobId,
+            String taskNumber)
             throws IOException {
         String keytabFileName = KerberosUtil.getPrincipalFileName(hadoopConfig);
-        keytabFileName = KerberosUtil.loadFile(hadoopConfig, keytabFileName, distributedCache);
+        keytabFileName =
+                KerberosUtil.loadFile(
+                        hadoopConfig, keytabFileName, distributedCache, jobId, taskNumber);
         String principal = KerberosUtil.getPrincipal(hadoopConfig, keytabFileName);
-        KerberosUtil.loadKrb5Conf(hadoopConfig, distributedCache);
+        KerberosUtil.loadKrb5Conf(hadoopConfig, distributedCache, jobId, taskNumber);
         KerberosUtil.refreshConfig();
 
         return KerberosUtil.loginAndReturnUgi(

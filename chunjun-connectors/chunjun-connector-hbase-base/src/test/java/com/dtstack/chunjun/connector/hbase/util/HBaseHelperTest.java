@@ -85,7 +85,7 @@ public class HBaseHelperTest {
         Map<String, Object> emptyMap = Maps.newHashMap();
         HBaseConfig hBaseConfig = new HBaseConfig();
         hBaseConfig.setHbaseConfig(emptyMap);
-        HBaseHelper.getHbaseConnection(hBaseConfig);
+        HBaseHelper.getHbaseConnection(hBaseConfig, null, null);
     }
 
     @Test
@@ -109,7 +109,8 @@ public class HBaseHelperTest {
 
         hBaseConfig.setHbaseConfig(confMap);
 
-        Assert.assertEquals(mockConnection, HBaseHelper.getHbaseConnection(hBaseConfig));
+        Assert.assertEquals(
+                mockConnection, HBaseHelper.getHbaseConnection(hBaseConfig, null, null));
     }
 
     @Test(expected = RuntimeException.class)
@@ -120,7 +121,7 @@ public class HBaseHelperTest {
         confMap.put(KEY_HBASE_SECURITY_AUTHORIZATION, KRB_STR);
 
         hBaseConfig.setHbaseConfig(confMap);
-        HBaseHelper.getHbaseConnection(hBaseConfig);
+        HBaseHelper.getHbaseConnection(hBaseConfig, null, null);
     }
 
     @Test

@@ -70,7 +70,11 @@ public class HdfsTransactionInputFormat extends HdfsOrcInputFormat {
         try {
             fileSystem =
                     Hive3Util.getFileSystem(
-                            hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS(), null);
+                            hdfsConfig.getHadoopConfig(),
+                            hdfsConfig.getDefaultFS(),
+                            null,
+                            jobId,
+                            String.valueOf(indexOfSubTask));
             // 递归找到所有分区路径
             Set<String> allPartitionPath =
                     Hive3Util.getAllPartitionPath(

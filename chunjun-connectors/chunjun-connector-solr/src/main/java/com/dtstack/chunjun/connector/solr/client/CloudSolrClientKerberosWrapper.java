@@ -73,10 +73,10 @@ public class CloudSolrClientKerberosWrapper extends SolrClient {
         this.distributedCache = distributedCache;
     }
 
-    public void init() {
+    public void init(String jobId, String taskNumber) {
         if (solrConfig.getKerberosConfig() != null) {
             try {
-                initKerberos();
+                initKerberos(jobId, taskNumber);
             } catch (LoginException e) {
                 throw new ChunJunRuntimeException(e);
             }
@@ -164,13 +164,15 @@ public class CloudSolrClientKerberosWrapper extends SolrClient {
         cloudSolrClient.connect();
     }
 
-    private void initKerberos() throws LoginException {
+    private void initKerberos(String jobId, String taskNumber) throws LoginException {
         KerberosConfig kerberosConfig = solrConfig.getKerberosConfig();
         Map<String, Object> kerberosConfigMap =
                 GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(kerberosConfig), Map.class);
         String principal = kerberosConfig.getPrincipal();
-        String krb5conf = loadKrbFile(kerberosConfigMap, kerberosConfig.getKrb5conf());
-        String keytab = loadKrbFile(kerberosConfigMap, kerberosConfig.getKeytab());
+        String krb5conf =
+                loadKrbFile(kerberosConfigMap, kerberosConfig.getKrb5conf(), jobId, taskNumber);
+        String keytab =
+                loadKrbFile(kerberosConfigMap, kerberosConfig.getKeytab(), jobId, taskNumber);
 
         System.setProperty(SOLR_KERBEROS_JAAS_APPNAME, JAAS_APP_NAME);
         KerberosUtil.reloadKrb5conf(krb5conf);
@@ -179,12 +181,17 @@ public class CloudSolrClientKerberosWrapper extends SolrClient {
         log.info("Kerberos login principal: {}, keytab: {}", principal, keytab);
     }
 
-    public String loadKrbFile(Map<String, Object> kerberosConfigMap, String filePath) {
+    public String loadKrbFile(
+            Map<String, Object> kerberosConfigMap,
+            String filePath,
+            String jobId,
+            String taskNumber) {
         try {
             KerberosUtil.checkFileExists(filePath);
             return filePath;
         } catch (Exception e) {
-            return KerberosUtil.loadFile(kerberosConfigMap, filePath, distributedCache);
+            return KerberosUtil.loadFile(
+                    kerberosConfigMap, filePath, distributedCache, jobId, taskNumber);
         }
     }
 
