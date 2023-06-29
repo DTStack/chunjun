@@ -71,9 +71,12 @@ public class HiveDbUtil {
     private HiveDbUtil() {}
 
     public static Connection getConnection(
-            ConnectionInfo connectionInfo, DistributedCache distributedCache) {
+            ConnectionInfo connectionInfo,
+            DistributedCache distributedCache,
+            String jobId,
+            String taskNumber) {
         if (openKerberos(connectionInfo.getJdbcUrl())) {
-            return getConnectionWithKerberos(connectionInfo, distributedCache);
+            return getConnectionWithKerberos(connectionInfo, distributedCache, jobId, taskNumber);
         } else {
             return getConnectionWithRetry(connectionInfo);
         }
@@ -92,7 +95,10 @@ public class HiveDbUtil {
     }
 
     private static Connection getConnectionWithKerberos(
-            ConnectionInfo connectionInfo, DistributedCache distributedCache) {
+            ConnectionInfo connectionInfo,
+            DistributedCache distributedCache,
+            String jobId,
+            String taskNumber) {
         if (connectionInfo.getHiveConfig() == null || connectionInfo.getHiveConfig().isEmpty()) {
             throw new IllegalArgumentException("hiveConf can not be null or empty");
         }
@@ -101,10 +107,15 @@ public class HiveDbUtil {
 
         keytabFileName =
                 KerberosUtil.loadFile(
-                        connectionInfo.getHiveConfig(), keytabFileName, distributedCache);
+                        connectionInfo.getHiveConfig(),
+                        keytabFileName,
+                        distributedCache,
+                        jobId,
+                        taskNumber);
         String principal =
                 KerberosUtil.getPrincipal(connectionInfo.getHiveConfig(), keytabFileName);
-        KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConfig(), distributedCache);
+        KerberosUtil.loadKrb5Conf(
+                connectionInfo.getHiveConfig(), distributedCache, jobId, taskNumber);
         KerberosUtil.refreshConfig();
 
         Configuration conf = FileSystemUtil.getConfiguration(connectionInfo.getHiveConfig(), null);

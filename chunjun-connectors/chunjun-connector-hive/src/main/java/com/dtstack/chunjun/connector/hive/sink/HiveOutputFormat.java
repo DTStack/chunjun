@@ -275,7 +275,9 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                     hiveConfig.getSchema(),
                     partitionPath,
                     connectionInfo,
-                    getRuntimeContext().getDistributedCache());
+                    getRuntimeContext().getDistributedCache(),
+                    jobId,
+                    String.valueOf(taskNumber));
             String path = tableInfo.getPath() + File.separatorChar + partitionPath;
 
             outputFormat =
@@ -393,7 +395,9 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                     tableInfo,
                     hiveConfig.getSchema(),
                     connectionInfo,
-                    getRuntimeContext().getDistributedCache());
+                    getRuntimeContext().getDistributedCache(),
+                    jobId,
+                    String.valueOf(taskNumber));
             tableCacheMap.put(tablePath, tableInfo);
         }
         return tableInfo;

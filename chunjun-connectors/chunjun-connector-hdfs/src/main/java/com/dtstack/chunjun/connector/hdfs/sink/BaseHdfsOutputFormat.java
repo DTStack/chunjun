@@ -156,7 +156,9 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                     FileSystemUtil.getFileSystem(
                             hdfsConfig.getHadoopConfig(),
                             hdfsConfig.getDefaultFS(),
-                            distributedCache);
+                            distributedCache,
+                            jobId,
+                            String.valueOf(taskNumber));
         } catch (Exception e) {
             throw new ChunJunRuntimeException("can't init fileSystem", e);
         }

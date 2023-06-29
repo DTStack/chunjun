@@ -73,7 +73,7 @@ public class SolrOutputFormat extends BaseRichOutputFormat {
         solrClientWrapper =
                 new CloudSolrClientKerberosWrapper(
                         solrConfig, getRuntimeContext().getDistributedCache());
-        solrClientWrapper.init();
+        solrClientWrapper.init(jobId, String.valueOf(taskNumber));
     }
 
     @Override
