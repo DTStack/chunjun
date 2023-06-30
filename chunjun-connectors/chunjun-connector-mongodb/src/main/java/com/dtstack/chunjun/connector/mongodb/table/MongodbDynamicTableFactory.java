@@ -74,7 +74,10 @@ public class MongodbDynamicTableFactory
 
         LookupConfig lookupConfig = LookupConfigFactory.createLookupConfig(config);
         return new MongodbDynamicTableSource(
-                mongoClientConfig, lookupConfig, context.getCatalogTable().getResolvedSchema());
+                mongoClientConfig,
+                lookupConfig,
+                context.getCatalogTable().getResolvedSchema(),
+                config);
     }
 
     /**
@@ -103,6 +106,8 @@ public class MongodbDynamicTableFactory
         optionalOptions.add(MongoClientOptions.PASSWORD);
 
         optionalOptions.add(SCAN_PARALLELISM);
+        optionalOptions.add(MongoClientOptions.FILTER);
+        optionalOptions.add(MongoClientOptions.FETCH_SIZE);
 
         optionalOptions.add(LOOKUP_CACHE_PERIOD);
         optionalOptions.add(LOOKUP_CACHE_MAX_ROWS);

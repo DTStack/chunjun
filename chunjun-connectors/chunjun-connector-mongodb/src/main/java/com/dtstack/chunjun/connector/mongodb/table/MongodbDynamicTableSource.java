@@ -19,18 +19,29 @@
 package com.dtstack.chunjun.connector.mongodb.table;
 
 import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
+import com.dtstack.chunjun.connector.mongodb.converter.MongodbSqlConverter;
+import com.dtstack.chunjun.connector.mongodb.datasync.MongodbDataSyncConfig;
+import com.dtstack.chunjun.connector.mongodb.source.MongodbInputFormatBuilder;
 import com.dtstack.chunjun.connector.mongodb.table.lookup.MongoAllTableFunction;
 import com.dtstack.chunjun.connector.mongodb.table.lookup.MongoLruTableFunction;
+import com.dtstack.chunjun.connector.mongodb.table.options.MongoClientOptions;
 import com.dtstack.chunjun.enums.CacheType;
 import com.dtstack.chunjun.lookup.config.LookupConfig;
+import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
+import com.dtstack.chunjun.source.options.SourceOptions;
 import com.dtstack.chunjun.table.connector.source.ParallelAsyncLookupFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelLookupFunctionProvider;
+import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Preconditions;
 
@@ -41,14 +52,17 @@ public class MongodbDynamicTableSource implements ScanTableSource, LookupTableSo
     private final MongoClientConfig mongoClientConfig;
     private final ResolvedSchema resolvedSchema;
     private final LookupConfig lookupConfig;
+    private final ReadableConfig config;
 
     public MongodbDynamicTableSource(
             MongoClientConfig mongoClientConfig,
             LookupConfig lookupConfig,
-            ResolvedSchema resolvedSchema) {
+            ResolvedSchema resolvedSchema,
+            ReadableConfig config) {
         this.mongoClientConfig = mongoClientConfig;
         this.lookupConfig = lookupConfig;
         this.resolvedSchema = resolvedSchema;
+        this.config = config;
     }
 
     @Override
@@ -86,10 +100,48 @@ public class MongodbDynamicTableSource implements ScanTableSource, LookupTableSo
         }
     }
 
+    /**
+     * ScanTableSource独有
+     *
+     * @param runtimeProviderContext
+     * @return
+     */
+    @Override
+    public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
+        final RowType rowType = (RowType) resolvedSchema.toPhysicalRowDataType().getLogicalType();
+        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
+
+        MongodbDataSyncConfig mongodbDataSyncConf = new MongodbDataSyncConfig();
+        config.getOptional(MongoClientOptions.URI).ifPresent(mongodbDataSyncConf::setUrl);
+        config.getOptional(MongoClientOptions.DATABASE).ifPresent(mongodbDataSyncConf::setDatabase);
+        config.getOptional(MongoClientOptions.COLLECTION)
+                .ifPresent(mongodbDataSyncConf::setCollectionName);
+        config.getOptional(MongoClientOptions.USERNAME).ifPresent(mongodbDataSyncConf::setUsername);
+        config.getOptional(MongoClientOptions.PASSWORD).ifPresent(mongodbDataSyncConf::setPassword);
+        String filter = config.getOptional(MongoClientOptions.FILTER).orElse(null);
+        String fetchsize = config.getOptional(MongoClientOptions.FETCH_SIZE).orElse("0");
+        Integer parallelism = config.getOptional(SourceOptions.SCAN_PARALLELISM).orElse(1);
+
+        MongodbInputFormatBuilder builder =
+                MongodbInputFormatBuilder.newBuild(
+                        mongoClientConfig, filter, Integer.parseInt(fetchsize));
+        MongodbSqlConverter mongodbSqlConverter =
+                new MongodbSqlConverter(
+                        rowType, resolvedSchema.getColumnNames().toArray(new String[0]));
+
+        builder.setRowConverter(mongodbSqlConverter);
+        builder.setConfig(mongodbDataSyncConf);
+
+        return ParallelSourceFunctionProvider.of(
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
+                false,
+                parallelism);
+    }
+
     @Override
     public DynamicTableSource copy() {
         return new MongodbDynamicTableSource(
-                this.mongoClientConfig, this.lookupConfig, this.resolvedSchema);
+                this.mongoClientConfig, this.lookupConfig, this.resolvedSchema, this.config);
     }
 
     @Override
@@ -100,10 +152,5 @@ public class MongodbDynamicTableSource implements ScanTableSource, LookupTableSo
     @Override
     public ChangelogMode getChangelogMode() {
         return ChangelogMode.insertOnly();
-    }
-
-    @Override
-    public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        return null;
     }
 }
