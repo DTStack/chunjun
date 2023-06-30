@@ -13,9 +13,9 @@
             "obReaderConfig": {
               "clusterUrl": "",
               "rsList": "127.0.0.1:2882:2881",
-              "username": "root",
+              "username": "root@test",
               "password": "pswd",
-              "tableWhiteList": "sys.test.users",
+              "tableWhiteList": "test.test.users",
               "startTimestamp": 0,
               "timezone": "+08:00",
               "workingMode": "memory"

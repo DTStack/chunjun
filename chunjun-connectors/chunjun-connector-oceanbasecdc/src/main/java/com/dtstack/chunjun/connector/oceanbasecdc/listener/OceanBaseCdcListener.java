@@ -145,5 +145,6 @@ public class OceanBaseCdcListener implements Runnable {
                 throw new ChunJunRuntimeException("flush log message buffer failed", e);
             }
         }
+        logMessageBuffer.clear();
     }
 }
