@@ -145,8 +145,6 @@ public class MysqlDialect implements JdbcDialect {
                     && precision > 10) {
                 // "." 还占一个字符长度，需要去掉.
                 scale = precision - 10 - 1;
-            } else if (columnTypeName.toUpperCase(Locale.ENGLISH).contains("DECIMAL")) {
-                precision = precision - scale;
             }
             TypeConfig typeConfig = TypeConfig.fromString(columnTypeName);
             typeConfig.setPrecision(precision);

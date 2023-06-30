@@ -103,7 +103,9 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                 FileSystemUtil.getFileSystem(
                         hdfsConfig.getHadoopConfig(),
                         hdfsConfig.getDefaultFS(),
-                        PluginUtil.createDistributedCacheFromContextClassLoader())) {
+                        PluginUtil.createDistributedCacheFromContextClassLoader(),
+                        jobId,
+                        String.valueOf(indexOfSubTask))) {
             allFilePaths = getAllPartitionPath(hdfsConfig.getPath(), fs, pathFilter);
         } catch (Exception e) {
             throw new ChunJunRuntimeException(e);

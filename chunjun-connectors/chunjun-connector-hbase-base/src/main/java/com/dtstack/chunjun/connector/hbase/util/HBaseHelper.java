@@ -59,16 +59,18 @@ public class HBaseHelper {
     private static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
     private static final String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
 
-    public static Connection getHbaseConnection(HBaseConfig hBaseConfig) {
+    public static Connection getHbaseConnection(
+            HBaseConfig hBaseConfig, String jobId, String taskNumber) {
         Map<String, Object> hbaseConfig = new HashMap<>(hBaseConfig.getHbaseConfig());
-        return getHbaseConnection(hbaseConfig);
+        return getHbaseConnection(hbaseConfig, jobId, taskNumber);
     }
 
-    public static Connection getHbaseConnection(Map<String, Object> hbaseConfigMap) {
+    public static Connection getHbaseConnection(
+            Map<String, Object> hbaseConfigMap, String jobId, String taskNumber) {
         Validate.isTrue(MapUtils.isNotEmpty(hbaseConfigMap), "hbaseConfig不能为空Map结构!");
 
         if (HBaseConfigUtils.isEnableKerberos(hbaseConfigMap)) {
-            return getConnectionWithKerberos(hbaseConfigMap);
+            return getConnectionWithKerberos(hbaseConfigMap, jobId, taskNumber);
         }
 
         try {
@@ -80,10 +82,11 @@ public class HBaseHelper {
         }
     }
 
-    private static Connection getConnectionWithKerberos(Map<String, Object> hbaseConfigMap) {
+    private static Connection getConnectionWithKerberos(
+            Map<String, Object> hbaseConfigMap, String jobId, String taskNumber) {
         try {
             setKerberosConf(hbaseConfigMap);
-            UserGroupInformation ugi = getUgi(hbaseConfigMap);
+            UserGroupInformation ugi = getUgi(hbaseConfigMap, jobId, taskNumber);
             return ugi.doAs(
                     (PrivilegedAction<Connection>)
                             () -> {
@@ -100,13 +103,14 @@ public class HBaseHelper {
         }
     }
 
-    public static UserGroupInformation getUgi(Map<String, Object> hbaseConfigMap)
+    public static UserGroupInformation getUgi(
+            Map<String, Object> hbaseConfigMap, String jobId, String taskNumber)
             throws IOException {
         String keytabFileName = KerberosUtil.getPrincipalFileName(hbaseConfigMap);
 
-        keytabFileName = KerberosUtil.loadFile(hbaseConfigMap, keytabFileName);
+        keytabFileName = KerberosUtil.loadFile(hbaseConfigMap, keytabFileName, jobId, taskNumber);
         String principal = KerberosUtil.getPrincipal(hbaseConfigMap, keytabFileName);
-        KerberosUtil.loadKrb5Conf(hbaseConfigMap);
+        KerberosUtil.loadKrb5Conf(hbaseConfigMap, jobId, taskNumber);
         KerberosUtil.refreshConfig();
 
         Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);

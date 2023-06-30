@@ -53,6 +53,18 @@ public class StarRocksConfig extends CommonConfig {
     private Integer maxRetries = 3;
 
     // sink
+    /**
+     * Whether to save the table structure information obtained from the source for each
+     * tableIdentify
+     */
+    private boolean isCacheTableStruct = true;
+
+    /**
+     * In a multi-table write scenario, whether to check the table structure only once for each
+     * table.This parameter is valid only when isCacheTableStruct=true
+     */
+    private boolean checkStructFirstTime = true;
+
     /** The time to sleep when the tablet version is too large */
     private long waitRetryMills = 18000;
 

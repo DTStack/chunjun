@@ -67,7 +67,10 @@ public class HiveInputFormat extends JdbcInputFormat {
         try {
             dbConn =
                     HiveDbUtil.getConnection(
-                            connectionInfo, getRuntimeContext().getDistributedCache());
+                            connectionInfo,
+                            getRuntimeContext().getDistributedCache(),
+                            jobId,
+                            String.valueOf(indexOfSubTask));
             dbConn.setAutoCommit(false);
 
             Pair<List<String>, List<TypeConfig>> pair = null;

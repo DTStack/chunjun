@@ -80,7 +80,8 @@ public class HBaseInputFormat extends BaseRichInputFormat {
 
         this.scan = scanBuilder.buildScan();
         this.scan.setCaching(scanCacheSize);
-        this.connection = HBaseHelper.getHbaseConnection(hbaseConfig);
+        this.connection =
+                HBaseHelper.getHbaseConnection(hbaseConfig, jobId, String.valueOf(indexOfSubTask));
         try (Admin admin = this.connection.getAdmin()) {
             boolean exist = admin.tableExists(TableName.valueOf(tableName));
             if (!exist) {
@@ -94,7 +95,9 @@ public class HBaseInputFormat extends BaseRichInputFormat {
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
-        try (Connection connection = HBaseHelper.getHbaseConnection(hbaseConfig)) {
+        try (Connection connection =
+                HBaseHelper.getHbaseConnection(
+                        hbaseConfig, jobId, String.valueOf(indexOfSubTask))) {
             return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
         }
     }
@@ -224,7 +227,9 @@ public class HBaseInputFormat extends BaseRichInputFormat {
         byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
 
         if (null == connection || connection.isClosed()) {
-            connection = HBaseHelper.getHbaseConnection(hbaseConfig);
+            connection =
+                    HBaseHelper.getHbaseConnection(
+                            hbaseConfig, jobId, String.valueOf(indexOfSubTask));
         }
 
         Table table = connection.getTable(TableName.valueOf(tableName));

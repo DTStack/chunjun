@@ -20,6 +20,8 @@ package com.dtstack.chunjun.connector.starrocks.streamload;
 
 import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 
+import org.apache.flink.util.Preconditions;
+
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 public class StreamLoadManager {
     final LinkedBlockingDeque<StarRocksSinkBufferEntity> flushQueue = new LinkedBlockingDeque<>(1);
     private final Map<String, StarRocksSinkBufferEntity> bufferMap = new ConcurrentHashMap<>();
+    private final Map<String, List<Map<String, Object>>> structCacheMap = new ConcurrentHashMap<>();
 
     private final StarRocksConfig starRocksConfig;
     private final boolean __opAutoProjectionInJson;
@@ -57,7 +60,11 @@ public class StreamLoadManager {
         this.starrocksStreamLoadVisitor = new StarRocksStreamLoadVisitor(starRocksConfig);
     }
 
-    public void write(String tableIdentify, List<String> columnList, List<Map<String, Object>> data)
+    public void write(
+            String tableIdentify,
+            List<String> columnList,
+            List<Map<String, Object>> data,
+            boolean checkTableStructure)
             throws Exception {
         try {
             checkFlushException();
@@ -71,7 +78,9 @@ public class StreamLoadManager {
                                                 databaseAndTable[0],
                                                 databaseAndTable[1],
                                                 columnList);
-                                validateTableStructure(starRocksSinkBufferEntity);
+                                if (checkTableStructure) {
+                                    validateTableStructure(starRocksSinkBufferEntity);
+                                }
                                 return starRocksSinkBufferEntity;
                             });
             bufferEntity.addToBuffer(
@@ -92,14 +101,44 @@ public class StreamLoadManager {
         }
     }
 
+    private List<Map<String, Object>> getTableStruct(StarRocksSinkBufferEntity entity) {
+        if (starRocksConfig.isCacheTableStruct()) {
+            return structCacheMap.computeIfAbsent(
+                    getStructCacheKey(entity),
+                    k -> getTableStructFromSource(entity.getDatabase(), entity.getTable()));
+        } else {
+            return getTableStructFromSource(entity.getDatabase(), entity.getTable());
+        }
+    }
+
+    private String getStructCacheKey(StarRocksSinkBufferEntity entity) {
+        return entity.getDatabase() + "_" + entity.getTable();
+    }
+
+    private List<Map<String, Object>> getTableStructFromSource(String database, String table) {
+        return starrocksQueryVisitor.getTableColumnsMetaData(database, table);
+    }
+
     public void validateTableStructure(StarRocksSinkBufferEntity entity) {
         if (starRocksConfig.getLoadConfig().getHeadProperties().containsKey("columns")) {
             return;
         }
-        List<Map<String, Object>> rows = starrocksQueryVisitor.getTableColumnsMetaData();
-        if (rows == null || rows.isEmpty()) {
-            throw new IllegalArgumentException("Couldn't get the sink table's column info.");
+        if (starRocksConfig.isCheckStructFirstTime()
+                && starRocksConfig.isCacheTableStruct()
+                && structCacheMap.containsKey(getStructCacheKey(entity))) {
+            return;
         }
+        List<Map<String, Object>> rows =
+                Preconditions.checkNotNull(
+                        getTableStruct(entity),
+                        String.format(
+                                "Couldn't get the sink table[%s] column info.",
+                                getStructCacheKey(entity)));
+        validateTableStructure(rows, entity);
+    }
+
+    public void validateTableStructure(
+            List<Map<String, Object>> rows, StarRocksSinkBufferEntity entity) {
         // validate primary keys
         List<String> primaryKeyList = new ArrayList<>();
         Set<String> containedColumnNameSet = new HashSet<>();
