@@ -19,6 +19,7 @@ package com.dtstack.chunjun.connector.kafka.serialization;
 
 import com.dtstack.chunjun.connector.kafka.conf.KafkaConfig;
 import com.dtstack.chunjun.connector.kafka.source.DynamicKafkaDeserializationSchema;
+import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.util.JsonUtil;
 
@@ -74,7 +75,9 @@ public class RowDeserializationSchema extends DynamicKafkaDeserializationSchema 
             if (record.value() != null) {
                 data = new String(record.value(), StandardCharsets.UTF_8);
             }
-            dirtyManager.collect(data, e, null);
+            long globalErrors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
+            dirtyManager.collect(
+                    new String(record.value(), StandardCharsets.UTF_8), e, null, globalErrors);
         }
     }
 }
