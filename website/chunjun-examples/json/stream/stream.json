@@ -1,0 +1,67 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "id"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "content",
+                "type": "string"
+              }
+            ],
+            "sliceRecordCount": [
+              "30"
+            ],
+            "permitsPerSecond": 1
+          },
+          "table": {
+            "tableName": "sourceTable"
+          },
+          "name": "streamreader"
+        },
+        "writer": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "id"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              }
+            ],
+            "print": true
+          },
+          "table": {
+            "tableName": "sinkTable"
+          },
+          "name": "streamwriter"
+        },
+        "transformer": {
+          "transformSql": "select id,name from sourceTable where CHAR_LENGTH(name) < 50 and CHAR_LENGTH(content) < 50"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 100
+      },
+      "speed": {
+        "bytes": 0,
+        "channel": 1,
+        "readerChannel": 1,
+        "writerChannel": 1
+      }
+    }
+  }
+}

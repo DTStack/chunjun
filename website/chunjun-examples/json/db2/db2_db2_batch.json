@@ -1,0 +1,183 @@
+{
+    "job": {
+      "content": [
+        {
+          "reader": {
+            "name": "db2reader",
+            "parameter": {
+              "column": [
+                {
+                  "name": "ID",
+                  "type": "int"
+                },
+                {
+                  "name": "NAME",
+                  "type": "string"
+                },
+                {
+                  "name": "MONEY",
+                  "type": "decimal"
+                },
+                {
+                  "name": "DATETHREE",
+                  "type": "timestamp"
+                },
+                {
+                  "name": "DATESIX",
+                  "type": "timestamp"
+                },
+                {
+                  "name": "PHONE",
+                  "type": "bigint"
+                },{
+                  "name": "WECHAT",
+                  "type": "varchar"
+                },{
+                  "name": "INCOME",
+                  "type": "decimal"
+                },{
+                  "name": "BIRTHDAY",
+                  "type": "timestamp"
+                },{
+                  "name": "DTDATE",
+                  "type": "date"
+                },{
+                  "name": "DTTIME",
+                  "type": "time"
+                },{
+                  "name": "TODAY",
+                  "type": "date"
+                },{
+                  "name": "TIMECURRENT",
+                  "type": "time"
+                },{
+                  "name": "DATEONE",
+                  "type": "timestamp"
+                },{
+                  "name": "ABOOLEAN",
+                  "type": "smallint"
+                },{
+                  "name": "ADOUBLE",
+                  "type": "double"
+                },{
+                  "name": "AFLOAT",
+                  "type": "decimal"
+                },{
+                  "name": "ACHAR",
+                  "type": "char"
+                },{
+                  "name": "ABINARY",
+                  "type": "blob"
+                },{
+                  "name": "ATINYINT",
+                  "type": "smallint"
+                }
+              ],
+              "username": "db2inst1",
+              "password": "dtstack1",
+              "connection": [
+                {
+                  "jdbcUrl": [
+                    "jdbc:db2://localtest:50002/DT_TEST"
+                  ],
+                  "table": [
+                    "SYNC_SOURCE"
+                  ]
+                }
+              ]
+            }
+          },
+          "writer": {
+            "name": "db2writer",
+            "parameter": {
+              "username": "db2inst1",
+              "password": "dtstack1",
+              "connection": [
+                {
+                  "jdbcUrl": "jdbc:db2://localtest:50002/DT_TEST",
+                  "table": [
+                    "SYNC_SINK"
+                  ]
+                }
+              ],
+              "writeMode": "insert",
+              "column": [
+                {
+                  "name": "ID",
+                  "type": "int"
+                },
+                {
+                  "name": "NAME",
+                  "type": "string"
+                },
+                {
+                  "name": "MONEY",
+                  "type": "decimal"
+                },
+                {
+                  "name": "DATETHREE",
+                  "type": "timestamp"
+                },
+                {
+                  "name": "DATESIX",
+                  "type": "timestamp"
+                },
+                {
+                  "name": "PHONE",
+                  "type": "bigint"
+                },{
+                  "name": "WECHAT",
+                  "type": "varchar"
+                },{
+                  "name": "INCOME",
+                  "type": "decimal"
+                },{
+                  "name": "BIRTHDAY",
+                  "type": "timestamp"
+                },{
+                  "name": "DTDATE",
+                  "type": "date"
+                },{
+                  "name": "DTTIME",
+                  "type": "time"
+                },{
+                  "name": "TODAY",
+                  "type": "date"
+                },{
+                  "name": "TIMECURRENT",
+                  "type": "time"
+                },{
+                  "name": "DATEONE",
+                  "type": "timestamp"
+                },{
+                  "name": "ABOOLEAN",
+                  "type": "smallint"
+                },{
+                  "name": "ADOUBLE",
+                  "type": "double"
+                },{
+                  "name": "AFLOAT",
+                  "type": "float"
+                },{
+                  "name": "ACHAR",
+                  "type": "char"
+                },{
+                  "name": "ABINARY",
+                  "type": "blob"
+                },{
+                  "name": "ATINYINT",
+                  "type": "smallint"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "setting": {
+        "speed": {
+          "channel": 1,
+          "bytes": 0
+        }
+      }
+    }
+  }

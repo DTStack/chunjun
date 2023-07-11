@@ -1,0 +1,97 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "elasticsearch7reader",
+          "parameter": {
+            "hosts": ["localhost:9200","127.0.0.1:9200"],
+            "index": "mowen",
+            "connectTimeout": "10000",
+            "column": [
+              {
+                "name": "id",
+                "type": "integer"
+              },
+              {
+                "name": "phone",
+                "type": "long"
+              },
+              {
+                "name": "qq",
+                "type": "long"
+              },
+              {
+                "name": "wechat",
+                "type": "text"
+              },
+              {
+                "name": "income",
+                "type": "float"
+              },
+              {
+                "name": "birthday",
+                "type": "date"
+              },
+              {
+                "name": "today",
+                "type": "date"
+              },
+              {
+                "name": "timecurrent",
+                "type": "date"
+              }
+            ]
+          }
+        },
+        "writer": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "integer"
+              },
+              {
+                "name": "phone",
+                "type": "long"
+              },
+              {
+                "name": "qq",
+                "type": "long"
+              },
+              {
+                "name": "wechat",
+                "type": "text"
+              },
+              {
+                "name": "income",
+                "type": "float"
+              },
+              {
+                "name": "birthday",
+                "type": "date"
+              },
+              {
+                "name": "today",
+                "type": "date"
+              },
+              {
+                "name": "timecurrent",
+                "type": "date"
+              }
+            ],
+            "hosts": ["localhost:9200","127.0.0.1:9200"],
+            "index": "mowen_target"
+          },
+          "name": "elasticsearch7writer"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}

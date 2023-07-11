@@ -1,0 +1,155 @@
+{
+    "job": {
+      "content": [
+        {
+          "reader": {
+            "name": "postgresqlreader",
+            "parameter": {
+              "column": [
+                {
+                  "name": "val_smallint",
+                  "type": "smallint"
+                },
+                {
+                  "name": "val_smallserial",
+                  "type": "smallserial"
+                },
+                {
+                  "name": "val_int",
+                  "type": "int"
+                },
+                {
+                  "name": "val_integer",
+                  "type": "integer"
+                },
+                {
+                  "name": "val_serial",
+                  "type": "serial"
+                },
+                {
+                  "name": "val_bigint",
+                  "type": "bigint"
+                },
+                {
+                  "name": "val_bigserial",
+                  "type": "bigserial"
+                },
+                {
+                  "name": "val_oid",
+                  "type": "oid"
+                },
+                {
+                  "name": "val_real",
+                  "type": "real"
+                },
+                {
+                  "name": "val_float",
+                  "type": "double precision"
+                },
+                {
+                  "name": "val_double",
+                  "type": "double precision"
+                },
+                {
+                  "name": "val_decimal",
+                  "type": "decimal"
+                },
+                {
+                  "name": "val_numeric",
+                  "type": "numeric"
+                }
+              ],
+              "username": "postgres",
+              "password": "root",
+              "connection": [
+                {
+                  "jdbcUrl": [
+                    "jdbc:postgresql://localhost:5432/dev?useSSL=false"
+                  ],
+                  "table": [
+                    "dim_numeric"
+                  ]
+                }
+              ]
+            }
+          },
+          "writer": {
+            "name": "postgresqlwriter",
+            "parameter": {
+              "username": "postgres",
+              "password": "root",
+              "connection": [
+                {
+                  "jdbcUrl": "jdbc:postgresql://localhost:5432/dev?useSSL=false",
+                  "table": [
+                    "dim_numeric"
+                  ]
+                }
+              ],
+              "writeMode": "insert",
+              "column": [
+                {
+                  "name": "val_smallint",
+                  "type": "smallint"
+                },
+                {
+                  "name": "val_smallserial",
+                  "type": "smallserial"
+                },
+                {
+                  "name": "val_int",
+                  "type": "int"
+                },
+                {
+                  "name": "val_integer",
+                  "type": "integer"
+                },
+                {
+                  "name": "val_serial",
+                  "type": "serial"
+                },
+                {
+                  "name": "val_bigint",
+                  "type": "bigint"
+                },
+                {
+                  "name": "val_bigserial",
+                  "type": "bigserial"
+                },
+                {
+                  "name": "val_oid",
+                  "type": "oid"
+                },
+                {
+                  "name": "val_real",
+                  "type": "real"
+                },
+                {
+                  "name": "val_float",
+                  "type": "double precision"
+                },
+                {
+                  "name": "val_double",
+                  "type": "double precision"
+                },
+                {
+                  "name": "val_decimal",
+                  "type": "decimal"
+                },
+                {
+                  "name": "val_numeric",
+                  "type": "numeric"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "setting": {
+        "speed": {
+          "channel": 1,
+          "bytes": 0
+        }
+      }
+    }
+  }

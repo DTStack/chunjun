@@ -1,0 +1,92 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "bigint"
+              },
+              {
+                "name": "name",
+                "type": "varchar"
+              }
+            ],
+            "username": "1",
+            "password": "1",
+            "checkFormat": false,
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:phoenix:chunjun1,chunjun2,chunjun3:2181"
+                ],
+                "table": [
+                  "t1"
+                ]
+              }
+            ],
+            "where": "id > 3",
+            "splitPk": "id",
+            "fetchSize": 1000,
+            "queryTimeOut": 1000,
+            "customSql": "",
+            "requestAccumulatorInterval": 2
+          },
+          "name": "phoenix5reader"
+        },
+        "writer": {
+          "parameter": {
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:phoenix:chunjun1,chunjun2,chunjun3:2181",
+                "table": [
+                  "t2"
+                ]
+              }
+            ],
+            "username": "1",
+            "password": "1",
+            "column": [
+              {
+                "name": "id",
+                "type": "bigint"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              }
+            ],
+            "writeMode": "upsert",
+            "batchSize": 1024,
+            "preSql": [],
+            "postSql": []
+          },
+          "name": "phoenix5writer"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log": {
+        "isLogger": false,
+        "level": "debug",
+        "path": "",
+        "pattern": ""
+      }
+    }
+  }
+}

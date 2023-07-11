@@ -1,0 +1,32 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "address" : "127.0.0.1:9023",
+          "parse" : "text"
+        },
+        "name" : "socketreader"
+      },
+      "writer": {
+        "parameter": {
+          "print": true
+        },
+        "name": "streamwriter"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "isRestore" : true,
+        "isStream" : true
+      },
+      "errorLimit" : { },
+      "speed" : {
+        "readerChannel" : 1,
+        "writerChannel" : 1,
+        "bytes" : -1048576,
+        "channel" : 1
+      }
+    }
+  }
+}
