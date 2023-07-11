@@ -1,0 +1,158 @@
+{
+  "job": {
+    "content": [
+      {
+        "writer": {
+          "parameter": {
+            "column": [
+              {
+                "name": "int_field",
+                "type": "int"
+              },
+              {
+                "name": "ascii_field",
+                "type": "ascii"
+              },
+              {
+                "name": "bigint_field",
+                "type": "bigint"
+              },
+              {
+                "name": "blob_field",
+                "type": "blob"
+              },
+              {
+                "name": "boolean_field",
+                "type": "boolean"
+              },
+              {
+                "name": "decimal_field",
+                "type": "decimal"
+              },
+              {
+                "name": "double_field",
+                "type": "double"
+              },
+              {
+                "name": "float_field",
+                "type": "float"
+              },
+              {
+                "name": "inet_field",
+                "type": "inet"
+              },
+              {
+                "name": "text_field",
+                "type": "text"
+              },
+              {
+                "name": "timestamp_field",
+                "type": "timestamp"
+              },
+              {
+                "name": "timeuuid_field",
+                "type": "timeuuid"
+              },
+              {
+                "name": "uuid_field",
+                "type": "uuid"
+              },
+              {
+                "name": "varchar_field",
+                "type": "varchar"
+              },
+              {
+                "name": "varint_field",
+                "type": "varint"
+              }
+            ],
+            "host": "ip1,ip2,ip3",
+            "port": 9042,
+            "userName": "cassandra",
+            "password": "password",
+            "tableName": "all_two",
+            "keyspaces": "tiezhu"
+          },
+          "name": "cassandrasink"
+        },
+        "reader": {
+          "parameter": {
+            "column": [
+              {
+                "name": "int_field",
+                "type": "int"
+              },
+              {
+                "name": "ascii_field",
+                "type": "ascii"
+              },
+              {
+                "name": "bigint_field",
+                "type": "bigint"
+              },
+              {
+                "name": "blob_field",
+                "type": "blob"
+              },
+              {
+                "name": "boolean_field",
+                "type": "boolean"
+              },
+              {
+                "name": "decimal_field",
+                "type": "decimal"
+              },
+              {
+                "name": "double_field",
+                "type": "double"
+              },
+              {
+                "name": "float_field",
+                "type": "float"
+              },
+              {
+                "name": "inet_field",
+                "type": "inet"
+              },
+              {
+                "name": "text_field",
+                "type": "text"
+              },
+              {
+                "name": "timestamp_field",
+                "type": "timestamp"
+              },
+              {
+                "name": "timeuuid_field",
+                "type": "timeuuid"
+              },
+              {
+                "name": "uuid_field",
+                "type": "uuid"
+              },
+              {
+                "name": "varchar_field",
+                "type": "varchar"
+              },
+              {
+                "name": "varint_field",
+                "type": "varint"
+              }
+            ],
+            "host": "ip1,ip2,ip3",
+            "port": 9042,
+            "userName": "cassandra",
+            "password": "password",
+            "tableName": "all_two",
+            "keyspaces": "tiezhu"
+          },
+          "name": "cassandrareader"
+        }
+      }
+    ],
+    "speed": {
+      "readerChannel": 1,
+      "writerChannel": 1
+    }
+  }
+}

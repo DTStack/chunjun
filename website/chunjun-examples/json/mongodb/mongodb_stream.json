@@ -1,0 +1,86 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "url": "mongodb://localhost:27017/flink_dev?authSource=admin",
+            "fetchSize": 100,
+            "collectionName": "dim_m",
+            "filter": "{}",
+            "column": [
+              {
+                "name": "val_int",
+                "type": "int"
+              },
+              {
+                "name": "val_long",
+                "type": "long"
+              },
+              {
+                "name": "val_double",
+                "type": "double"
+              },
+              {
+                "name": "val_decimal",
+                "type": "decimal"
+              },
+              {
+                "name": "_id",
+                "type": "objectId"
+              },
+              {
+                "name": "val_str",
+                "type": "string"
+              },
+              {
+                "name": "val_bindata",
+                "type": "bindata"
+              },
+              {
+                "name": "val_date",
+                "type": "date"
+              },
+              {
+                "name": "val_timestamp",
+                "type": "timestamp"
+              },
+              {
+                "name": "val_bool",
+                "type": "boolean"
+              }
+            ]
+          },
+          "name": "mongodbreader"
+        },
+        "writer": {
+          "name": "streamwriter",
+          "parameter": {
+            "print": true
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 1
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log": {
+        "isLogger": false,
+        "level": "debug",
+        "path": "",
+        "pattern": ""
+      }
+    }
+  }
+}

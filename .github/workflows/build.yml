@@ -28,7 +28,6 @@ on:
       - 'chunjun-dev/**/*'
       - '**/*.md'
       - 'docs/**/*'
-      - 'docs_zh/**/*'
       - 'website/**/*'
       - '**/*.ftl'
 

@@ -1,0 +1,25 @@
+{
+  "Home": {
+    "title": "纯钧",
+    "quickStart": "快速开始"
+  },
+  "Header": {
+    "home": "主页",
+    "documents": "文档",
+    "download": "下载",
+    "resources": "资源",
+    "contributor": "贡献者",
+    "faq": "指南",
+    "examples": "案例",
+    "sql": "SQL",
+    "json": "JSON"
+  },
+  "Faq": {
+    "introduction": "hi, 你好, 这里是指南,你可以通过阅读我们的指南来了解纯钧，祝你玩得开心!",
+    "pr": "如何提交一个优秀的PR",
+    "plugin": "如何自定义插件"
+  },
+  "docs": {
+    "quickStart": "快速开始"
+  }
+}

@@ -1,0 +1,212 @@
+{
+    "job": {
+      "content": [
+        {
+          "reader": {
+            "name": "greenplumreader",
+            "parameter": {
+              "column": [
+                {
+                  "name": "t_bool",
+                  "type": "smallserial"
+                },
+                {
+                  "name": "t_bytea",
+                  "type": "integer"
+                },
+                {
+                  "name": "t_char",
+                  "type": "serial"
+                },
+                {
+                  "name": "t_date",
+                  "type": "oid"
+                },
+                {
+                  "name": "t_decimal",
+                  "type": "real"
+                },
+                {
+                  "name": "t_float4",
+                  "type": "double precision"
+                },
+                {
+                  "name": "t_float8",
+                  "type": "double precision"
+                },
+                {
+                  "name": "t_int2",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_int4",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_int8",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_numeric",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_serial2",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_serial4",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_serial8",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_text",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_time",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_timestamp",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_timestamptz",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_timetz",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_varchar",
+                  "type": "numeric"
+                }
+              ],
+              "username": "gpadmin",
+              "password": "gpadmin",
+              "connection": [
+                {
+                  "jdbcUrl": [
+                    "jdbc:pivotal:greenplum://localhost:5432;DatabaseName=postgres"
+                  ],
+                  "table": [
+                    "greenplum_all_type"
+                  ]
+                }
+              ]
+            }
+          },
+          "writer": {
+            "name": "greenplumwriter",
+            "parameter": {
+              "username": "gpadmin",
+              "password": "gpadmin",
+              "connection": [
+                {
+                  "jdbcUrl": "jdbc:pivotal:greenplum://localhost:5432;DatabaseName=postgres",
+                  "table": [
+                    "greenplum_all_type_result"
+                  ]
+                }
+              ],
+              "mode": "update",
+              "updateKey": ["t_int2"],
+              "column": [
+                {
+                  "name": "t_bool",
+                  "type": "smallserial"
+                },
+                {
+                  "name": "t_bytea",
+                  "type": "integer"
+                },
+                {
+                  "name": "t_char",
+                  "type": "serial"
+                },
+                {
+                  "name": "t_date",
+                  "type": "oid"
+                },
+                {
+                  "name": "t_decimal",
+                  "type": "real"
+                },
+                {
+                  "name": "t_float4",
+                  "type": "double precision"
+                },
+                {
+                  "name": "t_float8",
+                  "type": "double precision"
+                },
+                {
+                  "name": "t_int2",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_int4",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_int8",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_numeric",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_serial2",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_serial4",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_serial8",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_text",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_time",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_timestamp",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_timestamptz",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_timetz",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_varchar",
+                  "type": "numeric"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "setting": {
+        "speed": {
+          "channel": 1,
+          "bytes": 0
+        }
+      }
+    }
+  }

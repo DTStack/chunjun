@@ -1,0 +1,57 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              }
+            ],
+            "sliceRecordCount": ["3"]
+          },
+          "name": "streamreader"
+        },
+        "writer": {
+          "name": "mongodbwriter",
+          "parameter": {
+            "password": "",
+            "database": "flink_dev",
+            "hostPorts": "localhost:27017",
+            "batchSize": 1,
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              }
+            ],
+            "replaceKey": "_id",
+            "writeMode": "insert",
+            "username": "",
+            "collectionName": "dim_c"
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0
+      }
+    }
+  }
+}

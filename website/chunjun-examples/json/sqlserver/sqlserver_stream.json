@@ -1,0 +1,58 @@
+{
+  "job": {
+    "content": [{
+      "reader": {
+        "parameter" : {
+          "column" : [ {
+            "name" : "id",
+            "type" : "int"
+          }, {
+            "name" : "name",
+            "type" : "varchar"
+          } ],
+          "username" : "username",
+          "password" : "password",
+          "connection" : [ {
+            "jdbcUrl" : ["jdbc:jtds:sqlserver://127.0.0.1:1433;databaseName=db_test"],
+            "table" : [ "test" ],
+			"schema":"simple"
+          } ],
+          "where": "",
+          "splitPk": "id",
+          "fetchSize": 1000,
+          "queryTimeOut": 1000,
+          "customSql": "",
+          "requestAccumulatorInterval": 2
+        },
+        "name" : "sqlserverreader"
+      },
+      "writer": {
+        "name": "streamwriter",
+        "parameter": {
+          "print": true
+        }
+      }
+    }],
+		"setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log" : {
+        "isLogger": false,
+        "level" : "debug",
+        "path" : "",
+        "pattern":""
+      }
+  }
+}
+}

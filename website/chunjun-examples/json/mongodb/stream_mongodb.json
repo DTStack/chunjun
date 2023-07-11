@@ -1,0 +1,112 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "column": [
+              {
+                "name": "val_int",
+                "type": "int"
+              },
+              {
+                "name": "val_long",
+                "type": "long"
+              },
+              {
+                "name": "val_double",
+                "type": "double"
+              },
+              {
+                "name": "val_decimal",
+                "type": "decimal"
+              },
+              {
+                "name": "_id",
+                "type": "objectId"
+              },
+              {
+                "name": "val_bindata",
+                "type": "binary"
+              },
+              {
+                "name": "val_date",
+                "type": "date"
+              },
+              {
+                "name": "val_timestamp",
+                "type": "timestamp"
+              },
+              {
+                "name": "val_bool",
+                "type": "boolean"
+              }
+            ],
+            "sliceRecordCount": ["2"]
+          },
+          "name": "streamreader"
+        },
+        "writer": {
+          "name": "mongodbwriter",
+          "parameter": {
+            "password": "",
+            "database": "flink_dev",
+            "hostPorts": "localhost:27017",
+            "batchSize": 1,
+            "column": [
+              {
+                "name": "val_int",
+                "type": "int"
+              },
+              {
+                "name": "val_long",
+                "type": "long"
+              },
+              {
+                "name": "val_double",
+                "type": "double"
+              },
+              {
+                "name": "val_decimal",
+                "type": "decimal"
+              },
+              {
+                "name": "_id",
+                "type": "objectId"
+              },
+              {
+                "name": "val_bindata",
+                "type": "bindata"
+              },
+              {
+                "name": "val_date",
+                "type": "date"
+              },
+              {
+                "name": "val_timestamp",
+                "type": "timestamp"
+              },
+              {
+                "name": "val_bool",
+                "type": "boolean"
+              }
+            ],
+            "replaceKey": "_id",
+            "writeMode": "insert",
+            "collectionName": "dim_c"
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "mysqlreader",
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "raw_date",
+                "type": "string",
+                "value": "2014-12-12 14:24:16"
+              }
+            ],
+            "username": "root",
+            "password": "root",
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:mysql://localhost:3306/test?useSSL=false"
+                ],
+                "table": [
+                  "sync_ods"
+                ]
+              }
+            ]
+          }
+        },
+        "writer": {
+          "parameter": {
+            "tableFields": [
+              "id",
+              "raw_date"
+            ],
+            "broker": "tcp://localhost:1883",
+            "topic": "test",
+            "isCleanSession": true,
+            "qos": 2
+          },
+          "name": "emqxwriter"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}

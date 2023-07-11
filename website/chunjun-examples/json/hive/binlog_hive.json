@@ -1,0 +1,60 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter" : {
+            "username" : "username",
+            "password" : "password",
+            "cat" : "insert,delete,update",
+            "jdbcUrl" : "jdbc:mysql://ip:3308/tudou?useSSL=false",
+            "host" : "ip",
+            "port" : 3308,
+            "start" : {
+            },
+            "table" : [ "tudou.kudu" ],
+            "splitUpdate" : false,
+            "pavingData" : true
+          },
+          "name" : "binlogreader"
+        },
+        "writer": {
+          "name" : "hivewriter",
+          "parameter" : {
+            "jdbcUrl" : "jdbc:hive2://ip:10000/tudou",
+            "username" : "",
+            "password" : "",
+            "fileType" : "text",
+            "fieldDelimiter" : ",",
+            "writeMode" : "overwrite",
+            "compress" : "",
+            "charsetName" : "UTF-8",
+            "maxFileSize" : 1073741824,
+            "analyticalRules" : "test_${schema}_${table}",
+            "schema" : "tudou",
+            "tablesColumn" : "{\"kudu\":[{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"type\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"schema\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"table\"},{\"comment\":\"\",\"type\":\"bigint\",\"key\":\"ts\"},{\"part\":false,\"comment\":\"\",\"type\":\"INT\",\"key\":\"before_id\"},{\"comment\":\"\",\"type\":\"INT\",\"key\":\"after_id\",\"part\":false},{\"part\":false,\"comment\":\"\",\"type\":\"VARCHAR\",\"key\":\"before_name\"},{\"comment\":\"\",\"type\":\"VARCHAR\",\"key\":\"after_name\",\"part\":false},{\"part\":false,\"comment\":\"\",\"type\":\"INT\",\"key\":\"before_age\"},{\"comment\":\"\",\"type\":\"INT\",\"key\":\"after_age\",\"part\":false}]}",
+            "partition" : "pt",
+            "partitionType" : "MINUTE",
+            "defaultFS" : "hdfs://ns",
+            "hadoopConfig" : {
+              "dfs.ha.namenodes.ns": "nn1,nn2",
+              "fs.defaultFS": "hdfs://ns",
+              "dfs.namenode.rpc-address.ns.nn2": "ip:9000",
+              "dfs.client.failover.proxy.provider.ns": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "dfs.namenode.rpc-address.ns.nn1": "ip:9000",
+              "dfs.nameservices": "ns",
+              "fs.hdfs.impl.disable.cache": "true",
+              "hadoop.user.name": "root",
+              "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem"
+            }
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1
+      }
+    }
+  }
+}

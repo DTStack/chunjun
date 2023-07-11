@@ -1,0 +1,82 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "zkHosts": [
+              "master:2181",
+              "worker:2181",
+              "tools:2181"
+            ],
+            "zkChroot": "/solr",
+            "collection": "flink_dev",
+            "kerberosConfig":{
+              "principal": "solr/worker@DTSTACK.COM",
+              "keytab":"./solr.keytab",
+              "krb5conf":"./krb5.conf"
+            },
+            "column": [
+              {
+                "name": "val_bool",
+                "type": "bool"
+              },
+              {
+                "name": "val_int",
+                "type": "long"
+              },
+              {
+                "name": "val_long",
+                "type": "long"
+              },
+              {
+                "name": "val_str",
+                "type": "string"
+              },
+              {
+                "name": "val_float",
+                "type": "double"
+              },
+              {
+                "name": "val_double",
+                "type": "double"
+              },
+              {
+                "name": "val_date",
+                "type": "date"
+              }
+            ]
+          },
+          "name": "solrreader"
+        },
+        "writer": {
+          "name": "streamwriter",
+          "parameter": {
+            "print": true
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 1
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log": {
+        "isLogger": false,
+        "level": "debug",
+        "path": "",
+        "pattern": ""
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+    "job": {
+      "content": [
+        {
+          "reader": {
+            "name": "mysqlreader",
+            "parameter": {
+              "column": [
+                {"name":"appkey", "type":"varchar"},
+                {"name":"day_id", "type":"int"},
+                {"name":"channel", "type":"varchar"},
+                {"name":"pv", "type":"int"},
+                {"name":"uv", "type":"int"},
+                {"name":"retry_done", "type":"int", "value": "1"}
+              ],
+              "username": "root",
+              "password": "root",
+              "connection": [
+                {
+                  "jdbcUrl": ["jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf8&useSSL=false"],
+                  "table": ["starrocks_test"]
+                }
+              ]
+            }
+          },
+          "writer": {
+            "name": "starrockswriter",
+            "parameter": {
+              "username": "root",
+              "password": "root",
+              "loadUrl" : "localhost:8030",
+              "primaryKey": [],
+              "connection": [
+                {
+                  "jdbcUrl": "jdbc:mysql://localhost:9030/test?useUnicode=true&characterEncoding=utf8&useSSL=false&rewriteBatchedStatements=true&&serverTimezone=Asia/Shanghai",
+                  "table": ["starrocks_sink_test"],
+                  "schema":"test"
+                }
+              ],
+              "writeMode": "insert",
+              "column": [
+                {"name":"name", "type":"varchar"},
+                {"name":"type", "type":"int"},
+                {"name":"attr", "type":"varchar"},
+                {"name":"score", "type":"int"},
+                {"name":"quarter", "type":"int"},
+                {"name":"num", "type":"int"}
+              ],
+              "preSql":[
+                "truncate table starrocks_sink_test;"
+              ],
+              "postSql":[]
+            }
+          }
+        }
+      ],
+      "setting": {
+        "speed": {
+          "channel": 1,
+          "bytes": 0
+        }
+      }
+    }
+  }
