@@ -62,4 +62,11 @@ public class BaseFileOptions {
                     .longType()
                     .defaultValue(5000L)
                     .withDescription("The number of data written in the next file size check");
+
+    public static final ConfigOption<String> JOB_TIMESTAMP =
+            ConfigOptions.key("properties.job-timestamp")
+                    .stringType()
+                    .defaultValue(String.valueOf(System.currentTimeMillis()))
+                    .withDescription(
+                            "To solve the problem of file loss caused by multiple tasks writing to the same output source at the same time");
 }

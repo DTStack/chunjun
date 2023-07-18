@@ -107,7 +107,21 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void deleteTmpDataDir() {
-        deleteDirectory(tmpPath);
+        try {
+            Path dir = new Path(outputFilePath);
+            if (fs == null) {
+                openSource();
+            }
+            FileStatus[] fileStatuses =
+                    fs.listStatus(dir, path -> path.getName().startsWith(TMP_DIR_NAME));
+            for (FileStatus fileStatus : fileStatuses) {
+                if (fileStatus.isDirectory()) {
+                    deleteDirectory(fileStatus.getPath().toString());
+                }
+            }
+        } catch (IOException e) {
+            throw new ChunJunRuntimeException("cannot delete tmpDir: ", e);
+        }
     }
 
     @Override

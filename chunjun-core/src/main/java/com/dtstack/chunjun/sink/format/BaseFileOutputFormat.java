@@ -107,7 +107,12 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         } else {
             outputFilePath = baseFileConfig.getPath();
         }
-        tmpPath = outputFilePath + File.separatorChar + TMP_DIR_NAME;
+        tmpPath =
+                outputFilePath
+                        + File.separatorChar
+                        + TMP_DIR_NAME
+                        + baseFileConfig.getJobTimeStamp();
+        log.info("initVariableFields get tmpPath: {}", tmpPath);
         nextNumForCheckDataSize = baseFileConfig.getNextCheckRows();
         openSource();
     }
