@@ -228,6 +228,7 @@ public class HiveDynamicTableFactory implements DynamicTableSinkFactory, Dynamic
         hiveConf.setEncoding(config.get(BaseFileOptions.ENCODING));
         hiveConf.setMaxFileSize(config.get(BaseFileOptions.MAX_FILE_SIZE));
         hiveConf.setNextCheckRows(config.get(BaseFileOptions.NEXT_CHECK_ROWS));
+        hiveConf.setJobTimeStamp(config.get(BaseFileOptions.JOB_TIMESTAMP));
 
         hiveConf.setDefaultFS(config.get(HdfsOptions.DEFAULT_FS));
         hiveConf.setFileType(config.get(HdfsOptions.FILE_TYPE));
