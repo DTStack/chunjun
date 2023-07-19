@@ -177,7 +177,16 @@ public class JdbcSqlConverter
                                 : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
                 return val ->
-                        (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
+                        val instanceof Timestamp
+                                ? (int)
+                                        (((Timestamp) val)
+                                                .toLocalDateTime()
+                                                .toLocalDate()
+                                                .toEpochDay())
+                                : (int)
+                                        ((Date.valueOf(String.valueOf(val)))
+                                                .toLocalDate()
+                                                .toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
                         (int)
