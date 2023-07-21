@@ -134,4 +134,20 @@ public class StarRocksQueryVisitor implements Serializable {
     public void close() {
         jdbcConnProvider.close();
     }
+
+    public boolean hasPartitions(String database, String table) {
+        ResultSet rs;
+        try {
+            jdbcConnProvider.checkValid();
+            final String query = "SHOW PARTITIONS FROM " + database + "." + table + ";";
+            PreparedStatement stmt = jdbcConnProvider.getConnection().prepareStatement(query);
+            rs = stmt.executeQuery();
+            return rs.next();
+        } catch (ClassNotFoundException se) {
+            throw new IllegalArgumentException("Failed to find jdbc driver." + se.getMessage(), se);
+        } catch (SQLException se) {
+            throw new IllegalArgumentException(
+                    "Failed to get table partition info from StarRocks. " + se.getMessage(), se);
+        }
+    }
 }

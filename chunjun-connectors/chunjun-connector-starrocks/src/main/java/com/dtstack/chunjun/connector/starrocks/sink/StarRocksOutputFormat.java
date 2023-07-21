@@ -51,6 +51,11 @@ public class StarRocksOutputFormat extends BaseRichOutputFormat {
                         .collect(Collectors.toList());
 
         streamLoadManager = new StreamLoadManager(starRocksConfig);
+        if (!streamLoadManager.tableHasPartition()) {
+            throw new RuntimeException(
+                    "data cannot be inserted into table with empty partition. "
+                            + "Use `SHOW PARTITIONS FROM star_test` to see the currently partitions of this table");
+        }
         streamLoadManager.startAsyncFlushing();
         if (starRocksConfig.isNameMapped()) {
             writeProcessor = new MappedWriteProcessor(streamLoadManager, starRocksConfig);
