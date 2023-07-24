@@ -60,6 +60,7 @@ public class StarRocksRawTypeMapper {
             case "DATE":
                 return DataTypes.DATE();
             case "DATETIME":
+            case "TIMESTAMP":
                 return DataTypes.TIMESTAMP(0);
             case "HLL":
             case "BITMAP":
