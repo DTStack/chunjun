@@ -26,6 +26,7 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.GsonUtil;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -41,9 +42,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static com.dtstack.chunjun.connector.http.common.ConstantValue.CSV_DECODE;
-import static com.dtstack.chunjun.connector.http.common.ConstantValue.TEXT_DECODE;
-import static com.dtstack.chunjun.connector.http.common.ConstantValue.XML_DECODE;
+import static com.dtstack.chunjun.connector.http.common.ConstantValue.*;
 
 @Slf4j
 public class HttpClient {
@@ -134,6 +133,9 @@ public class HttpClient {
     }
 
     public void execute() {
+        if (restConfig.getLimitRequestTime() < restConfig.getRequestTime()) {
+            return;
+        }
 
         if (!running) {
             return;
@@ -182,6 +184,9 @@ public class HttpClient {
         first = false;
         requestRetryTime = 3;
         requestNumber++;
+        // 子类和父类使用同一个对象，可以向上汇报请求次数进度，以便及时触发finish
+        Integer requestTime = restConfig.getRequestTime();
+        restConfig.setRequestTime(++requestTime);
     }
 
     public void doExecute(int retryTime) {
@@ -204,6 +209,21 @@ public class HttpClient {
         String responseValue;
         int responseStatus;
         try {
+            Map<String, Object> requestParam = currentParam.getParam();
+            Map<String, Object> requestBody = currentParam.getBody();
+            if (StringUtils.isNotBlank(restConfig.getPageParamName())) {
+                Integer pagePosition =
+                        restConfig.getStartIndex()
+                                + restConfig.getStep() * restConfig.getRequestTime();
+                if (pagePosition > restConfig.getEndIndex()) {
+                    return;
+                }
+                if ("get".equals(restConfig.getRequestMode())) {
+                    requestParam.put(restConfig.getPageParamName(), pagePosition);
+                } else {
+                    requestBody.put(restConfig.getPageParamName(), pagePosition);
+                }
+            }
 
             HttpUriRequest request =
                     HttpUtil.getRequest(
@@ -221,7 +241,8 @@ public class HttpClient {
                 return;
             }
 
-            responseValue = EntityUtils.toString(httpResponse.getEntity());
+            // utf-8:支持中文
+            responseValue = EntityUtils.toString(httpResponse.getEntity(), "utf-8");
             responseStatus = httpResponse.getStatusLine().getStatusCode();
         } catch (Throwable e) {
             // 只要本次请求中出现了异常 都会进行重试，如果重试次数达到了就真正结束任务
@@ -264,9 +285,16 @@ public class HttpClient {
                 }
             }
 
-            responseParse.parse(responseValue, responseStatus, HttpRequestParam.copy(currentParam));
-            while (responseParse.hasNext()) {
-                processData(responseParse.next());
+            if (StringUtils.isBlank(responseValue)) {
+                reachEnd = true;
+                running = false;
+            } else {
+                responseParse.parse(
+                        responseValue, responseStatus, HttpRequestParam.copy(currentParam));
+                while (responseParse.hasNext()) {
+                    // 一条一条数据的增加
+                    processData(responseParse.next());
+                }
             }
 
             if (-1 != restConfig.getCycles() && requestNumber >= restConfig.getCycles()) {
@@ -342,6 +370,8 @@ public class HttpClient {
                 return new XmlResponseParse(restConfig, converter);
             case TEXT_DECODE:
                 return new TextResponseParse(restConfig, converter);
+            case OFFLINE_JSON_DECODE:
+                return new OfflineJsonResponseParse(restConfig, converter);
             default:
                 return new JsonResponseParse(restConfig, converter);
         }
