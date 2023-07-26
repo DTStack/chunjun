@@ -327,4 +327,9 @@ public class StreamLoadManager {
         }
         checkFlushException();
     }
+
+    public boolean tableHasPartition() {
+        return starrocksQueryVisitor.hasPartitions(
+                starRocksConfig.getDatabase(), starRocksConfig.getTable());
+    }
 }
