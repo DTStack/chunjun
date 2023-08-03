@@ -116,6 +116,8 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
                 (CollectionUtil.isNullOrEmpty(jdbcConfig.getUniqueKey()))
                         ? EWriteMode.INSERT.name()
                         : EWriteMode.UPDATE.name());
+        jdbcConfig.setPreSql(dorisConfig.getPreSql());
+        jdbcConfig.setPostSql(dorisConfig.getPostSql());
 
         builder.setColumnNameList(columnNameList);
         builder.setColumnTypeList(columnTypeList);
