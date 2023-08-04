@@ -42,6 +42,7 @@ import org.apache.flink.table.factories.FactoryUtil;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,8 @@ import java.util.stream.Stream;
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.DRUID_PREFIX;
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.VERTX_PREFIX;
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.getLibConfMap;
+import static com.dtstack.chunjun.connector.jdbc.options.JdbcSinkOptions.SINK_POST_SQL;
+import static com.dtstack.chunjun.connector.jdbc.options.JdbcSinkOptions.SINK_PRE_SQL;
 
 /** declare doris table factory info. */
 public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
@@ -148,6 +151,12 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
 
     private static DorisConfig getConfByOptions(ReadableConfig config) {
         DorisConfig dorisConfig = new DorisConfig();
+        if (StringUtils.isNotEmpty(config.get(SINK_PRE_SQL))) {
+            dorisConfig.setPreSql(Arrays.asList(config.get(SINK_PRE_SQL).split(";")));
+        }
+        if (StringUtils.isNotEmpty(config.get(SINK_POST_SQL))) {
+            dorisConfig.setPostSql(Arrays.asList(config.get(SINK_POST_SQL).split(";")));
+        }
 
         dorisConfig.setFeNodes(config.get(DorisOptions.FENODES));
 
