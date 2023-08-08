@@ -54,6 +54,10 @@ public class StarRocksQueryVisitor implements Serializable {
         this.table = starRocksConfig.getTable();
     }
 
+    public StarRocksJdbcConnectionProvider getJdbcConnProvider() {
+        return jdbcConnProvider;
+    }
+
     public List<Map<String, Object>> getTableColumnsMetaData() {
         return getTableColumnsMetaData(database, table);
     }

@@ -34,6 +34,9 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.types.DataType;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +66,8 @@ import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.
 import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.QUEUE_POLL_TIMEOUT;
 import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.SINK_BATCH_MAX_BYTES;
 import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.SINK_BATCH_MAX_ROWS;
+import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.SINK_POST_SQL;
+import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.SINK_PRE_SQL;
 import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.STREAM_LOAD_HEAD_PROPERTIES;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
@@ -154,6 +159,12 @@ public class StarRocksDynamicTableFactory
         sinkConf.setBatchSize(batchSize);
         sinkConf.setFlushIntervalMills(sinkInternal);
         sinkConf.setLoadConfig(loadConfig);
+        if (StringUtils.isNotEmpty(options.get(SINK_PRE_SQL))) {
+            sinkConf.setPreSql(Arrays.asList(options.get(SINK_PRE_SQL).split(";")));
+        }
+        if (StringUtils.isNotEmpty(options.get(SINK_POST_SQL))) {
+            sinkConf.setPostSql(Arrays.asList(options.get(SINK_POST_SQL).split(";")));
+        }
         return sinkConf;
     }
 
