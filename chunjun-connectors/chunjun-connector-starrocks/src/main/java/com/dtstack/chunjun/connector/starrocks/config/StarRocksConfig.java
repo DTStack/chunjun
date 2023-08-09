@@ -99,4 +99,7 @@ public class StarRocksConfig extends CommonConfig {
     private long beFetchMaxBytes = 1024 * 1024 * 1024;
 
     private Map<String, String> beSocketProperties = new HashMap<>();
+
+    protected List<String> preSql;
+    protected List<String> postSql;
 }
