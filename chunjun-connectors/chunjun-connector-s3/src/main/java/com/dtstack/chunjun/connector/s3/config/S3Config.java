@@ -21,9 +21,9 @@ package com.dtstack.chunjun.connector.s3.config;
 import com.dtstack.chunjun.config.CommonConfig;
 
 import com.amazonaws.regions.Regions;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 import java.io.Serializable;
 import java.util.List;
