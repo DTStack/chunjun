@@ -233,7 +233,7 @@ public class JdbcUtil {
         List<String> indexList = new LinkedList<>();
         while (rs.next()) {
             String index = rs.getString(4);
-            if (org.apache.commons.lang.StringUtils.isNotBlank(index)) indexList.add(index);
+            if (StringUtils.isNotBlank(index)) indexList.add(index);
         }
         return indexList;
     }
