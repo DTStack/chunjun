@@ -51,6 +51,7 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class HdfsTextSyncConverter
@@ -58,8 +59,14 @@ public class HdfsTextSyncConverter
 
     private static final long serialVersionUID = 1191849197062775272L;
 
+    private List<String> columnNameList;
+
     public HdfsTextSyncConverter(List<FieldConfig> fieldConfigList, HdfsConfig hdfsConfig) {
         super(fieldConfigList.size(), hdfsConfig);
+        columnNameList =
+                hdfsConfig.getColumn().stream()
+                        .map(FieldConfig::getName)
+                        .collect(Collectors.toList());
         for (FieldConfig fieldConfig : fieldConfigList) {
             String type = fieldConfig.getType().getType();
             int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
@@ -103,7 +110,7 @@ public class HdfsTextSyncConverter
     @Override
     @SuppressWarnings("unchecked")
     public String[] toExternal(RowData rowData, String[] data) throws Exception {
-        for (int index = 0; index < fieldTypes.length; index++) {
+        for (int index = 0; index < columnNameList.size(); index++) {
             toExternalConverters.get(index).serialize(rowData, index, data);
         }
         return data;

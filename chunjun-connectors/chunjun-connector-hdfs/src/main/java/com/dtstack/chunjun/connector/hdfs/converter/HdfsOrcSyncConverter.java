@@ -60,7 +60,7 @@ public class HdfsOrcSyncConverter extends AbstractRowConverter<RowData, RowData,
 
     private static final long serialVersionUID = 4254984437380862131L;
 
-    private List<String> ColumnNameList;
+    private List<String> columnNameList;
     private transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
     public HdfsOrcSyncConverter(List<FieldConfig> fieldConfigList, HdfsConfig hdfsConfig) {
@@ -107,7 +107,7 @@ public class HdfsOrcSyncConverter extends AbstractRowConverter<RowData, RowData,
     @Override
     @SuppressWarnings("unchecked")
     public Object[] toExternal(RowData rowData, Object[] data) throws Exception {
-        for (int index = 0; index < fieldTypes.length; index++) {
+        for (int index = 0; index < columnNameList.size(); index++) {
             toExternalConverters.get(index).serialize(rowData, index, data);
         }
         return data;
@@ -195,7 +195,7 @@ public class HdfsOrcSyncConverter extends AbstractRowConverter<RowData, RowData,
             case "DECIMAL":
                 return (rowData, index, data) -> {
                     ColumnTypeUtil.DecimalInfo decimalInfo =
-                            decimalColInfo.get(ColumnNameList.get(index));
+                            decimalColInfo.get(columnNameList.get(index));
                     HiveDecimal hiveDecimal =
                             HiveDecimal.create(new BigDecimal(rowData.getString(index).toString()));
                     hiveDecimal =
@@ -245,7 +245,7 @@ public class HdfsOrcSyncConverter extends AbstractRowConverter<RowData, RowData,
     }
 
     public void setColumnNameList(List<String> columnNameList) {
-        this.ColumnNameList = columnNameList;
+        this.columnNameList = columnNameList;
     }
 
     public void setDecimalColInfo(Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo) {
