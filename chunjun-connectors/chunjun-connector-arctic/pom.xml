@@ -32,7 +32,7 @@
 	<name>ChunJun : Connector : Arctic</name>
 
 	<properties>
-		<hadoop.version>2.7.5</hadoop.version>
+		<hadoop.version>3.3.2</hadoop.version>
 		<iceberg.version>0.13.2</iceberg.version>
 		<arctic.version>0.4.0</arctic.version>
 		<connector.dir>arctic</connector.dir>
