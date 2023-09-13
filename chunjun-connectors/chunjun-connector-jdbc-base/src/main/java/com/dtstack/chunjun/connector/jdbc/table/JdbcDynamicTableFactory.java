@@ -180,7 +180,9 @@ public abstract class JdbcDynamicTableFactory
         }
 
         List<String> keyFields = new ArrayList<>();
-        schema.getPrimaryKey().ifPresent(item -> keyFields.add(item.getName()));
+        if (schema.getPrimaryKey().isPresent()) {
+            keyFields = schema.getPrimaryKey().get().getColumns();
+        }
 
         jdbcConfig.setUniqueKey(keyFields);
         resetTableInfo(jdbcConfig);
