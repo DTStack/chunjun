@@ -61,9 +61,19 @@ public class OracleSqlConverter extends JdbcSqlConverter {
 
     public OracleSqlConverter(RowType rowType) {
         super(rowType);
+        getInternalConverter();
         toAsyncInternalConverters = new ArrayList<>(rowType.getFieldCount());
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toAsyncInternalConverters.add(
+                    wrapIntoNullableInternalConverter(
+                            createAsyncInternalConverter(rowType.getTypeAt(i))));
+        }
+    }
+
+    protected void getInternalConverter() {
+        toInternalConverters = new ArrayList<>(rowType.getFieldCount());
+        for (int i = 0; i < rowType.getFieldCount(); i++) {
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
                             createAsyncInternalConverter(rowType.getTypeAt(i))));
         }
