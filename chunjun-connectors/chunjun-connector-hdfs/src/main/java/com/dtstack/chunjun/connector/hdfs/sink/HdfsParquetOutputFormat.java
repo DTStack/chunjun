@@ -156,7 +156,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
     public void flushDataInternal() {
         log.info(
                 "Close current parquet record writer, write data size:[{}]",
-                SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
+                SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue() - lastWriteSize));
         try {
             if (writer != null) {
                 writer.close();
