@@ -44,6 +44,7 @@ import static com.dtstack.chunjun.connector.kudu.table.KuduOptions.READ_MODE;
 import static com.dtstack.chunjun.connector.kudu.table.KuduOptions.SCANNER_BATCH_SIZE_BYTES;
 import static com.dtstack.chunjun.connector.kudu.table.KuduOptions.TABLE_NAME;
 import static com.dtstack.chunjun.connector.kudu.table.KuduOptions.WORKER_COUNT;
+import static com.dtstack.chunjun.connector.kudu.table.KuduOptions.WRITE_MODE;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
@@ -146,6 +147,7 @@ public class KuduDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         optionalOptions.add(SINK_BUFFER_FLUSH_INTERVAL);
         optionalOptions.add(SINK_MAX_RETRIES);
         optionalOptions.add(SINK_PARALLELISM);
+        optionalOptions.add(WRITE_MODE);
 
         // kerberos
         optionalOptions.add(PRINCIPAL);
