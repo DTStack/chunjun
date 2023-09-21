@@ -67,6 +67,7 @@ public class OracleSqlConverter extends JdbcSqlConverter {
                     wrapIntoNullableInternalConverter(
                             createAsyncInternalConverter(rowType.getTypeAt(i))));
         }
+        toInternalConverters = toAsyncInternalConverters;
     }
 
     protected IDeserializationConverter createAsyncInternalConverter(LogicalType type) {

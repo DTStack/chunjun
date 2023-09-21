@@ -35,6 +35,7 @@ import com.dtstack.chunjun.element.column.DoubleColumn;
 import com.dtstack.chunjun.element.column.FloatColumn;
 import com.dtstack.chunjun.element.column.IntColumn;
 import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
@@ -275,7 +276,8 @@ public class OracleSyncConverter extends JdbcSyncConverter {
             wrapIntoNullableExternalConverter(
                     ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, statement) -> {
-            if (((ColumnRowData) val).getField(index) == null) {
+            if (((ColumnRowData) val).getField(index) == null
+                    || ((ColumnRowData) val).getField(index) instanceof NullColumn) {
                 try {
                     final int sqlType =
                             JdbcTypeUtil.typeInformationToSqlType(
