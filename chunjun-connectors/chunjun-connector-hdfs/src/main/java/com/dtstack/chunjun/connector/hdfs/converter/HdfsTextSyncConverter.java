@@ -194,15 +194,10 @@ public class HdfsTextSyncConverter
                         };
             case "DATE":
                 return (IDeserializationConverter<String, AbstractBaseColumn>)
-                        val -> {
-                            Timestamp timestamp = DateUtil.getTimestampFromStr(val);
-                            if (timestamp == null) {
-                                return new SqlDateColumn(null);
-                            } else {
-                                return new SqlDateColumn(
-                                        Date.valueOf(timestamp.toLocalDateTime().toLocalDate()));
-                            }
-                        };
+                        val ->
+                                val == null
+                                        ? new SqlDateColumn(null)
+                                        : new SqlDateColumn(Date.valueOf(val));
             case "BINARY":
             case "ARRAY":
             case "MAP":
