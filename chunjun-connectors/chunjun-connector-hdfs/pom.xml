@@ -133,6 +133,14 @@
 					<artifactId>hadoop-yarn-server-resourcemanager</artifactId>
 					<groupId>org.apache.hadoop</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-auth</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-common</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -205,6 +213,10 @@
 					<artifactId>parquet-hadoop-bundle</artifactId>
 					<groupId>com.twitter</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-common</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -250,6 +262,12 @@
 									</excludes>
 								</filter>
 							</filters>
+							<relocations>
+								<relocation>
+									<pattern>com.google.common</pattern>
+									<shadedPattern>com.dtstack.chunjun.connector.hdfs.com.google.common</shadedPattern>
+								</relocation>
+							</relocations>
 						</configuration>
 					</execution>
 				</executions>

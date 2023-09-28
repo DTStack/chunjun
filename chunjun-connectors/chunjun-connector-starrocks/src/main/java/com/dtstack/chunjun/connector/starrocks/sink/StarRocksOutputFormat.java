@@ -20,20 +20,30 @@ package com.dtstack.chunjun.connector.starrocks.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
+import com.dtstack.chunjun.connector.starrocks.connection.StarRocksJdbcConnectionProvider;
+import com.dtstack.chunjun.connector.starrocks.streamload.StarRocksQueryVisitor;
 import com.dtstack.chunjun.connector.starrocks.streamload.StarRocksSinkBufferEntity;
 import com.dtstack.chunjun.connector.starrocks.streamload.StarRocksStreamLoadFailedException;
 import com.dtstack.chunjun.connector.starrocks.streamload.StreamLoadManager;
+import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
+import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.table.data.RowData;
 
 import com.alibaba.fastjson.JSON;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class StarRocksOutputFormat extends BaseRichOutputFormat {
 
     private static final long serialVersionUID = -72510119599895395L;
@@ -43,6 +53,53 @@ public class StarRocksOutputFormat extends BaseRichOutputFormat {
     private StarRocksWriteProcessor writeProcessor;
 
     @Override
+    public void initializeGlobal(int parallelism) {
+        executeBatch(starRocksConfig.getPreSql());
+    }
+
+    @Override
+    public void finalizeGlobal(int parallelism) {
+        executeBatch(starRocksConfig.getPostSql());
+    }
+
+    /**
+     * 执行pre、post SQL
+     *
+     * @param sqlList
+     */
+    protected void executeBatch(List<String> sqlList) {
+        if (CollectionUtils.isNotEmpty(sqlList)) {
+            StarRocksQueryVisitor starrocksQueryVisitor =
+                    new StarRocksQueryVisitor(starRocksConfig);
+            StarRocksJdbcConnectionProvider jdbcConnProvider =
+                    starrocksQueryVisitor.getJdbcConnProvider();
+            try {
+                jdbcConnProvider.checkValid();
+                Statement stmt = jdbcConnProvider.getConnection().createStatement();
+                for (String sql : sqlList) {
+                    // 兼容多条SQL写在同一行的情况
+                    String[] strings = sql.split(";");
+                    for (String s : strings) {
+                        if (StringUtils.isNotBlank(s)) {
+                            log.info("add sql to batch, sql = {}", s);
+                            stmt.addBatch(s);
+                        }
+                    }
+                }
+                stmt.executeBatch();
+            } catch (ClassNotFoundException se) {
+                throw new IllegalArgumentException(
+                        "Failed to find jdbc driver." + se.getMessage(), se);
+            } catch (SQLException e) {
+                throw new RuntimeException(
+                        "execute sql failed, sqlList = " + GsonUtil.GSON.toJson(sqlList), e);
+            } finally {
+                jdbcConnProvider.close();
+            }
+        }
+    }
+
+    @Override
     protected void openInternal(int taskNumber, int numTasks) {
         List<String> columnNameList =
                 starRocksConfig.getColumn().stream()
@@ -50,6 +107,13 @@ public class StarRocksOutputFormat extends BaseRichOutputFormat {
                         .collect(Collectors.toList());
 
         streamLoadManager = new StreamLoadManager(starRocksConfig);
+        if (!streamLoadManager.tableHasPartition()) {
+            throw new RuntimeException(
+                    "data cannot be inserted into table with empty partition. "
+                            + "Use `SHOW PARTITIONS FROM "
+                            + starRocksConfig.getTable()
+                            + "` to see the currently partitions of this table");
+        }
         streamLoadManager.startAsyncFlushing();
         if (starRocksConfig.isNameMapped()) {
             writeProcessor = new MappedWriteProcessor(streamLoadManager, starRocksConfig);
@@ -103,7 +167,10 @@ public class StarRocksOutputFormat extends BaseRichOutputFormat {
                     String errMessage = handleErrMessage(exception);
                     StarRocksSinkBufferEntity entity = exception.getEntity();
                     for (byte[] data : entity.getBuffer()) {
-                        dirtyManager.collect(new String(data), new Throwable(errMessage), null);
+                        long globalErrors =
+                                accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
+                        dirtyManager.collect(
+                                new String(data), new Throwable(errMessage), null, globalErrors);
                     }
                 } else {
                     throw new ChunJunRuntimeException("write starRocks failed.", e);

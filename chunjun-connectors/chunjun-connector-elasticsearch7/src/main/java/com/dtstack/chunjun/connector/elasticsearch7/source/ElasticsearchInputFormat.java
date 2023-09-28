@@ -138,10 +138,14 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
 
         ClearScrollRequest clearScrollRequest = new ClearScrollRequest();
         clearScrollRequest.addScrollId(scrollId);
-        ClearScrollResponse clearScrollResponse =
-                rhlClient.clearScroll(clearScrollRequest, RequestOptions.DEFAULT);
-        boolean succeeded = clearScrollResponse.isSucceeded();
-        log.info("Clear scroll response:{}", succeeded);
+        ClearScrollResponse clearScrollResponse = null;
+        try {
+            clearScrollResponse = rhlClient.clearScroll(clearScrollRequest, RequestOptions.DEFAULT);
+            boolean succeeded = clearScrollResponse.isSucceeded();
+            log.info("Clear scroll response:{}", succeeded);
+        } catch (Exception e) {
+            log.info("Clear scroll error:", e);
+        }
     }
 
     @Override

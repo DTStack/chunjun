@@ -18,6 +18,7 @@
 package com.dtstack.chunjun.connector.hdfs.source;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.hdfs.InputSplit.HdfsParquetSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.enums.ColumnType;
@@ -71,7 +72,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
     private transient Group currentLine;
     private transient ParquetReader<Group> currentFileReader;
     private transient List<String> fullColNames;
-    private transient List<String> fullColTypes;
+    private transient List<TypeConfig> fullColTypes;
     private transient List<String> currentSplitFilePaths;
     private transient int currentFileIndex = 0;
 
@@ -102,7 +103,9 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                 FileSystemUtil.getFileSystem(
                         hdfsConfig.getHadoopConfig(),
                         hdfsConfig.getDefaultFS(),
-                        PluginUtil.createDistributedCacheFromContextClassLoader())) {
+                        PluginUtil.createDistributedCacheFromContextClassLoader(),
+                        jobId,
+                        String.valueOf(indexOfSubTask))) {
             allFilePaths = getAllPartitionPath(hdfsConfig.getPath(), fs, pathFilter);
         } catch (Exception e) {
             throw new ChunJunRuntimeException(e);
@@ -267,9 +270,9 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         return !nextLine();
     }
 
-    public Object getData(Group currentLine, String type, int index) {
+    public Object getData(Group currentLine, TypeConfig type, int index) {
         Object data = null;
-        ColumnType columnType = ColumnType.fromString(type);
+        ColumnType columnType = ColumnType.fromString(type.getType());
 
         try {
             if (index == -1) {
@@ -373,7 +376,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         return new BigDecimal(bi, scale);
     }
 
-    private String getTypeName(String method) {
+    private TypeConfig getTypeName(String method) {
         String typeName;
         switch (method) {
             case "getBoolean":
@@ -396,7 +399,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                 typeName = "string";
         }
 
-        return typeName;
+        return TypeConfig.fromString(typeName);
     }
 
     private long getTimestampMillis(Binary timestampBinary) {

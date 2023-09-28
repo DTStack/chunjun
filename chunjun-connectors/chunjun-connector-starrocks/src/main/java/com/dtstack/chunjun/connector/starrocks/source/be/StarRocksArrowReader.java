@@ -18,7 +18,8 @@
 
 package com.dtstack.chunjun.connector.starrocks.source.be;
 
-import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRawTypeConverter;
+import com.dtstack.chunjun.config.TypeConfig;
+import com.dtstack.chunjun.connector.starrocks.converter.StarRocksRawTypeMapper;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.ColumnInfo;
 
 import com.starrocks.thrift.TScanBatchResult;
@@ -147,7 +148,7 @@ public class StarRocksArrowReader {
                 "Type corresponding error,Column[%s]'s StarRocksType should be %s;LogicalTypeRoot except %s but is %s",
                 columnInfo.getFieldName(),
                 columnInfo.getStarRocksType(),
-                StarRocksRawTypeConverter.apply(columnInfo.getStarRocksType())
+                StarRocksRawTypeMapper.apply(TypeConfig.fromString(columnInfo.getStarRocksType()))
                         .getLogicalType()
                         .getTypeRoot(),
                 columnInfo.getLogicalTypeRoot());

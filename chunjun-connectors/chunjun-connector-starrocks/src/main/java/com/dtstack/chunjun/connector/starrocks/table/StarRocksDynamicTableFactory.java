@@ -34,6 +34,9 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.types.DataType;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +51,8 @@ import static com.dtstack.chunjun.connector.starrocks.options.StarRocksCommonOpt
 import static com.dtstack.chunjun.connector.starrocks.options.StarRocksCommonOptions.USERNAME;
 import static com.dtstack.chunjun.connector.starrocks.options.StarRocksSinkOptions.NAME_MAPPED;
 import static com.dtstack.chunjun.connector.starrocks.options.StarRocksSinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
+import static com.dtstack.chunjun.connector.starrocks.options.StarRocksSinkOptions.SINK_CACHE_TABLE_STRUCT;
+import static com.dtstack.chunjun.connector.starrocks.options.StarRocksSinkOptions.SINK_CHECK_STRUCT_FIRST_TIME;
 import static com.dtstack.chunjun.connector.starrocks.options.StarRocksSinkOptions.SINK_SEMANTIC;
 import static com.dtstack.chunjun.connector.starrocks.options.StarRocksSourceOptions.FILTER_STATEMENT;
 import static com.dtstack.chunjun.connector.starrocks.options.StarRocksSourceOptions.SCAN_BE_CLIENT_KEEP_LIVE_MIN;
@@ -61,6 +66,8 @@ import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.
 import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.QUEUE_POLL_TIMEOUT;
 import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.SINK_BATCH_MAX_BYTES;
 import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.SINK_BATCH_MAX_ROWS;
+import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.SINK_POST_SQL;
+import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.SINK_PRE_SQL;
 import static com.dtstack.chunjun.connector.starrocks.options.StreamLoadOptions.STREAM_LOAD_HEAD_PROPERTIES;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
@@ -139,15 +146,25 @@ public class StarRocksDynamicTableFactory
     private StarRocksConfig createSinkConfByOptions(ReadableConfig options) {
         StarRocksConfig sinkConf = createCommonConfByOptions(options);
         // sink options
+        boolean cacheTableStruct = options.get(SINK_CACHE_TABLE_STRUCT);
+        boolean checkStructFirstTime = options.get(SINK_CHECK_STRUCT_FIRST_TIME);
         boolean nameMapped = options.get(NAME_MAPPED);
         Integer batchSize = options.get(SINK_BUFFER_FLUSH_MAX_ROWS);
         Long sinkInternal = options.get(SINK_BUFFER_FLUSH_INTERVAL);
         LoadConfig loadConfig = getLoadConfig(options);
         // loading
+        sinkConf.setCacheTableStruct(cacheTableStruct);
+        sinkConf.setCheckStructFirstTime(checkStructFirstTime);
         sinkConf.setNameMapped(nameMapped);
         sinkConf.setBatchSize(batchSize);
         sinkConf.setFlushIntervalMills(sinkInternal);
         sinkConf.setLoadConfig(loadConfig);
+        if (StringUtils.isNotEmpty(options.get(SINK_PRE_SQL))) {
+            sinkConf.setPreSql(Arrays.asList(options.get(SINK_PRE_SQL).split(";")));
+        }
+        if (StringUtils.isNotEmpty(options.get(SINK_POST_SQL))) {
+            sinkConf.setPostSql(Arrays.asList(options.get(SINK_POST_SQL).split(";")));
+        }
         return sinkConf;
     }
 
@@ -224,6 +241,8 @@ public class StarRocksDynamicTableFactory
 
         // sink
         optionalOptions.add(NAME_MAPPED);
+        optionalOptions.add(SINK_CACHE_TABLE_STRUCT);
+        optionalOptions.add(SINK_CHECK_STRUCT_FIRST_TIME);
         optionalOptions.add(SINK_BUFFER_FLUSH_MAX_ROWS);
         optionalOptions.add(SINK_BUFFER_FLUSH_INTERVAL);
         optionalOptions.add(SINK_SEMANTIC);

@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.kingbase.dialect;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.kingbase.converter.KingbaseRawTypeMapper;
 import com.dtstack.chunjun.connector.kingbase.util.KingbaseConstants;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -44,7 +44,7 @@ public class KingbaseDialect implements JdbcDialect {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeConverter() {
         return KingbaseRawTypeMapper::apply;
     }
 

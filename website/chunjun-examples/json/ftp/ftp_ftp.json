@@ -1,0 +1,195 @@
+{
+  "job":{
+    "content":[
+      {
+        "reader":{
+          "parameter":{
+            "path":"/data/sftp/chunjun/source/data.csv",
+            "protocol":"sftp",
+            "port":22,
+            "isFirstLineHeader":false,
+            "host":"localhost",
+            "column":[
+              {
+                "index":0,
+                "type":"int",
+                "name": "c_id"
+              },
+              {
+                "index":1,
+                "type":"boolean",
+                "name": "c_boolean"
+              },
+              {
+                "index":2,
+                "type":"tinyint",
+                "name": "c_tinyint"
+              },
+              {
+                "index":3,
+                "type":"smallint",
+                "name": "c_smallint"
+              },
+              {
+                "index":4,
+                "type":"int",
+                "name": "c_int"
+              },
+              {
+                "index":5,
+                "type":"bigint",
+                "name": "c_bigint"
+              },
+              {
+                "index":6,
+                "type":"float",
+                "name": "c_float"
+              },
+              {
+                "index":7,
+                "type":"double",
+                "name": "c_double"
+              },
+              {
+                "index":8,
+                "type":"decimal",
+                "name": "c_decimal"
+              },
+              {
+                "index":9,
+                "type":"string",
+                "name": "c_string"
+              },
+              {
+                "index":10,
+                "type":"varchar",
+                "name": "c_varchar"
+              },
+              {
+                "index":11,
+                "type":"char",
+                "name": "c_char"
+              },
+              {
+                "index":12,
+                "type":"timestamp",
+                "name": "c_timestamp"
+              },
+              {
+                "index":13,
+                "type":"date",
+                "name": "c_date"
+              }
+            ],
+            "password":"xxxxxx",
+            "fieldDelimiter":",",
+            "encoding":"utf-8",
+            "username":"root"
+          },
+          "name":"ftpreader"
+        },
+        "writer":{
+          "parameter": {
+            "path": "/data/sftp/chunjun/sink",
+            "protocol": "sftp",
+            "port": 22,
+            "writeMode": "append",
+            "host": "localhost",
+            "column":[
+              {
+                "index":0,
+                "type":"int",
+                "name": "c_id"
+              },
+              {
+                "index":1,
+                "type":"boolean",
+                "name": "c_boolean"
+              },
+              {
+                "index":2,
+                "type":"tinyint",
+                "name": "c_tinyint"
+              },
+              {
+                "index":3,
+                "type":"smallint",
+                "name": "c_smallint"
+              },
+              {
+                "index":4,
+                "type":"int",
+                "name": "c_int"
+              },
+              {
+                "index":5,
+                "type":"bigint",
+                "name": "c_bigint"
+              },
+              {
+                "index":6,
+                "type":"float",
+                "name": "c_float"
+              },
+              {
+                "index":7,
+                "type":"double",
+                "name": "c_double"
+              },
+              {
+                "index":8,
+                "type":"decimal",
+                "name": "c_decimal"
+              },
+              {
+                "index":9,
+                "type":"string",
+                "name": "c_string"
+              },
+              {
+                "index":10,
+                "type":"varchar",
+                "name": "c_varchar"
+              },
+              {
+                "index":11,
+                "type":"char",
+                "name": "c_char"
+              },
+              {
+                "index":12,
+                "type":"timestamp",
+                "name": "c_timestamp"
+              },
+              {
+                "index":13,
+                "type":"date",
+                "name": "c_date"
+              }
+            ],
+            "password": "xxxxxx",
+            "fieldDelimiter": ",",
+            "encoding": "utf-8",
+            "username": "root"
+          },
+          "name":"ftpwriter"
+        }
+      }
+    ],
+    "setting":{
+      "restore":{
+        "maxRowNumForCheckpoint":0,
+        "isRestore":false,
+        "restoreColumnName":"",
+        "restoreColumnIndex":0
+      },
+      "errorLimit":{
+        "record":100
+      },
+      "speed":{
+        "bytes":0,
+        "channel":1
+      }
+    }
+  }
+}

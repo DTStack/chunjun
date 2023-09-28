@@ -18,17 +18,26 @@
 package com.dtstack.chunjun.connector.jdbc.util;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.conf.TableIdentify;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
+import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.ClassUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.RetryUtil;
 import com.dtstack.chunjun.util.TelnetUtil;
+
+import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.DistinctType;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -49,8 +58,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getFieldCount;
+import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getPrecision;
+import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getScale;
 
 /** Utilities for relational database connection and sql execution */
 @Slf4j
@@ -127,26 +142,33 @@ public class JdbcUtil {
      * @param dbConn jdbc Connection.
      * @param metadataQuerySql SQL used to retrieve metadata
      */
-    public static Pair<List<String>, List<String>> getTableMetaData(
-            Connection dbConn, String metadataQuerySql, int queryTimeout) {
+    public static Pair<List<String>, List<TypeConfig>> getTableMetaData(
+            Connection dbConn,
+            String metadataQuerySql,
+            int queryTimeout,
+            Function<Tuple3<String, Integer, Integer>, TypeConfig> typeBuilder) {
         log.info("jdbc query table metadata from db, querySql is:{}", metadataQuerySql);
         try (Statement st = dbConn.createStatement();
                 ResultSet rs = st.executeQuery(metadataQuerySql)) {
             st.setQueryTimeout(queryTimeout);
             ResultSetMetaData resultSetMetaData = rs.getMetaData();
             List<String> fullColumnList = new ArrayList<>(resultSetMetaData.getColumnCount());
-            List<String> fullColumnTypeList = new ArrayList<>(resultSetMetaData.getColumnCount());
+            List<TypeConfig> fullColumnTypeList =
+                    new ArrayList<>(resultSetMetaData.getColumnCount());
             String columnName;
-            String columnType;
+            TypeConfig columnType;
             for (int i = 0; i < resultSetMetaData.getColumnCount(); i++) {
                 columnName = resultSetMetaData.getColumnName(i + 1);
-                columnType = resultSetMetaData.getColumnTypeName(i + 1);
-                // compatible with sqlserver, bigint identity  -> bigint
-                columnType = columnType.replace("identity", "").trim();
-
+                columnType =
+                        typeBuilder.apply(
+                                Tuple3.of(
+                                        resultSetMetaData.getColumnTypeName(i + 1),
+                                        resultSetMetaData.getPrecision(i + 1),
+                                        resultSetMetaData.getScale(i + 1)));
                 fullColumnList.add(columnName);
                 fullColumnTypeList.add(columnType);
             }
+            rs.close();
             return Pair.of(fullColumnList, fullColumnTypeList);
         } catch (Exception e) {
             throw new ChunJunRuntimeException("failed to retrieve table metadata", e);
@@ -211,7 +233,7 @@ public class JdbcUtil {
         List<String> indexList = new LinkedList<>();
         while (rs.next()) {
             String index = rs.getString(4);
-            if (org.apache.commons.lang.StringUtils.isNotBlank(index)) indexList.add(index);
+            if (StringUtils.isNotBlank(index)) indexList.add(index);
         }
         return indexList;
     }
@@ -423,6 +445,7 @@ public class JdbcUtil {
         }
         properties.putIfAbsent("useCursorFetch", "true");
         properties.putIfAbsent("rewriteBatchedStatements", "true");
+        properties.put("tinyInt1isBit", "false");
         jdbcConfig.setProperties(properties);
     }
 
@@ -481,14 +504,14 @@ public class JdbcUtil {
         }
     }
 
-    public static Pair<List<String>, List<String>> buildCustomColumnInfo(
+    public static Pair<List<String>, List<TypeConfig>> buildCustomColumnInfo(
             List<FieldConfig> column, String constantType) {
         List<String> columnNameList = new ArrayList<>(column.size());
-        List<String> columnTypeList = new ArrayList<>(column.size());
+        List<TypeConfig> columnTypeList = new ArrayList<>(column.size());
         int index = 0;
         for (FieldConfig fieldConfig : column) {
             if (StringUtils.isNotBlank(fieldConfig.getValue())) {
-                fieldConfig.setType(constantType);
+                fieldConfig.setType(TypeConfig.fromString(constantType));
                 fieldConfig.setIndex(-1);
             } else {
                 columnNameList.add(fieldConfig.getName());
@@ -499,17 +522,17 @@ public class JdbcUtil {
         return Pair.of(columnNameList, columnTypeList);
     }
 
-    public static Pair<List<String>, List<String>> buildColumnWithMeta(
+    public static Pair<List<String>, List<TypeConfig>> buildColumnWithMeta(
             JdbcConfig jdbcConfig,
-            Pair<List<String>, List<String>> tableMetaData,
+            Pair<List<String>, List<TypeConfig>> tableMetaData,
             String constantType) {
         List<String> metaColumnName = tableMetaData.getLeft();
-        List<String> metaColumnType = tableMetaData.getRight();
+        List<TypeConfig> metaColumnType = tableMetaData.getRight();
 
         List<FieldConfig> column = jdbcConfig.getColumn();
         int size = metaColumnName.size();
         List<String> columnNameList = new ArrayList<>(size);
-        List<String> columnTypeList = new ArrayList<>(size);
+        List<TypeConfig> columnTypeList = new ArrayList<>(size);
         if (column.size() == 1 && ConstantValue.STAR_SYMBOL.equals(column.get(0).getName())) {
             List<FieldConfig> metaColumn = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
@@ -533,24 +556,24 @@ public class JdbcUtil {
         }
     }
 
-    private static Pair<List<String>, List<String>> checkAndModifyColumnWithMeta(
+    private static Pair<List<String>, List<TypeConfig>> checkAndModifyColumnWithMeta(
             String tableName,
             List<FieldConfig> column,
             List<String> metaColumnName,
-            List<String> metaColumnType,
+            List<TypeConfig> metaColumnType,
             String constantType) {
         // check columnName and modify columnType
         int metaColumnSize = metaColumnName.size();
         List<String> columnNameList = new ArrayList<>(column.size());
-        List<String> columnTypeList = new ArrayList<>(column.size());
+        List<TypeConfig> columnTypeList = new ArrayList<>(column.size());
         int index = 0;
         for (FieldConfig fieldConfig : column) {
             if (StringUtils.isNotBlank(fieldConfig.getValue())) {
-                fieldConfig.setType(constantType);
+                fieldConfig.setType(TypeConfig.fromString(constantType));
                 fieldConfig.setIndex(-1);
             } else {
                 String name = fieldConfig.getName();
-                String metaType = null;
+                TypeConfig metaType = null;
                 int i = 0;
                 for (; i < metaColumnSize; i++) {
                     // todo get precision and scale
@@ -593,5 +616,126 @@ public class JdbcUtil {
                 }
             }
         }
+    }
+
+    public static Function<RowData, RowData> getKeyExtractor(
+            List<String> columnList,
+            List<String> keyList,
+            RowType keyRowType,
+            boolean useAbstractBaseColumn) {
+        List<LogicalType> keyLogicalTypeList =
+                keyRowType.getFields().stream()
+                        .map(RowType.RowField::getType)
+                        .collect(Collectors.toList());
+        int[] keyIndices = new int[keyList.size()];
+        for (int i = 0; i < keyList.size(); i++) {
+            keyIndices[i] = columnList.indexOf(keyList.get(i));
+        }
+        if (useAbstractBaseColumn) {
+            return row -> {
+                ColumnRowData pkRow = new ColumnRowData(keyList.size());
+                for (int i = 0; i < keyList.size(); i++) {
+                    pkRow.addField(((ColumnRowData) row).getField(keyIndices[i]));
+                }
+                return pkRow;
+            };
+        } else {
+            final RowData.FieldGetter[] fieldGetters = new RowData.FieldGetter[keyList.size()];
+            for (int i = 0; i < keyList.size(); i++) {
+                fieldGetters[i] = createFieldGetter(keyLogicalTypeList.get(i), keyIndices[i]);
+            }
+            return row -> {
+                GenericRowData pkRow = new GenericRowData(fieldGetters.length);
+                for (int i = 0; i < fieldGetters.length; i++) {
+                    pkRow.setField(i, fieldGetters[i].getFieldOrNull(row));
+                }
+                return pkRow;
+            };
+        }
+    }
+
+    static RowData.FieldGetter createFieldGetter(LogicalType fieldType, int fieldPos) {
+        final RowData.FieldGetter fieldGetter;
+        // ordered by type root definition
+        switch (fieldType.getTypeRoot()) {
+            case CHAR:
+            case VARCHAR:
+                fieldGetter = row -> row.getString(fieldPos);
+                break;
+            case BOOLEAN:
+                fieldGetter = row -> row.getBoolean(fieldPos);
+                break;
+            case BINARY:
+            case VARBINARY:
+                fieldGetter = row -> row.getBinary(fieldPos);
+                break;
+            case DECIMAL:
+                final int decimalPrecision = getPrecision(fieldType);
+                final int decimalScale = getScale(fieldType);
+                fieldGetter = row -> row.getDecimal(fieldPos, decimalPrecision, decimalScale);
+                break;
+            case TINYINT:
+                fieldGetter = row -> row.getByte(fieldPos);
+                break;
+            case SMALLINT:
+                fieldGetter = row -> row.getShort(fieldPos);
+                break;
+            case INTEGER:
+            case DATE:
+            case TIME_WITHOUT_TIME_ZONE:
+            case INTERVAL_YEAR_MONTH:
+                fieldGetter = row -> row.getInt(fieldPos);
+                break;
+            case BIGINT:
+            case INTERVAL_DAY_TIME:
+                fieldGetter = row -> row.getLong(fieldPos);
+                break;
+            case FLOAT:
+                fieldGetter = row -> row.getFloat(fieldPos);
+                break;
+            case DOUBLE:
+                fieldGetter = row -> row.getDouble(fieldPos);
+                break;
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
+            case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
+                final int timestampPrecision = getPrecision(fieldType);
+                fieldGetter = row -> row.getTimestamp(fieldPos, timestampPrecision);
+                break;
+            case TIMESTAMP_WITH_TIME_ZONE:
+                throw new UnsupportedOperationException();
+            case ARRAY:
+                fieldGetter = row -> row.getArray(fieldPos);
+                break;
+            case MULTISET:
+            case MAP:
+                fieldGetter = row -> row.getMap(fieldPos);
+                break;
+            case ROW:
+            case STRUCTURED_TYPE:
+                final int rowFieldCount = getFieldCount(fieldType);
+                fieldGetter = row -> row.getRow(fieldPos, rowFieldCount);
+                break;
+            case DISTINCT_TYPE:
+                fieldGetter =
+                        createFieldGetter(((DistinctType) fieldType).getSourceType(), fieldPos);
+                break;
+            case RAW:
+                fieldGetter = row -> row.getRawValue(fieldPos);
+                break;
+            case NULL:
+            case SYMBOL:
+            case UNRESOLVED:
+            default:
+                throw new IllegalArgumentException();
+        }
+        if (!fieldType.isNullable()) {
+            return fieldGetter;
+        }
+        return row -> {
+            if (row.isNullAt(fieldPos)) {
+                return null;
+            }
+            return fieldGetter.getFieldOrNull(row);
+        };
     }
 }

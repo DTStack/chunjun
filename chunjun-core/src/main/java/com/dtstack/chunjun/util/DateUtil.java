@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
@@ -85,6 +86,8 @@ public class DateUtil {
     private static final Pattern TIME = Pattern.compile("^\\d{2}:\\d{2}:\\d{2}(\\.\\d{3,9})?Z$");
     private static final Pattern TIMESTAMP_FORMAT_PATTERN =
             Pattern.compile("[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}?.*");
+    private static final Pattern TIMESTAMP_FORMAT_WITH_TIMEZONE_PATTERN =
+            Pattern.compile("([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})(.*)");
     private static final int MILLIS_PER_SECOND = 1000;
 
     /** parse yyyy-MM-dd HH:mm:ss.SSSSSS format string, like '2021-06-12 12:01:21.011101' * */
@@ -471,5 +474,13 @@ public class DateUtil {
             }
         }
         return -1;
+    }
+
+    public static Timestamp convertToTimestampWithZone(String timestamp) {
+        Matcher matcher = TIMESTAMP_FORMAT_WITH_TIMEZONE_PATTERN.matcher(timestamp);
+        if (matcher.find()) {
+            return Timestamp.valueOf(matcher.group(1));
+        }
+        return null;
     }
 }

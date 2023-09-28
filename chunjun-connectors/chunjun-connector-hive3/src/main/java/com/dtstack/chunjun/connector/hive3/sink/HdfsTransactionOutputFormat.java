@@ -84,7 +84,9 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
                                     hdfsConfig.getHadoopConfig(),
                                     hdfsConfig.getDefaultFS(),
                                     currentUser,
-                                    null);
+                                    null,
+                                    jobId,
+                                    String.valueOf(taskNumber));
                 } catch (Exception e) {
                     throw new RuntimeException("Get FileSystem error", e);
                 }
@@ -122,7 +124,13 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
             currentUser = hadoopUser.toString();
         }
         if (openKerberos) {
-            ugi = Hive3Util.getUGI(hdfsConfig.getHadoopConfig(), hdfsConfig.getDefaultFS(), null);
+            ugi =
+                    Hive3Util.getUGI(
+                            hdfsConfig.getHadoopConfig(),
+                            hdfsConfig.getDefaultFS(),
+                            null,
+                            jobId,
+                            String.valueOf(taskNumber));
             log.info("user:{}, ", ugi.getShortUserName());
         } else {
             ugi = UserGroupInformation.createRemoteUser(currentUser);
@@ -132,7 +140,13 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
     /** hiveMetaStore 也开启 kerberos 验证，此处设置认证 metastore. */
     private void setMetaStoreKerberosConf() {
         String keytabFileName = KerberosUtil.getPrincipalFileName(hdfsConfig.getHadoopConfig());
-        keytabFileName = KerberosUtil.loadFile(hdfsConfig.getHadoopConfig(), keytabFileName, null);
+        keytabFileName =
+                KerberosUtil.loadFile(
+                        hdfsConfig.getHadoopConfig(),
+                        keytabFileName,
+                        null,
+                        jobId,
+                        String.valueOf(taskNumber));
         String principal = MapUtils.getString(hdfsConfig.getHadoopConfig(), KEY_PRINCIPAL);
         String saslEnabled =
                 MapUtils.getString(hdfsConfig.getHadoopConfig(), "hive.metastore.sasl.enabled");

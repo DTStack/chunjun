@@ -19,14 +19,18 @@
 package com.dtstack.chunjun.connector.dm.converter;
 
 import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.connector.dm.converter.logical.BlobType;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcSyncConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
-import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
 import com.dtstack.chunjun.element.column.DoubleColumn;
 import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -60,50 +64,42 @@ public class DmSyncConverter extends JdbcSyncConverter {
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
                 return val -> {
-                    if (val instanceof Boolean) {
-                        return new BigDecimalColumn(
-                                (Boolean) val ? BigDecimal.ONE : BigDecimal.ZERO);
-                    } else if (val instanceof Integer) {
-                        return new BigDecimalColumn(((Integer) val).byteValue());
+                    if (val instanceof Integer) {
+                        return new ByteColumn(((Integer) val).byteValue());
                     } else if (val instanceof Short) {
-                        return new BigDecimalColumn(((Short) val).byteValue());
+                        return new ByteColumn(((Short) val).byteValue());
                     } else {
-                        return new BigDecimalColumn((Byte) val);
+                        return new ByteColumn((Byte) val);
                     }
                 };
             case SMALLINT:
+                return val -> {
+                    if (val instanceof Byte) {
+                        return new ShortColumn((Byte) val);
+                    } else if (val instanceof Short) {
+                        return new ShortColumn((Short) val);
+                    } else {
+                        return new ShortColumn(((Integer) val).shortValue());
+                    }
+                };
             case INTEGER:
                 return val -> {
                     if (val instanceof Byte) {
-                        return new BigDecimalColumn(((Byte) val).intValue());
+                        return new IntColumn((Byte) val);
                     } else if (val instanceof Short) {
-                        return new BigDecimalColumn(((Short) val).intValue());
+                        return new IntColumn(((Short) val).intValue());
                     } else {
-                        return new BigDecimalColumn((Integer) val);
+                        return new IntColumn((Integer) val);
                     }
                 };
             case INTERVAL_YEAR_MONTH:
-                return (IDeserializationConverter<Object, AbstractBaseColumn>)
-                        val -> {
-                            YearMonthIntervalType yearMonthIntervalType =
-                                    (YearMonthIntervalType) type;
-                            switch (yearMonthIntervalType.getResolution()) {
-                                case YEAR:
-                                    return new BigDecimalColumn(
-                                            Integer.parseInt(String.valueOf(val).substring(0, 4)));
-                                case MONTH:
-                                case YEAR_TO_MONTH:
-                                default:
-                                    throw new UnsupportedOperationException(
-                                            "jdbc converter only support YEAR");
-                            }
-                        };
+                return getYearMonthDeserialization((YearMonthIntervalType) type);
             case FLOAT:
                 return val -> new FloatColumn((Float) val);
             case DOUBLE:
                 return val -> new DoubleColumn((Double) val);
             case BIGINT:
-                return val -> new BigDecimalColumn((Long) val);
+                return val -> new LongColumn((Long) val);
             case DECIMAL:
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:
@@ -141,19 +137,15 @@ public class DmSyncConverter extends JdbcSyncConverter {
                 return val -> new TimestampColumn((Timestamp) val);
             case BINARY:
             case VARBINARY:
-                return val -> {
-                    if (val instanceof DmdbBlob) {
-                        try {
-                            return new StringColumn(
-                                    StringUtil.inputStream2String(
-                                            ((DmdbBlob) val).getBinaryStream()));
-                        } catch (Exception e) {
-                            throw new UnsupportedOperationException(
-                                    "failed to get length from blob");
-                        }
-                    }
-                    return new BytesColumn((byte[]) val);
-                };
+                if (type instanceof BlobType) {
+                    return val -> {
+                        DmdbBlob blob = (DmdbBlob) val;
+                        byte[] bytes = new byte[(int) blob.length()];
+                        blob.getBinaryStream().read(bytes);
+                        return new BytesColumn(bytes);
+                    };
+                }
+                return val -> new BytesColumn((byte[]) val);
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }

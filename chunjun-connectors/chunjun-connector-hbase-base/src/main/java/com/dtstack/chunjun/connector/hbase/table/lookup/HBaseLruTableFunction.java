@@ -91,7 +91,7 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
                         new LinkedBlockingQueue<>(),
                         new ChunJunThreadFactory("hbase-async"));
 
-        this.connection = HBaseHelper.getHbaseConnection(hBaseConfig);
+        this.connection = HBaseHelper.getHbaseConnection(hBaseConfig, null, null);
         this.table = connection.getTable(TableName.valueOf(hbaseTableSchema.getTableName()));
     }
 

@@ -344,6 +344,10 @@
 									<pattern>com.google.protobuf</pattern>
 									<shadedPattern>com.dtstack.chunjun.connector.hive.com.google.protobuf</shadedPattern>
 								</relocation>
+								<relocation>
+									<pattern>com.google.common</pattern>
+									<shadedPattern>com.dtstack.chunjun.connector.hive.com.google.common</shadedPattern>
+								</relocation>
 							</relocations>
 							<transformers>
 								<transformer

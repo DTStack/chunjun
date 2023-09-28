@@ -1,0 +1,71 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "username" : "root",
+          "password" : "root",
+          "cat" : "insert,delete,update",
+          "jdbcUrl" : "jdbc:mysql://localhost:3306/tudou?useSSL=false",
+          "host" : "localhost",
+          "port" : 3306,
+          "start" : {
+          },
+          "table" : [ "tudou.kudu" ],
+          "splitUpdate" : true,
+          "pavingData" : true,
+          "column": [
+            {
+              "name": "id",
+              "type": "BIGINT"
+            },
+            {
+              "name": "user_id",
+              "type": "BIGINT"
+            },
+            {
+              "name": "name",
+              "type": "VARCHAR"
+            }
+          ]
+        },
+        "table": {
+          "tableName": "sourceTable"
+        },
+        "name" : "binlogreader"
+      },
+      "writer" : {
+        "parameter" : {
+          "print" : true,
+          "column": [
+            {
+              "name": "id",
+              "type": "BIGINT"
+            },
+            {
+              "name": "user_id",
+              "type": "BIGINT"
+            },
+            {
+              "name": "name",
+              "type": "VARCHAR"
+            }
+          ]
+        },
+        "table": {
+          "tableName": "sinkTable"
+        },
+      "name" : "streamwriter"
+      },
+      "transformer": {
+        "transformSql": "select id,user_id,name from sourceTable where MOD(id, 2) <> 0"
+      }
+    } ],
+    "setting" : {
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
+      }
+    }
+  }
+}

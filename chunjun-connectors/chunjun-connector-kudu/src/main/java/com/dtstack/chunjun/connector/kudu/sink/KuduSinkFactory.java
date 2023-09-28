@@ -21,9 +21,9 @@ package com.dtstack.chunjun.connector.kudu.sink;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.kudu.config.KuduSinkConfig;
-import com.dtstack.chunjun.connector.kudu.converter.KuduColumnConverter;
-import com.dtstack.chunjun.connector.kudu.converter.KuduRawTypeConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.connector.kudu.converter.KuduRawTypeMapper;
+import com.dtstack.chunjun.connector.kudu.converter.KuduSyncConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -53,8 +53,8 @@ public class KuduSinkFactory extends SinkFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return KuduRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return KuduRawTypeMapper::apply;
     }
 
     @Override
@@ -66,9 +66,8 @@ public class KuduSinkFactory extends SinkFactory {
         List<FieldConfig> fieldConfList = sinkConfig.getColumn();
         fieldConfList.forEach(field -> columnNames.add(field.getName()));
 
-        final RowType rowType = TableUtil.createRowType(fieldConfList, getRawTypeConverter());
-        builder.setRowConverter(
-                new KuduColumnConverter(rowType, columnNames), useAbstractBaseColumn);
+        final RowType rowType = TableUtil.createRowType(fieldConfList, getRawTypeMapper());
+        builder.setRowConverter(new KuduSyncConverter(rowType, columnNames), useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());
     }
 }

@@ -18,33 +18,24 @@
 
 package com.dtstack.chunjun.connector.mysql.converter;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
-import java.util.Locale;
-
 public class MysqlRawTypeConverter {
-
-    /**
-     * 将MySQL数据库中的类型，转换成flink的DataType类型。 转换关系参考 com.mysql.jdbc.MysqlDefs 类里面的信息。
-     * com.mysql.jdbc.ResultSetImpl.getObject(int)
-     */
-    public static DataType apply(String type) {
-        // 修复不识别带有小括号精度类型问题
-        if (type.indexOf("(") > -1) {
-            type = type.substring(0, type.indexOf("("));
-        }
-        switch (type.toUpperCase(Locale.ENGLISH)) {
+    public static DataType apply(TypeConfig type) {
+        switch (type.getType()) {
             case "BOOLEAN":
             case "BIT":
+                if (type.getPrecision() != null && type.getPrecision() > 1) {
+                    return DataTypes.BYTES();
+                }
                 return DataTypes.BOOLEAN();
             case "TINYINT":
-                return DataTypes.TINYINT();
             case "TINYINT UNSIGNED":
             case "SMALLINT":
-                return DataTypes.SMALLINT();
             case "SMALLINT UNSIGNED":
             case "MEDIUMINT":
             case "MEDIUMINT UNSIGNED":
@@ -55,52 +46,46 @@ public class MysqlRawTypeConverter {
             case "INT UNSIGNED":
             case "BIGINT":
                 return DataTypes.BIGINT();
+            case "BIGINT UNSIGNED":
+            case "DECIMAL":
+            case "DECIMAL UNSIGNED":
+            case "NUMERIC":
+                return type.toDecimalDataType();
             case "REAL":
             case "FLOAT":
             case "FLOAT UNSIGNED":
                 return DataTypes.FLOAT();
-            case "BIGINT UNSIGNED":
-            case "DECIMAL":
-            case "DECIMAL128":
-            case "DECIMAL UNSIGNED":
-            case "NUMERIC":
-                return DataTypes.DECIMAL(38, 18);
             case "DOUBLE":
             case "DOUBLE UNSIGNED":
                 return DataTypes.DOUBLE();
             case "CHAR":
             case "VARCHAR":
             case "STRING":
-                return DataTypes.STRING();
-            case "DATE":
-                return DataTypes.DATE();
-            case "TIME":
-                return DataTypes.TIME();
-            case "YEAR":
-                return DataTypes.INTERVAL(DataTypes.YEAR());
-            case "TIMESTAMP":
-            case "DATETIME":
-                return DataTypes.TIMESTAMP(0);
-            case "TINYBLOB":
-            case "BLOB":
-            case "MEDIUMBLOB":
-            case "LONGBLOB":
-                return DataTypes.BYTES();
             case "TINYTEXT":
             case "TEXT":
             case "MEDIUMTEXT":
             case "LONGTEXT":
-                return DataTypes.STRING();
-            case "BINARY":
-            case "VARBINARY":
-                // BYTES 底层调用的是VARBINARY最大长度
-                return DataTypes.BYTES();
             case "JSON":
-                return DataTypes.STRING();
             case "ENUM":
             case "SET":
                 return DataTypes.STRING();
+            case "DATE":
+                return DataTypes.DATE();
+            case "TIME":
+                return type.toTimeDataType(0);
+            case "YEAR":
+                return DataTypes.INTERVAL(DataTypes.YEAR());
+            case "TIMESTAMP":
+            case "DATETIME":
+                return type.toTimestampDataType(0);
+            case "TINYBLOB":
+            case "BLOB":
+            case "MEDIUMBLOB":
+            case "LONGBLOB":
+            case "BINARY":
+            case "VARBINARY":
             case "GEOMETRY":
+                // BYTES 底层调用的是VARBINARY最大长度
                 return DataTypes.BYTES();
 
             default:

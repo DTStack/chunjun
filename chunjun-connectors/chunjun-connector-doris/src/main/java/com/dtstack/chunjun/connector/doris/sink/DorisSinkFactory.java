@@ -20,7 +20,8 @@ package com.dtstack.chunjun.connector.doris.sink;
 
 import com.dtstack.chunjun.config.OperatorConfig;
 import com.dtstack.chunjun.config.SyncConfig;
-import com.dtstack.chunjun.connector.doris.converter.DorisRowTypeConverter;
+import com.dtstack.chunjun.config.TypeConfig;
+import com.dtstack.chunjun.connector.doris.converter.DorisRawTypeMapper;
 import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.doris.options.LoadConfig;
 import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
@@ -33,7 +34,7 @@ import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -161,7 +162,7 @@ public class DorisSinkFactory extends SinkFactory {
         builder.setJdbcDialect(dialect);
 
         AbstractRowConverter rowConverter;
-        final RowType rowType = TableUtil.createRowType(options.getColumn(), getRawTypeConverter());
+        final RowType rowType = TableUtil.createRowType(options.getColumn(), getRawTypeMapper());
         // 同步任务使用transform
         if (!useAbstractBaseColumn) {
             rowConverter = dialect.getRowConverter(rowType);
@@ -177,9 +178,9 @@ public class DorisSinkFactory extends SinkFactory {
         Connection conn = JdbcUtil.getConnection(conf, dialect);
 
         // get table metadata
-        Pair<List<String>, List<String>> tableMetaData = dialect.getTableMetaData(conn, conf);
+        Pair<List<String>, List<TypeConfig>> tableMetaData = dialect.getTableMetaData(conn, conf);
 
-        Pair<List<String>, List<String>> selectedColumnInfo =
+        Pair<List<String>, List<TypeConfig>> selectedColumnInfo =
                 JdbcUtil.buildColumnWithMeta(conf, tableMetaData, null);
         builder.setColumnNameList(selectedColumnInfo.getLeft());
         builder.setColumnTypeList(selectedColumnInfo.getRight());
@@ -187,7 +188,7 @@ public class DorisSinkFactory extends SinkFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return DorisRowTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return DorisRawTypeMapper::apply;
     }
 }

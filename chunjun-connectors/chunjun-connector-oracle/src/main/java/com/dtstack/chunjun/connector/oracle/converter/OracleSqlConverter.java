@@ -67,6 +67,7 @@ public class OracleSqlConverter extends JdbcSqlConverter {
                     wrapIntoNullableInternalConverter(
                             createAsyncInternalConverter(rowType.getTypeAt(i))));
         }
+        toInternalConverters = toAsyncInternalConverters;
     }
 
     protected IDeserializationConverter createAsyncInternalConverter(LogicalType type) {
@@ -123,7 +124,17 @@ public class OracleSqlConverter extends JdbcSqlConverter {
                                         new BigDecimal((BigInteger) val, 0), precision, scale)
                                 : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
-                return val -> Long.valueOf(((Timestamp) val).getTime() / 1000).intValue();
+                return val ->
+                        val instanceof Timestamp
+                                ? (int)
+                                        (((Timestamp) val)
+                                                .toLocalDateTime()
+                                                .toLocalDate()
+                                                .toEpochDay())
+                                : (int)
+                                        ((Date.valueOf(String.valueOf(val)))
+                                                .toLocalDate()
+                                                .toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
                         (int)

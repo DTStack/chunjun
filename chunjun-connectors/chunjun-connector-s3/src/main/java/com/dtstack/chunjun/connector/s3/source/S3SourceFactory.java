@@ -22,11 +22,11 @@ import com.dtstack.chunjun.config.RestoreConfig;
 import com.dtstack.chunjun.config.SpeedConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.s3.config.S3Config;
-import com.dtstack.chunjun.connector.s3.converter.S3ColumnConverter;
-import com.dtstack.chunjun.connector.s3.converter.S3RawConverter;
-import com.dtstack.chunjun.connector.s3.converter.S3RowConverter;
+import com.dtstack.chunjun.connector.s3.converter.S3RawTypeMapper;
+import com.dtstack.chunjun.connector.s3.converter.S3SqlConverter;
+import com.dtstack.chunjun.connector.s3.converter.S3SyncConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -54,8 +54,8 @@ public class S3SourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return S3RawConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return S3RawTypeMapper::apply;
     }
 
     @Override
@@ -66,13 +66,12 @@ public class S3SourceFactory extends SourceFactory {
         builder.setS3Conf(s3Config);
 
         AbstractRowConverter rowConverter;
-        final RowType rowType =
-                TableUtil.createRowType(s3Config.getColumn(), getRawTypeConverter());
+        final RowType rowType = TableUtil.createRowType(s3Config.getColumn(), getRawTypeMapper());
         if (useAbstractBaseColumn) {
-            rowConverter = new S3ColumnConverter(rowType, s3Config);
+            rowConverter = new S3SyncConverter(rowType, s3Config);
         } else {
             checkConstant(s3Config);
-            rowConverter = new S3RowConverter(rowType, s3Config);
+            rowConverter = new S3SqlConverter(rowType, s3Config);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());

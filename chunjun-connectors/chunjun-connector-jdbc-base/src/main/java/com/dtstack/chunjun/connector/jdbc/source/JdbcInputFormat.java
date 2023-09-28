@@ -47,6 +47,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLNonTransientException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -221,6 +222,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         } finally {
             try {
                 hasNext = resultSet.next();
+            } catch (SQLNonTransientException e) {
+                log.error(ExceptionUtil.getErrorMessage(e));
+                throw new ChunJunRuntimeException(e);
             } catch (SQLException e) {
                 log.error("can not read next record", e);
                 hasNext = false;

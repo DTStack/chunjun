@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.stream.util;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.stream.config.StreamConfig;
 
 import org.apache.flink.table.catalog.ResolvedSchema;
@@ -39,7 +40,8 @@ public class StreamConfigUtil {
                                 column -> {
                                     FieldConfig fieldConfig = new FieldConfig();
                                     fieldConfig.setName(column.getName());
-                                    fieldConfig.setType(column.getDataType().toString());
+                                    fieldConfig.setType(
+                                            TypeConfig.fromString(column.getDataType().toString()));
                                     return fieldConfig;
                                 })
                         .collect(Collectors.toList());

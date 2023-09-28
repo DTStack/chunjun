@@ -38,8 +38,8 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<sql.dir>ddl</sql.dir>
-		<sql.base.dir>ddl</sql.base.dir>
+		<ddl.dir>ddl</ddl.dir>
+		<ddl.base.dir>ddl-plugins</ddl.base.dir>
 	</properties>
 
 	<dependencies>
@@ -90,6 +90,15 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>${maven-surefire-plugin.version}</version>
+					<configuration>
+						<skipTests>true</skipTests>
+					</configuration>
+				</plugin>
+
 				<plugin>
 					<!-- Extract parser grammar template from calcite-core.jar and put
 						 it under ${project.build.directory} where all freemarker templates are. -->
@@ -219,12 +228,12 @@
 							</goals>
 							<configuration>
 								<target>
-									<copy todir="${basedir}/../../${dist.dir}/${sql.base.dir}/${sql.dir}/"
+									<copy todir="${basedir}/../../${dist.dir}/${ddl.base.dir}/${ddl.dir}"
 										  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-									<move file="${basedir}/../../${dist.dir}/${sql.base.dir}/${sql.dir}/${project.artifactId}-${project.version}.jar"
-										  tofile="${basedir}/../../${dist.dir}/${sql.base.dir}/${sql.dir}/${project.artifactId}.jar"/>
+									<move file="${basedir}/../../${dist.dir}/${ddl.base.dir}/${ddl.dir}/${project.artifactId}-${project.version}.jar"
+										  tofile="${basedir}/../../${dist.dir}/${ddl.base.dir}/${ddl.dir}/${project.artifactId}.jar"/>
 									<delete>
-										<fileset dir="${basedir}/../../${dist.dir}/${sql.base.dir}/${sql.dir}/"
+										<fileset dir="${basedir}/../../${dist.dir}/${ddl.base.dir}/${ddl.dir}/"
 												 includes="${project.artifactId}-*.jar"
 												 excludes="${project.artifactId}.jar"/>
 									</delete>

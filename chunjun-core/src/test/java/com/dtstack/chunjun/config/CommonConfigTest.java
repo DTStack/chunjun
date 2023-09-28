@@ -57,7 +57,7 @@ public class CommonConfigTest {
         commonConfig.setMetricProps(metricProps);
 
         String expected =
-                "CommonConfig[speedBytes=1, errorRecord=2, errorPercentage=3, dirtyDataPath='dirtyDataPath', dirtyDataHadoopConf={key=value}, fieldNameList=null, checkFormat=true, parallelism=4, column=null, batchSize=5, flushIntervalMills=6, executeDdlAble=false, savePointPath='null', metricPluginRoot='metricPluginRoot', metricPluginName='metricPluginName', rowSizeCalculatorType='null', semantic='at-least-once', metricProps={key=value}]";
+                "CommonConfig(speedBytes=1, errorRecord=2, errorPercentage=3, dirtyDataPath=dirtyDataPath, dirtyDataHadoopConf={key=value}, fieldNameList=null, checkFormat=true, parallelism=4, column=null, batchSize=5, flushIntervalMills=6, executeDdlAble=false, savePointPath=null, metricPluginRoot=metricPluginRoot, metricPluginName=metricPluginName, rowSizeCalculatorType=objectSizeCalculator, semantic=at-least-once, metricProps={key=value})";
 
         assertEquals(expected, commonConfig.toString());
     }
@@ -68,14 +68,13 @@ public class CommonConfigTest {
         CommonConfig commonConfig = new CommonConfig();
         FieldConfig fieldConfig = new FieldConfig();
         fieldConfig.setName("name");
-        fieldConfig.setType("type");
+        fieldConfig.setType(TypeConfig.fromString("type"));
         fieldConfig.setIndex(1);
         fieldConfig.setValue("value");
         fieldConfig.setFormat("format");
         fieldConfig.setSplitter("splitter");
         fieldConfig.setIsPart(true);
         fieldConfig.setNotNull(true);
-        fieldConfig.setLength(1);
         fieldConfig.setParseFormat("parseFormat");
 
         List<FieldConfig> column = new ArrayList<>();

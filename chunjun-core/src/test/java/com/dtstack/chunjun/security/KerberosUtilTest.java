@@ -268,7 +268,7 @@ class KerberosUtilTest {
                                 .put("principalFile", keytab.getAbsolutePath())
                                 .put(KEY_USE_LOCAL_FILE, true)
                                 .build());
-        UserGroupInformation ugi = KerberosUtil.loginAndReturnUgi(hadoopConfig);
+        UserGroupInformation ugi = KerberosUtil.loginAndReturnUgi(hadoopConfig, null, null);
         assertEquals(TEST_PRINCIPAL, ugi.getUserName());
     }
 
@@ -302,7 +302,7 @@ class KerberosUtilTest {
     public void testLoadFileFromLocal() {
         Map<String, Object> kerberosConfig = ImmutableMap.of(KEY_USE_LOCAL_FILE, true);
         String filePath = keytab.getPath();
-        String localPath = KerberosUtil.loadFile(kerberosConfig, filePath);
+        String localPath = KerberosUtil.loadFile(kerberosConfig, filePath, null, null);
         assertEquals(filePath, localPath);
     }
 
@@ -311,7 +311,7 @@ class KerberosUtilTest {
     public void testLoadFileFromBloBServer() {
         Map<String, Object> kerberosConfig = ImmutableMap.of(KEY_USE_LOCAL_FILE, false);
         String filePath = "/opt/blob_file";
-        String localPath = KerberosUtil.loadFile(kerberosConfig, filePath);
+        String localPath = KerberosUtil.loadFile(kerberosConfig, filePath, null, null);
         assertEquals(filePath, localPath);
     }
 
@@ -325,7 +325,8 @@ class KerberosUtilTest {
                         .put("test_file", Futures.immediateFuture(new Path(filePath)))
                         .build();
         DistributedCache distributedCache = new DistributedCache(cacheCopyTasks);
-        String localPath = KerberosUtil.loadFile(kerberosConfig, filePath, distributedCache);
+        String localPath =
+                KerberosUtil.loadFile(kerberosConfig, filePath, distributedCache, null, null);
         assertEquals(filePath, localPath);
     }
 
@@ -349,7 +350,9 @@ class KerberosUtilTest {
         ChunJunRuntimeException thrown =
                 assertThrows(
                         ChunJunRuntimeException.class,
-                        () -> KerberosUtil.loadFile(kerberosConfig, filePath, distributedCache),
+                        () ->
+                                KerberosUtil.loadFile(
+                                        kerberosConfig, filePath, distributedCache, null, null),
                         "It should load from sftp and throw a ChunJunRuntimeException when remote dir is empty");
         assertTrue(thrown.getMessage().contains("can't find [remoteDir] in config"));
     }

@@ -29,7 +29,14 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.NullColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 
@@ -116,13 +123,53 @@ public class OracleSyncConverter extends JdbcSyncConverter {
                             if (object == null) {
                                 return null;
                             }
-                            return new BigDecimalColumn(((Integer) object).byteValue());
+                            return new ByteColumn(((Integer) object).byteValue());
                         };
             case SMALLINT:
+                return (IDeserializationConverter<ResultSet, AbstractBaseColumn>)
+                        field -> {
+                            String object = field.getString(currentIndex + 1);
+                            if (object == null) {
+                                return null;
+                            }
+                            return new ShortColumn(Short.parseShort(object));
+                        };
             case INTEGER:
+                return (IDeserializationConverter<ResultSet, AbstractBaseColumn>)
+                        field -> {
+                            String object = field.getString(currentIndex + 1);
+                            if (object == null) {
+                                return null;
+                            }
+                            return new IntColumn(Integer.parseInt(object));
+                        };
             case FLOAT:
+                return (IDeserializationConverter<ResultSet, AbstractBaseColumn>)
+                        field -> {
+                            String object = field.getString(currentIndex + 1);
+                            if (object == null) {
+                                return null;
+                            }
+                            return new FloatColumn(Float.parseFloat(object));
+                        };
             case DOUBLE:
+                return (IDeserializationConverter<ResultSet, AbstractBaseColumn>)
+                        field -> {
+                            String object = field.getString(currentIndex + 1);
+                            if (object == null) {
+                                return null;
+                            }
+                            return new DoubleColumn(Double.parseDouble(object));
+                        };
             case BIGINT:
+                return (IDeserializationConverter<ResultSet, AbstractBaseColumn>)
+                        field -> {
+                            String object = field.getString(currentIndex + 1);
+                            if (object == null) {
+                                return null;
+                            }
+                            return new LongColumn(Long.parseLong(object));
+                        };
             case DECIMAL:
                 return (IDeserializationConverter<ResultSet, AbstractBaseColumn>)
                         field -> {
@@ -229,7 +276,8 @@ public class OracleSyncConverter extends JdbcSyncConverter {
             wrapIntoNullableExternalConverter(
                     ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, statement) -> {
-            if (((ColumnRowData) val).getField(index) == null) {
+            if (((ColumnRowData) val).getField(index) == null
+                    || ((ColumnRowData) val).getField(index) instanceof NullColumn) {
                 try {
                     final int sqlType =
                             JdbcTypeUtil.typeInformationToSqlType(

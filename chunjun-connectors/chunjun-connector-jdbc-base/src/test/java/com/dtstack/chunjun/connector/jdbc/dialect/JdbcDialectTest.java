@@ -31,7 +31,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-/** @author liuliu 2022/8/22 */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({JdbcDialect.class, JdbcInputSplit.class})
 public class JdbcDialectTest {
@@ -39,6 +38,7 @@ public class JdbcDialectTest {
     private static String schema = "schema";
     private static String table = "table";
     private static String[] fields = new String[] {"id", "name"};
+    private static String[] nullFields = new String[] {};
     private static String[] conditionFields = new String[] {"id"};
 
     @BeforeClass
@@ -80,16 +80,18 @@ public class JdbcDialectTest {
     public void getUpdateStatementTest() {
         when(jdbcDialect.getUpdateStatement(schema, table, fields, conditionFields))
                 .thenCallRealMethod();
-        String expect = "UPDATE \"schema\".\"table\" SET \"id\" = ?, \"name\" = ? WHERE \"id\" = ?";
+        String expect = "UPDATE \"schema\".\"table\" SET \"name\" = :name WHERE \"id\" = :id";
         Assert.assertEquals(
                 expect, jdbcDialect.getUpdateStatement(schema, table, fields, conditionFields));
     }
 
     @Test
     public void getDeleteStatementTest() {
-        when(jdbcDialect.getDeleteStatement(schema, table, fields)).thenCallRealMethod();
+        when(jdbcDialect.getDeleteStatement(schema, table, fields, nullFields))
+                .thenCallRealMethod();
         String expect = "DELETE FROM \"schema\".\"table\" WHERE \"id\" = :id AND \"name\" = :name";
-        Assert.assertEquals(expect, jdbcDialect.getDeleteStatement(schema, table, fields));
+        Assert.assertEquals(
+                expect, jdbcDialect.getDeleteStatement(schema, table, fields, nullFields));
     }
 
     @Test

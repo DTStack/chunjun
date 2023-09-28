@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.jdbc.dialect;
 
 import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.conf.TableIdentify;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcSqlConverter;
@@ -31,10 +32,11 @@ import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.NumericTypeUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.TimestampTypeUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.types.logical.LogicalType;
@@ -48,11 +50,13 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.jdbc.util.JdbcUtil.checkTableExist;
@@ -77,7 +81,7 @@ public interface JdbcDialect extends Serializable {
     boolean canHandle(String url);
 
     /** get jdbc RawTypeConverter */
-    RawTypeConverter getRawTypeConverter();
+    RawTypeMapper getRawTypeConverter();
 
     /**
      * Get converter that convert jdbc object and Flink internal object each other.
@@ -156,6 +160,10 @@ public interface JdbcDialect extends Serializable {
         return Optional.empty();
     }
 
+    default boolean supportUpsert() {
+        return false;
+    }
+
     default Optional<String> getReplaceStatement(
             String schema, String tableName, String[] fieldNames) {
         return Optional.empty();
@@ -221,11 +229,12 @@ public interface JdbcDialect extends Serializable {
             String schema, String tableName, String[] fieldNames, String[] conditionFields) {
         String setClause =
                 Arrays.stream(fieldNames)
-                        .map(f -> format("%s = ?", quoteIdentifier(f)))
+                        .filter(f -> !Arrays.asList(conditionFields).contains(f))
+                        .map(f -> format("%s = :%s", quoteIdentifier(f), f))
                         .collect(Collectors.joining(", "));
         String conditionClause =
                 Arrays.stream(conditionFields)
-                        .map(f -> format("%s = ?", quoteIdentifier(f)))
+                        .map(f -> format("%s = :%s", quoteIdentifier(f), f))
                         .collect(Collectors.joining(" AND "));
         return "UPDATE "
                 + buildTableInfoWithSchema(schema, tableName)
@@ -235,19 +244,65 @@ public interface JdbcDialect extends Serializable {
                 + conditionClause;
     }
 
-    /**
-     * Get delete one row statement by condition fields, default not use limit 1, because limit 1 is
-     * a sql dialect.
-     */
-    default String getDeleteStatement(String schema, String tableName, String[] conditionFields) {
+    default String getKeyedDeleteStatement(
+            String schema, String tableName, List<String> conditionFieldList) {
         String conditionClause =
-                Arrays.stream(conditionFields)
+                conditionFieldList.stream()
                         .map(f -> format("%s = :%s", quoteIdentifier(f), f))
                         .collect(Collectors.joining(" AND "));
         return "DELETE FROM "
                 + buildTableInfoWithSchema(schema, tableName)
                 + " WHERE "
                 + conditionClause;
+    }
+
+    /**
+     * Get delete one row statement by condition fields, default not use limit 1, because limit 1 is
+     * a sql dialect.
+     */
+    default String getDeleteStatement(
+            String schema,
+            String tableName,
+            String[] conditionFields,
+            String[] nullConditionFields) {
+        ArrayList<String> nullFields = new ArrayList<>();
+        nullFields.addAll(Arrays.asList(nullConditionFields));
+
+        List<String> conditions =
+                Arrays.stream(conditionFields)
+                        .filter(i -> !nullFields.contains(i))
+                        .map(f -> format("%s = :%s", quoteIdentifier(f), f))
+                        .collect(Collectors.toList());
+
+        Arrays.stream(nullConditionFields)
+                .map(f -> format("%s IS NULL", quoteIdentifier(f)))
+                .forEach(i -> conditions.add(i));
+
+        String conditionClause = String.join(" AND ", conditions);
+        return "DELETE FROM "
+                + buildTableInfoWithSchema(schema, tableName)
+                + " WHERE "
+                + conditionClause;
+    }
+
+    /** Get select fields statement by condition fields. Default use SELECT. */
+    default String getSelectFromStatement(String schema, String tableName, String[] fields) {
+        if (fields == null || fields.length == 0) {
+            throw new IllegalArgumentException("fields can not be null or empty");
+        }
+
+        String selectExpressions =
+                Arrays.stream(fields).map(this::quoteIdentifier).collect(Collectors.joining(", "));
+        String fieldExpressions =
+                Arrays.stream(fields)
+                        .map(f -> format("%s = :%s", quoteIdentifier(f), f))
+                        .collect(Collectors.joining(" AND "));
+        return "SELECT "
+                + selectExpressions
+                + " FROM "
+                + buildTableInfoWithSchema(schema, tableName)
+                + " WHERE "
+                + fieldExpressions;
     }
 
     /** Get select fields statement by condition fields. Default use SELECT. */
@@ -385,15 +440,15 @@ public interface JdbcDialect extends Serializable {
                 quoteIdentifier(splitPkName), split.getTotalNumberOfSplits(), split.getMod());
     }
 
-    default KeyUtil<?, BigInteger> initKeyUtil(String incrementName, String incrementType) {
-        switch (ColumnType.getType(incrementType)) {
+    default KeyUtil<?, BigInteger> initKeyUtil(String incrementName, TypeConfig incrementType) {
+        switch (ColumnType.getType(incrementType.getType())) {
             case TIMESTAMP:
             case DATETIME:
                 return new TimestampTypeUtil();
             case DATE:
                 return new DateTypeUtil();
             default:
-                if (ColumnType.isNumberType(incrementType)) {
+                if (ColumnType.isNumberType(incrementType.getType())) {
                     return new NumericTypeUtil();
                 } else {
                     throw new ChunJunRuntimeException(
@@ -404,7 +459,7 @@ public interface JdbcDialect extends Serializable {
         }
     }
 
-    default Pair<List<String>, List<String>> getTableMetaData(
+    default Pair<List<String>, List<TypeConfig>> getTableMetaData(
             Connection dbConn, JdbcConfig jdbcConfig) {
         return getTableMetaData(
                 dbConn,
@@ -419,7 +474,7 @@ public interface JdbcDialect extends Serializable {
                         .collect(Collectors.toList()));
     }
 
-    default Pair<List<String>, List<String>> getTableMetaData(
+    default Pair<List<String>, List<TypeConfig>> getTableMetaData(
             Connection dbConn,
             String schema,
             String table,
@@ -435,7 +490,7 @@ public interface JdbcDialect extends Serializable {
         String metadataQuerySql =
                 getMetadataQuerySql(selectedColumnList, customSql, tableIdentify.getTableInfo());
 
-        return JdbcUtil.getTableMetaData(dbConn, metadataQuerySql, queryTimeout);
+        return JdbcUtil.getTableMetaData(dbConn, metadataQuerySql, queryTimeout, typeBuilder());
     }
 
     default String getMetadataQuerySql(
@@ -455,6 +510,16 @@ public interface JdbcDialect extends Serializable {
 
     default String getMetadataQuerySql() {
         return "select %s from %s where 1=2";
+    }
+
+    default Function<Tuple3<String, Integer, Integer>, TypeConfig> typeBuilder() {
+        return (typePsTuple -> {
+            String typeName = typePsTuple.f0;
+            TypeConfig typeConfig = TypeConfig.fromString(typeName);
+            typeConfig.setPrecision(typePsTuple.f1);
+            typeConfig.setScale(typePsTuple.f2);
+            return typeConfig;
+        });
     }
 
     default TableIdentify getTableIdentify(String confSchema, String confTable) {

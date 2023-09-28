@@ -18,8 +18,9 @@
 package com.dtstack.chunjun.connector.hive.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsRawTypeConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsRawTypeMapper;
 import com.dtstack.chunjun.connector.hdfs.sink.BaseHdfsOutputFormat;
 import com.dtstack.chunjun.connector.hdfs.sink.HdfsOutputFormatBuilder;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
@@ -274,7 +275,9 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                     hiveConfig.getSchema(),
                     partitionPath,
                     connectionInfo,
-                    getRuntimeContext().getDistributedCache());
+                    getRuntimeContext().getDistributedCache(),
+                    jobId,
+                    String.valueOf(taskNumber));
             String path = tableInfo.getPath() + File.separatorChar + partitionPath;
 
             outputFormat =
@@ -310,7 +313,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 FieldConfig fieldConfig = new FieldConfig();
                 fieldConfig.setIndex(i);
                 fieldConfig.setName(columnNameList.get(i));
-                fieldConfig.setType(columnTypeList.get(i));
+                fieldConfig.setType(TypeConfig.fromString(columnTypeList.get(i)));
                 fieldConfList.add(fieldConfig);
             }
             copyHiveConf.setColumn(fieldConfList);
@@ -323,7 +326,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                             useAbstractBaseColumn,
                             copyHiveConf.getFileType(),
                             fieldConfList,
-                            HdfsRawTypeConverter::apply,
+                            HdfsRawTypeMapper::apply,
                             hiveConfig),
                     useAbstractBaseColumn);
             builder.setInitAccumulatorAndDirty(false);
@@ -392,7 +395,9 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                     tableInfo,
                     hiveConfig.getSchema(),
                     connectionInfo,
-                    getRuntimeContext().getDistributedCache());
+                    getRuntimeContext().getDistributedCache(),
+                    jobId,
+                    String.valueOf(taskNumber));
             tableCacheMap.put(tablePath, tableInfo);
         }
         return tableInfo;

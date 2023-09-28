@@ -21,6 +21,7 @@ package com.dtstack.chunjun.connector.elasticsearch7.table;
 import com.dtstack.chunjun.connector.elasticsearch.table.ElasticsearchDynamicTableFactoryBase;
 import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConfig;
 import com.dtstack.chunjun.connector.elasticsearch7.SslConfig;
+import com.dtstack.chunjun.util.JsonUtil;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
@@ -33,7 +34,9 @@ import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,6 +46,8 @@ import static com.dtstack.chunjun.connector.elasticsearch7.table.Elasticsearch7O
 import static com.dtstack.chunjun.connector.elasticsearch7.table.Elasticsearch7Options.CLIENT_MAX_CONNECTION_PER_ROUTE_OPTION;
 import static com.dtstack.chunjun.connector.elasticsearch7.table.Elasticsearch7Options.CLIENT_REQUEST_TIMEOUT_OPTION;
 import static com.dtstack.chunjun.connector.elasticsearch7.table.Elasticsearch7Options.CLIENT_SOCKET_TIMEOUT_OPTION;
+import static com.dtstack.chunjun.connector.elasticsearch7.table.Elasticsearch7Options.SEARCH_QUERY;
+import static com.dtstack.chunjun.connector.elasticsearch7.table.Elasticsearch7Options.WRITE_MODE;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
@@ -55,6 +60,7 @@ import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_PARALLELIS
 import static com.dtstack.chunjun.security.SslOptions.KEYSTOREFILENAME;
 import static com.dtstack.chunjun.security.SslOptions.KEYSTOREPASS;
 import static com.dtstack.chunjun.security.SslOptions.TYPE;
+import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
 import static com.dtstack.chunjun.table.options.SinkOptions.SINK_PARALLELISM;
 import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.BULK_FLUSH_BACKOFF_DELAY_OPTION;
 import static org.apache.flink.connector.elasticsearch.table.ElasticsearchConnectorOptions.BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION;
@@ -164,6 +170,18 @@ public class Elasticsearch7DynamicTableFactory extends ElasticsearchDynamicTable
             elasticsearchConfig.setSslConfig(sslConfig);
         }
 
+        String searchQuery = readableConfig.get(SEARCH_QUERY);
+        if (StringUtils.isNotBlank(searchQuery)) {
+            try {
+                Map<String, Object> query =
+                        JsonUtil.objectMapper.readValue(searchQuery, HashMap.class);
+                elasticsearchConfig.setQuery(query);
+            } catch (Exception e) {
+                throw new RuntimeException("error parse [" + searchQuery + "] to json", e);
+            }
+        }
+        elasticsearchConfig.setWriteMode(readableConfig.get(WRITE_MODE));
+
         return elasticsearchConfig;
     }
 
@@ -200,7 +218,10 @@ public class Elasticsearch7DynamicTableFactory extends ElasticsearchDynamicTable
                         LOOKUP_PARALLELISM,
                         KEYSTOREFILENAME,
                         KEYSTOREPASS,
-                        TYPE)
+                        TYPE,
+                        SEARCH_QUERY,
+                        WRITE_MODE,
+                        SINK_BUFFER_FLUSH_MAX_ROWS)
                 .collect(Collectors.toSet());
     }
 }

@@ -1,0 +1,159 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "customSql" : "",
+          "startLocation" : "",
+          "increColumn" : "",
+          "column" : [
+            {
+              "name" : "id",
+              "type" : "INT",
+              "key" : "id"
+            }, {
+              "name" : "name",
+              "type" : "STRING",
+              "key" : "name"
+            }, {
+              "name" : "create_time",
+              "type" : "TIMESTAMP",
+              "key" : "create_time"
+            }, {
+              "name" : "test1",
+              "type" : "SMALLINT",
+              "key" : "test1"
+            }, {
+              "name" : "test2",
+              "type" : "BIGINT",
+              "key" : "test2"
+            }, {
+              "name" : "afloat",
+              "type" : "FLOAT",
+              "key" : "afloat"
+            }, {
+              "name" : "afloat2",
+              "type" : "DOUBLE",
+              "key" : "afloat2"
+            }, {
+              "name" : "is_delete",
+              "type" : "TINYINT",
+              "key" : "is_delete"
+            }, {
+              "name" : "create_date",
+              "type" : "DATE",
+              "key" : "create_date"
+            }
+          ],
+          "connection" : [ {
+            "sourceId" : 11,
+            "jdbcUrl" : [ "jdbc:clickhouse://localhost:8123/default" ],
+            "type" : 1,
+            "table" : [ "sync_source_test" ]
+          } ],
+          "username" : "default",
+          "password" : "b6rCe7ZV",
+          "splitPk" : "id",
+          "sourceIds" : [ 10 ]
+        },
+        "name" : "clickhousereader"
+      },
+      "writer" : {
+        "parameter" : {
+          "column" : [ {
+            "name" : "id",
+            "index" : 0,
+            "isPart" : false,
+            "type" : "int",
+            "key" : "id"
+          }
+          , {
+              "name" : "name",
+              "index" : 1,
+              "isPart" : false,
+              "type" : "string",
+              "key" : "name"
+            }
+          , {
+              "name" : "create_time",
+              "index" : 1,
+              "isPart" : false,
+              "type" : "TIMESTAMP",
+              "key" : "create_time"
+            }
+          , {
+              "name" : "test1",
+              "index" : 1,
+              "isPart" : false,
+              "type" : "SMALLINT",
+              "key" : "test1"
+            }
+          , {
+              "name" : "test2",
+              "index" : 1,
+              "isPart" : false,
+              "type" : "BIGINT",
+              "key" : "test2"
+            }
+          , {
+              "name" : "afloat",
+              "index" : 1,
+              "isPart" : false,
+              "type" : "FLOAT",
+              "key" : "afloat"
+            }
+          , {
+              "name" : "afloat2",
+              "index" : 1,
+              "isPart" : false,
+              "type" : "DOUBLE",
+              "key" : "afloat2"
+            }
+          , {
+              "name" : "is_delete",
+              "index" : 1,
+              "isPart" : false,
+              "type" : "TINYINT",
+              "key" : "is_delete"
+            }
+          , {
+              "name" : "create_date",
+              "index" : 1,
+              "isPart" : false,
+              "type" : "DATE",
+              "key" : "create_date"
+            }
+          ],
+          "writeMode" : "overwrite",
+          "encoding" : "utf-8",
+          "fullColumnName" : [ "id", "name", "create_time", "test1", "test2", "afloat", "afloat2", "is_delete", "create_date"],
+          "connection" : [ {
+            "jdbcUrl" : "jdbc:clickhouse://localhost:8123/default",
+            "table" : [ "sql_side_table" ]
+          } ],
+          "sourceIds" : [ 10 ],
+          "password" : "b6rCe7ZV",
+          "username" : "default",
+          "fullColumnType" : [ "INT", "STRING", "TIMESTAMP", "SMALLINT", "BIGINT", "FLOAT", "DOUBLE", "TINYINT", "DATE"]
+        },
+        "name" : "clickhousewriter"
+      }
+    }
+    ],
+    "setting" : {
+      "restore" : {
+        "maxRowNumForCheckpoint" : 0,
+        "isRestore" : false,
+        "restoreColumnName" : "",
+        "restoreColumnIndex" : 0
+      },
+      "errorLimit" : {
+        "record" : 100
+      },
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
+      }
+    }
+  }
+}

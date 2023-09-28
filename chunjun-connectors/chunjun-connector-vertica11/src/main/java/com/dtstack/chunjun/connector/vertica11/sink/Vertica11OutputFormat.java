@@ -56,7 +56,7 @@ public class Vertica11OutputFormat extends JdbcOutputFormat {
                 }
             }
 
-            buildStmtProxy();
+            buildStatementWrapper();
             log.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
@@ -66,29 +66,15 @@ public class Vertica11OutputFormat extends JdbcOutputFormat {
     }
 
     @Override
-    protected String prepareTemplates() {
-        String singleSql;
-        if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConfig.getMode())) {
-            singleSql =
-                    jdbcDialect.getInsertIntoStatement(
-                            jdbcConfig.getSchema(),
-                            jdbcConfig.getTable(),
-                            columnNameList.toArray(new String[0]));
-        } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConfig.getMode())) {
-            singleSql =
-                    ((Vertica11Dialect) jdbcDialect)
-                            .getUpsertStatement(
-                                    jdbcConfig.getSchema(),
-                                    jdbcConfig.getTable(),
-                                    columnNameList.toArray(new String[0]),
-                                    columnTypeList.toArray(new String[0]),
-                                    jdbcConfig.getUniqueKey().toArray(new String[0]),
-                                    jdbcConfig.isAllReplace())
-                            .get();
-        } else {
-            throw new IllegalArgumentException("Unknown write mode:" + jdbcConfig.getMode());
-        }
-        log.info("write sql:{}", singleSql);
-        return singleSql;
+    protected String getUpsertStatement() {
+        return ((Vertica11Dialect) jdbcDialect)
+                .getUpsertStatement(
+                        jdbcConfig.getSchema(),
+                        jdbcConfig.getTable(),
+                        columnNameList.toArray(new String[0]),
+                        columnTypeList.toArray(new String[0]),
+                        jdbcConfig.getUniqueKey().toArray(new String[0]),
+                        jdbcConfig.isAllReplace())
+                .get();
     }
 }

@@ -47,10 +47,11 @@
 			<artifactId>canal.parse</artifactId>
 			<version>${canal.version}</version>
 			<exclusions>
-				<exclusion>
-					<artifactId>commons-lang</artifactId>
-					<groupId>commons-lang</groupId>
-				</exclusion>
+			<!-- 为了适配hadoop 3, 解决 java.lang.ClassNotFoundException: org.apache.commons.lang.exception.NestableRuntimeException -->
+<!--				<exclusion>-->
+<!--					<artifactId>commons-lang</artifactId>-->
+<!--					<groupId>commons-lang</groupId>-->
+<!--				</exclusion>-->
 				<exclusion>
 					<artifactId>logback-classic</artifactId>
 					<groupId>ch.qos.logback</groupId>
@@ -149,10 +150,6 @@
 				</exclusion>
 				<exclusion>
 					<artifactId>spring-orm</artifactId>
-					<groupId>org.springframework</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>spring-core</artifactId>
 					<groupId>org.springframework</groupId>
 				</exclusion>
 				<exclusion>

@@ -115,7 +115,9 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                         Hive3Util.getUGI(
                                 hdfsConfig.getHadoopConfig(),
                                 hdfsConfig.getDefaultFS(),
-                                getRuntimeContext().getDistributedCache());
+                                getRuntimeContext().getDistributedCache(),
+                                jobId,
+                                String.valueOf(taskNumber));
                 ugi.doAs(
                         (PrivilegedAction<Object>)
                                 () -> {

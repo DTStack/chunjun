@@ -21,6 +21,7 @@ package com.dtstack.chunjun.typeutil.serializer.base;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.flink.api.common.typeutils.SimpleTypeSerializerSnapshot;
 import org.apache.flink.api.common.typeutils.TypeSerializerSnapshot;
@@ -38,7 +39,8 @@ public class DecimalColumnSerializer extends TypeSerializerSingleton<AbstractBas
 
     public static final DecimalColumnSerializer INSTANCE = new DecimalColumnSerializer();
 
-    private static final BigDecimalColumn EMPTY = new BigDecimalColumn(0);
+    private static final NullColumn REUSE_NULL = new NullColumn();
+    private static final BigDecimalColumn EMPTY = new BigDecimalColumn(new BigDecimal(0));
 
     @Override
     public boolean isImmutableType() {
@@ -68,9 +70,9 @@ public class DecimalColumnSerializer extends TypeSerializerSingleton<AbstractBas
     @Override
     public void serialize(AbstractBaseColumn record, DataOutputView target) throws IOException {
         if (record == null || record instanceof NullColumn) {
-            target.writeBoolean(false);
+            target.write(0);
         } else {
-            target.writeBoolean(true);
+            target.write(1);
             BigDecimal bigDecimal = record.asBigDecimal();
             byte[] bytes = bigDecimal.unscaledValue().toByteArray();
             target.writeInt(bytes.length);
@@ -81,15 +83,18 @@ public class DecimalColumnSerializer extends TypeSerializerSingleton<AbstractBas
 
     @Override
     public AbstractBaseColumn deserialize(DataInputView source) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        if (isNotNull) {
-            int length = source.readInt();
-            byte[] bytes = new byte[length];
-            source.readFully(bytes);
-            int scale = source.readInt();
-            return BigDecimalColumn.from(new BigDecimal(new BigInteger(bytes), scale));
-        } else {
-            return new NullColumn();
+        byte type = source.readByte();
+        switch (type) {
+            case 0:
+                return REUSE_NULL;
+            case 1:
+                int length = source.readInt();
+                byte[] bytes = new byte[length];
+                source.readFully(bytes);
+                int scale = source.readInt();
+                return BigDecimalColumn.from(new BigDecimal(new BigInteger(bytes), scale));
+            default:
+                throw new ChunJunRuntimeException("you should not be here");
         }
     }
 
@@ -101,13 +106,15 @@ public class DecimalColumnSerializer extends TypeSerializerSingleton<AbstractBas
 
     @Override
     public void copy(DataInputView source, DataOutputView target) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        target.writeBoolean(isNotNull);
-        if (isNotNull) {
+        byte type = source.readByte();
+        target.write(type);
+        if (type == 1) {
             int len = source.readInt();
             target.writeInt(len);
             target.write(source, len);
             target.writeInt(source.readInt());
+        } else if (type != 0) {
+            throw new ChunJunRuntimeException("you should not be here");
         }
     }
 

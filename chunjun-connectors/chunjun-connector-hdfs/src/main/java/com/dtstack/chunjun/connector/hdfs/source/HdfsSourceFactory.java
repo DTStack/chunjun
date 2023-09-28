@@ -19,10 +19,10 @@ package com.dtstack.chunjun.connector.hdfs.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hdfs.config.HdfsConfig;
-import com.dtstack.chunjun.connector.hdfs.converter.HdfsRawTypeConverter;
+import com.dtstack.chunjun.connector.hdfs.converter.HdfsRawTypeMapper;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 
@@ -51,7 +51,7 @@ public class HdfsSourceFactory extends SourceFactory {
                         useAbstractBaseColumn,
                         hdfsConfig.getFileType(),
                         hdfsConfig.getColumn(),
-                        getRawTypeConverter(),
+                        getRawTypeMapper(),
                         hdfsConfig);
 
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
@@ -59,7 +59,7 @@ public class HdfsSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return HdfsRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return HdfsRawTypeMapper::apply;
     }
 }

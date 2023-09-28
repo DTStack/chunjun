@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.kafka.converter;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.kafka.conf.KafkaConfig;
 import com.dtstack.chunjun.constants.CDCConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -46,6 +47,7 @@ import com.dtstack.chunjun.util.DateUtil;
 import com.dtstack.chunjun.util.MapUtil;
 
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.CollectionUtil;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -79,8 +81,8 @@ public class KafkaSyncConverter
     /** kafka sink out fields */
     private List<String> outList;
 
-    public KafkaSyncConverter(KafkaConfig kafkaConfig, List<String> keyTypeList) {
-        super(null, kafkaConfig);
+    public KafkaSyncConverter(RowType rowType, KafkaConfig kafkaConfig, List<String> keyTypeList) {
+        super(rowType, kafkaConfig);
         this.kafkaConfig = kafkaConfig;
         this.outList = keyTypeList;
         if (DEFAULT_CODEC.defaultValue().equals(kafkaConfig.getCodec())) {
@@ -90,8 +92,8 @@ public class KafkaSyncConverter
         }
     }
 
-    public KafkaSyncConverter(KafkaConfig kafkaConfig) {
-        super(null, kafkaConfig);
+    public KafkaSyncConverter(RowType rowType, KafkaConfig kafkaConfig) {
+        super(rowType, kafkaConfig);
         this.commonConfig = this.kafkaConfig = kafkaConfig;
         if (DEFAULT_CODEC.defaultValue().equals(kafkaConfig.getCodec())) {
             this.decode = new JsonDecoder(kafkaConfig.isAddMessage());
@@ -102,14 +104,14 @@ public class KafkaSyncConverter
         // Only json need to extract the fields
         if (!CollectionUtils.isEmpty(kafkaConfig.getColumn())
                 && DEFAULT_CODEC.defaultValue().equals(kafkaConfig.getCodec())) {
-            List<String> typeList =
+            List<TypeConfig> typeList =
                     kafkaConfig.getColumn().stream()
                             .map(FieldConfig::getType)
                             .collect(Collectors.toList());
             this.toInternalConverters = new ArrayList<>();
-            for (String s : typeList) {
+            for (TypeConfig s : typeList) {
                 toInternalConverters.add(
-                        wrapIntoNullableInternalConverter(createInternalConverter(s)));
+                        wrapIntoNullableInternalConverter(createInternalConverter(s.getType())));
             }
         }
     }

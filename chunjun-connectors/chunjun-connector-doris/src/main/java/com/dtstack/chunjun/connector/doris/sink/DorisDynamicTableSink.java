@@ -19,7 +19,8 @@
 package com.dtstack.chunjun.connector.doris.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
-import com.dtstack.chunjun.connector.doris.converter.DorisHttpRowConverter;
+import com.dtstack.chunjun.config.TypeConfig;
+import com.dtstack.chunjun.connector.doris.converter.DorisHttpSqlConverter;
 import com.dtstack.chunjun.connector.doris.converter.DorisJdbcSqlConverter;
 import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcDynamicTableSink;
@@ -86,7 +87,7 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
         builder.setColumns(tableSchema.getColumnNames());
         builder.setConfig(dorisConfig);
         builder.setDorisOptions(dorisConfig);
-        builder.setRowConverter(new DorisHttpRowConverter(rowType));
+        builder.setRowConverter(new DorisHttpSqlConverter(rowType));
         return builder;
     }
 
@@ -95,12 +96,13 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
 
         List<Column> columns = tableSchema.getColumns();
         List<String> columnNameList = new ArrayList<>(columns.size());
-        List<String> columnTypeList = new ArrayList<>(columns.size());
+        List<TypeConfig> columnTypeList = new ArrayList<>(columns.size());
         List<FieldConfig> columnList = new ArrayList<>(columns.size());
         for (int index = 0; index < columns.size(); index++) {
             Column column = columns.get(index);
             String name = column.getName();
-            String type = column.getDataType().getLogicalType().asSummaryString();
+            TypeConfig type =
+                    TypeConfig.fromString(column.getDataType().getLogicalType().asSummaryString());
             FieldConfig field = new FieldConfig();
             columnNameList.add(name);
             columnTypeList.add(type);
@@ -114,6 +116,8 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
                 (CollectionUtil.isNullOrEmpty(jdbcConfig.getUniqueKey()))
                         ? EWriteMode.INSERT.name()
                         : EWriteMode.UPDATE.name());
+        jdbcConfig.setPreSql(dorisConfig.getPreSql());
+        jdbcConfig.setPostSql(dorisConfig.getPostSql());
 
         builder.setColumnNameList(columnNameList);
         builder.setColumnTypeList(columnTypeList);
@@ -122,6 +126,7 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConfig);
         builder.setRowConverter(new DorisJdbcSqlConverter(rowType));
+        setKeyRowConverter(builder, rowType);
         return builder;
     }
 

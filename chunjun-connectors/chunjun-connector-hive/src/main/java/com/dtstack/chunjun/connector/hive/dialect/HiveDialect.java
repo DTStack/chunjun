@@ -17,9 +17,9 @@
  */
 package com.dtstack.chunjun.connector.hive.dialect;
 
-import com.dtstack.chunjun.connector.hive.converter.HiveRawTypeConverter;
+import com.dtstack.chunjun.connector.hive.converter.HiveRawTypeMapper;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import java.util.Optional;
 
@@ -36,8 +36,8 @@ public class HiveDialect implements JdbcDialect {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return HiveRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeConverter() {
+        return HiveRawTypeMapper::apply;
     }
 
     @Override

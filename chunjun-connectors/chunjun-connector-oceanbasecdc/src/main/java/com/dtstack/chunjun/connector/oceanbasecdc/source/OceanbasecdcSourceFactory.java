@@ -20,13 +20,13 @@ package com.dtstack.chunjun.connector.oceanbasecdc.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.oceanbasecdc.config.OceanBaseCdcConfig;
-import com.dtstack.chunjun.connector.oceanbasecdc.converter.OceanBaseCdcColumnConverter;
-import com.dtstack.chunjun.connector.oceanbasecdc.converter.OceanBaseCdcRawTypeConverter;
-import com.dtstack.chunjun.connector.oceanbasecdc.converter.OceanBaseCdcRowConverter;
+import com.dtstack.chunjun.connector.oceanbasecdc.converter.OceanBaseCdcRawTypeMapper;
+import com.dtstack.chunjun.connector.oceanbasecdc.converter.OceanBaseCdcSqlConverter;
+import com.dtstack.chunjun.connector.oceanbasecdc.converter.OceanBaseCdcSyncConverter;
 import com.dtstack.chunjun.connector.oceanbasecdc.format.TimestampFormat;
 import com.dtstack.chunjun.connector.oceanbasecdc.inputformat.OceanBaseCdcInputFormatBuilder;
-import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.AbstractCDCRawTypeMapper;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -52,27 +52,26 @@ public class OceanbasecdcSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return OceanBaseCdcRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return OceanBaseCdcRawTypeMapper::apply;
     }
 
     @Override
     public DataStream<RowData> createSource() {
         OceanBaseCdcInputFormatBuilder builder = new OceanBaseCdcInputFormatBuilder();
         builder.setOceanBaseCdcConf(cdcConf);
-        AbstractCDCRowConverter rowConverter;
+        AbstractCDCRawTypeMapper rowConverter;
         if (useAbstractBaseColumn) {
             rowConverter =
-                    new OceanBaseCdcColumnConverter(
-                            cdcConf.isPavingData(), cdcConf.isSplitUpdate());
+                    new OceanBaseCdcSyncConverter(cdcConf.isPavingData(), cdcConf.isSplitUpdate());
         } else {
             final RowType rowType =
-                    TableUtil.createRowType(cdcConf.getColumn(), getRawTypeConverter());
+                    TableUtil.createRowType(cdcConf.getColumn(), getRawTypeMapper());
             TimestampFormat format =
                     "sql".equalsIgnoreCase(cdcConf.getTimestampFormat())
                             ? TimestampFormat.SQL
                             : TimestampFormat.ISO_8601;
-            rowConverter = new OceanBaseCdcRowConverter(rowType, format);
+            rowConverter = new OceanBaseCdcSqlConverter(rowType, format);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());

@@ -20,10 +20,10 @@ package com.dtstack.chunjun.connector.hive3.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hive3.config.HdfsConfig;
-import com.dtstack.chunjun.connector.hive3.converter.HdfsRawTypeConverter;
+import com.dtstack.chunjun.connector.hive3.converter.HdfsRawTypeMapper;
 import com.dtstack.chunjun.connector.hive3.util.Hive3Util;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 
@@ -46,8 +46,8 @@ public class Hive3SourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return HdfsRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return HdfsRawTypeMapper::apply;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class Hive3SourceFactory extends SourceFactory {
                         useAbstractBaseColumn,
                         hdfsConfig.getFileType(),
                         hdfsConfig.getColumn(),
-                        getRawTypeConverter(),
+                        getRawTypeMapper(),
                         hdfsConfig);
 
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);

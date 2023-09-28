@@ -21,7 +21,7 @@ package com.dtstack.chunjun.connector.jdbc.source.distribute;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRawTypeConverterTest;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -63,7 +63,7 @@ public class SourceFactoryTest {
                             }
 
                             @Override
-                            public RawTypeConverter getRawTypeConverter() {
+                            public RawTypeMapper getRawTypeConverter() {
                                 return JdbcRawTypeConverterTest::apply;
                             }
                         });

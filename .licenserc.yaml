@@ -23,10 +23,12 @@ header:
     copyright-owner: Apache Software Foundation
 
     paths-ignore:
-      - 'website/**'
-      - 'docs/**'
-      - 'docs_zh/**'
-      - 'chunjun-example/**'
+      - 'website/**/*'
+      - 'docs/**/*'
+      - 'docs_zh/**/*'
+      - 'chunjun-example/**/*'
+      - 'chunjun-docker/**/*'
+      - 'chunjun-dev/**/*'
       - '.github/ISSUE_TEMPLATE'
       - '.github/workflows'
       - '.mvn'

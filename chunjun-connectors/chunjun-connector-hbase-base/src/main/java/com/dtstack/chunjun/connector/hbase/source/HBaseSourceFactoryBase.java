@@ -23,12 +23,12 @@ import com.dtstack.chunjun.config.OperatorConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
-import com.dtstack.chunjun.connector.hbase.converter.HBaseColumnConverter;
-import com.dtstack.chunjun.connector.hbase.converter.HBaseRawTypeConverter;
-import com.dtstack.chunjun.connector.hbase.converter.HBaseRowConverter;
+import com.dtstack.chunjun.connector.hbase.converter.HBaseRawTypeMapper;
+import com.dtstack.chunjun.connector.hbase.converter.HBaseSqlConverter;
+import com.dtstack.chunjun.connector.hbase.converter.HBaseSyncConverter;
 import com.dtstack.chunjun.connector.hbase.util.ScanBuilder;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
@@ -89,7 +89,7 @@ public class HBaseSourceFactoryBase extends SourceFactory {
                                                 fieldConfig.setName(
                                                         fieldConfig.getName().replace(":", ".")))
                                 .collect(Collectors.toList()),
-                        getRawTypeConverter(),
+                        getRawTypeMapper(),
                         useAbstractBaseColumn);
         if (hBaseConfig.getNullStringLiteral() == null
                 || "".equals(hBaseConfig.getNullStringLiteral().trim())) {
@@ -98,8 +98,8 @@ public class HBaseSourceFactoryBase extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return HBaseRawTypeConverter.INSTANCE;
+    public RawTypeMapper getRawTypeMapper() {
+        return HBaseRawTypeMapper.INSTANCE;
     }
 
     @Override
@@ -110,8 +110,8 @@ public class HBaseSourceFactoryBase extends SourceFactory {
         ScanBuilder scanBuilder;
         if (useAbstractBaseColumn) {
             final RowType rowType =
-                    TableUtil.createRowType(hBaseConfig.getColumn(), getRawTypeConverter());
-            rowConverter = new HBaseColumnConverter(hBaseConfig, rowType);
+                    TableUtil.createRowType(hBaseConfig.getColumn(), getRawTypeMapper());
+            rowConverter = new HBaseSyncConverter(hBaseConfig, rowType);
             scanBuilder = ScanBuilder.forSync(fieldConfList);
         } else {
             String nullStringLiteral = hBaseConfig.getNullStringLiteral();
@@ -129,7 +129,7 @@ public class HBaseSourceFactoryBase extends SourceFactory {
             HBaseTableSchema hBaseTableSchema =
                     buildHBaseTableSchema(hBaseConfig.getTable(), fieldConfList);
             syncConfig.getReader().setFieldNameList(new ArrayList<>(columnSet));
-            rowConverter = new HBaseRowConverter(hBaseTableSchema, nullStringLiteral);
+            rowConverter = new HBaseSqlConverter(hBaseTableSchema, nullStringLiteral);
             scanBuilder = ScanBuilder.forSql(hBaseTableSchema);
         }
 
@@ -163,14 +163,13 @@ public class HBaseSourceFactoryBase extends SourceFactory {
         for (FieldConfig fieldConfig : fieldList) {
             String fieldName = fieldConfig.getName();
             if ("rowkey".equalsIgnoreCase(fieldConfig.getName())) {
-                DataType dataType = this.getRawTypeConverter().apply(fieldConfig.getType());
+                DataType dataType = this.getRawTypeMapper().apply(fieldConfig.getType());
                 builder.add(TableColumn.physical(fieldName, dataType));
             } else if (fieldName.contains(".")) {
                 String[] familyQualifier = fieldName.split("\\.");
                 Map<String, DataType> qualifier = family.get(familyQualifier[0]);
                 qualifier.put(
-                        familyQualifier[1],
-                        this.getRawTypeConverter().apply(fieldConfig.getType()));
+                        familyQualifier[1], this.getRawTypeMapper().apply(fieldConfig.getType()));
             }
         }
         for (Map.Entry<String, Map<String, DataType>> familyQualifierEntry : family.entrySet()) {
@@ -196,10 +195,10 @@ public class HBaseSourceFactoryBase extends SourceFactory {
     HBaseTableSchema buildHBaseTableSchema(String tableName, List<FieldConfig> fieldConfList) {
         HBaseTableSchema hbaseSchema = new HBaseTableSchema();
         hbaseSchema.setTableName(tableName);
-        RawTypeConverter rawTypeConverter = getRawTypeConverter();
+        RawTypeMapper rawTypeMapper = getRawTypeMapper();
         for (FieldConfig fieldConfig : fieldConfList) {
             String fieldName = fieldConfig.getName();
-            DataType dataType = rawTypeConverter.apply(fieldConfig.getType());
+            DataType dataType = rawTypeMapper.apply(fieldConfig.getType());
             if ("rowkey".equalsIgnoreCase(fieldName)) {
                 hbaseSchema.setRowKey(fieldName, dataType);
             } else if (fieldName.contains(".")) {

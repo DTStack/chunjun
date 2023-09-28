@@ -86,11 +86,11 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         }
 
         if (CollectionUtils.isNotEmpty(hdfsConfig.getFullColumnType())) {
-            fullColumnTypeList = hdfsConfig.getFullColumnType();
+            List<String> fullColumnType = hdfsConfig.getFullColumnType();
         } else {
             fullColumnTypeList =
                     hdfsConfig.getColumn().stream()
-                            .map(FieldConfig::getType)
+                            .map(fieldConfig -> fieldConfig.getType().getType())
                             .collect(Collectors.toList());
             hdfsConfig.setFullColumnType(fullColumnTypeList);
         }
@@ -156,7 +156,9 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                     FileSystemUtil.getFileSystem(
                             hdfsConfig.getHadoopConfig(),
                             hdfsConfig.getDefaultFS(),
-                            distributedCache);
+                            distributedCache,
+                            jobId,
+                            String.valueOf(taskNumber));
         } catch (Exception e) {
             throw new ChunJunRuntimeException("can't init fileSystem", e);
         }
@@ -170,15 +172,27 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
     @Override
     protected long getCurrentFileSize() {
         String path = tmpPath + getHdfsPathChar() + currentFileName;
-        try {
-            if (hdfsConfig.getMaxFileSize() > ConstantValue.STORE_SIZE_G) {
-                return fs.getFileStatus(new Path(path)).getLen();
-            } else {
-                return fs.open(new Path(path)).available();
+        int retryTimes = 1;
+        while (retryTimes <= 3) {
+            try {
+                if (hdfsConfig.getMaxFileSize() > ConstantValue.STORE_SIZE_G) {
+                    return fs.getFileStatus(new Path(path)).getLen();
+                } else {
+                    return fs.open(new Path(path)).available();
+                }
+            } catch (IOException e) {
+                if (++retryTimes <= 3) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ignore) {
+                    }
+                } else {
+                    throw new ChunJunRuntimeException(
+                            "can't get file size from hdfs, file = " + path, e);
+                }
             }
-        } catch (IOException e) {
-            throw new ChunJunRuntimeException("can't get file size from hdfs, file = " + path, e);
         }
+        return 0;
     }
 
     @Override

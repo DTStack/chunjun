@@ -1,0 +1,234 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "username": "oracle",
+            "password": "oracle",
+            "connection": [{
+              "jdbcUrl": ["jdbc:oracle:thin:@localhost:1521:orcl"],
+              "table": ["oracle_all_type_source"]
+            }],
+            "increColumn": "t_timestamp",
+            "startLocation": "1530439980000",
+            "column": [{
+              "name": "id",
+              "type": "decimal"
+            },{
+              "name": "t_binary_double",
+              "type": "decimal"
+            },{
+              "name": "t_binary_float",
+              "type": "decimal"
+            },{
+              "name": "t_char",
+              "type": "string"
+            },{
+              "name": "t_char_varying",
+              "type": "string"
+            },{
+              "name": "t_character",
+              "type": "string"
+            },{
+              "name": "t_character_varying",
+              "type": "string"
+            },{
+              "name": "t_date",
+              "type": "date"
+            },{
+              "name": "t_decimal",
+              "type": "decimal"
+            },{
+              "name": "t_double_precision",
+              "type": "double"
+            },{
+              "name": "t_float",
+              "type": "double"
+            },{
+              "name": "t_int",
+              "type": "int"
+            },{
+              "name": "t_integer",
+              "type": "decimal"
+            },{
+              "name": "t_national_char",
+              "type": "string"
+            },{
+              "name": "t_national_char_varying",
+              "type": "string"
+            },{
+              "name": "t_national_character",
+              "type": "string"
+            },{
+              "name": "t_national_character_varying",
+              "type": "string"
+            },{
+              "name": "t_nchar",
+              "type": "string"
+            },{
+              "name": "t_nchar_varying",
+              "type": "string"
+            },{
+              "name": "t_number_1",
+              "type": "decimal"
+            },{
+              "name": "t_number_2",
+              "type": "decimal"
+            },{
+              "name": "t_number_3",
+              "type": "decimal"
+            },{
+              "name": "t_numeric",
+              "type": "decimal"
+            },{
+              "name": "t_nvarchar2",
+              "type": "string"
+            },{
+              "name": "t_raw",
+              "type": "bytes"
+            },{
+              "name": "t_real",
+              "type": "double"
+            },{
+              "name": "t_timestamp",
+              "type": "timestamp"
+            },{
+              "name": "t_varchar",
+              "type": "string"
+            },{
+              "name": "t_varchar2",
+              "type": "string"
+            }]
+          },
+          "name": "oraclereader"
+        },
+        "writer": {
+          "name": "oraclewriter",
+          "parameter": {
+            "mode": "insert",
+            "updateKey": ["id"],
+            "allReplace": true,
+            "username": "oracle",
+            "password": "oracle",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:oracle:thin:@localhost:1521:orcl",
+                "table": ["oracle_all_type_sink"]
+              }
+            ],
+            "column": [{
+              "name": "id",
+              "type": "decimal"
+            },{
+              "name": "t_binary_double",
+              "type": "decimal"
+            },{
+              "name": "t_binary_float",
+              "type": "decimal"
+            },{
+              "name": "t_char",
+              "type": "string"
+            },{
+              "name": "t_char_varying",
+              "type": "string"
+            },{
+              "name": "t_character",
+              "type": "string"
+            },{
+              "name": "t_character_varying",
+              "type": "string"
+            },{
+              "name": "t_date",
+              "type": "timestamp"
+            },{
+              "name": "t_decimal",
+              "type": "decimal"
+            },{
+              "name": "t_double_precision",
+              "type": "double"
+            },{
+              "name": "t_float",
+              "type": "double"
+            },{
+              "name": "t_int",
+              "type": "int"
+            },{
+              "name": "t_integer",
+              "type": "decimal"
+            },{
+              "name": "t_national_char",
+              "type": "string"
+            },{
+              "name": "t_national_char_varying",
+              "type": "string"
+            },{
+              "name": "t_national_character",
+              "type": "string"
+            },{
+              "name": "t_national_character_varying",
+              "type": "string"
+            },{
+              "name": "t_nchar",
+              "type": "string"
+            },{
+              "name": "t_nchar_varying",
+              "type": "string"
+            },{
+              "name": "t_number_1",
+              "type": "decimal"
+            },{
+              "name": "t_number_2",
+              "type": "decimal"
+            },{
+              "name": "t_number_3",
+              "type": "decimal"
+            },{
+              "name": "t_numeric",
+              "type": "decimal"
+            },{
+              "name": "t_nvarchar2",
+              "type": "string"
+            },{
+              "name": "t_raw",
+              "type": "bytes"
+            },{
+              "name": "t_real",
+              "type": "double"
+            },{
+              "name": "t_timestamp",
+              "type": "timestamp"
+            },{
+              "name": "t_varchar",
+              "type": "string"
+            },{
+              "name": "t_varchar2",
+              "type": "string"
+            }]
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 1
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log" : {
+        "isLogger": false,
+        "level" : "debug",
+        "path" : "",
+        "pattern":""
+      }
+    }
+  }
+}

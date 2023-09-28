@@ -71,9 +71,12 @@ public class HiveDbUtil {
     private HiveDbUtil() {}
 
     public static Connection getConnection(
-            ConnectionInfo connectionInfo, DistributedCache distributedCache) {
+            ConnectionInfo connectionInfo,
+            DistributedCache distributedCache,
+            String jobId,
+            String taskNumber) {
         if (openKerberos(connectionInfo.getJdbcUrl())) {
-            return getConnectionWithKerberos(connectionInfo, distributedCache);
+            return getConnectionWithKerberos(connectionInfo, distributedCache, jobId, taskNumber);
         } else {
             return getConnectionWithRetry(connectionInfo);
         }
@@ -92,7 +95,10 @@ public class HiveDbUtil {
     }
 
     private static Connection getConnectionWithKerberos(
-            ConnectionInfo connectionInfo, DistributedCache distributedCache) {
+            ConnectionInfo connectionInfo,
+            DistributedCache distributedCache,
+            String jobId,
+            String taskNumber) {
         if (connectionInfo.getHiveConfig() == null || connectionInfo.getHiveConfig().isEmpty()) {
             throw new IllegalArgumentException("hiveConf can not be null or empty");
         }
@@ -101,10 +107,15 @@ public class HiveDbUtil {
 
         keytabFileName =
                 KerberosUtil.loadFile(
-                        connectionInfo.getHiveConfig(), keytabFileName, distributedCache);
+                        connectionInfo.getHiveConfig(),
+                        keytabFileName,
+                        distributedCache,
+                        jobId,
+                        taskNumber);
         String principal =
                 KerberosUtil.getPrincipal(connectionInfo.getHiveConfig(), keytabFileName);
-        KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConfig(), distributedCache);
+        KerberosUtil.loadKrb5Conf(
+                connectionInfo.getHiveConfig(), distributedCache, jobId, taskNumber);
         KerberosUtil.refreshConfig();
 
         Configuration conf = FileSystemUtil.getConfiguration(connectionInfo.getHiveConfig(), null);
@@ -175,7 +186,7 @@ public class HiveDbUtil {
             ClassUtil.forName(
                     "org.apache.hive.jdbc.HiveDriver",
                     Thread.currentThread().getContextClassLoader());
-            return getHiveConnection(connectionInfo.getJdbcUrl(), prop);
+            return getHiveConnection(connectionInfo, prop);
         } catch (SQLException e) {
             if (SQLSTATE_USERNAME_PWD_ERROR.equals(e.getSQLState())) {
                 throw new RuntimeException("user name or password wrong.");
@@ -197,7 +208,9 @@ public class HiveDbUtil {
         }
     }
 
-    private static Connection getHiveConnection(String url, Properties prop) throws Exception {
+    private static Connection getHiveConnection(ConnectionInfo connectionInfo, Properties prop)
+            throws Exception {
+        String url = connectionInfo.getJdbcUrl();
         Matcher matcher = HIVE_JDBC_PATTERN.matcher(url);
         String db = null;
         String host = null;
@@ -213,6 +226,7 @@ public class HiveDbUtil {
         if (StringUtils.isNotEmpty(host) && StringUtils.isNotEmpty(db)) {
             param = param == null ? "" : param;
             url = String.format("jdbc:hive2://%s:%s/%s", host, port, param);
+            DriverManager.setLoginTimeout(connectionInfo.getTimeout());
             Connection connection = DriverManager.getConnection(url, prop);
             if (StringUtils.isNotEmpty(db)) {
                 try (Statement statement = connection.createStatement()) {

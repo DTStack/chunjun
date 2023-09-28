@@ -1,0 +1,34 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "jdbcUrl": "jdbc:oracle:thin:@127.0.0.1:1521:xe",
+            "username": "username",
+            "password": "password",
+            "supportAutoAddLog": false,
+            "table": ["table.*"],
+            "cat": "UPDATE,INSERT,DELETE",
+            "pavingData" : true,
+            "readPosition" : "CURRENT",
+            "queryTimeout": 3000
+          },
+          "name": "oraclelogminerreader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting" : {
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
+      }
+    }
+  }
+}

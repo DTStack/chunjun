@@ -77,7 +77,8 @@ public class NullColumnSerializer extends TypeSerializerSingleton<AbstractBaseCo
     @Override
     public AbstractBaseColumn deserialize(AbstractBaseColumn reuse, DataInputView source)
             throws IOException {
-        return deserialize(source);
+        source.readByte();
+        return EMPTY;
     }
 
     @Override

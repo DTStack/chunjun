@@ -72,7 +72,7 @@ public class MappedWriteProcessor extends StarRocksWriteProcessor {
             valueList.add(value);
         }
         for (Map.Entry<String, List<Map<String, Object>>> entry : identifyXValueMap.entrySet()) {
-            streamLoadManager.write(entry.getKey(), null, entry.getValue());
+            streamLoadManager.write(entry.getKey(), null, entry.getValue(), true);
         }
     }
 }

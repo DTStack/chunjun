@@ -67,8 +67,10 @@ class DirtyDataCollectorTest {
     @DisplayName("Should throw an exception when the consumed count exceed the max-consumed")
     void addConsumedWhenConsumedCountExceedMaxConsumedThenThrowException() {
         dirtyDataCollector.maxConsumed = 2L;
-        dirtyDataCollector.addConsumed(1L);
-        assertThrows(NoRestartException.class, () -> dirtyDataCollector.addConsumed(1L));
+        DirtyDataEntry dirty = new DirtyDataEntry();
+        dirty.setDirtyContent("{}");
+        dirtyDataCollector.addConsumed(1L, dirty, 0L);
+        assertThrows(NoRestartException.class, () -> dirtyDataCollector.addConsumed(1L, dirty, 0));
     }
 
     @Test
@@ -87,7 +89,7 @@ class DirtyDataCollectorTest {
     void offerShouldAddDirtyDataToQueue() {
         dirtyDataCollector.maxConsumed = 2L;
         DirtyDataEntry dirtyDataEntry = new DirtyDataEntry();
-        dirtyDataCollector.offer(dirtyDataEntry);
+        dirtyDataCollector.offer(dirtyDataEntry, 0);
         assertEquals(1, dirtyDataCollector.consumeQueue.size());
     }
 
@@ -95,7 +97,7 @@ class DirtyDataCollectorTest {
     @DisplayName("Should increase the consumed counter by 1")
     void offerShouldIncreaseConsumedCounterBy1() {
         dirtyDataCollector.maxConsumed = 2L;
-        dirtyDataCollector.offer(new DirtyDataEntry());
+        dirtyDataCollector.offer(new DirtyDataEntry(), 0);
         assertEquals(1L, dirtyDataCollector.getConsumed().getLocalValue());
     }
 

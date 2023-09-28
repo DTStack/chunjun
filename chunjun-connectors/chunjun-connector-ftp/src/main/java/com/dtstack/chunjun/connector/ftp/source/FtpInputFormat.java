@@ -22,8 +22,8 @@ import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.ftp.client.Data;
 import com.dtstack.chunjun.connector.ftp.config.ConfigConstants;
 import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
-import com.dtstack.chunjun.connector.ftp.converter.FtpColumnConverter;
-import com.dtstack.chunjun.connector.ftp.converter.FtpRowConverter;
+import com.dtstack.chunjun.connector.ftp.converter.FtpSqlConverter;
+import com.dtstack.chunjun.connector.ftp.converter.FtpSyncConverter;
 import com.dtstack.chunjun.connector.ftp.extend.ftp.IFormatConfig;
 import com.dtstack.chunjun.connector.ftp.extend.ftp.concurrent.ConcurrentFileSplit;
 import com.dtstack.chunjun.connector.ftp.extend.ftp.concurrent.FtpFileSplit;
@@ -172,9 +172,9 @@ public class FtpInputFormat extends BaseRichInputFormat {
                 return null;
             }
 
-            if (rowConverter instanceof FtpRowConverter) {
+            if (rowConverter instanceof FtpSqlConverter) {
                 rowData = rowConverter.toInternal(String.join(",", fields));
-            } else if (rowConverter instanceof FtpColumnConverter) {
+            } else if (rowConverter instanceof FtpSyncConverter) {
 
                 List<FieldConfig> columns = ftpConfig.getColumn();
 

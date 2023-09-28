@@ -36,13 +36,9 @@ public class TimeColumnSerializerTest extends SerializerTestBase<AbstractBaseCol
     protected Tuple2<BiFunction<Object, Object, Boolean>, DeeplyEqualsChecker.CustomEqualityChecker>
             getCustomChecker() {
         return Tuple2.of(
-                new BiFunction<Object, Object, Boolean>() {
-                    @Override
-                    public Boolean apply(Object o, Object o2) {
-                        return (o instanceof TimeColumn && o2 instanceof TimeColumn)
-                                || (o instanceof NullColumn && o2 instanceof NullColumn);
-                    }
-                },
+                (o, o2) ->
+                        (o instanceof TimeColumn && o2 instanceof TimeColumn)
+                                || (o instanceof NullColumn && o2 instanceof NullColumn),
                 new TimeColumnChecker());
     }
 

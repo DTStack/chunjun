@@ -19,7 +19,6 @@
 package com.dtstack.chunjun.typeutil.serializer.base;
 
 import com.dtstack.chunjun.element.AbstractBaseColumn;
-import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.typeutil.SerializerTestBase;
@@ -36,14 +35,9 @@ public class ByteColumnSerializerTest extends SerializerTestBase<AbstractBaseCol
     protected Tuple2<BiFunction<Object, Object, Boolean>, DeeplyEqualsChecker.CustomEqualityChecker>
             getCustomChecker() {
         return Tuple2.of(
-                new BiFunction<Object, Object, Boolean>() {
-                    @Override
-                    public Boolean apply(Object o, Object o2) {
-                        return (o instanceof ByteColumn && o2 instanceof ByteColumn)
-                                || (o instanceof BigDecimalColumn && o2 instanceof BigDecimalColumn)
-                                || (o instanceof NullColumn && o2 instanceof NullColumn);
-                    }
-                },
+                (o, o2) ->
+                        (o instanceof ByteColumn && o2 instanceof ByteColumn)
+                                || (o instanceof NullColumn && o2 instanceof NullColumn),
                 new ByteColumnChecker());
     }
 
@@ -75,11 +69,6 @@ public class ByteColumnSerializerTest extends SerializerTestBase<AbstractBaseCol
         public boolean check(Object o1, Object o2, DeeplyEqualsChecker checker) {
             if (o1 instanceof ByteColumn && o2 instanceof ByteColumn) {
                 return ((ByteColumn) o1).getData() == ((ByteColumn) o2).getData();
-            } else if (o1 instanceof BigDecimalColumn && o2 instanceof BigDecimalColumn) {
-                return ((BigDecimalColumn) o1)
-                                .asBigDecimal()
-                                .compareTo(((BigDecimalColumn) o2).asBigDecimal())
-                        == 0;
             } else {
                 return o1 instanceof NullColumn && o2 instanceof NullColumn;
             }

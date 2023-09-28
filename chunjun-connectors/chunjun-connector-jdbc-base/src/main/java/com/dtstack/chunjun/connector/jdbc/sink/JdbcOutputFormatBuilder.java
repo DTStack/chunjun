@@ -17,11 +17,14 @@
  */
 package com.dtstack.chunjun.connector.jdbc.sink;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
+
+import org.apache.flink.table.types.logical.RowType;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -47,11 +50,19 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder<JdbcOut
         format.setRowConverter(rowConverter);
     }
 
+    public void setKeyRowType(RowType keyRowType) {
+        format.setKeyRowType(keyRowType);
+    }
+
+    public void setKeyRowConverter(AbstractRowConverter keyRowConverter) {
+        format.setKeyRowConverter(keyRowConverter);
+    }
+
     public void setColumnNameList(List<String> columnNameList) {
         format.setColumnNameList(columnNameList);
     }
 
-    public void setColumnTypeList(List<String> columnTypeList) {
+    public void setColumnTypeList(List<TypeConfig> columnTypeList) {
         format.setColumnTypeList(columnTypeList);
     }
 

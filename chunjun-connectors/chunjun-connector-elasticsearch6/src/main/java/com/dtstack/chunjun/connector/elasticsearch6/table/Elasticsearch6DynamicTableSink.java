@@ -18,7 +18,7 @@
 
 package com.dtstack.chunjun.connector.elasticsearch6.table;
 
-import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchRowConverter;
+import com.dtstack.chunjun.connector.elasticsearch.ElasticsearchSqlConverter;
 import com.dtstack.chunjun.connector.elasticsearch6.Elasticsearch6Config;
 import com.dtstack.chunjun.connector.elasticsearch6.sink.Elasticsearch6OutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
@@ -59,7 +59,7 @@ public class Elasticsearch6DynamicTableSink implements DynamicTableSink {
 
         Elasticsearch6OutputFormatBuilder builder = new Elasticsearch6OutputFormatBuilder();
         builder.setRowConverter(
-                new ElasticsearchRowConverter(InternalTypeInfo.of(logicalType).toRowType()));
+                new ElasticsearchSqlConverter(InternalTypeInfo.of(logicalType).toRowType()));
         builder.setEsConf(elasticsearchConfig);
 
         return SinkFunctionProvider.of(

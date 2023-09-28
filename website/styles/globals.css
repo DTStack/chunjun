@@ -1,0 +1,91 @@
+/* ./styles/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .scrollbar::-webkit-scrollbar,
+  .dark-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar::-webkit-scrollbar-track,
+  .dark-scrollbar::-webkit-scrollbar-track {
+    border-radius: 100px;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb {
+    background-color: #eee;
+    border-radius: 100px;
+  }
+
+  .dark-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+    border-radius: 100px;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #dfe6e9;
+  }
+
+  .font-raleway {
+    font-family: 'Raleway', sans-serif;
+  }
+
+  .font-roboto {
+    font-family: 'Roboto', sans-serif;
+  }
+
+  .font-nunito {
+    font-family: 'Nunito', sans-serif;
+  }
+
+  article.article pre {
+    background-color: #333 !important;
+  }
+  article.article code {
+    background-color: #333 !important;
+    outline: none;
+    border: 0 !important;
+    color: #fff !important;
+  }
+  article.article h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-weight: bold;
+    font-family: 'Nunito', sans-serif;
+    text-transform: capitalize;
+  }
+  article {
+    padding: 8px 20px;
+    border-radius: 8px;
+  }
+  article.dark {
+    color: darkgray;
+  }
+  article.dark h1 {
+    text-transform: capitalize;
+    color: #fff;
+  }
+
+  article.dark h2 {
+    text-transform: capitalize;
+    color: #fff;
+  }
+  article.light h1 {
+    text-transform: capitalize;
+    color: #333;
+  }
+  article.article img {
+    border-radius: 4px;
+    margin: auto;
+  }
+}
+
+@layer components {
+  .section-padding {
+    @apply md:py-24 p-6;
+  }
+}

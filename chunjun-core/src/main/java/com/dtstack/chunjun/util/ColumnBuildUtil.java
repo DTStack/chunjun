@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.util;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
@@ -37,17 +38,17 @@ public class ColumnBuildUtil {
      * @param fullColumnList fullColumnList
      * @param fullColumnTypeList fullColumnTypeList
      */
-    public static Pair<List<String>, List<String>> handleColumnList(
+    public static Pair<List<String>, List<TypeConfig>> handleColumnList(
             List<FieldConfig> fieldList,
             List<String> fullColumnList,
-            List<String> fullColumnTypeList) {
+            List<TypeConfig> fullColumnTypeList) {
         if (fieldList.size() == 1
                 && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldList.get(0).getName())) {
             return Pair.of(fullColumnList, fullColumnTypeList);
         }
 
         List<String> columnNameList = new ArrayList<>(fieldList.size());
-        List<String> columnTypeList = new ArrayList<>(fieldList.size());
+        List<TypeConfig> columnTypeList = new ArrayList<>(fieldList.size());
 
         for (FieldConfig fieldConfig : fieldList) {
             if (fieldConfig.getValue() == null) {

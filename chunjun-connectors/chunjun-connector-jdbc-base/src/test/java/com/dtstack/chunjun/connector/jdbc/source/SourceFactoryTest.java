@@ -19,10 +19,11 @@
 package com.dtstack.chunjun.connector.jdbc.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRawTypeConverterTest;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -75,7 +76,7 @@ public class SourceFactoryTest {
                             }
 
                             @Override
-                            public RawTypeConverter getRawTypeConverter() {
+                            public RawTypeMapper getRawTypeConverter() {
                                 return JdbcRawTypeConverterTest::apply;
                             }
                         });
@@ -85,7 +86,7 @@ public class SourceFactoryTest {
     public void initTest() {
 
         List<String> name = new ArrayList<>();
-        List<String> type = new ArrayList<>();
+        List<TypeConfig> type = new ArrayList<>();
         syncConfig
                 .getReader()
                 .getFieldList()
@@ -94,7 +95,7 @@ public class SourceFactoryTest {
                             name.add(field.getName());
                             type.add(field.getType());
                         });
-        Pair<List<String>, List<String>> pair = mock(Pair.class);
+        Pair<List<String>, List<TypeConfig>> pair = mock(Pair.class);
         when(JdbcUtil.buildColumnWithMeta(any(), any(), any())).thenAnswer(invocation -> pair);
 
         when(pair.getLeft()).thenReturn(name);

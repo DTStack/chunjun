@@ -61,4 +61,16 @@ public class StreamLoadOptions {
                     .mapType()
                     .defaultValue(new HashMap<>())
                     .withDescription("");
+
+    public static final ConfigOption<String> SINK_PRE_SQL =
+            ConfigOptions.key("sink.pre-sql")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("sink.pre-sql");
+
+    public static final ConfigOption<String> SINK_POST_SQL =
+            ConfigOptions.key("sink.post-sql")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("sink.post-sql");
 }

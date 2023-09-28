@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.util;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
@@ -66,12 +67,16 @@ public class ColumnBuildUtilTest {
                         .build();
 
         List<String> fullColumnList = ImmutableList.of("id", "name", "comment");
-        List<String> fullColumnTypeList = ImmutableList.of("int", "string", "string");
-        Pair<List<String>, List<String>> result =
+        List<TypeConfig> fullColumnTypeList =
+                ImmutableList.of(
+                        TypeConfig.fromString("int"),
+                        TypeConfig.fromString("Z"),
+                        TypeConfig.fromString("string"));
+        Pair<List<String>, List<TypeConfig>> result =
                 ColumnBuildUtil.handleColumnList(
                         fieldConfigList, fullColumnList, fullColumnTypeList);
         List<String> columnList = result.getLeft();
-        List<String> columnTypeList = result.getRight();
+        List<TypeConfig> columnTypeList = result.getRight();
         assertTrue(columnList.contains("id"));
         assertTrue(columnList.contains("name"));
         assertFalse(columnList.contains("comment"));
@@ -94,7 +99,11 @@ public class ColumnBuildUtilTest {
                         .build();
 
         List<String> fullColumnList = ImmutableList.of("id", "name", "comment");
-        List<String> fullColumnTypeList = ImmutableList.of("int", "string", "string");
+        List<TypeConfig> fullColumnTypeList =
+                ImmutableList.of(
+                        TypeConfig.fromString("int"),
+                        TypeConfig.fromString("string"),
+                        TypeConfig.fromString("string"));
         ChunJunRuntimeException thrown =
                 assertThrows(
                         ChunJunRuntimeException.class,
@@ -119,18 +128,22 @@ public class ColumnBuildUtilTest {
                         .build();
 
         List<String> fullColumnList = ImmutableList.of("id", "name", "comment");
-        List<String> fullColumnTypeList = ImmutableList.of("int", "string", "string");
-        Pair<List<String>, List<String>> result =
+        List<TypeConfig> fullColumnTypeList =
+                ImmutableList.of(
+                        TypeConfig.fromString("int"),
+                        TypeConfig.fromString("string"),
+                        TypeConfig.fromString("string"));
+        Pair<List<String>, List<TypeConfig>> result =
                 ColumnBuildUtil.handleColumnList(
                         fieldConfigList, fullColumnList, fullColumnTypeList);
         List<String> columnList = result.getLeft();
-        List<String> columnTypeList = result.getRight();
+        List<TypeConfig> columnTypeList = result.getRight();
 
         assertTrue(columnList.contains("id"));
         assertTrue(columnList.contains("name"));
         assertTrue(columnList.contains("comment"));
-        assertTrue(columnTypeList.contains("int"));
-        assertTrue(columnTypeList.contains("string"));
-        assertTrue(columnTypeList.contains("string"));
+        assertTrue(columnTypeList.contains(TypeConfig.fromString("int")));
+        assertTrue(columnTypeList.contains(TypeConfig.fromString("string")));
+        assertTrue(columnTypeList.contains(TypeConfig.fromString("string")));
     }
 }

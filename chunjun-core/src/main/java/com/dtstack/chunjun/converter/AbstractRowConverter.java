@@ -21,8 +21,10 @@ package com.dtstack.chunjun.converter;
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
+import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.enums.ColumnType;
+import com.dtstack.chunjun.throwable.ChunJunException;
 import com.dtstack.chunjun.util.DateUtil;
 
 import org.apache.flink.table.data.RowData;
@@ -92,14 +94,18 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     protected IDeserializationConverter wrapIntoNullableInternalConverter(
             IDeserializationConverter IDeserializationConverter) {
         return val -> {
-            if (val == null) {
+            if (val == null || val instanceof NullColumn) {
                 return null;
             } else {
                 try {
                     return IDeserializationConverter.deserialize(val);
                 } catch (Exception e) {
                     log.error("value [{}] convent failed ", val);
-                    throw e;
+                    String message =
+                            e.getMessage()
+                                    + "; "
+                                    + String.format("value [%s] convent failed ", val);
+                    throw new ChunJunException(message);
                 }
             }
         };
@@ -117,7 +123,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
         String format = fieldConfig.getFormat();
         String parseFormat = fieldConfig.getParseFormat();
         if (StringUtils.isNotBlank(fieldConfig.getValue())) {
-            String type = fieldConfig.getType();
+            String type = fieldConfig.getType().getType();
             if ((ColumnType.isStringType(type) || ColumnType.isTimeType(type))
                     && StringUtils.isNotBlank(format)) {
                 SimpleDateFormat parseDateFormat = null;

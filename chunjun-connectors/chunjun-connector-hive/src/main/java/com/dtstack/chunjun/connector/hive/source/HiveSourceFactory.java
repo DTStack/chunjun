@@ -18,11 +18,11 @@
 package com.dtstack.chunjun.connector.hive.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
-import com.dtstack.chunjun.connector.hive.converter.HiveRawTypeConverter;
+import com.dtstack.chunjun.connector.hive.converter.HiveRawTypeMapper;
 import com.dtstack.chunjun.connector.hive.dialect.HiveDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -54,7 +54,7 @@ public class HiveSourceFactory extends JdbcSourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return HiveRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return HiveRawTypeMapper::apply;
     }
 }

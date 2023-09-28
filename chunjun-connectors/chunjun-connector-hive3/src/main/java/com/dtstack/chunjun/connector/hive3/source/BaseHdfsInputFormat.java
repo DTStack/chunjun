@@ -67,7 +67,9 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
                     Hive3Util.getUGI(
                             hdfsConfig.getHadoopConfig(),
                             hdfsConfig.getDefaultFS(),
-                            distributedCache);
+                            distributedCache,
+                            jobId,
+                            String.valueOf(indexOfSubTask));
             return ugi.doAs(
                     (PrivilegedExceptionAction<InputSplit[]>)
                             () -> {
@@ -102,7 +104,9 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
                     Hive3Util.getUGI(
                             hdfsConfig.getHadoopConfig(),
                             hdfsConfig.getDefaultFS(),
-                            getRuntimeContext().getDistributedCache());
+                            getRuntimeContext().getDistributedCache(),
+                            jobId,
+                            String.valueOf(indexOfSubTask));
         }
     }
 

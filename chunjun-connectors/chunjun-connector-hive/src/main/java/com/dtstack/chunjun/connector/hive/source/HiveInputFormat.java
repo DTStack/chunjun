@@ -17,8 +17,9 @@
  */
 package com.dtstack.chunjun.connector.hive.source;
 
-import com.dtstack.chunjun.connector.hive.converter.HiveJdbcColumnConverter;
-import com.dtstack.chunjun.connector.hive.converter.HiveRawTypeConverter;
+import com.dtstack.chunjun.config.TypeConfig;
+import com.dtstack.chunjun.connector.hive.converter.HiveJdbcSyncConverter;
+import com.dtstack.chunjun.connector.hive.converter.HiveRawTypeMapper;
 import com.dtstack.chunjun.connector.hive.entity.ConnectionInfo;
 import com.dtstack.chunjun.connector.hive.util.HiveDbUtil;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
@@ -48,6 +49,9 @@ public class HiveInputFormat extends JdbcInputFormat {
         connectionInfo.setJdbcUrl(jdbcConfig.getJdbcUrl());
         connectionInfo.setUsername(jdbcConfig.getUsername());
         connectionInfo.setPassword(jdbcConfig.getPassword());
+        if (jdbcConfig.getQueryTimeOut() > 0) {
+            connectionInfo.setTimeout(jdbcConfig.getQueryTimeOut());
+        }
         this.currentJdbcInputSplit = (JdbcInputSplit) inputSplit;
         initMetric(currentJdbcInputSplit);
         if (!canReadData(currentJdbcInputSplit)) {
@@ -63,12 +67,15 @@ public class HiveInputFormat extends JdbcInputFormat {
         try {
             dbConn =
                     HiveDbUtil.getConnection(
-                            connectionInfo, getRuntimeContext().getDistributedCache());
+                            connectionInfo,
+                            getRuntimeContext().getDistributedCache(),
+                            jobId,
+                            String.valueOf(indexOfSubTask));
             dbConn.setAutoCommit(false);
 
-            Pair<List<String>, List<String>> pair = null;
+            Pair<List<String>, List<TypeConfig>> pair = null;
             List<String> fullColumnList = new LinkedList<>();
-            List<String> fullColumnTypeList = new LinkedList<>();
+            List<TypeConfig> fullColumnTypeList = new LinkedList<>();
             if (StringUtils.isBlank(jdbcConfig.getCustomSql())) {
                 pair =
                         jdbcDialect.getTableMetaData(
@@ -81,7 +88,7 @@ public class HiveInputFormat extends JdbcInputFormat {
                 fullColumnList = pair.getLeft();
                 fullColumnTypeList = pair.getRight();
             }
-            Pair<List<String>, List<String>> columnPair =
+            Pair<List<String>, List<TypeConfig>> columnPair =
                     ColumnBuildUtil.handleColumnList(
                             jdbcConfig.getColumn(), fullColumnList, fullColumnTypeList);
             columnNameList = columnPair.getLeft();
@@ -97,10 +104,10 @@ public class HiveInputFormat extends JdbcInputFormat {
                             && !jdbcConfig.isUseMaxFunc();
             RowType rowType =
                     TableUtil.createRowType(
-                            columnNameList, columnTypeList, HiveRawTypeConverter::apply);
+                            columnNameList, columnTypeList, HiveRawTypeMapper::apply);
             setRowConverter(
                     rowConverter == null
-                            ? new HiveJdbcColumnConverter(rowType, jdbcConfig)
+                            ? new HiveJdbcSyncConverter(rowType, jdbcConfig)
                             : rowConverter);
         } catch (SQLException se) {
             String expMsg = se.getMessage();

@@ -190,6 +190,7 @@ public class HiveDynamicTableFactory implements DynamicTableSinkFactory, Dynamic
         options.add(HiveOptions.PASSWORD);
         options.add(HiveOptions.PARTITION_TYPE);
         options.add(HiveOptions.PARTITION);
+        options.add(SCAN_QUERY_TIMEOUT);
 
         options.add(SCAN_CUSTOM_SQL);
 

@@ -50,32 +50,34 @@
 		<!--RDB-->
 		<module>chunjun-connector-jdbc-base</module>
 		<module>chunjun-connector-mysql</module>
-<!--		<module>chunjun-connector-oracle</module>-->
-<!--		<module>chunjun-connector-sqlserver</module>-->
-<!--		<module>chunjun-connector-db2</module>-->
-<!--		<module>chunjun-connector-postgresql</module>-->
-<!--		<module>chunjun-connector-greenplum</module>-->
-<!--		<module>chunjun-connector-dm</module>-->
-<!--		<module>chunjun-connector-clickhouse</module>-->
-<!--		<module>chunjun-connector-saphana</module>-->
-<!--		<module>chunjun-connector-doris</module>-->
-<!--		<module>chunjun-connector-influxdb</module>-->
-<!--		<module>chunjun-connector-starrocks</module>-->
-<!--		<module>chunjun-connector-oceanbase</module>-->
-<!--		<module>chunjun-connector-cassandra</module>-->
-<!--		<module>chunjun-connector-sybase</module>-->
-<!--		<module>chunjun-connector-vertica11</module>-->
-<!--		<module>chunjun-connector-selectdb-cloud</module>-->
+		<module>chunjun-connector-oracle</module>
+		<module>chunjun-connector-sqlserver</module>
+		<module>chunjun-connector-db2</module>
+		<module>chunjun-connector-postgresql</module>
+		<module>chunjun-connector-greenplum</module>
+		<module>chunjun-connector-dm</module>
+		<module>chunjun-connector-gbase</module>
+		<module>chunjun-connector-clickhouse</module>
+		<module>chunjun-connector-saphana</module>
+		<module>chunjun-connector-doris</module>
+		<module>chunjun-connector-influxdb</module>
+		<module>chunjun-connector-starrocks</module>
+		<module>chunjun-connector-oceanbase</module>
+		<module>chunjun-connector-cassandra</module>
+		<module>chunjun-connector-sybase</module>
+		<module>chunjun-connector-vertica11</module>
+		<module>chunjun-connector-selectdb-cloud</module>
 
 		<!--File-->
-<!--		<module>chunjun-connector-file</module>-->
-<!--		&lt;!&ndash;		<module>chunjun-connector-filesystem</module>&ndash;&gt;-->
-<!--		<module>chunjun-connector-ftp</module>-->
-<!--		<module>chunjun-connector-hdfs</module>-->
-<!--		<module>chunjun-connector-hive</module>-->
-<!--		<module>chunjun-connector-hive3</module>-->
-<!--		<module>chunjun-connector-iceberg</module>-->
-<!--		<module>chunjun-connector-s3</module>-->
+		<module>chunjun-connector-file</module>
+		<!--		<module>chunjun-connector-filesystem</module>-->
+		<module>chunjun-connector-ftp</module>
+		<module>chunjun-connector-hdfs</module>
+		<module>chunjun-connector-hive</module>
+		<module>chunjun-connector-hive3</module>
+		<module>chunjun-connector-iceberg</module>
+		<module>chunjun-connector-arctic</module>
+		<module>chunjun-connector-s3</module>
 
 <!--		&lt;!&ndash;NoSql&ndash;&gt;-->
 <!--		<module>chunjun-connector-hbase-base</module>-->
@@ -103,9 +105,9 @@
 <!--		&lt;!&ndash;Distribute plugin, just for SYNC&ndash;&gt;-->
 <!--		<module>chunjun-connector-mysqld</module>-->
 
-<!--		&lt;!&ndash; nebula &ndash;&gt;-->
-<!--		<module>chunjun-connector-nebula</module>-->
-<!--        <module>chunjun-connector-kingbase</module>-->
+		<module>chunjun-connector-nebula</module>
+		<module>chunjun-connector-kingbase</module>
+        <module>chunjun-connector-hudi</module>
     </modules>
 
 	<dependencies>
@@ -136,7 +138,6 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-shade-plugin</artifactId>
-					<version>3.1.0</version>
 					<executions>
 						<execution>
 							<phase>package</phase>
@@ -144,7 +145,6 @@
 								<goal>shade</goal>
 							</goals>
 							<configuration>
-								<createDependencyReducedPom>false</createDependencyReducedPom>
 								<artifactSet>
 									<excludes>
 										<exclude>org.slf4j:slf4j-api</exclude>

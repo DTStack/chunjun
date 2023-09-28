@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.solr.table;
 
 import com.dtstack.chunjun.connector.solr.SolrConfig;
-import com.dtstack.chunjun.connector.solr.converter.SolrRowConverter;
+import com.dtstack.chunjun.connector.solr.converter.SolrSqlConverter;
 import com.dtstack.chunjun.connector.solr.sink.SolrOutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
@@ -55,7 +55,7 @@ public class SolrDynamicTableSink implements DynamicTableSink {
         String[] fieldNames = resolvedSchema.getColumnNames().toArray(new String[0]);
 
         SolrOutputFormatBuilder builder = new SolrOutputFormatBuilder(solrConfig);
-        builder.setRowConverter(new SolrRowConverter(rowType, fieldNames));
+        builder.setRowConverter(new SolrSqlConverter(rowType, fieldNames));
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction<>(builder.finish()), solrConfig.getParallelism());

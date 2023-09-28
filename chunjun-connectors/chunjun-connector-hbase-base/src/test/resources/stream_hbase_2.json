@@ -1,0 +1,57 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "streamreader",
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "id"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "message",
+                "type": "string"
+              }
+            ],
+            "sliceRecordCount": [
+              1000
+            ]
+          }
+        },
+        "writer": {
+          "parameter": {
+            "rowkeyColumn": "$(stu:id)",
+            "column": [
+              {
+                "name": "stu:id",
+                "type": "int"
+              },
+              {
+                "name": "stu:name",
+                "type": "string"
+              },
+              {
+                "name": "msg:message",
+                "type": "string"
+              }
+            ],
+            "table": "tiezhu_one",
+            "hbaseConfig": {
+              "hbase.zookeeper.quorum": "hadoop-cluster1-node1,hadoop-cluster1-node2,hadoop-cluster1-node3"
+            }
+          },
+          "name": "hbasewriter",
+          "table": {
+            "tableName": "sink"
+          }
+        }
+      }
+    ]
+  }
+}

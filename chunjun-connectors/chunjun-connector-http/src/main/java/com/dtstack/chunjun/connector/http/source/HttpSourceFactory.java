@@ -25,12 +25,12 @@ import com.dtstack.chunjun.connector.http.common.HttpMethod;
 import com.dtstack.chunjun.connector.http.common.HttpRestConfig;
 import com.dtstack.chunjun.connector.http.common.MetaParam;
 import com.dtstack.chunjun.connector.http.common.ParamType;
-import com.dtstack.chunjun.connector.http.converter.HttpColumnConverter;
-import com.dtstack.chunjun.connector.http.converter.HttpRawTypeConverter;
-import com.dtstack.chunjun.connector.http.converter.HttpRowConverter;
+import com.dtstack.chunjun.connector.http.converter.HttpRawTypeMapper;
+import com.dtstack.chunjun.connector.http.converter.HttpSqlConverter;
+import com.dtstack.chunjun.connector.http.converter.HttpSyncConverter;
 import com.dtstack.chunjun.connector.http.inputformat.HttpInputFormatBuilder;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.StringUtil;
@@ -87,12 +87,11 @@ public class HttpSourceFactory extends SourceFactory {
         if (syncConfig.getTransformer() == null
                 || StringUtils.isBlank(syncConfig.getTransformer().getTransformSql())) {
             typeInformation =
-                    TableUtil.getTypeInformation(
-                            Collections.emptyList(), getRawTypeConverter(), true);
+                    TableUtil.getTypeInformation(Collections.emptyList(), getRawTypeMapper(), true);
         } else {
             typeInformation =
                     TableUtil.getTypeInformation(
-                            subColumns(httpRestConfig.getColumn()), getRawTypeConverter(), false);
+                            subColumns(httpRestConfig.getColumn()), getRawTypeMapper(), false);
             useAbstractBaseColumn = false;
         }
         super.initCommonConf(httpRestConfig);
@@ -121,11 +120,11 @@ public class HttpSourceFactory extends SourceFactory {
         HttpInputFormatBuilder builder = new HttpInputFormatBuilder();
         AbstractRowConverter rowConverter = null;
         if (useAbstractBaseColumn) {
-            rowConverter = new HttpColumnConverter(httpRestConfig);
+            rowConverter = new HttpSyncConverter(httpRestConfig);
         } else {
             final RowType rowType =
-                    TableUtil.createRowType(httpRestConfig.getColumn(), getRawTypeConverter());
-            rowConverter = new HttpRowConverter(rowType, httpRestConfig);
+                    TableUtil.createRowType(httpRestConfig.getColumn(), getRawTypeMapper());
+            rowConverter = new HttpSqlConverter(rowType, httpRestConfig);
         }
         builder.setHttpRestConfig(httpRestConfig);
         builder.setMetaHeaders(httpRestConfig.getHeader());
@@ -136,7 +135,7 @@ public class HttpSourceFactory extends SourceFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return HttpRawTypeConverter::apply;
+    public RawTypeMapper getRawTypeMapper() {
+        return HttpRawTypeMapper::apply;
     }
 }

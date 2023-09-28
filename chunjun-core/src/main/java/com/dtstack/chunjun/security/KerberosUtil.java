@@ -41,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 public class KerberosUtil {
@@ -70,12 +71,13 @@ public class KerberosUtil {
         createDir(LOCAL_CACHE_DIR);
     }
 
-    public static UserGroupInformation loginAndReturnUgi(Map<String, Object> hadoopConfig) {
+    public static UserGroupInformation loginAndReturnUgi(
+            Map<String, Object> hadoopConfig, String jobId, String taskNumber) {
         String keytabFileName = KerberosUtil.getPrincipalFileName(hadoopConfig);
-        keytabFileName = KerberosUtil.loadFile(hadoopConfig, keytabFileName);
+        keytabFileName = KerberosUtil.loadFile(hadoopConfig, keytabFileName, jobId, taskNumber);
 
         String principal = KerberosUtil.getPrincipal(hadoopConfig, keytabFileName);
-        KerberosUtil.loadKrb5Conf(hadoopConfig, null);
+        KerberosUtil.loadKrb5Conf(hadoopConfig, null, jobId, taskNumber);
 
         Configuration conf = FileSystemUtil.getConfiguration(hadoopConfig, null);
 
@@ -163,20 +165,24 @@ public class KerberosUtil {
     }
 
     public static void loadKrb5Conf(
-            Map<String, Object> kerberosConfig, DistributedCache distributedCache) {
+            Map<String, Object> kerberosConfig,
+            DistributedCache distributedCache,
+            String jobId,
+            String taskNumber) {
         String krb5FilePath = MapUtils.getString(kerberosConfig, KEY_JAVA_SECURITY_KRB5_CONF);
         if (StringUtils.isEmpty(krb5FilePath)) {
             log.info("krb5 file is empty,will use default file");
             return;
         }
 
-        krb5FilePath = loadFile(kerberosConfig, krb5FilePath, distributedCache);
+        krb5FilePath = loadFile(kerberosConfig, krb5FilePath, distributedCache, jobId, taskNumber);
         kerberosConfig.put(KEY_JAVA_SECURITY_KRB5_CONF, krb5FilePath);
         System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5FilePath);
     }
 
-    public static void loadKrb5Conf(Map<String, Object> kerberosConfig) {
-        loadKrb5Conf(kerberosConfig, null);
+    public static void loadKrb5Conf(
+            Map<String, Object> kerberosConfig, String jobId, String taskNumber) {
+        loadKrb5Conf(kerberosConfig, null, jobId, taskNumber);
     }
 
     /**
@@ -187,7 +193,9 @@ public class KerberosUtil {
     public static String loadFile(
             Map<String, Object> kerberosConfig,
             String filePath,
-            DistributedCache distributedCache) {
+            DistributedCache distributedCache,
+            String jobId,
+            String taskNumber) {
         boolean useLocalFile = MapUtils.getBooleanValue(kerberosConfig, KEY_USE_LOCAL_FILE);
         if (useLocalFile) {
             log.info("will use local file:{}", filePath);
@@ -217,13 +225,14 @@ public class KerberosUtil {
                 }
             }
 
-            fileName = loadFromSftp(kerberosConfig, fileName);
+            fileName = loadFromSftp(kerberosConfig, fileName, jobId, taskNumber);
             return fileName;
         }
     }
 
-    public static String loadFile(Map<String, Object> kerberosConfig, String filePath) {
-        return loadFile(kerberosConfig, filePath, null);
+    public static String loadFile(
+            Map<String, Object> kerberosConfig, String filePath, String jobId, String taskNumber) {
+        return loadFile(kerberosConfig, filePath, null, jobId, taskNumber);
     }
 
     public static void checkFileExists(String filePath) {
@@ -237,7 +246,8 @@ public class KerberosUtil {
         }
     }
 
-    private static String loadFromSftp(Map<String, Object> config, String fileName) {
+    private static String loadFromSftp(
+            Map<String, Object> config, String fileName, String jobId, String taskNumber) {
         String remoteDir = MapUtils.getString(config, KEY_REMOTE_DIR);
         if (StringUtils.isBlank(remoteDir)) {
             throw new ChunJunRuntimeException(
@@ -245,8 +255,21 @@ public class KerberosUtil {
         }
         String filePathOnSftp = remoteDir + "/" + fileName;
 
+        if (StringUtils.isBlank(jobId)) {
+            // 创建分片在 JobManager， 此时还没有 JobId，随机生成UUID
+            jobId = UUID.randomUUID().toString();
+            log.warn("jobId is null, jobId will be replaced with [UUID], jobId(UUID) = {}.", jobId);
+        }
+
+        if (StringUtils.isBlank(taskNumber)) {
+            taskNumber = UUID.randomUUID().toString();
+            log.warn(
+                    "taskNumber is null, taskNumber will be replaced with [UUID], taskNumber(UUID) = {}.",
+                    taskNumber);
+        }
+
         String localDirName = Md5Util.getMd5(remoteDir);
-        String localDir = LOCAL_CACHE_DIR + SP + localDirName;
+        String localDir = LOCAL_CACHE_DIR + SP + jobId + SP + taskNumber + SP + localDirName;
         localDir = createDir(localDir);
         String fileLocalPath = localDir + SP + fileName;
         // 更新sftp文件对应的local文件

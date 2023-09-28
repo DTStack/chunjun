@@ -212,7 +212,8 @@ public class RowKeyValueDeserializationSchema implements KeyValueDeserialization
         try {
             return converter.toInternal(value);
         } catch (Exception e) {
-            dirtyManager.collect(value, e, null);
+            long globalErrors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
+            dirtyManager.collect(value, e, null, globalErrors);
         }
         return null;
     }

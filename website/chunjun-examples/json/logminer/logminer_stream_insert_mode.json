@@ -1,0 +1,84 @@
+{
+  "job": {
+    "content": [
+      {
+        "nameMapping": {
+          "schemaMappings": {
+            "LOGMINER_TEST": "LOGMINER_TEST"
+          },
+          "tableMappings": {
+            "LOGMINER_TEST": {
+              "ZJH_LG_FROM2": "ZJH_LG_TO2"
+            }
+          },
+          "fieldMappings": {
+            "LOGMINER_TEST": {
+              "ZJH_LG_FROM2": {
+                "ID": "TO2_ID",
+                "NAME": "NAME"
+              }
+            }
+          }
+        },
+        "reader": {
+          "parameter": {
+            "jdbcUrl": "jdbc:oracle:thin:@localhost:1521:helowin",
+            "username": "logminer_test",
+            "password": "123456",
+            "supportAutoAddLog": false,
+            "table": [
+              "LOGMINER_TEST.ZJH_LG_FROM2"
+            ],
+            "pavingData": false,
+            "split": true,
+            "cat": "INSERT,UPDATE,DELETE",
+            "readPosition": "CURRENT",
+            "queryTimeout": 3000
+          },
+          "name": "oraclelogminerreader"
+        },
+        "writer": {
+          "parameter": {
+            "writeMode": "insert",
+            "uniqueKey": [
+            ],
+            "allReplace": true,
+            "username": "logminer_test",
+            "password": "123456",
+            "connection": [
+              {
+                "schema": "LOGMINER_TEST",
+                "jdbcUrl": "jdbc:oracle:thin:@localhost:1521:helowin",
+                "table": [
+                  "*"
+                ]
+              }
+            ]
+          },
+          "name": "oraclewriter"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "bytes": 0,
+        "channel": 1
+      },
+      "errorLimit": {
+        "record": 1
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log": {
+        "isLogger": true,
+        "level": "debug",
+        "path": "",
+        "pattern": ""
+      }
+    }
+  }
+}

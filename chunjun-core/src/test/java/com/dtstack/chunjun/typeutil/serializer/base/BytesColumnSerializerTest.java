@@ -35,13 +35,9 @@ public class BytesColumnSerializerTest extends SerializerTestBase<AbstractBaseCo
     protected Tuple2<BiFunction<Object, Object, Boolean>, DeeplyEqualsChecker.CustomEqualityChecker>
             getCustomChecker() {
         return Tuple2.of(
-                new BiFunction<Object, Object, Boolean>() {
-                    @Override
-                    public Boolean apply(Object o, Object o2) {
-                        return o instanceof BytesColumn && o2 instanceof BytesColumn
-                                || (o instanceof NullColumn && o2 instanceof NullColumn);
-                    }
-                },
+                (o, o2) ->
+                        o instanceof BytesColumn && o2 instanceof BytesColumn
+                                || (o instanceof NullColumn && o2 instanceof NullColumn),
                 new BytesColumnChecker());
     }
 

@@ -19,9 +19,10 @@
 package com.dtstack.chunjun.connector.hbase.sink;
 
 import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.util.HBaseTestUtil;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -53,21 +54,21 @@ public class HBaseSinkFactoryTest {
 
     @Test
     public void testGetRawTypeConverter() throws IOException {
-        String job = HBaseTestUtil.readFile("stream_hbase.json");
+        String job = HBaseTestUtil.readFile("stream_hbase_2.json");
         SyncConfig conf = SyncConfig.parseJob(job);
         HBaseSinkFactoryBase sinkFactory = new TestSinkFactory(conf);
-        RawTypeConverter converter = sinkFactory.getRawTypeConverter();
+        RawTypeMapper converter = sinkFactory.getRawTypeMapper();
 
         HBaseTableSchema hbaseTest =
                 sinkFactory.buildHBaseTableSchema("hbase_test", conf.getWriter().getFieldList());
 
         Assert.assertEquals("stu", hbaseTest.getFamilyNames()[0]);
-        Assert.assertEquals(DataTypes.NULL(), converter.apply("NULL"));
+        Assert.assertEquals(DataTypes.NULL(), converter.apply(TypeConfig.fromString("NULL")));
     }
 
     @Test
     public void testCreateSink() throws IOException {
-        String job = HBaseTestUtil.readFile("stream_hbase.json");
+        String job = HBaseTestUtil.readFile("stream_hbase_2.json");
         HBaseSinkFactoryBase sinkFactory = new TestSinkFactory(SyncConfig.parseJob(job));
         when(dataStream.addSink(any())).thenReturn(dataStreamSink);
         sinkFactory.createSink(dataStream);

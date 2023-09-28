@@ -39,13 +39,9 @@ public class MapColumnSerializerTest extends SerializerTestBase<AbstractBaseColu
     protected Tuple2<BiFunction<Object, Object, Boolean>, DeeplyEqualsChecker.CustomEqualityChecker>
             getCustomChecker() {
         return Tuple2.of(
-                new BiFunction<Object, Object, Boolean>() {
-                    @Override
-                    public Boolean apply(Object o, Object o2) {
-                        return (o instanceof MapColumn && o2 instanceof MapColumn)
-                                || (o instanceof NullColumn && o2 instanceof NullColumn);
-                    }
-                },
+                (o, o2) ->
+                        (o instanceof MapColumn && o2 instanceof MapColumn)
+                                || (o instanceof NullColumn && o2 instanceof NullColumn),
                 new MapColumnChecker());
     }
 

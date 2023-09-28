@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.sqlservercdc.source;
 
 import com.dtstack.chunjun.connector.sqlservercdc.config.SqlServerCdcConfig;
-import com.dtstack.chunjun.connector.sqlservercdc.convert.SqlServerCdcRowConverter;
+import com.dtstack.chunjun.connector.sqlservercdc.convert.SqlServerCdcSqlConverter;
 import com.dtstack.chunjun.connector.sqlservercdc.format.TimestampFormat;
 import com.dtstack.chunjun.connector.sqlservercdc.inputFormat.SqlServerCdcInputFormatBuilder;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
@@ -57,7 +57,7 @@ public class SqlServerCdcDynamicTableSource implements ScanTableSource {
         SqlServerCdcInputFormatBuilder builder = new SqlServerCdcInputFormatBuilder();
         builder.setSqlServerCdcConf(sqlserverCdcConfig);
         builder.setRowConverter(
-                new SqlServerCdcRowConverter(
+                new SqlServerCdcSqlConverter(
                         InternalTypeInfo.of(logicalType).toRowType(), this.timestampFormat));
 
         return ParallelSourceFunctionProvider.of(

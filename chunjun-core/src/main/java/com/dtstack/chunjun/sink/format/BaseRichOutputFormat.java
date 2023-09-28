@@ -24,6 +24,7 @@ import com.dtstack.chunjun.cdc.exception.LogExceptionHandler;
 import com.dtstack.chunjun.cdc.handler.DDLHandler;
 import com.dtstack.chunjun.cdc.utils.ExecutorUtils;
 import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.dirty.DirtyConfig;
@@ -147,7 +148,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     /** A collection of field names filled in user scripts with constants removed */
     protected List<String> columnNameList = new ArrayList<>();
     /** A collection of field types filled in user scripts with constants removed */
-    protected List<String> columnTypeList = new ArrayList<>();
+    protected List<TypeConfig> columnTypeList = new ArrayList<>();
 
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
@@ -184,7 +185,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     @Override
     public void initializeGlobal(int parallelism) {
-        // 任务开始前操作，在configure前调用。
+        // 任务开始前操作，在configure后调用。
     }
 
     @Override
@@ -487,7 +488,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
             writeSingleRecordInternal(rowData);
             numWriteCounter.add(1L);
         } catch (WriteRecordException e) {
-            dirtyManager.collect(e.getRowData(), e, null);
+            long globalErrors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
+
+            dirtyManager.collect(e.getRowData(), e, null, globalErrors);
             if (log.isTraceEnabled()) {
                 log.trace(
                         "write error rowData, rowData = {}, e = {}",

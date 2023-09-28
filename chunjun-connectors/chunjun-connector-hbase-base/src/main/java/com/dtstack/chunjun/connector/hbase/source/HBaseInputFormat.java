@@ -18,6 +18,7 @@
 
 package com.dtstack.chunjun.connector.hbase.source;
 
+import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.hbase.util.HBaseHelper;
 import com.dtstack.chunjun.connector.hbase.util.ScanBuilder;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
@@ -54,7 +55,7 @@ public class HBaseInputFormat extends BaseRichInputFormat {
     protected List<String> columnNames;
     protected List<String> columnValues;
     protected List<String> columnFormats;
-    protected List<String> columnTypes;
+    protected List<TypeConfig> columnTypes;
     protected boolean isBinaryRowkey;
     /** 客户端每次 rpc fetch 的行数 */
     protected int scanCacheSize = 1000;
@@ -79,7 +80,8 @@ public class HBaseInputFormat extends BaseRichInputFormat {
 
         this.scan = scanBuilder.buildScan();
         this.scan.setCaching(scanCacheSize);
-        this.connection = HBaseHelper.getHbaseConnection(hbaseConfig);
+        this.connection =
+                HBaseHelper.getHbaseConnection(hbaseConfig, jobId, String.valueOf(indexOfSubTask));
         try (Admin admin = this.connection.getAdmin()) {
             boolean exist = admin.tableExists(TableName.valueOf(tableName));
             if (!exist) {
@@ -93,7 +95,9 @@ public class HBaseInputFormat extends BaseRichInputFormat {
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
-        try (Connection connection = HBaseHelper.getHbaseConnection(hbaseConfig)) {
+        try (Connection connection =
+                HBaseHelper.getHbaseConnection(
+                        hbaseConfig, jobId, String.valueOf(indexOfSubTask))) {
             return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
         }
     }
@@ -223,7 +227,9 @@ public class HBaseInputFormat extends BaseRichInputFormat {
         byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
 
         if (null == connection || connection.isClosed()) {
-            connection = HBaseHelper.getHbaseConnection(hbaseConfig);
+            connection =
+                    HBaseHelper.getHbaseConnection(
+                            hbaseConfig, jobId, String.valueOf(indexOfSubTask));
         }
 
         Table table = connection.getTable(TableName.valueOf(tableName));

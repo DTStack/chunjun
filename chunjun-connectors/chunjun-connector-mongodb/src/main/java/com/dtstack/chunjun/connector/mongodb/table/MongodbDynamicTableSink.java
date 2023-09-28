@@ -21,7 +21,7 @@ package com.dtstack.chunjun.connector.mongodb.table;
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.mongodb.config.MongoClientConfig;
 import com.dtstack.chunjun.connector.mongodb.config.MongoWriteConfig;
-import com.dtstack.chunjun.connector.mongodb.converter.MongodbRowConverter;
+import com.dtstack.chunjun.connector.mongodb.converter.MongodbSqlConverter;
 import com.dtstack.chunjun.connector.mongodb.sink.MongodbOutputFormat;
 import com.dtstack.chunjun.connector.mongodb.sink.MongodbOutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
@@ -69,7 +69,7 @@ public class MongodbDynamicTableSink implements DynamicTableSink {
         commonConfig.setFlushIntervalMills(mongoWriteConfig.getFlushInterval());
         builder.setConfig(commonConfig);
 
-        builder.setRowConverter(new MongodbRowConverter(rowType, fieldNames));
+        builder.setRowConverter(new MongodbSqlConverter(rowType, fieldNames));
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction<>(builder.finish()),
                 mongoWriteConfig.getParallelism());

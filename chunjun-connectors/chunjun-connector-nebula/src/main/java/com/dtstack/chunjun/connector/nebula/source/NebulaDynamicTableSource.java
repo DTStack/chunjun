@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.nebula.source;
 
 import com.dtstack.chunjun.connector.nebula.config.NebulaConfig;
-import com.dtstack.chunjun.connector.nebula.converter.NebulaRowConverter;
+import com.dtstack.chunjun.connector.nebula.converter.NebulaSqlConverter;
 import com.dtstack.chunjun.connector.nebula.lookup.NebulaAllTableFunction;
 import com.dtstack.chunjun.connector.nebula.lookup.NebulaLruTableFunction;
 import com.dtstack.chunjun.enums.CacheType;
@@ -83,7 +83,7 @@ public class NebulaDynamicTableSource
                             lookupConf,
                             resolvedSchema.getColumnNames().toArray(new String[0]),
                             keyNames,
-                            new NebulaRowConverter(rowType)),
+                            new NebulaSqlConverter(rowType)),
                     lookupConf.getParallelism());
         }
         return ParallelLookupFunctionProvider.of(
@@ -92,7 +92,7 @@ public class NebulaDynamicTableSource
                         resolvedSchema.getColumnNames().toArray(new String[0]),
                         keyNames,
                         lookupConf,
-                        new NebulaRowConverter(rowType)),
+                        new NebulaSqlConverter(rowType)),
                 lookupConf.getParallelism());
     }
 
@@ -108,7 +108,7 @@ public class NebulaDynamicTableSource
                         .toRowType();
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
         builder.setNebulaConf(nebulaConfig);
-        builder.setRowConverter(new NebulaRowConverter(rowType));
+        builder.setRowConverter(new NebulaSqlConverter(rowType));
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
                 false,

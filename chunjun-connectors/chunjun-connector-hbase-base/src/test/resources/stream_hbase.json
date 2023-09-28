@@ -1,57 +1,84 @@
 {
-  "job": {
-    "content": [
-      {
-        "reader": {
-          "name": "streamreader",
-          "parameter": {
-            "column": [
-              {
-                "name": "id",
-                "type": "id"
-              },
-              {
-                "name": "name",
-                "type": "string"
-              },
-              {
-                "name": "message",
-                "type": "string"
-              }
-            ],
-            "sliceRecordCount": [
-              1000
-            ]
-          }
-        },
-        "writer": {
-          "parameter": {
-            "rowkeyColumn": "$(stu:id)",
-            "column": [
-              {
-                "name": "stu:id",
-                "type": "int"
-              },
-              {
-                "name": "stu:name",
-                "type": "string"
-              },
-              {
-                "name": "msg:message",
-                "type": "string"
-              }
-            ],
-            "table": "tiezhu_one",
-            "hbaseConfig": {
-              "hbase.zookeeper.quorum": "hadoop-cluster1-node1,hadoop-cluster1-node2,hadoop-cluster1-node3"
+  "job" : {
+    "content" : [ {
+      "reader": {
+        "name": "streamreader",
+        "parameter": {
+          "column": [
+            {
+              "name": "id",
+              "type": "id"
+            },
+            {
+              "name": "user_id",
+              "type": "int"
+            },
+            {
+              "name": "name",
+              "type": "string"
             }
+          ],
+          "sliceRecordCount" : ["100"]
+        }
+      },
+      "writer": {
+        "table" : {
+          "tableName": "test"
+        },
+        "name": "hbasewriter",
+        "parameter": {
+          "hbaseConfig": {
+            "hbase.zookeeper.property.clientPort": "2181",
+            "hbase.rootdir": "hdfs://ns1/hbase_2.x",
+            "hbase.cluster.distributed": "true",
+            "hbase.zookeeper.quorum": "kudu1,kudu2,kudu3",
+            "zookeeper.znode.parent": "/hbase_2.x"
           },
-          "name": "hbasewriter",
-          "table": {
-            "tableName": "sink"
-          }
+          "nullMode" : "null",
+          "walFlag": false,
+          "writeBufferSize" : 1000,
+          "changeLog": "tb1",
+          "rowkeyExpress" : "$(cf1:id)_$(cf1:name)",
+          "versionColumnIndex" : 0,
+          "versionColumnValue" : "1",
+          "column": [
+            {
+              "name": "cf1:id",
+              "type": "int"
+            },
+            {
+              "name": "cf1:user_id",
+              "type": "int"
+            },
+            {
+              "name": "cf1:name",
+              "type": "string"
+            }
+          ]
         }
       }
-    ]
+    } ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "isStream" : false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log" : {
+        "isLogger": false,
+        "level" : "debug",
+        "path" : "",
+        "pattern":""
+      }
+    }
   }
 }

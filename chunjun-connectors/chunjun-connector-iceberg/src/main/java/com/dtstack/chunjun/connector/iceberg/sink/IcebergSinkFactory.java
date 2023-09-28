@@ -21,7 +21,7 @@ package com.dtstack.chunjun.connector.iceberg.sink;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.iceberg.config.IcebergConfig;
-import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.sink.WriteMode;
 import com.dtstack.chunjun.util.GsonUtil;
@@ -54,7 +54,7 @@ public class IcebergSinkFactory extends SinkFactory {
     }
 
     @Override
-    public RawTypeConverter getRawTypeConverter() {
+    public RawTypeMapper getRawTypeMapper() {
         return null;
     }
 
