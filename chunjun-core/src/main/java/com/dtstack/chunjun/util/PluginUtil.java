@@ -24,7 +24,6 @@ import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.dirty.DirtyConfig;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
-import com.dtstack.chunjun.enums.ClusterMode;
 import com.dtstack.chunjun.enums.OperatorType;
 import com.dtstack.chunjun.options.Options;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -67,13 +66,13 @@ public class PluginUtil {
     public static final String FORMATS_SUFFIX = "formats";
     public static final String DIRTY_SUFFIX = "dirty-data-collector";
     public static final String READER_SUFFIX = "reader";
-    private static final String JAR_SUFFIX = ".jar";
     public static final String SOURCE_SUFFIX = "source";
     public static final String WRITER_SUFFIX = "writer";
     public static final String SINK_SUFFIX = "sink";
     public static final String GENERIC_SUFFIX = "Factory";
     public static final String METRIC_SUFFIX = "metrics";
     public static final String DEFAULT_METRIC_PLUGIN = "prometheus";
+    private static final String JAR_SUFFIX = ".jar";
     private static final String SP = File.separator;
     private static final String PACKAGE_PREFIX = "com.dtstack.chunjun.connector.";
     private static final String METRIC_PACKAGE_PREFIX = "com.dtstack.chunjun.metrics.";
@@ -485,19 +484,15 @@ public class PluginUtil {
 
             List<String> pipelineJars = new ArrayList<>();
             log.info("ChunJun executionMode: " + executionMode);
-            if (ClusterMode.getByName(executionMode) == ClusterMode.kubernetesApplication) {
-                for (String jarUrl : jarList) {
-                    String newJarUrl = jarUrl;
-                    if (StringUtils.startsWith(jarUrl, File.separator)) {
-                        newJarUrl = "file:" + jarUrl;
-                    }
-                    if (pipelineJars.contains(newJarUrl)) {
-                        continue;
-                    }
-                    pipelineJars.add(newJarUrl);
+            for (String jarUrl : jarList) {
+                String newJarUrl = jarUrl;
+                if (StringUtils.startsWith(jarUrl, File.separator)) {
+                    newJarUrl = "file:" + jarUrl;
                 }
-            } else {
-                pipelineJars.addAll(jarList);
+                if (pipelineJars.contains(newJarUrl)) {
+                    continue;
+                }
+                pipelineJars.add(newJarUrl);
             }
 
             log.info("ChunJun reset pipeline.jars: " + pipelineJars);

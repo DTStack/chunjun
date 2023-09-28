@@ -45,7 +45,7 @@ public class WebServer {
         }
 
         app = Javalin.create().start(port);
-        requestHandler = new RequestHandler(app);
+        requestHandler = new RequestHandler(app, sessionManager);
         LOG.info("===============start web sever on port {}===========================", port);
         app.get("/", ctx ->  ctx.result("Hello ChunJun"));
         requestHandler.register();

@@ -9,33 +9,28 @@ import com.dtstack.chunjun.restapi.WebServer;
 import com.dtstack.chunjun.server.util.EnvUtil;
 
 import org.apache.flink.configuration.ConfigConstants;
-import org.apache.flink.configuration.ConfigUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Preconditions;
-import org.apache.flink.yarn.configuration.YarnConfigOptions;
 import org.apache.flink.yarn.configuration.YarnConfigOptionsInternal;
 
-import org.apache.flink.yarn.configuration.YarnLogConfigUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.apache.flink.configuration.ConfigConstants.ENV_FLINK_LIB_DIR;
-import static org.apache.flink.configuration.ConfigConstants.ENV_FLINK_PLUGINS_DIR;
 import static org.apache.flink.yarn.configuration.YarnConfigOptions.FLINK_DIST_JAR;
 
 /**
- * 启动 chunjun server 服务 Company: www.dtstack.com
- *
+ * 启动 chunjun server 服务
+ * 
+ * Company: www.dtstack.com
  * @author xuchao
  * @date 2023-06-13
  */
@@ -86,7 +81,7 @@ public class ServerLauncher {
             LOG.info("start web server ");
             WebConfig webConfig = new WebConfig();
             webConfig.setPort(18081);
-            webServer = new WebServer(webConfig);
+            webServer = new WebServer(webConfig, sessionManager);
             webServer.startServer();
         }
 

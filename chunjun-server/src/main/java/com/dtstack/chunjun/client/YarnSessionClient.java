@@ -3,9 +3,18 @@ package com.dtstack.chunjun.client;
 import com.dtstack.chunjun.config.SessionConfig;
 import com.dtstack.chunjun.config.YarnAppConfig;
 
+import com.dtstack.chunjun.entry.JobConverter;
+import com.dtstack.chunjun.entry.JobDescriptor;
+
+import com.dtstack.chunjun.server.util.JobGraphBuilder;
+
+import org.apache.flink.api.common.JobID;
+import org.apache.flink.api.common.JobStatus;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.ClusterClientProvider;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.jobgraph.JobGraph;
+import org.apache.flink.util.Preconditions;
 import org.apache.flink.yarn.CJYarnClusterClientFactory;
 import org.apache.flink.yarn.YarnClusterDescriptor;
 
@@ -24,6 +33,10 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 基于yarn 进行任务提交
@@ -44,6 +57,8 @@ public class YarnSessionClient implements IClient {
     /** flink-defined configuration */
     protected SessionConfig sessionConfig;
 
+    private JobGraphBuilder jobGraphBuilder;
+
     public YarnSessionClient(SessionConfig sessionConfig) {
         this.sessionConfig = sessionConfig;
     }
@@ -52,6 +67,7 @@ public class YarnSessionClient implements IClient {
     public void open() {
         yarnClient = initYarnClient();
         client = initYarnClusterClient();
+        jobGraphBuilder = new JobGraphBuilder(sessionConfig);
     }
 
     @Override
@@ -78,9 +94,17 @@ public class YarnSessionClient implements IClient {
         return null;
     }
 
+    /**
+     * flink session 场景下通过restapi 直接获取任务日志
+     * @param jobId
+     * @return
+     */
     @Override
-    public String getJobStatus(String jobId) {
-        return null;
+    public String getJobStatus(String jobId) throws Exception {
+        Preconditions.checkState(!StringUtils.isEmpty(jobId), "jobId can't be empty!");
+        CompletableFuture<JobStatus>  jobStatusCompletableFuture = client.getJobStatus(JobID.fromHexString(jobId));
+        JobStatus jobStatus = jobStatusCompletableFuture.get(20, TimeUnit.SECONDS);
+        return jobStatus.toString();
     }
 
     @Override
@@ -89,7 +113,14 @@ public class YarnSessionClient implements IClient {
     }
 
     @Override
-    public void submitJob() {}
+    public String submitJob(JobDescriptor jobDescriptor) throws Exception {
+
+        //TODO 提交部分需要控制classLoader 的新建，添加cache ，避免生成大量的class 导致metaspace oom.
+        JobGraph jobGraph = jobGraphBuilder.buildJobGraph(JobConverter.convertJobToArgs(jobDescriptor));
+        CompletableFuture<JobID> jobIDCompletableFuture = client.submitJob(jobGraph);
+        JobID jobID = jobIDCompletableFuture.get(100, TimeUnit.SECONDS);
+        return jobID.toString();
+    }
 
     @Override
     public void cancelJob(String jobId) {}

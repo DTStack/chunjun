@@ -13,8 +13,8 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * 调整org.apache.flink.yarn.YarnClusterClientFactory.getClusterDescriptor 逻辑添加对yarnConf 的设定 flink
  * 源码中客户端构建yarnConf 依赖bin
  * 脚本里的环境变量的设定INTERNAL_HADOOP_CLASSPATHS="${HADOOP_CLASSPATH}:${HADOOP_CONF_DIR}:${YARN_CONF_DIR}"
- * 然后基于classloader.getResource("yarn-site.xml") 来构建资源配置 Company: www.dtstack.com
- *
+ * 然后基于classloader.getResource("yarn-site.xml") 来构建资源配置
+ * Company: www.dtstack.com
  * @author xuchao
  * @date 2023-07-13
  */

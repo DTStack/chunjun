@@ -56,6 +56,7 @@ import com.dtstack.chunjun.util.TableUtil;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.runtime.clusterframework.ApplicationStatus;
 import org.apache.flink.runtime.entrypoint.ClusterEntrypoint;
@@ -192,6 +193,12 @@ public class Main {
             Options options)
             throws Exception {
         SyncConfig config = parseConfig(job, options);
+        //数据同步默认使用disable chaining(该参数对性能影响比较大)
+        Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
+        if(!confProperties.contains(PipelineOptions.OPERATOR_CHAINING.key())){
+            env.disableOperatorChaining();
+        }
+
         configStreamExecutionEnvironment(env, options, config);
 
         SourceFactory sourceFactory = DataSyncFactoryUtil.discoverSource(config, env);

@@ -6,7 +6,7 @@ package com.dtstack.chunjun.entry;
  * @author xuchao
  * @date 2023-09-20
  */
-public class StatusReq extends BaseEntry{
+public class JobInfoReq{
 
     private String jobId;
 

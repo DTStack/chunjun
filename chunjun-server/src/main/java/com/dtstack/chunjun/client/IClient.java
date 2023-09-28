@@ -1,10 +1,15 @@
 package com.dtstack.chunjun.client;
 
+import com.dtstack.chunjun.entry.JobDescriptor;
+
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 /**
- * 定义操作远程的接口 Company: www.dtstack.com
+ * 定义操作远程的接口
  *
+ * Company: www.dtstack.com
  * @author xuchao
  * @date 2023-05-22
  */
@@ -28,7 +33,7 @@ public interface IClient {
      *
      * @return
      */
-    String getJobStatus(String jobId);
+    String getJobStatus(String jobId) throws Exception;
 
     /**
      * 获取任务统计信息
@@ -38,7 +43,7 @@ public interface IClient {
     String getJobStatics(String jobId);
 
     /** 提交任务 */
-    void submitJob();
+    String submitJob(JobDescriptor jobDescriptor) throws Exception;
 
     /** 取消任务 */
     void cancelJob(String jobId);
