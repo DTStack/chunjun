@@ -131,8 +131,8 @@ public class DirtyManager implements Serializable {
         entity.setFieldName(field);
         entity.setErrorMessage(ExceptionUtil.getErrorMessage(cause));
 
-        consumer.offer(entity, globalErrors);
         errorCounter.add(1L);
+        consumer.offer(entity, globalErrors);
     }
 
     public String toString(Object data) {
