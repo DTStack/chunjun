@@ -285,6 +285,10 @@
 					<artifactId>netty</artifactId>
 					<groupId>io.netty</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>commons-math3</artifactId>
+					<groupId>org.apache.commons</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 

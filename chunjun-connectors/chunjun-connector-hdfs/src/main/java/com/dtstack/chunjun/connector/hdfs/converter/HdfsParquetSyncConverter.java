@@ -35,13 +35,13 @@ import com.dtstack.chunjun.element.column.FloatColumn;
 import com.dtstack.chunjun.element.column.IntColumn;
 import com.dtstack.chunjun.element.column.LongColumn;
 import com.dtstack.chunjun.element.column.ShortColumn;
+import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.ColumnTypeUtil;
-import com.dtstack.chunjun.util.DateUtil;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -166,7 +166,10 @@ public class HdfsParquetSyncConverter
                         TimestampColumn::new;
             case "DATE":
                 return (IDeserializationConverter<String, AbstractBaseColumn>)
-                        val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
+                        val ->
+                                val == null
+                                        ? new SqlDateColumn(null)
+                                        : new SqlDateColumn(Date.valueOf(val));
             case "BINARY":
                 return (IDeserializationConverter<byte[], AbstractBaseColumn>) BytesColumn::new;
             case "ARRAY":
