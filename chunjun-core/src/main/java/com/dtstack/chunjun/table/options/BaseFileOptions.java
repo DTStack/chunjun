@@ -62,4 +62,11 @@ public class BaseFileOptions {
                     .longType()
                     .defaultValue(5000L)
                     .withDescription("The number of data written in the next file size check");
+
+    public static final ConfigOption<String> JOB_IDENTIFIER =
+            ConfigOptions.key("properties.job-identifier")
+                    .stringType()
+                    .defaultValue("")
+                    .withDescription(
+                            "To solve the problem of file loss caused by multiple tasks writing to the same output source at the same time");
 }

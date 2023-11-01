@@ -135,6 +135,7 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         hdfsConfig.setEncoding(config.get(BaseFileOptions.ENCODING));
         hdfsConfig.setMaxFileSize(config.get(BaseFileOptions.MAX_FILE_SIZE));
         hdfsConfig.setNextCheckRows(config.get(BaseFileOptions.NEXT_CHECK_ROWS));
+        hdfsConfig.setJobIdentifier(config.get(BaseFileOptions.JOB_IDENTIFIER));
 
         hdfsConfig.setDefaultFS(config.get(HdfsOptions.DEFAULT_FS));
         hdfsConfig.setFileType(config.get(HdfsOptions.FILE_TYPE));
