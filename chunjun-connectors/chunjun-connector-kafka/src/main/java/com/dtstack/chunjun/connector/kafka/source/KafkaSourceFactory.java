@@ -22,6 +22,7 @@ import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.kafka.adapter.StartupModeAdapter;
 import com.dtstack.chunjun.connector.kafka.conf.KafkaConfig;
+import com.dtstack.chunjun.connector.kafka.converter.KafkaCanalSyncConverter;
 import com.dtstack.chunjun.connector.kafka.converter.KafkaRawTypeMapping;
 import com.dtstack.chunjun.connector.kafka.converter.KafkaSyncConverter;
 import com.dtstack.chunjun.connector.kafka.enums.StartupMode;
@@ -117,9 +118,16 @@ public class KafkaSourceFactory extends SourceFactory {
         props.putAll(kafkaConfig.getConsumerSettings());
         RowType rowType =
                 TableUtil.createRowType(kafkaConfig.getColumn(), KafkaRawTypeMapping::apply);
-        DynamicKafkaDeserializationSchema deserializationSchema =
-                new RowDeserializationSchema(
-                        kafkaConfig, new KafkaSyncConverter(rowType, kafkaConfig));
+        DynamicKafkaDeserializationSchema deserializationSchema;
+        if (StringUtils.equalsIgnoreCase(kafkaConfig.getCodec(), "canal-json")) {
+            deserializationSchema =
+                    new RowDeserializationSchema(
+                            kafkaConfig, new KafkaCanalSyncConverter(rowType, kafkaConfig), true);
+        } else {
+            deserializationSchema =
+                    new RowDeserializationSchema(
+                            kafkaConfig, new KafkaSyncConverter(rowType, kafkaConfig), false);
+        }
         KafkaConsumerWrapper consumer =
                 new KafkaConsumerWrapper(topics, deserializationSchema, props);
         switch (kafkaConfig.getMode()) {

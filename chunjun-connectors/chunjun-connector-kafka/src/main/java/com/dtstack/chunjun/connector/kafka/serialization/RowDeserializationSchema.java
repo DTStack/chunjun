@@ -30,6 +30,7 @@ import org.apache.flink.util.Collector;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * Date: 2021/03/04 Company: www.dtstack.com
@@ -45,13 +46,16 @@ public class RowDeserializationSchema extends DynamicKafkaDeserializationSchema 
     /** kafka conf */
     private final KafkaConfig kafkaConfig;
 
+    private final boolean isCdc;
+
     public RowDeserializationSchema(
             KafkaConfig kafkaConfig,
-            AbstractRowConverter<ConsumerRecord<byte[], byte[]>, Object, byte[], String>
-                    converter) {
+            AbstractRowConverter<ConsumerRecord<byte[], byte[]>, Object, byte[], String> converter,
+            boolean isCdc) {
         super(1, null, null, null, null, false, null, null, false);
         this.kafkaConfig = kafkaConfig;
         this.converter = converter;
+        this.isCdc = isCdc;
     }
 
     @Override
@@ -69,7 +73,14 @@ public class RowDeserializationSchema extends DynamicKafkaDeserializationSchema 
     public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector) {
         try {
             beforeDeserialize(record);
-            collector.collect(converter.toInternal(record));
+            if (isCdc) {
+                List<RowData> rowDataList = converter.toInternalList(record);
+                for (RowData rowData : rowDataList) {
+                    collector.collect(rowData);
+                }
+            } else {
+                collector.collect(converter.toInternal(record));
+            }
         } catch (Exception e) {
             String data = null;
             if (record.value() != null) {

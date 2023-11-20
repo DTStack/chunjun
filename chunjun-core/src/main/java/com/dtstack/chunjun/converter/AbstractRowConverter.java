@@ -38,6 +38,7 @@ import java.sql.ResultSet;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TimeZone;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
@@ -186,6 +187,10 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      * @param input from JDBC
      */
     public abstract RowData toInternal(SourceT input) throws Exception;
+
+    public List<RowData> toInternalList(SourceT input) throws Exception {
+        throw new RuntimeException("Subclass need rewriting");
+    }
 
     /**
      * @param input input

@@ -120,7 +120,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             // restoration
             statementWrapper = new RestoreWrapperProxy(dbConn, jdbcDialect, false);
         } else {
-            if (useAbstractColumn || CollectionUtils.isEmpty(jdbcConfig.getUniqueKey())) {
+            if (CollectionUtils.isEmpty(jdbcConfig.getUniqueKey())) {
                 // sync or sql appendOnly
                 FieldNamedPreparedStatement fieldNamedPreparedStatement =
                         FieldNamedPreparedStatement.prepareStatement(
@@ -131,12 +131,12 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                         new SimpleStatementWrapper(fieldNamedPreparedStatement, rowConverter);
             } else {
                 // sql retract
-                buildRetractStatementExecutor();
+                buildRetractStatementExecutor(useAbstractColumn);
             }
         }
     }
 
-    private void buildRetractStatementExecutor() throws SQLException {
+    private void buildRetractStatementExecutor(boolean useAbstractColumn) throws SQLException {
         SimpleStatementWrapper deleteExecutor =
                 new SimpleStatementWrapper(
                         FieldNamedPreparedStatement.prepareStatement(
@@ -164,7 +164,10 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                         upsertExecutor,
                         deleteExecutor,
                         JdbcUtil.getKeyExtractor(
-                                columnNameList, jdbcConfig.getUniqueKey(), keyRowType, false));
+                                columnNameList,
+                                jdbcConfig.getUniqueKey(),
+                                keyRowType,
+                                useAbstractColumn));
     }
 
     private JdbcBatchStatementWrapper<RowData> getInsertOrUpdateExecutor() throws SQLException {
