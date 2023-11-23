@@ -22,10 +22,12 @@ import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.ftp.config.ConfigConstants;
 import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.enums.CompressType;
 import com.dtstack.chunjun.connector.ftp.options.FtpOptions;
 import com.dtstack.chunjun.connector.ftp.sink.FtpDynamicTableSink;
 import com.dtstack.chunjun.connector.ftp.source.FtpDynamicTableSource;
 import com.dtstack.chunjun.table.options.BaseFileOptions;
+import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 import com.dtstack.chunjun.util.StringUtil;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
@@ -44,6 +46,8 @@ import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.factories.SerializationFormatFactory;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -69,6 +73,7 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         ftpConfig.setCompressType(config.get(FtpOptions.COMPRESS_TYPE));
         ftpConfig.setFileType(config.get(FtpOptions.FILE_TYPE));
         ftpConfig.setNextCheckRows(config.get(BaseFileOptions.NEXT_CHECK_ROWS));
+        ftpConfig.setWriteMode(config.get(BaseFileOptions.WRITE_MODE));
 
         if (!ConfigConstants.DEFAULT_FIELD_DELIMITER.equals(
                 config.get(FtpOptions.FIELD_DELIMITER))) {
@@ -146,6 +151,18 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
                                                 FtpOptions.FORMAT));
 
         FtpConfig ftpConfig = getFtpConfByOptions(config);
+        String compressType = ftpConfig.getCompressType();
+        if (StringUtils.isNotEmpty(compressType)) {
+            // 在文件类型扩展名后面追加压缩类型扩展名
+            String fileType = ftpConfig.getFileType();
+            if (CompressType.GZIP.name().equalsIgnoreCase(compressType)) {
+                ftpConfig.setFileType(fileType + ".gz");
+            } else if (CompressType.BZIP2.name().equalsIgnoreCase(compressType)) {
+                ftpConfig.setFileType(fileType + ".bz2");
+            } else {
+                throw new UnsupportedTypeException("not support compress type: " + compressType);
+            }
+        }
 
         return new FtpDynamicTableSink(resolvedSchema, ftpConfig, valueEncodingFormat);
     }
@@ -181,6 +198,7 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         options.add(FtpOptions.FIELD_DELIMITER);
         options.add(FtpOptions.COMPRESS_TYPE);
         options.add(BaseFileOptions.NEXT_CHECK_ROWS);
+        options.add(BaseFileOptions.WRITE_MODE);
         return options;
     }
 }
