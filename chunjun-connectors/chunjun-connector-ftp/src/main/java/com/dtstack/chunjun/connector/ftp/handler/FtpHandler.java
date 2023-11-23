@@ -89,6 +89,10 @@ public class FtpHandler implements DTFtpHandler {
             }
             ftpClient.setControlEncoding(ftpConfig.getControlEncoding());
             ftpClient.setListHiddenFiles(ftpConfig.isListHiddenFiles());
+            if (StringUtils.isNotEmpty(ftpConfig.getCompressType())) {
+                // 设置文件传输类型为二进制
+                ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.ftp.sink;
 
 import com.dtstack.chunjun.connector.ftp.config.FtpConfig;
+import com.dtstack.chunjun.connector.ftp.enums.CompressType;
 import com.dtstack.chunjun.connector.ftp.handler.DTFtpHandler;
 import com.dtstack.chunjun.connector.ftp.handler.FtpHandlerFactory;
 import com.dtstack.chunjun.constants.ConstantValue;
@@ -26,12 +27,15 @@ import com.dtstack.chunjun.enums.SizeUnitType;
 import com.dtstack.chunjun.sink.WriteMode;
 import com.dtstack.chunjun.sink.format.BaseFileOutputFormat;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
+import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
 import org.apache.flink.table.data.RowData;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
@@ -61,11 +65,16 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     private transient OutputStream os;
 
+    private boolean isCompress = false;
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         super.openInternal(taskNumber, numTasks);
         ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
         ftpHandler.loginFtpServer(ftpConfig);
+        if (StringUtils.isNotEmpty(ftpConfig.getCompressType())) {
+            isCompress = true;
+        }
     }
 
     @Override
@@ -99,15 +108,35 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     @Override
     protected void nextBlock() {
         super.nextBlock();
-
-        if (writer != null) {
-            return;
+        if (isCompress) {
+            if (os != null) {
+                return;
+            }
+        } else {
+            if (writer != null) {
+                return;
+            }
         }
         String currentBlockTmpPath = tmpPath + SP + currentFileName;
         try {
             os = ftpHandler.getOutputStream(currentBlockTmpPath);
-            writer =
-                    new BufferedWriter(new OutputStreamWriter(os, ftpConfig.getEncoding()), 131072);
+            if (isCompress) {
+                if (ftpConfig.getCompressType().equalsIgnoreCase(CompressType.GZIP.name())) {
+                    os = new GzipCompressorOutputStream(os);
+                } else if (ftpConfig
+                        .getCompressType()
+                        .equalsIgnoreCase(CompressType.BZIP2.name())) {
+                    os = new BZip2CompressorOutputStream(os);
+                } else {
+                    throw new UnsupportedTypeException(
+                            String.format(
+                                    "Unsupported compress type:[%s]", ftpConfig.getCompressType()));
+                }
+            } else {
+                writer =
+                        new BufferedWriter(
+                                new OutputStreamWriter(os, ftpConfig.getEncoding()), 131072);
+            }
             log.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
         } catch (IOException e) {
             throw new ChunJunRuntimeException(ExceptionUtil.getErrorMessage(e));
@@ -121,11 +150,13 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         if (numWriteCounter.getLocalValue() < nextNumForCheckDataSize) {
             return;
         }
-        try {
-            // Does not manually flush cause a message error?
-            writer.flush();
-        } catch (IOException e) {
-            throw new ChunJunRuntimeException("flush failed when check fileSize");
+        if (!isCompress) {
+            try {
+                // Does not manually flush cause a message error?
+                writer.flush();
+            } catch (IOException e) {
+                throw new ChunJunRuntimeException("flush failed when check fileSize");
+            }
         }
         long currentFileSize = getCurrentFileSize();
         if (currentFileSize > ftpConfig.getMaxFileSize()) {
@@ -142,13 +173,21 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     @Override
     public void writeSingleRecordToFile(RowData rowData) throws WriteRecordException {
         try {
-            if (writer == null) {
-                nextBlock();
-            }
-
             String line = (String) rowConverter.toExternal(rowData, "");
-            this.writer.write(line);
-            this.writer.write(NEWLINE);
+            if (isCompress) {
+                if (os == null) {
+                    nextBlock();
+                }
+                byte[] bytes = line.getBytes(ftpConfig.getEncoding());
+                this.os.write(bytes);
+                this.os.write(NEWLINE);
+            } else {
+                if (writer == null) {
+                    nextBlock();
+                }
+                this.writer.write(line);
+                this.writer.write(NEWLINE);
+            }
             lastRow = rowData;
         } catch (Exception ex) {
             throw new WriteRecordException(ex.getMessage(), ex, 0, rowData);
@@ -159,12 +198,18 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     public void closeInternal() throws IOException {
         super.closeInternal();
         try {
-            if (writer != null) {
-                writer.flush();
-                writer.close();
-                writer = null;
-                os.close();
-                os = null;
+            if (isCompress) {
+                if (os != null) {
+                    os.flush();
+                    os.close();
+                    os = null;
+                }
+            } else {
+                if (writer != null) {
+                    writer.flush();
+                    writer.close();
+                    writer = null;
+                }
             }
             this.ftpHandler.logoutFtpServer();
         } catch (Exception e) {
@@ -184,6 +229,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
             }
 
             if (os != null) {
+                os.flush();
                 os.close();
                 os = null;
             }
@@ -194,7 +240,23 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     public void flushDataInternal() {
-        closeSource();
+        if (isCompress) {
+            log.info(
+                    "Close current text stream, write data size:[{}]",
+                    SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
+            try {
+                if (os != null) {
+                    os.flush();
+                    os.close();
+                    os = null;
+                }
+            } catch (IOException e) {
+                throw new ChunJunRuntimeException(
+                        "error to flush stream." + ExceptionUtil.getErrorMessage(e), e);
+            }
+        } else {
+            closeSource();
+        }
     }
 
     @Override
