@@ -130,6 +130,26 @@ public class JdbcSqlConverter
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
             Object field = jsonArray.getValue(pos);
+            // 当sql里声明的字段类型为BIGINT时，将BigInteger (BIGINT UNSIGNED) 转换为Long
+            if (rowType.getFields()
+                            .get(pos)
+                            .getType()
+                            .getTypeRoot()
+                            .name()
+                            .equalsIgnoreCase("BIGINT")
+                    && field instanceof BigInteger) {
+                field = ((BigInteger) field).longValue();
+            }
+            // 当sql里声明的字段类型为INT时，将Long (INT UNSIGNED) 转换为Integer
+            if (rowType.getFields()
+                            .get(pos)
+                            .getType()
+                            .getTypeRoot()
+                            .name()
+                            .equalsIgnoreCase("INTEGER")
+                    && field instanceof Long) {
+                field = ((Long) field).intValue();
+            }
             genericRowData.setField(pos, toInternalConverters.get(pos).deserialize(field));
         }
         return genericRowData;
