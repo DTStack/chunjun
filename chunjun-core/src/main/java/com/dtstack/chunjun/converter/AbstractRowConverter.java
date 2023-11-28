@@ -21,6 +21,7 @@ package com.dtstack.chunjun.converter;
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
+import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.throwable.ChunJunException;
@@ -94,7 +95,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     protected IDeserializationConverter wrapIntoNullableInternalConverter(
             IDeserializationConverter IDeserializationConverter) {
         return val -> {
-            if (val == null) {
+            if (val == null || val instanceof NullColumn) {
                 return null;
             } else {
                 try {

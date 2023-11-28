@@ -50,4 +50,6 @@ public class BaseFileConfig extends CommonConfig {
     private long nextCheckRows = 5000;
 
     private String suffix;
+
+    private String jobIdentifier = "";
 }
