@@ -28,8 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 
 public class SocketInputFormatBuilder extends BaseRichInputFormatBuilder<SocketInputFormat> {
 
-    protected SocketInputFormat format;
-
     protected SocketConfig socketConfig;
 
     private static final int ADDRESS_SPLITS = 2;
