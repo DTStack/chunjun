@@ -107,28 +107,31 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
                         byte[] key = serde.getRowKey(rowKey);
                         String keyStr = new String(key);
                         try {
-                            Get get = new Get(key);
-                            Result result = table.get(get);
-                            if (!result.isEmpty()) {
-                                RowData data = serde.convertToNewRow(result);
-                                if (openCache()) {
-                                    sideCache.putCache(
-                                            keyStr,
-                                            CacheObj.buildCacheObj(
-                                                    ECacheContentType.MultiLine,
-                                                    Collections.singletonList(data)));
-                                }
-                                future.complete(Collections.singletonList(data));
-                            } else {
-                                dealMissKey(future);
-                                if (openCache()) {
-                                    sideCache.putCache(keyStr, CacheMissVal.getMissKeyObj());
+                            if (!keyStr.isEmpty()) {
+                                Get get = new Get(key);
+                                Result result = table.get(get);
+                                if (!result.isEmpty()) {
+                                    RowData data = serde.convertToNewRow(result);
+                                    if (openCache()) {
+                                        sideCache.putCache(
+                                                keyStr,
+                                                CacheObj.buildCacheObj(
+                                                        ECacheContentType.MultiLine,
+                                                        Collections.singletonList(data)));
+                                    }
+                                    future.complete(Collections.singletonList(data));
+                                    return;
                                 }
                             }
+                            dealMissKey(future);
+                            if (openCache()) {
+                                sideCache.putCache(keyStr, CacheMissVal.getMissKeyObj());
+                            }
+
                         } catch (IOException e) {
                             LOG.error("record:" + keyStr);
                             LOG.error("get side record exception:" + e);
-                            future.complete(Collections.emptyList());
+                            dealMissKey(future);
                         }
                     }
                 });
