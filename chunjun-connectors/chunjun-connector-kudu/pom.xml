@@ -70,6 +70,10 @@
 							</filters>
 							<relocations>
 								<relocation>
+									<pattern>io.netty</pattern>
+									<shadedPattern>shade.kudu.io.netty</shadedPattern>
+								</relocation>
+								<relocation>
 									<pattern>com.google.common</pattern>
 									<shadedPattern>shade.core.com.google.common</shadedPattern>
 								</relocation>
