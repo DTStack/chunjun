@@ -109,14 +109,22 @@ public class JdbcSqlConverter
 
     @Override
     public RowData toInternal(ResultSet resultSet) throws Exception {
+        // rowType和resultSet是不一样的：resultSet是source端的虚拟表的数据，而rowType返回的是select语句后的字段。
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
-            Object field = resultSet.getObject(pos + 1);
-            if (resultSet.getMetaData().getColumnTypeName(pos + 1).equals("BIGINT UNSIGNED")
+            String fieldName = rowType.getFieldNames().get(pos);
+            Object field = resultSet.getObject(fieldName);
+            if (resultSet
+                            .getMetaData()
+                            .getColumnTypeName(resultSet.findColumn(fieldName))
+                            .equals("BIGINT UNSIGNED")
                     && field != null) {
                 field = ((BigInteger) field).longValue();
             }
-            if (resultSet.getMetaData().getColumnTypeName(pos + 1).equals("INT UNSIGNED")
+            if (resultSet
+                            .getMetaData()
+                            .getColumnTypeName(resultSet.findColumn(fieldName))
+                            .equals("INT UNSIGNED")
                     && field != null) {
                 field = ((Long) field).intValue();
             }
