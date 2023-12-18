@@ -122,9 +122,10 @@ public class JdbcDynamicTableSource
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
         final RowType rowType = (RowType) physicalRowDataType.getLogicalType();
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
-
+        ResolvedSchema projectionSchema =
+                ResolvedSchema.physical(rowType.getFieldNames(), physicalRowDataType.getChildren());
         JdbcInputFormatBuilder builder = this.builder;
-        List<Column> columns = resolvedSchema.getColumns();
+        List<Column> columns = projectionSchema.getColumns();
         List<FieldConfig> columnList = new ArrayList<>(columns.size());
         for (Column column : columns) {
             FieldConfig field = new FieldConfig();
