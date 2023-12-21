@@ -25,6 +25,7 @@ import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -99,7 +100,7 @@ public class JdbcConfig extends CommonConfig implements Serializable {
 
     protected List<String> preSql;
     protected List<String> postSql;
-    protected List<String> uniqueKey;
+    protected List<String> uniqueKey = new ArrayList<>();
 
     /** upsert 写数据库时，是否null覆盖原来的值 */
     protected boolean allReplace = false;
