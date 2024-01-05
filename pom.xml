@@ -808,17 +808,17 @@
 				</exclusions>
 			</dependency>
 
-			<dependency>
-				<groupId>org.apache.flink</groupId>
-				<artifactId>flink-table-planner-loader</artifactId>
-				<version>${flink.version}</version>
-				<exclusions>
-					<exclusion>
-						<artifactId>slf4j-api</artifactId>
-						<groupId>org.slf4j</groupId>
-					</exclusion>
-				</exclusions>
-			</dependency>
+<!--			<dependency>-->
+<!--				<groupId>org.apache.flink</groupId>-->
+<!--				<artifactId>flink-table-planner-loader</artifactId>-->
+<!--				<version>${flink.version}</version>-->
+<!--				<exclusions>-->
+<!--					<exclusion>-->
+<!--						<artifactId>slf4j-api</artifactId>-->
+<!--						<groupId>org.slf4j</groupId>-->
+<!--					</exclusion>-->
+<!--				</exclusions>-->
+<!--			</dependency>-->
 			<!-- ***************** flink end *****************-->
 		</dependencies>
 	</dependencyManagement>

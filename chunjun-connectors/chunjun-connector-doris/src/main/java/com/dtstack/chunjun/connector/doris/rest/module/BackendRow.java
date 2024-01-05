@@ -29,7 +29,7 @@ public class BackendRow {
     @JsonProperty(value = "HttpPort")
     private String HttpPort;
 
-    @JsonProperty(value = "IP")
+    @JsonProperty(value = "Host")
     private String IP;
 
     @JsonProperty(value = "Alive")
