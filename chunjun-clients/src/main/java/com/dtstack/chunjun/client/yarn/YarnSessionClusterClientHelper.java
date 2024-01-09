@@ -113,13 +113,17 @@ public class YarnSessionClusterClientHelper implements ClusterClientHelper<Appli
                                                 JobGraphUtil.buildJobGraph(
                                                         launcherOptions,
                                                         programArgs.toArray(new String[0]));
-                                        //jobGraph.getClasspaths().clear();
+                                        // jobGraph.getClasspaths().clear();
                                         List<URL> path = new ArrayList<>(jobGraph.getClasspaths());
                                         jobGraph.getClasspaths().clear();
 
-                                        //TODO 临时替换
-                                        for(URL tmp : path){
-                                            String newPath = tmp.toString().replace("/Users/xuchao/IdeaProjects/chunjun", ".");
+                                        // TODO 临时替换
+                                        for (URL tmp : path) {
+                                            String newPath =
+                                                    tmp.toString()
+                                                            .replace(
+                                                                    "/Users/xuchao/IdeaProjects/chunjun",
+                                                                    ".");
                                             jobGraph.getClasspaths().add(new URL(newPath));
                                         }
 

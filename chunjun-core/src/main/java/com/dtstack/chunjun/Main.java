@@ -71,6 +71,7 @@ import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableResult;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.RowType;
@@ -193,9 +194,9 @@ public class Main {
             Options options)
             throws Exception {
         SyncConfig config = parseConfig(job, options);
-        //数据同步默认使用disable chaining(该参数对性能影响比较大)
+        // 数据同步默认使用disable chaining(该参数对性能影响比较大)
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
-        if(!confProperties.contains(PipelineOptions.OPERATOR_CHAINING.key())){
+        if (!confProperties.contains(PipelineOptions.OPERATOR_CHAINING.key())) {
             env.disableOperatorChaining();
         }
 
@@ -337,6 +338,7 @@ public class Main {
                     Thread.currentThread().getContextClassLoader(),
                     ConstantValue.DIRTY_DATA_DIR_NAME);
             // TODO sql 支持restore.
+            FactoryUtil.setFactoryHelper(factoryHelper);
         }
         PluginUtil.registerShipfileToCachedFile(options.getAddShipfile(), env);
     }

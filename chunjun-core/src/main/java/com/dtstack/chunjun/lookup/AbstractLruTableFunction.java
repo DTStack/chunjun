@@ -32,9 +32,12 @@ import org.apache.flink.runtime.execution.SuppressRestartsException;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.AsyncLookupFunction;
 import org.apache.flink.table.functions.FunctionContext;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -60,9 +63,25 @@ public abstract class AbstractLruTableFunction extends AsyncLookupFunction {
     private static final int TIMEOUT_LOG_FLUSH_NUM = 10;
     private int timeOutNum = 0;
 
-    public AbstractLruTableFunction(LookupConfig lookupConfig, AbstractRowConverter rowConverter) {
+    protected final RowData.FieldGetter[] fieldGetters;
+
+    public AbstractLruTableFunction(
+            LookupConfig lookupConfig,
+            AbstractRowConverter rowConverter,
+            String[] keyNames,
+            RowType rowType) {
         this.lookupConfig = lookupConfig;
         this.rowConverter = rowConverter;
+
+        this.fieldGetters = new RowData.FieldGetter[keyNames.length];
+        List<Pair<LogicalType, Integer>> fieldTypeAndPositionOfKeyField =
+                getFieldTypeAndPositionOfKeyField(keyNames, rowType);
+        for (int i = 0; i < fieldTypeAndPositionOfKeyField.size(); i++) {
+            Pair<LogicalType, Integer> typeAndPosition = fieldTypeAndPositionOfKeyField.get(i);
+            fieldGetters[i] =
+                    RowData.createFieldGetter(
+                            typeAndPosition.getLeft(), typeAndPosition.getRight());
+        }
     }
 
     @Override
@@ -197,15 +216,19 @@ public abstract class AbstractLruTableFunction extends AsyncLookupFunction {
     public CompletableFuture<Collection<RowData>> asyncLookup(RowData keyRow) {
         CompletableFuture<Collection<RowData>> lookupFuture = new CompletableFuture<>();
         try {
-            preInvoke(lookupFuture, keyRow);
+            Object[] keyData = new Object[keyRow.getArity()];
+            for (int i = 0; i < keyRow.getArity(); i++) {
+                keyData[i] = fieldGetters[i].getFieldOrNull(keyRow);
+            }
 
-            String cacheKey = buildCacheKey(keyRow);
+            preInvoke(lookupFuture, keyData);
+            String cacheKey = buildCacheKey(keyData);
             // 缓存判断
             if (isUseCache(cacheKey)) {
                 invokeWithCache(cacheKey, lookupFuture);
                 return lookupFuture;
             }
-            handleAsyncInvoke(lookupFuture, keyRow);
+            handleAsyncInvoke(lookupFuture, keyData);
         } catch (Exception e) {
             // todo 优化
             log.error(e.getMessage());
@@ -296,5 +319,15 @@ public abstract class AbstractLruTableFunction extends AsyncLookupFunction {
         } else {
             dealMissKey(future);
         }
+    }
+
+    protected List<Pair<LogicalType, Integer>> getFieldTypeAndPositionOfKeyField(
+            String[] keyNames, RowType rowType) {
+        List<Pair<LogicalType, Integer>> typeAndPosition = Lists.newLinkedList();
+        for (int i = 0; i < keyNames.length; i++) {
+            LogicalType type = rowType.getTypeAt(rowType.getFieldIndex(keyNames[i]));
+            typeAndPosition.add(Pair.of(type, i));
+        }
+        return typeAndPosition;
     }
 }

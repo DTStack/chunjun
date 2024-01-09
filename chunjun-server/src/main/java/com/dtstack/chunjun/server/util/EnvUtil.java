@@ -5,8 +5,8 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
+ * 设置环境变量工具类
  * Company: www.dtstack.com
- *
  * @author xuchao
  * @date 2023-07-28
  */

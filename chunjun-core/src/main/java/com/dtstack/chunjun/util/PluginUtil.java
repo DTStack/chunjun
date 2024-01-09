@@ -483,26 +483,28 @@ public class PluginUtil {
             jarList.addAll(urlList);
 
             List<String> pipelineJars = new ArrayList<>();
+            List<String> classpathList = configuration.get(PipelineOptions.CLASSPATHS);
+            if (classpathList == null) {
+                classpathList = new ArrayList<>(urlList.size());
+            }
+
             log.info("ChunJun executionMode: " + executionMode);
             for (String jarUrl : jarList) {
                 String newJarUrl = jarUrl;
                 if (StringUtils.startsWith(jarUrl, File.separator)) {
                     newJarUrl = "file:" + jarUrl;
                 }
-                if (pipelineJars.contains(newJarUrl)) {
-                    continue;
+                if (!pipelineJars.contains(newJarUrl)) {
+                    pipelineJars.add(newJarUrl);
                 }
-                pipelineJars.add(newJarUrl);
+
+                if (!classpathList.contains(newJarUrl)) {
+                    classpathList.add(newJarUrl);
+                }
             }
 
             log.info("ChunJun reset pipeline.jars: " + pipelineJars);
             configuration.set(PipelineOptions.JARS, pipelineJars);
-
-            List<String> classpathList = configuration.get(PipelineOptions.CLASSPATHS);
-            if (classpathList == null) {
-                classpathList = new ArrayList<>(urlList.size());
-            }
-            classpathList.addAll(pipelineJars);
             configuration.set(PipelineOptions.CLASSPATHS, classpathList);
             return pipelineJars;
         } catch (Exception e) {

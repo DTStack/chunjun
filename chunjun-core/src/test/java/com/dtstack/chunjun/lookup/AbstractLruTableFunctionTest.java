@@ -36,6 +36,7 @@ import org.apache.flink.runtime.operators.testutils.MockInputSplitProvider;
 import org.apache.flink.runtime.taskexecutor.rpc.RpcGlobalAggregateManager;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
+import org.apache.flink.table.types.logical.RowType;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,7 +60,11 @@ public class AbstractLruTableFunctionTest {
     public void setup() {
         LookupConfig lookupConfig = new LookupConfig();
         MockRowConverter mockRowConverter = new MockRowConverter();
-        this.lruTableFunction = new MockLruTableFunction(lookupConfig, mockRowConverter);
+
+        String[] keyNames = new String[] {"id"};
+        RowType rowType = mockRowConverter.getRowType();
+        this.lruTableFunction =
+                new MockLruTableFunction(lookupConfig, mockRowConverter, keyNames, rowType);
     }
 
     @Test

@@ -1,8 +1,8 @@
 package com.dtstack.chunjun.config;
 
 /**
- *
  * Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2023-09-19
  */

@@ -31,9 +31,9 @@
 	<artifactId>chunjun-ddl</artifactId>
 	<name>ChunJun : DDL</name>
 	<modules>
-		<module>chunjun-ddl-mysql</module>
+<!--		<module>chunjun-ddl-mysql</module>-->
 		<module>chunjun-ddl-base</module>
-		<module>chunjun-ddl-oracle</module>
+<!--		<module>chunjun-ddl-oracle</module>-->
 	</modules>
 	<packaging>pom</packaging>
 

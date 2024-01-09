@@ -6,7 +6,7 @@ package com.dtstack.chunjun.server;
  * @author xuchao
  * @date 2023-05-17
  */
-public enum EStatus {
+public enum ESessionStatus {
     // 未初始化状态,表明还为对接到具体的yarn app上
     UNINIT("UNINIT"),
     HEALTHY("HEALTHY"),
@@ -14,7 +14,7 @@ public enum EStatus {
 
     private final String value;
 
-    private EStatus(String value) {
+    private ESessionStatus(String value) {
         this.value = value;
     }
 

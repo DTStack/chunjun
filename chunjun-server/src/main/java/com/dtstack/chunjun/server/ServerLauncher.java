@@ -13,15 +13,16 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Preconditions;
 import org.apache.flink.yarn.configuration.YarnConfigOptionsInternal;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static org.apache.flink.configuration.ConfigConstants.ENV_FLINK_LIB_DIR;
@@ -29,8 +30,7 @@ import static org.apache.flink.yarn.configuration.YarnConfigOptions.FLINK_DIST_J
 
 /**
  * 启动 chunjun server 服务
- * 
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
  * @author xuchao
  * @date 2023-06-13
  */
@@ -39,6 +39,8 @@ public class ServerLauncher {
     private static final Logger LOG = LoggerFactory.getLogger(ServerLauncher.class);
 
     private ChunJunConfig chunJunConfig;
+
+    private int port = 18081;
 
     private SessionManager sessionManager;
 
@@ -62,35 +64,20 @@ public class ServerLauncher {
         sessionConfig.loadFlinkConfiguration();
         sessionConfig.loadHadoopConfiguration();
 
+        //初始化环境变量,设置env相关的属性配置
         initEnv();
-        sessionManager = new SessionManager(sessionConfig);
-        // 是否启动session check 服务
-        if (chunJunConfig.isEnableSessionCheck()) {
-            LOG.info("open session check!");
-            sessionManager.startSessionCheck();
-        }
-
-        // 是否开启session deploy 服务
-        if (chunJunConfig.isEnableSessionDeploy()) {
-            LOG.info("open session deploy!");
-            sessionManager.startSessionDeploy();
-        }
-
+        //启动session 检查
+        sessionManagerStart();
         // 启动restapi 服务
-        if(chunJunConfig.isEnableRestful()){
-            LOG.info("start web server ");
-            WebConfig webConfig = new WebConfig();
-            webConfig.setPort(18081);
-            webServer = new WebServer(webConfig, sessionManager);
-            webServer.startServer();
-        }
+        webStart();
 
-        //注册shutdown hook
+        // 注册shutdown hook
         Runtime.getRuntime().addShutdownHook(new ShutdownThread(this));
     }
 
-    public void stop(){
-
+    public void stop() {
+        sessionManager.stopSessionCheck();
+        sessionManager.stopSessionDeploy();
     }
 
     public ChunJunConfig getChunJunConfig() {
@@ -116,10 +103,11 @@ public class ServerLauncher {
             EnvUtil.setEnv(envMap);
         }
 
-        //添加ChunJun dist 目录到configuration
+        // 添加ChunJun dist 目录到configuration
         String chunJunLibDir = sessionConfig.getChunJunLibDir();
         if (chunJunLibDir != null) {
-            chunJunLibDir = chunJunLibDir.startsWith("file:") ? chunJunLibDir : "file:" + chunJunLibDir;
+            chunJunLibDir =
+                    chunJunLibDir.startsWith("file:") ? chunJunLibDir : "file:" + chunJunLibDir;
             configuration.set(ChunJunServerOptions.CHUNJUN_DIST_PATH, chunJunLibDir);
         }
 
@@ -133,10 +121,13 @@ public class ServerLauncher {
 
         // 添加日志路径环境变量
         String logConfigPath = chunJunConfig.getChunJunLogConfDir();
+        LOG.info("chunjun session log level:{}", chunJunConfig.getLogLevel());
         String levelPath =
                 logConfigPath + File.separatorChar + chunJunConfig.getLogLevel().toLowerCase();
 
-        Preconditions.checkArgument(new File(logConfigPath).exists(), levelPath+ " is not exists. please check log conf dir path.");
+        Preconditions.checkArgument(
+                new File(logConfigPath).exists(),
+                levelPath + " is not exists. please check log conf dir path.");
 
         sessionConfig
                 .getFlinkConfig()
@@ -169,19 +160,43 @@ public class ServerLauncher {
         }
     }
 
+    public void sessionManagerStart(){
+        sessionManager = new SessionManager(sessionConfig);
+        // 是否启动session check 服务
+        if (chunJunConfig.isEnableSessionCheck()) {
+            LOG.info("open session check!");
+            sessionManager.startSessionCheck();
+        }
 
-    private static class ShutdownThread extends Thread{
+        // 是否开启session deploy 服务
+        if (chunJunConfig.isEnableSessionDeploy()) {
+            LOG.info("open session deploy!");
+            sessionManager.startSessionDeploy();
+        }
+    }
+
+    public void webStart(){
+        if (chunJunConfig.isEnableRestful()) {
+            LOG.info("start web server ");
+            WebConfig webConfig = new WebConfig();
+            webConfig.setPort(port);
+            webServer = new WebServer(webConfig, sessionManager);
+            webServer.startServer();
+        }
+    }
+
+    private static class ShutdownThread extends Thread {
         private ServerLauncher serverLauncher;
 
-        public ShutdownThread(ServerLauncher serverLauncher){
+        public ShutdownThread(ServerLauncher serverLauncher) {
             this.serverLauncher = serverLauncher;
         }
 
-        public void run(){
+        public void run() {
             LOG.info("shutting down the chunjun serverLancher.");
-            try{
+            try {
                 serverLauncher.stop();
-            }catch (Exception e){
+            } catch (Exception e) {
                 LOG.error("failed to shut down the chunjun server lancher,", e);
             }
 
@@ -191,33 +206,18 @@ public class ServerLauncher {
 
     public static void main(String[] args) throws Exception {
         ServerLauncher serverLauncher = new ServerLauncher();
+        Properties argProp = new Properties();
+        String appConfPath = "./conf/application.properties";
+        File configFile = new File(appConfPath);
+        if (!configFile.exists()) {
+            throw new RuntimeException(String.format("%s config file is not exists.", appConfPath));
+        }
 
-        // todo 通过配置文件加载,同时对必填参数进行检查
-        ChunJunConfig chunJunConfig = new ChunJunConfig();
-        String flinkConfDir = "/Users/xuchao/conf/flinkconf/dev_conf_local/";
-        // String hadoopConfDir = "/Users/xuchao/conf/hadoopconf/dev_hadoop_flink01";
-        String hadoopConfDir = "/Users/xuchao/conf/hadoopconf/dev_hadoop_new_flinkx01";
-        String flinkLibDir = "/Users/xuchao/MyPrograms/Flink/flink-1.16/lib";
-        String flinkPluginDir = "/Users/xuchao/MyPrograms/Flink/flink-1.16/plugins";
-        String chunJunLibDir = "/Users/xuchao/IdeaProjects/chunjun/chunjun-dist";
-        //String chunJunLibDir = "/Users/xuchao/IdeaProjects/chunjun/lib";
-        String chunJunLogConfDir = "/Users/xuchao/IdeaProjects/chunjun/conf/logconf";
-
-        chunJunConfig.setEnableSessionCheck(true);
-        chunJunConfig.setFlinkConfDir(flinkConfDir);
-        chunJunConfig.setHadoopConfDir(hadoopConfDir);
-        chunJunConfig.setFlinkLibDir(flinkLibDir);
-        chunJunConfig.setChunJunLibDir(chunJunLibDir);
-        chunJunConfig.setFlinkPluginLibDir(flinkPluginDir);
-        chunJunConfig.setEnableSessionDeploy(true);
-        chunJunConfig.setChunJunLogConfDir(chunJunLogConfDir);
-        chunJunConfig.setEnableRestful(true);
-
+        argProp.load(new FileInputStream(configFile));
+        ChunJunConfig chunJunConfig = ChunJunConfig.fromProperties(argProp);
         serverLauncher.setChunJunConfig(chunJunConfig);
 
         serverLauncher.startServer();
         LOG.info("start chunjun server success!");
-
-        // add shutdown hook
     }
 }

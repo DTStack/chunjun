@@ -4,7 +4,6 @@ import com.dtstack.chunjun.config.ChunJunServerOptions;
 
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.configuration.Configuration;
-
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.yarn.configuration.YarnConfigOptions;
 
@@ -25,13 +24,12 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * 扩展YarnClusterDescriptor 提供ChunJun 包上传功能 Company: www.dtstack.com
  *
- * 扩展YarnClusterDescriptor 提供ChunJun 包上传功能
- * Company: www.dtstack.com
  * @author xuchao
  * @date 2023-09-13
  */
-public class CJYarnClusterDescriptor extends YarnClusterDescriptor{
+public class CJYarnClusterDescriptor extends YarnClusterDescriptor {
 
     private static final Logger LOG = LoggerFactory.getLogger(CJYarnClusterDescriptor.class);
 
@@ -39,12 +37,20 @@ public class CJYarnClusterDescriptor extends YarnClusterDescriptor{
 
     private final Configuration flinkConfiguration;
 
-
-    public CJYarnClusterDescriptor(Configuration flinkConfiguration, YarnConfiguration yarnConfiguration, YarnClient yarnClient, YarnClusterInformationRetriever yarnClusterInformationRetriever, boolean sharedYarnClient) {
-        super(flinkConfiguration, yarnConfiguration, yarnClient, yarnClusterInformationRetriever, sharedYarnClient);
+    public CJYarnClusterDescriptor(
+            Configuration flinkConfiguration,
+            YarnConfiguration yarnConfiguration,
+            YarnClient yarnClient,
+            YarnClusterInformationRetriever yarnClusterInformationRetriever,
+            boolean sharedYarnClient) {
+        super(
+                flinkConfiguration,
+                yarnConfiguration,
+                yarnClient,
+                yarnClusterInformationRetriever,
+                sharedYarnClient);
         this.flinkConfiguration = flinkConfiguration;
         this.yarnConfiguration = yarnConfiguration;
-
     }
 
     @Override
@@ -57,17 +63,26 @@ public class CJYarnClusterDescriptor extends YarnClusterDescriptor{
             YarnClientApplication yarnApplication,
             ClusterSpecification clusterSpecification)
             throws Exception {
-        //只上传ChunJun 包到hdfs 作为资源目录，不添加到 classpath ,防止chunjun 扩展对connector 对 flink 包的影响，比如guava版本不一致，导致类冲突
-        //只在启动session 的情况下主动上传ChunJun 包
-        if(jobGraph == null){
+        // 只上传ChunJun 包到hdfs 作为资源目录，不添加到 classpath ,防止chunjun 扩展对connector 对 flink
+        // 包的影响，比如guava版本不一致，导致类冲突
+        // 只在启动session 的情况下主动上传ChunJun 包
+        if (jobGraph == null) {
             LOG.info("start to upload chunjun dir.");
             uploadCJDir(configuration, yarnApplication);
             LOG.info("upload chunjun dir end.");
         }
-        return super.startAppMaster(configuration, applicationName, yarnClusterEntrypoint, jobGraph, yarnClient, yarnApplication, clusterSpecification);
+        return super.startAppMaster(
+                configuration,
+                applicationName,
+                yarnClusterEntrypoint,
+                jobGraph,
+                yarnClient,
+                yarnApplication,
+                clusterSpecification);
     }
 
-    public void uploadCJDir(Configuration configuration, YarnClientApplication yarnApplication) throws Exception{
+    public void uploadCJDir(Configuration configuration, YarnClientApplication yarnApplication)
+            throws Exception {
         FileSystem fs = FileSystem.get(yarnConfiguration);
 
         ApplicationSubmissionContext appContext = yarnApplication.getApplicationSubmissionContext();
@@ -84,17 +99,13 @@ public class CJYarnClusterDescriptor extends YarnClusterDescriptor{
                         appContext.getApplicationId(),
                         getFileReplication());
 
-
         String path = configuration.get(ChunJunServerOptions.CHUNJUN_DIST_PATH);
         Path chunjunDistPath = new Path(path);
         Collection<Path> shipFiles = new ArrayList<>();
         shipFiles.add(chunjunDistPath);
 
-        fileUploader.registerMultipleLocalResources(shipFiles,
-                Path.CUR_DIR,
-                LocalResourceType.FILE);
-
-
+        fileUploader.registerMultipleLocalResources(
+                shipFiles, Path.CUR_DIR, LocalResourceType.FILE);
     }
 
     private int getFileReplication() {

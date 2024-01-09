@@ -1,8 +1,8 @@
 package com.dtstack.chunjun.entry;
 
 /**
- * 返回的任务状态信息
- * Company: www.dtstack.com
+ * 返回的任务状态信息 Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2023-09-20
  */

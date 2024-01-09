@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 监控对应session的监控状态 基于对jobmanager 获取tm 列表的restapi 进行检查 Company: www.dtstack.com
@@ -28,6 +30,8 @@ public class SessionStatusMonitor implements Runnable {
 
     private static final int FAIL_LIMIT = 3;
 
+    private ExecutorService executorService;
+
     private YarnSessionClient yarnSessionClient;
 
     private SessionStatusInfo sessionStatusInfo;
@@ -40,6 +44,18 @@ public class SessionStatusMonitor implements Runnable {
             YarnSessionClient yarnSessionClient, SessionStatusInfo sessionStatusInfo) {
         this.yarnSessionClient = yarnSessionClient;
         this.sessionStatusInfo = sessionStatusInfo;
+        this.executorService = Executors.newSingleThreadExecutor();
+    }
+
+    public void start(){
+        executorService.submit(this);
+        LOG.info("session status check started!");
+    }
+
+    public void shutdown(){
+        run = false;
+        executorService.shutdown();
+        LOG.info("session status check stopped!");
     }
 
     @Override
@@ -51,12 +67,12 @@ public class SessionStatusMonitor implements Runnable {
 
                 // yarnSessionClient 没有获取到对应的appid,不需要进行check 等到重新构建yarnSessionClient 再check
                 if (yarnSessionClient.getClient() == null
-                        && sessionStatusInfo.getStatus() == EStatus.HEALTHY) {
+                        && sessionStatusInfo.getStatus() == ESessionStatus.HEALTHY) {
                     yarnSessionClient.open();
                     continue;
                 }
 
-                if (sessionStatusInfo.getStatus() == EStatus.UNHEALTHY) {
+                if (sessionStatusInfo.getStatus() == ESessionStatus.UNHEALTHY) {
                     continue;
                 }
 
@@ -74,7 +90,7 @@ public class SessionStatusMonitor implements Runnable {
                                 REQ_URL_FORMAT, yarnSessionClient.getClient().getWebInterfaceURL());
                 String response = PoolHttpClient.get(reqWebURL);
                 if (response == null) {
-                    // 异常情况===>连续3次认为session已经不可以用了。
+                    // 异常情况:连续3次认为session已经不可以用了
                     checkFailCount++;
                 } else {
                     checkFailCount = 0;
@@ -91,7 +107,7 @@ public class SessionStatusMonitor implements Runnable {
             }
 
             if (checkFailCount >= FAIL_LIMIT) {
-                sessionStatusInfo.setStatus(EStatus.UNHEALTHY);
+                sessionStatusInfo.setStatus(ESessionStatus.UNHEALTHY);
                 try {
                     yarnSessionClient.close();
                 } catch (IOException e) {

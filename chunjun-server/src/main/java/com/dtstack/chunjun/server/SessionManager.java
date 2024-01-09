@@ -5,22 +5,15 @@ import com.dtstack.chunjun.config.SessionConfig;
 import com.dtstack.chunjun.config.YarnAppConfig;
 import com.dtstack.chunjun.factory.ChunJunThreadFactory;
 
-import org.apache.flink.client.deployment.ClusterSpecification;
-import org.apache.flink.client.program.ClusterClient;
-import org.apache.flink.yarn.YarnClusterDescriptor;
-
-import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * session 管理器,目标是对session 进行监控和自管理
+ * session 管理器,对session 进行监控和自管理(根据检查结果启动session)
  * Company: www.dtstack.com
  * @author xuchao
  * @date 2023-05-16
@@ -33,36 +26,18 @@ public class SessionManager {
 
     private static final String FLINK_VERSION = "flink116";
 
-    private String sessionAppName;
-
     private SessionConfig sessionConfig;
 
     private YarnAppConfig yarnAppConfig;
-    private ExecutorService sessionMonitorExecutor;
+    private SessionStatusMonitor sessionStatusMonitor;
     private ScheduledExecutorService sessionDeployScheduler;
     private YarnSessionClient yarnSessionClient;
     private final SessionStatusInfo sessionStatusInfo = new SessionStatusInfo();
     private SessionDeployer sessionDeployer;
 
-    private ClusterSpecification clusterSpecification;
-
-    public  SessionManager(SessionConfig sessionConfig) {
+    public SessionManager(SessionConfig sessionConfig) {
         this.sessionConfig = sessionConfig;
         this.yarnAppConfig = sessionConfig.getAppConfig();
-        this.sessionAppName = yarnAppConfig.getApplicationName();
-
-        sessionMonitorExecutor = Executors.newSingleThreadExecutor();
-        sessionDeployScheduler =
-                new ScheduledThreadPoolExecutor(
-                        1,
-                        new ChunJunThreadFactory(
-                                "session_deploy_factory",
-                                true,
-                                (t, e) -> {
-                                    LOG.error("session_deploy_factory occur error!", e);
-                                }));
-        LOG.info("session name:{}", sessionAppName);
-
         initYarnSessionClient();
     }
 
@@ -72,66 +47,53 @@ public class SessionManager {
 
         if (yarnSessionClient.getClient() == null) {
             // 初始化的时候检查远程是否存在匹配的session
-            sessionStatusInfo.setStatus(EStatus.UNHEALTHY);
+            sessionStatusInfo.setStatus(ESessionStatus.UNHEALTHY);
         } else {
             sessionStatusInfo.setAppId(yarnSessionClient.getClient().getClusterId().toString());
         }
+
+        sessionDeployScheduler =
+                new ScheduledThreadPoolExecutor(
+                        1,
+                        new ChunJunThreadFactory(
+                                "session_deploy_factory",
+                                true,
+                                (t, e) -> {
+                                    LOG.error("session_deploy_factory occur error!", e);
+                                }));
     }
 
     /** 开启session 监控 */
     public void startSessionCheck() {
-        SessionStatusMonitor sessionStatusMonitor =
+        sessionStatusMonitor =
                 new SessionStatusMonitor(yarnSessionClient, sessionStatusInfo);
-        sessionMonitorExecutor.submit(sessionStatusMonitor);
+        sessionStatusMonitor.start();
     }
 
     public void stopSessionCheck() {
-        if (sessionMonitorExecutor != null) {
-            sessionMonitorExecutor.shutdown();
+        if (sessionStatusMonitor != null) {
+            sessionStatusMonitor.shutdown();
             LOG.info("stopSessionCheck stopped");
         }
     }
 
     public void startSessionDeploy() {
 
-        sessionDeployer = new SessionDeployer(sessionConfig);
-        ClusterSpecification.ClusterSpecificationBuilder builder =
-                new ClusterSpecification.ClusterSpecificationBuilder();
-        // TODO 根据配置的参数设定session jvm,tm 内存,slot max 大小限制（在global conf 里设置）
-
-        clusterSpecification = builder.createClusterSpecification();
-
+        sessionDeployer = new SessionDeployer(sessionConfig, sessionStatusInfo);
         sessionDeployScheduler.scheduleWithFixedDelay(
                 () -> {
-                    if (!EStatus.UNHEALTHY.equals(sessionStatusInfo.getStatus())) {
+                    if (!ESessionStatus.UNHEALTHY.equals(sessionStatusInfo.getStatus())) {
                         return;
                     }
 
                     LOG.warn("current session status is unhealthy, will deploy a new session.");
-                    doDeploy();
+                    sessionDeployer.doDeploy();
                 },
                 DEPLOY_CHECK_INTERVAL,
                 DEPLOY_CHECK_INTERVAL,
                 TimeUnit.MILLISECONDS);
     }
 
-    public void doDeploy() {
-
-        try (YarnClusterDescriptor yarnSessionDescriptor =
-                sessionDeployer.createYarnClusterDescriptor()) {
-            ClusterClient<ApplicationId> clusterClient =
-                    yarnSessionDescriptor
-                            .deploySessionCluster(clusterSpecification)
-                            .getClusterClient();
-            LOG.info("start session with cluster id :" + clusterClient.getClusterId().toString());
-
-            // 重新开始session check
-            sessionStatusInfo.setStatus(EStatus.HEALTHY);
-        } catch (Throwable e) {
-            LOG.error("Couldn't deploy Yarn session cluster, ", e);
-            throw new RuntimeException(e);
-        }
-    }
 
     public void stopSessionDeploy() {
         if (sessionDeployScheduler != null) {

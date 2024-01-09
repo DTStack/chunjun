@@ -1,12 +1,12 @@
 package com.dtstack.chunjun.entry;
 
 /**
- * 获取状态的请求
- * Company: www.dtstack.com
+ * 获取状态的请求 Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2023-09-20
  */
-public class JobInfoReq{
+public class JobInfoReq {
 
     private String jobId;
 

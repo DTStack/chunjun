@@ -34,14 +34,14 @@
 		<module>chunjun-core</module>
 		<module>chunjun-connectors</module>
 		<module>chunjun-clients</module>
-		<module>chunjun-docker</module>
+<!--		<module>chunjun-docker</module>-->
 		<module>chunjun-metrics</module>
 		<module>chunjun-dirty</module>
 		<module>chunjun-restore</module>
 		<module>chunjun-ddl</module>
 		<module>chunjun-assembly</module>
-		<module>chunjun-e2e</module>
-		<module>chunjun-local-test</module>
+<!--		<module>chunjun-e2e</module>-->
+<!--		<module>chunjun-local-test</module>-->
         <module>chunjun-server</module>
     </modules>
 

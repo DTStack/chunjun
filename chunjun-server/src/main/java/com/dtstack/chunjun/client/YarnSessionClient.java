@@ -2,10 +2,8 @@ package com.dtstack.chunjun.client;
 
 import com.dtstack.chunjun.config.SessionConfig;
 import com.dtstack.chunjun.config.YarnAppConfig;
-
 import com.dtstack.chunjun.entry.JobConverter;
 import com.dtstack.chunjun.entry.JobDescriptor;
-
 import com.dtstack.chunjun.server.util.JobGraphBuilder;
 
 import org.apache.flink.api.common.JobID;
@@ -34,12 +32,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
- * 基于yarn 进行任务提交
+ * 基于yarn 构建client
+ * 支持yarn 客户端对flink 任务相关对操作
  * Company: www.dtstack.com
  * @author xuchao
  * @date 2023-05-22
@@ -91,6 +88,7 @@ public class YarnSessionClient implements IClient {
 
     @Override
     public String getJobLog(String jobId) {
+        //找不到jobId 需要抛出异常
         return null;
     }
 
@@ -102,7 +100,8 @@ public class YarnSessionClient implements IClient {
     @Override
     public String getJobStatus(String jobId) throws Exception {
         Preconditions.checkState(!StringUtils.isEmpty(jobId), "jobId can't be empty!");
-        CompletableFuture<JobStatus>  jobStatusCompletableFuture = client.getJobStatus(JobID.fromHexString(jobId));
+        CompletableFuture<JobStatus> jobStatusCompletableFuture =
+                client.getJobStatus(JobID.fromHexString(jobId));
         JobStatus jobStatus = jobStatusCompletableFuture.get(20, TimeUnit.SECONDS);
         return jobStatus.toString();
     }
@@ -115,8 +114,9 @@ public class YarnSessionClient implements IClient {
     @Override
     public String submitJob(JobDescriptor jobDescriptor) throws Exception {
 
-        //TODO 提交部分需要控制classLoader 的新建，添加cache ，避免生成大量的class 导致metaspace oom.
-        JobGraph jobGraph = jobGraphBuilder.buildJobGraph(JobConverter.convertJobToArgs(jobDescriptor));
+        // TODO 提交部分需要控制classLoader 的新建，添加cache ，避免生成大量的class 导致metaspace oom.
+        JobGraph jobGraph =
+                jobGraphBuilder.buildJobGraph(JobConverter.convertJobToArgs(jobDescriptor));
         CompletableFuture<JobID> jobIDCompletableFuture = client.submitJob(jobGraph);
         JobID jobID = jobIDCompletableFuture.get(100, TimeUnit.SECONDS);
         return jobID.toString();

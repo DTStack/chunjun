@@ -137,8 +137,9 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 import static org.apache.flink.yarn.YarnConfigKeys.ENV_FLINK_CLASSPATH;
 import static org.apache.flink.yarn.YarnConfigKeys.LOCAL_RESOURCE_DESCRIPTOR_SEPARATOR;
 
-/** The descriptor with deployment information for deploying a Flink cluster on Yarn.
- *  修改 方法startAppMaster 从 private --> public 逻辑变更放到扩展类里面
+/**
+ * The descriptor with deployment information for deploying a Flink cluster on Yarn. 修改
+ * 方法startAppMaster 从 private --> public 逻辑变更放到扩展类里面
  */
 public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
     private static final Logger LOG = LoggerFactory.getLogger(YarnClusterDescriptor.class);
@@ -753,7 +754,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
             List<QueueInfo> queues = yarnClient.getAllQueues();
             if (queues.size() > 0
                     && this.yarnQueue
-                    != null) { // check only if there are queues configured in yarn and for
+                            != null) { // check only if there are queues configured in yarn and for
                 // this session.
                 boolean queueFound = false;
                 for (QueueInfo queue : queues) {
@@ -783,7 +784,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
         }
     }
 
-    /**只修改 方法 从 private --> public 逻辑变更放到扩展类里面*/
+    /** 只修改 方法 从 private --> public 逻辑变更放到扩展类里面 */
     public ApplicationReport startAppMaster(
             Configuration configuration,
             String applicationName,
@@ -836,9 +837,8 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
         Collection<Path> cjDistPaths = new ArrayList<>();
         cjDistPaths.add(cjDistPath);
 
-        fileUploader.registerMultipleLocalResources(cjDistPaths,
-                Path.CUR_DIR,
-                LocalResourceType.FILE);
+        fileUploader.registerMultipleLocalResources(
+                cjDistPaths, Path.CUR_DIR, LocalResourceType.FILE);
 
         // The files need to be shipped and added to classpath.
         Set<File> systemShipFiles = new HashSet<>(shipFiles.size());
@@ -913,10 +913,11 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
             logConfigFilePath = logConfigFilePath + File.separator + "log4j.properties";
             File logFile = new File(logConfigFilePath);
             systemShipFiles.add(logFile);
-            String relatePath = "." + File.separator + logFile.getName() ;
-            //修改APPLICATION_LOG_CONFIG_FILE 的相对路径
+            String relatePath = "." + File.separator + logFile.getName();
+            // 修改APPLICATION_LOG_CONFIG_FILE 的相对路径
             systemClassPaths.add(relatePath);
-            configuration.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE.key(), relatePath);
+            configuration.setString(
+                    YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE.key(), relatePath);
         }
 
         final List<String> uploadedDependencies =
@@ -1024,7 +1025,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
             try {
                 tmpJobGraphFile = File.createTempFile(appId.toString(), null);
                 try (FileOutputStream output = new FileOutputStream(tmpJobGraphFile);
-                     ObjectOutputStream obOutput = new ObjectOutputStream(output)) {
+                        ObjectOutputStream obOutput = new ObjectOutputStream(output)) {
                     obOutput.writeObject(jobGraph);
                 }
 

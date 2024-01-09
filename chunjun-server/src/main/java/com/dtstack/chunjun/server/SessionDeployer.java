@@ -4,9 +4,14 @@ import com.dtstack.chunjun.config.SessionConfig;
 import com.dtstack.chunjun.config.YarnAppConfig;
 import com.dtstack.chunjun.server.util.FileUtil;
 
+import org.apache.flink.client.deployment.ClusterSpecification;
+import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.DeploymentOptions;
 import org.apache.flink.configuration.HighAvailabilityOptions;
+import org.apache.flink.configuration.JobManagerOptions;
+import org.apache.flink.configuration.MemorySize;
+import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.runtime.jobmanager.HighAvailabilityMode;
 import org.apache.flink.yarn.CJYarnClusterClientFactory;
 import org.apache.flink.yarn.YarnClusterDescriptor;
@@ -14,6 +19,7 @@ import org.apache.flink.yarn.configuration.YarnConfigOptions;
 import org.apache.flink.yarn.configuration.YarnDeploymentTarget;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +27,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 /**
- * 启动一个session Company: www.dtstack.com
- *
+ * 启动一个session
+ * Company: www.dtstack.com
  * @author xuchao
  * @date 2023-06-28
  */
@@ -48,8 +54,6 @@ public class SessionDeployer {
 
     private String hadoopConfDir;
 
-    private SessionConfig sessionConfig;
-
     private boolean flinkHighAvailability;
 
     private YarnConfiguration yarnConf;
@@ -59,7 +63,11 @@ public class SessionDeployer {
 
     private YarnAppConfig yarnAppConfig;
 
-    public SessionDeployer(SessionConfig sessionConfig) {
+    private ClusterSpecification clusterSpecification;
+
+    private SessionStatusInfo sessionStatus;
+
+    public SessionDeployer(SessionConfig sessionConfig, SessionStatusInfo sessionStatusInfo) {
         this.yarnAppConfig = sessionConfig.getAppConfig();
         this.flinkLibDir = sessionConfig.getFlinkLibDir();
         this.flinkConfPath = sessionConfig.getFlinkConfDir();
@@ -68,6 +76,37 @@ public class SessionDeployer {
 
         this.flinkConfiguration = sessionConfig.getFlinkConfig();
         this.yarnConf = sessionConfig.getHadoopConfig().getYarnConfiguration();
+        this.sessionStatus = sessionStatusInfo;
+    }
+
+    public void doDeploy() {
+
+        ClusterSpecification.ClusterSpecificationBuilder builder =
+                new ClusterSpecification.ClusterSpecificationBuilder();
+
+        MemorySize taskManagerMB = flinkConfiguration.get(TaskManagerOptions.TOTAL_PROCESS_MEMORY);
+        MemorySize jobManagerMB = flinkConfiguration.get(JobManagerOptions.TOTAL_PROCESS_MEMORY);
+        Integer numTaskSlots = flinkConfiguration.get(TaskManagerOptions.NUM_TASK_SLOTS);
+
+        builder.setMasterMemoryMB(jobManagerMB.getMebiBytes());
+        builder.setTaskManagerMemoryMB(taskManagerMB.getMebiBytes());
+        builder.setSlotsPerTaskManager(numTaskSlots);
+        clusterSpecification = builder.createClusterSpecification();
+
+        try (YarnClusterDescriptor yarnSessionDescriptor =
+                     createYarnClusterDescriptor()) {
+            ClusterClient<ApplicationId> clusterClient =
+                    yarnSessionDescriptor
+                            .deploySessionCluster(clusterSpecification)
+                            .getClusterClient();
+            LOG.info("start session with cluster id :" + clusterClient.getClusterId().toString());
+        } catch (Throwable e) {
+            LOG.error("Couldn't deploy Yarn session cluster, ", e);
+            throw new RuntimeException(e);
+        } finally {
+            // 重新开始session check
+            sessionStatus.setStatus(ESessionStatus.HEALTHY);
+        }
     }
 
     public YarnClusterDescriptor createYarnClusterDescriptor() {

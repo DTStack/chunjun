@@ -2,6 +2,7 @@ package com.dtstack.chunjun.entry;
 
 /**
  * Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2023-09-21
  */
@@ -13,14 +14,10 @@ public class JobDescriptor {
 
     private String jobName;
 
-    /**
-     * 提交的任务信息-json 格式
-     */
+    /** 提交的任务信息-json 格式 */
     private String job;
 
-    /**
-     * 任务额外属性信息
-     */
+    /** 任务额外属性信息 */
     private String confProp;
 
     public String getJobName() {

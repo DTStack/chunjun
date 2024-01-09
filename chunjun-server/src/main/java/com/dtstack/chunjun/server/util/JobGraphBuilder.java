@@ -1,18 +1,15 @@
 package com.dtstack.chunjun.server.util;
 
 import com.dtstack.chunjun.config.SessionConfig;
-
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
-
-import com.google.common.collect.Lists;
-
-import com.google.common.collect.Sets;
 
 import org.apache.flink.client.program.PackagedProgram;
 import org.apache.flink.client.program.PackagedProgramUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +22,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * 基于json info 构建 JobGraph Company: www.dtstack.com
  *
- *  基于json info 构建 JobGraph
- * Company: www.dtstack.com
  * @author xuchao
  * @date 2023-09-21
  */
@@ -41,12 +37,11 @@ public class JobGraphBuilder {
 
     private SessionConfig config;
 
-    public JobGraphBuilder(SessionConfig chunJunConfig){
+    public JobGraphBuilder(SessionConfig chunJunConfig) {
         this.config = chunJunConfig;
     }
 
-    public JobGraph buildJobGraph(String[] programArgs)
-            throws Exception {
+    public JobGraph buildJobGraph(String[] programArgs) throws Exception {
         String pluginRoot = config.getChunJunLibDir();
         String coreJarPath = getCoreJarPath(pluginRoot);
         File jarFile = new File(coreJarPath);
@@ -55,15 +50,12 @@ public class JobGraphBuilder {
                         .setJarFile(jarFile)
                         .setUserClassPaths(Lists.newArrayList(getURLFromRootDir(pluginRoot)))
                         .setEntryPointClassName(MAIN_CLASS)
-  //                      .setConfiguration(launcherOptions.loadFlinkConfiguration())
+                        //
+                        // .setConfiguration(launcherOptions.loadFlinkConfiguration())
                         .setArguments(programArgs)
                         .build();
         JobGraph jobGraph =
-                PackagedProgramUtils.createJobGraph(
-                        program,
-                        new Configuration(),
-                        1,
-                        false);
+                PackagedProgramUtils.createJobGraph(program, new Configuration(), 1, false);
         List<URL> pluginClassPath =
                 jobGraph.getUserArtifacts().entrySet().stream()
                         .filter(tmp -> tmp.getKey().startsWith("class_path"))
@@ -82,7 +74,6 @@ public class JobGraphBuilder {
         return jobGraph;
     }
 
-
     public String getCoreJarPath(String pluginRoot) {
         File pluginDir = new File(pluginRoot);
         if (pluginDir.exists() && pluginDir.isDirectory()) {
@@ -97,9 +88,11 @@ public class JobGraphBuilder {
             }
         }
 
-        throw new RuntimeException(String.format("can't find chunjun core file(name: chunjun*.jar) from chunjun dir %s.", pluginRoot));
+        throw new RuntimeException(
+                String.format(
+                        "can't find chunjun core file(name: chunjun*.jar) from chunjun dir %s.",
+                        pluginRoot));
     }
-
 
     public Set<URL> getURLFromRootDir(String path) {
         Set<URL> urlSet = Sets.newHashSet();

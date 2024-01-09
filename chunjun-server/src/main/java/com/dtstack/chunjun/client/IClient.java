@@ -3,13 +3,12 @@ package com.dtstack.chunjun.client;
 import com.dtstack.chunjun.entry.JobDescriptor;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 /**
  * 定义操作远程的接口
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2023-05-22
  */

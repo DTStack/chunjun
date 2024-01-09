@@ -50,34 +50,34 @@
 		<!--RDB-->
 		<module>chunjun-connector-jdbc-base</module>
 		<module>chunjun-connector-mysql</module>
-		<module>chunjun-connector-oracle</module>
-		<module>chunjun-connector-sqlserver</module>
-		<module>chunjun-connector-db2</module>
-		<module>chunjun-connector-postgresql</module>
-		<module>chunjun-connector-greenplum</module>
-		<module>chunjun-connector-dm</module>
-		<module>chunjun-connector-gbase</module>
-		<module>chunjun-connector-clickhouse</module>
-		<module>chunjun-connector-saphana</module>
-		<module>chunjun-connector-doris</module>
-		<module>chunjun-connector-influxdb</module>
-		<module>chunjun-connector-starrocks</module>
-		<module>chunjun-connector-oceanbase</module>
-		<module>chunjun-connector-cassandra</module>
-		<module>chunjun-connector-sybase</module>
-		<module>chunjun-connector-vertica11</module>
-		<module>chunjun-connector-selectdb-cloud</module>
+<!--		<module>chunjun-connector-oracle</module>-->
+<!--		<module>chunjun-connector-sqlserver</module>-->
+<!--		<module>chunjun-connector-db2</module>-->
+<!--		<module>chunjun-connector-postgresql</module>-->
+<!--		<module>chunjun-connector-greenplum</module>-->
+<!--		<module>chunjun-connector-dm</module>-->
+<!--		<module>chunjun-connector-gbase</module>-->
+<!--		<module>chunjun-connector-clickhouse</module>-->
+<!--		<module>chunjun-connector-saphana</module>-->
+<!--		<module>chunjun-connector-doris</module>-->
+<!--		<module>chunjun-connector-influxdb</module>-->
+<!--		<module>chunjun-connector-starrocks</module>-->
+<!--		<module>chunjun-connector-oceanbase</module>-->
+<!--		<module>chunjun-connector-cassandra</module>-->
+<!--		<module>chunjun-connector-sybase</module>-->
+<!--		<module>chunjun-connector-vertica11</module>-->
+<!--		<module>chunjun-connector-selectdb-cloud</module>-->
 
-		<!--File-->
-		<module>chunjun-connector-file</module>
-		<!--		<module>chunjun-connector-filesystem</module>-->
-		<module>chunjun-connector-ftp</module>
+<!--		&lt;!&ndash;File&ndash;&gt;-->
+<!--		<module>chunjun-connector-file</module>-->
+<!--		&lt;!&ndash;		<module>chunjun-connector-filesystem</module>&ndash;&gt;-->
+<!--		<module>chunjun-connector-ftp</module>-->
 		<module>chunjun-connector-hdfs</module>
-		<module>chunjun-connector-hive</module>
-		<module>chunjun-connector-hive3</module>
-		<module>chunjun-connector-iceberg</module>
-		<module>chunjun-connector-arctic</module>
-		<module>chunjun-connector-s3</module>
+<!--		<module>chunjun-connector-hive</module>-->
+<!--		<module>chunjun-connector-hive3</module>-->
+<!--		<module>chunjun-connector-iceberg</module>-->
+<!--		<module>chunjun-connector-arctic</module>-->
+<!--		<module>chunjun-connector-s3</module>-->
 
 <!--		&lt;!&ndash;NoSql&ndash;&gt;-->
 <!--		<module>chunjun-connector-hbase-base</module>-->
@@ -92,7 +92,7 @@
 <!--		<module>chunjun-connector-kudu</module>-->
 
 <!--		&lt;!&ndash;CDC&ndash;&gt;-->
-<!--		<module>chunjun-connector-binlog</module>-->
+		<module>chunjun-connector-binlog</module>
 <!--		<module>chunjun-connector-oceanbasecdc</module>-->
 <!--		<module>chunjun-connector-oraclelogminer</module>-->
 <!--		<module>chunjun-connector-sqlservercdc</module>-->
@@ -105,9 +105,9 @@
 <!--		&lt;!&ndash;Distribute plugin, just for SYNC&ndash;&gt;-->
 <!--		<module>chunjun-connector-mysqld</module>-->
 
-		<module>chunjun-connector-nebula</module>
-		<module>chunjun-connector-kingbase</module>
-        <module>chunjun-connector-hudi</module>
+<!--		<module>chunjun-connector-nebula</module>-->
+<!--		<module>chunjun-connector-kingbase</module>-->
+<!--        <module>chunjun-connector-hudi</module>-->
     </modules>
 
 	<dependencies>
