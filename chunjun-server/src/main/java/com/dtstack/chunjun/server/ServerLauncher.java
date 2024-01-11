@@ -30,7 +30,9 @@ import static org.apache.flink.yarn.configuration.YarnConfigOptions.FLINK_DIST_J
 
 /**
  * 启动 chunjun server 服务
+ *
  * <p>Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2023-06-13
  */
@@ -64,9 +66,9 @@ public class ServerLauncher {
         sessionConfig.loadFlinkConfiguration();
         sessionConfig.loadHadoopConfiguration();
 
-        //初始化环境变量,设置env相关的属性配置
+        // 初始化环境变量,设置env相关的属性配置
         initEnv();
-        //启动session 检查
+        // 启动session 检查
         sessionManagerStart();
         // 启动restapi 服务
         webStart();
@@ -160,7 +162,7 @@ public class ServerLauncher {
         }
     }
 
-    public void sessionManagerStart(){
+    public void sessionManagerStart() {
         sessionManager = new SessionManager(sessionConfig);
         // 是否启动session check 服务
         if (chunJunConfig.isEnableSessionCheck()) {
@@ -175,7 +177,7 @@ public class ServerLauncher {
         }
     }
 
-    public void webStart(){
+    public void webStart() {
         if (chunJunConfig.isEnableRestful()) {
             LOG.info("start web server ");
             WebConfig webConfig = new WebConfig();

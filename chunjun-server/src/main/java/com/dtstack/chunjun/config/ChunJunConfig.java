@@ -6,8 +6,8 @@ import java.io.File;
 import java.util.Properties;
 
 /**
- * chunjun server
- * 配置 Company: www.dtstack.com
+ * chunjun server 配置 Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2023-06-13
  */
@@ -51,14 +51,30 @@ public class ChunJunConfig {
         return enableSessionCheck;
     }
 
-    public static ChunJunConfig fromProperties(Properties config){
+    public static ChunJunConfig fromProperties(Properties config) {
         String flinkHome = config.getProperty(ServerOptions.FLINK_HOME_PATH_KEY);
         String chunjunHome = config.getProperty(ServerOptions.CHUNJUN_HOME_PATH_KEY);
-        boolean sessionCheck = Boolean.parseBoolean((String) config.getOrDefault(ServerOptions.CHUNJUN_SESSION_CHECK_KEY, "true"));
+        boolean sessionCheck =
+                Boolean.parseBoolean(
+                        (String)
+                                config.getOrDefault(
+                                        ServerOptions.CHUNJUN_SESSION_CHECK_KEY, "true"));
         String hadoopConfDir = config.getProperty(ServerOptions.HADOOP_CONF_PATH);
-        boolean sessionDeploy = Boolean.valueOf((String) config.getOrDefault(ServerOptions.CHUNJUN_SESSION_DEPLOY_KEY, "true"));
-        boolean restful = Boolean.valueOf((String)config.getOrDefault(ServerOptions.CHUNJUN_RESTFUL_ENABLE_KEY, "true"));
-        Integer serverPort = Integer.valueOf((String)config.getOrDefault(ServerOptions.CHUNJUN_SERVER_PORT_KEY, "18081"));
+        boolean sessionDeploy =
+                Boolean.valueOf(
+                        (String)
+                                config.getOrDefault(
+                                        ServerOptions.CHUNJUN_SESSION_DEPLOY_KEY, "true"));
+        boolean restful =
+                Boolean.valueOf(
+                        (String)
+                                config.getOrDefault(
+                                        ServerOptions.CHUNJUN_RESTFUL_ENABLE_KEY, "true"));
+        Integer serverPort =
+                Integer.valueOf(
+                        (String)
+                                config.getOrDefault(
+                                        ServerOptions.CHUNJUN_SERVER_PORT_KEY, "18081"));
         String yarnQueue = (String) config.getOrDefault(ServerOptions.YARN_QUEUE_KEY, "default");
         String logLevel = (String) config.getOrDefault(ServerOptions.LOG_LEVEL_KEY, "INFO");
 
@@ -70,12 +86,12 @@ public class ChunJunConfig {
             throw new RuntimeException("chunjun home is null");
         }
 
-        if (hadoopConfDir == null || hadoopConfDir.isEmpty()){
-            //通过环境变量获取
+        if (hadoopConfDir == null || hadoopConfDir.isEmpty()) {
+            // 通过环境变量获取
             hadoopConfDir = System.getenv("HADOOP_CONF_DIR");
         }
 
-        if (hadoopConfDir == null || hadoopConfDir.isEmpty()){
+        if (hadoopConfDir == null || hadoopConfDir.isEmpty()) {
             throw new RuntimeException("hadoop conf dir is null");
         }
 
@@ -83,8 +99,9 @@ public class ChunJunConfig {
         String flinkLibDir = flinkHome + File.separator + "lib";
         String flinkPluginsDir = flinkHome + File.separator + "plugins";
 
-        String chunjunLibDir = chunjunHome + File.separator + "lib";
-        String chunjunLogConfDir = chunjunHome + File.separator + "conf" + File.separator + "logconf";
+        String chunjunLibDir = chunjunHome + File.separator + "chunjun-dist";
+        String chunjunLogConfDir =
+                chunjunHome + File.separator + "conf" + File.separator + "logconf";
 
         ChunJunConfig chunJunConfig = new ChunJunConfig();
         chunJunConfig.setFlinkConfDir(flinkConfDir);

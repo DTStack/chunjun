@@ -47,12 +47,12 @@ public class SessionStatusMonitor implements Runnable {
         this.executorService = Executors.newSingleThreadExecutor();
     }
 
-    public void start(){
+    public void start() {
         executorService.submit(this);
         LOG.info("session status check started!");
     }
 
-    public void shutdown(){
+    public void shutdown() {
         run = false;
         executorService.shutdown();
         LOG.info("session status check stopped!");

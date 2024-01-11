@@ -8,8 +8,8 @@ import org.apache.flink.yarn.configuration.YarnConfigOptions;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * session 指定的相关配置
- * Company: www.dtstack.com
+ * session 指定的相关配置 Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2023-05-22
  */

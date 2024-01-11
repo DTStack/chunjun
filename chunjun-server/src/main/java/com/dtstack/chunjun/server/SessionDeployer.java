@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 /**
- * 启动一个session
- * Company: www.dtstack.com
+ * 启动一个session Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2023-06-28
  */
@@ -93,8 +93,7 @@ public class SessionDeployer {
         builder.setSlotsPerTaskManager(numTaskSlots);
         clusterSpecification = builder.createClusterSpecification();
 
-        try (YarnClusterDescriptor yarnSessionDescriptor =
-                     createYarnClusterDescriptor()) {
+        try (YarnClusterDescriptor yarnSessionDescriptor = createYarnClusterDescriptor()) {
             ClusterClient<ApplicationId> clusterClient =
                     yarnSessionDescriptor
                             .deploySessionCluster(clusterSpecification)

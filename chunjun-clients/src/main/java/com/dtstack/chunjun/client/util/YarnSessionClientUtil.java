@@ -124,7 +124,7 @@ public class YarnSessionClientUtil {
                         false);
 
         if (hdfsPath) {
-            //TODO 包在1.16 中没有修改
+            // TODO 包在1.16 中没有修改
             descriptor.setLocalJarPath(new Path(flinkLibDir + "/flink-dist_2.12-1.12.2.jar"));
         } else {
             List<File> shipFiles = new ArrayList<>();

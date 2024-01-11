@@ -13,8 +13,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * session 管理器,对session 进行监控和自管理(根据检查结果启动session)
- * Company: www.dtstack.com
+ * session 管理器,对session 进行监控和自管理(根据检查结果启动session) Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2023-05-16
  */
@@ -65,8 +65,7 @@ public class SessionManager {
 
     /** 开启session 监控 */
     public void startSessionCheck() {
-        sessionStatusMonitor =
-                new SessionStatusMonitor(yarnSessionClient, sessionStatusInfo);
+        sessionStatusMonitor = new SessionStatusMonitor(yarnSessionClient, sessionStatusInfo);
         sessionStatusMonitor.start();
     }
 
@@ -93,7 +92,6 @@ public class SessionManager {
                 DEPLOY_CHECK_INTERVAL,
                 TimeUnit.MILLISECONDS);
     }
-
 
     public void stopSessionDeploy() {
         if (sessionDeployScheduler != null) {

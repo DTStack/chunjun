@@ -35,9 +35,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 基于yarn 构建client
- * 支持yarn 客户端对flink 任务相关对操作
- * Company: www.dtstack.com
+ * 基于yarn 构建client 支持yarn 客户端对flink 任务相关对操作 Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2023-05-22
  */
@@ -88,12 +87,13 @@ public class YarnSessionClient implements IClient {
 
     @Override
     public String getJobLog(String jobId) {
-        //找不到jobId 需要抛出异常
+        // 找不到jobId 需要抛出异常
         return null;
     }
 
     /**
      * flink session 场景下通过restapi 直接获取任务日志
+     *
      * @param jobId
      * @return
      */

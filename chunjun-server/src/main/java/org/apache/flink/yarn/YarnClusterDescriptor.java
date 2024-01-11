@@ -837,8 +837,9 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
         Collection<Path> cjDistPaths = new ArrayList<>();
         cjDistPaths.add(cjDistPath);
 
-        fileUploader.registerMultipleLocalResources(
-                cjDistPaths, Path.CUR_DIR, LocalResourceType.FILE);
+        List<String> cjDistUploadPath =
+                fileUploader.registerMultipleLocalResources(
+                        cjDistPaths, Path.CUR_DIR, LocalResourceType.FILE);
 
         // The files need to be shipped and added to classpath.
         Set<File> systemShipFiles = new HashSet<>(shipFiles.size());
@@ -968,6 +969,11 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
                                 ? ConfigConstants.DEFAULT_FLINK_USR_LIB_DIR
                                 : Path.CUR_DIR,
                         LocalResourceType.FILE);
+
+        // add cjlib to classpath
+        if (cjDistUploadPath != null) {
+            userClassPaths.addAll(cjDistUploadPath);
+        }
 
         // usrlib in remote will be used first.
         if (providedUsrLibDir.isPresent()) {

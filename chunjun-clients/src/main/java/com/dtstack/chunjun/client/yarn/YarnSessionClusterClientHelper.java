@@ -42,8 +42,6 @@ import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -113,20 +111,7 @@ public class YarnSessionClusterClientHelper implements ClusterClientHelper<Appli
                                                 JobGraphUtil.buildJobGraph(
                                                         launcherOptions,
                                                         programArgs.toArray(new String[0]));
-                                        // jobGraph.getClasspaths().clear();
-                                        List<URL> path = new ArrayList<>(jobGraph.getClasspaths());
                                         jobGraph.getClasspaths().clear();
-
-                                        // TODO 临时替换
-                                        for (URL tmp : path) {
-                                            String newPath =
-                                                    tmp.toString()
-                                                            .replace(
-                                                                    "/Users/xuchao/IdeaProjects/chunjun",
-                                                                    ".");
-                                            jobGraph.getClasspaths().add(new URL(newPath));
-                                        }
-
                                         jobGraph.getUserJars().clear();
                                         jobGraph.getUserArtifacts().clear();
                                         JobID jobID = clusterClient.submitJob(jobGraph).get();
