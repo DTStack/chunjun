@@ -32,7 +32,7 @@
 	<name>ChunJun : Restore</name>
 	<modules>
 		<module>chunjun-restore-common</module>
-		<module>chunjun-restore-mysql</module>
+<!--		<module>chunjun-restore-mysql</module>-->
 	</modules>
 	<packaging>pom</packaging>
 
