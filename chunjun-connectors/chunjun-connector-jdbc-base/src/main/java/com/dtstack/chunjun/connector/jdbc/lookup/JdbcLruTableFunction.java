@@ -29,8 +29,10 @@ import com.dtstack.chunjun.lookup.cache.CacheObj;
 import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.throwable.NoRestartException;
 import com.dtstack.chunjun.util.DateUtil;
+import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.ThreadUtil;
 
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.types.logical.RowType;
@@ -138,7 +140,8 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                         new LinkedBlockingQueue<>(MAX_TASK_QUEUE_SIZE.defaultValue()),
                         new ChunJunThreadFactory("rdbAsyncExec"),
                         new ThreadPoolExecutor.CallerRunsPolicy());
-        log.info("async dim table JdbcOptions info: {} ", jdbcConfig.toString());
+        // 隐藏日志中明文密码
+        log.info("async dim table JdbcOptions info: {} ", JsonUtil.toPrintJson(jdbcConfig));
     }
 
     @Override
@@ -153,12 +156,19 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
             Thread.sleep(100);
         }
 
-        executor.execute(
-                () ->
-                        connectWithRetry(
-                                future,
-                                rdbSqlClient,
-                                Stream.of(keys).map(this::convertDataType).toArray(Object[]::new)));
+        List<Object> keyList = new ArrayList<>();
+        for (Object key : keys) {
+            if (key instanceof GenericRowData) {
+                GenericRowData genericRowData = (GenericRowData) key;
+                for (int i = 0; i < genericRowData.getArity(); i++) {
+                    keyList.add(this.convertDataType(genericRowData.getField(i)));
+                }
+            } else {
+                keyList.add(this.convertDataType(key));
+            }
+        }
+
+        executor.execute(() -> connectWithRetry(future, rdbSqlClient, keyList.toArray()));
     }
 
     private Object convertDataType(Object val) {

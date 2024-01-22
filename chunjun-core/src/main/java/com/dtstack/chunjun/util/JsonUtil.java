@@ -109,7 +109,8 @@ public class JsonUtil {
         try {
             Map<String, Object> result =
                     objectMapper.readValue(objectMapper.writeValueAsString(obj), HashMap.class);
-            MapUtil.replaceAllElement(result, Lists.newArrayList("pwd", "password"), "******");
+            MapUtil.replaceAllElement(
+                    result, Lists.newArrayList("pwd", "password", "druid.password", "secretKey"), "******");
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
         } catch (Exception e) {
             throw new RuntimeException("error parse [" + obj + "] to json", e);

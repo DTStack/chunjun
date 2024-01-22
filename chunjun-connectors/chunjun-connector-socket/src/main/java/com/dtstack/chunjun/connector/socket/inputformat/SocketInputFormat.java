@@ -81,15 +81,19 @@ public class SocketInputFormat extends BaseRichInputFormat {
         try {
             row = queue.take();
             // 设置特殊字符串，作为失败标志
-            if (StringUtils.startsWith((String) ((GenericRowData) row).getField(0), KEY_EXIT0)) {
+            if (StringUtils.startsWith(
+                    String.valueOf(((GenericRowData) row).getField(0)), KEY_EXIT0)) {
                 throw new ReadRecordException(
                         "socket client lost connection completely, job failed "
                                 + ((GenericRowData) row).getField(0),
                         new Exception("receive data error"));
             }
+            row = rowConverter.toInternal(row);
         } catch (InterruptedException e) {
             log.error("takeEvent interrupted error: {}", ExceptionUtil.getErrorMessage(e));
             throw new ReadRecordException(row.toString(), e);
+        } catch (Exception e) {
+            throw new ReadRecordException("", e, 0, row);
         }
         return row;
     }

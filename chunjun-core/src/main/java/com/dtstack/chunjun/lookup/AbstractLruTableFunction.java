@@ -29,6 +29,7 @@ import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.runtime.execution.SuppressRestartsException;
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.AsyncLookupFunction;
 import org.apache.flink.table.functions.FunctionContext;
@@ -302,6 +303,16 @@ public abstract class AbstractLruTableFunction extends AsyncLookupFunction {
      * @return
      */
     public String buildCacheKey(Object... keys) {
+        if (keys != null && keys.length == 1 && keys[0] instanceof GenericRowData) {
+            GenericRowData rowData = (GenericRowData) keys[0];
+            int[] keyIndexes = new int[rowData.getArity()];
+            for (int i = 0; i < rowData.getArity(); i++) {
+                keyIndexes[i] = i;
+            }
+            return Arrays.stream(keyIndexes)
+                    .mapToObj(index -> String.valueOf(rowData.getField(index)))
+                    .collect(Collectors.joining("_"));
+        }
         return Arrays.stream(keys).map(String::valueOf).collect(Collectors.joining("_"));
     }
 

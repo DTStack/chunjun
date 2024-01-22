@@ -21,6 +21,7 @@ package com.dtstack.chunjun.security;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.FileSystemUtil;
+import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.Md5Util;
 
@@ -278,7 +279,10 @@ public class KerberosUtil {
         }
         SftpHandler handler = null;
         try {
-            handler = SftpHandler.getInstanceWithRetry(MapUtils.getMap(config, KEY_SFTP_CONF));
+            handler =
+                    SftpHandler.getInstanceWithRetry(
+                            GsonUtil.GSON.fromJson(
+                                    MapUtils.getString(config, KEY_SFTP_CONF), Map.class));
             if (handler.isFileExist(filePathOnSftp)) {
                 handler.downloadFileWithRetry(filePathOnSftp, fileLocalPath);
 
