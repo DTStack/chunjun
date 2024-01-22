@@ -100,7 +100,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
-        super(lookupConfig, jdbcDialect.getRowConverter(rowType), keyNames, rowType);
+        super(lookupConfig, jdbcDialect.getRowConverter(rowType));
         this.jdbcConfig = jdbcConfig;
         this.jdbcDialect = jdbcDialect;
         this.asyncPoolSize = ((JdbcLookupConfig) lookupConfig).getAsyncPoolSize();

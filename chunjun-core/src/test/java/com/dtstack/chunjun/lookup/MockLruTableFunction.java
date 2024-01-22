@@ -22,19 +22,14 @@ import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.config.LookupConfig;
 
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
 public class MockLruTableFunction extends AbstractLruTableFunction {
 
-    public MockLruTableFunction(
-            LookupConfig lookupConfig,
-            AbstractRowConverter rowConverter,
-            String[] keyNames,
-            RowType rowType) {
-        super(lookupConfig, rowConverter, keyNames, rowType);
+    public MockLruTableFunction(LookupConfig lookupConfig, AbstractRowConverter rowConverter) {
+        super(lookupConfig, rowConverter);
     }
 
     @Override

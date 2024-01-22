@@ -26,7 +26,7 @@ echo "CHUNJUN_HOME:"$CHUNJUN_HOME >&2
 HO_HEAP_SIZE="${HO_HEAP_SIZE:=1024m}"
 
 JAVA_OPTS="$JAVA_OPTS -Xmx${HO_HEAP_SIZE}"
-JAVA_OPTS="$JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=10006"
+#JAVA_OPTS="$JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=10006"
 
 JAVA_OPTS="$JAVA_OPTS -Xms${HO_HEAP_SIZE}"
 
@@ -78,7 +78,7 @@ CLASS_NAME=com.dtstack.chunjun.server.ServerLauncher
 
 start(){
     echo "ChunJun server starting ..."
-	nice -n ${CHUNJUN_NICE} $JAVA_RUN  $JAVA_OPTS -cp $JAR_DIR $CLASS_NAME $@ 1> "${CHUNJUN_LOG_DIR}/chunjun.stdout" 2> "${CHUNJUN_LOG_DIR}/chunjun.err" &
+	nice -n ${CHUNJUN_NICE} $JAVA_RUN  $JAVA_OPTS -cp $JAR_DIR $CLASS_NAME $@ 1> "${CHUNJUN_LOG_DIR}/chunjun.stdout" 2>&1  &
     echo $! > $pidfile
 	ret=$?
 	return 0
