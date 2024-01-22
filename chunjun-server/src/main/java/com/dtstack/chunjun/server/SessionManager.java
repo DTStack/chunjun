@@ -24,15 +24,24 @@ public class SessionManager {
 
     private static final int DEPLOY_CHECK_INTERVAL = 2 * 1000;
 
+    private static final int DEPLOY_MAX_RETRY = 3;
+
+    private int retryNum = 0;
+
     private static final String FLINK_VERSION = "flink116";
 
     private SessionConfig sessionConfig;
 
     private YarnAppConfig yarnAppConfig;
+
     private SessionStatusMonitor sessionStatusMonitor;
+
     private ScheduledExecutorService sessionDeployScheduler;
+
     private YarnSessionClient yarnSessionClient;
+
     private final SessionStatusInfo sessionStatusInfo = new SessionStatusInfo();
+
     private SessionDeployer sessionDeployer;
 
     public SessionManager(SessionConfig sessionConfig) {
@@ -86,7 +95,32 @@ public class SessionManager {
                     }
 
                     LOG.warn("current session status is unhealthy, will deploy a new session.");
-                    sessionDeployer.doDeploy();
+
+                    try {
+                        sessionDeployer.doDeploy();
+                        LOG.info("deploy yarn session success.");
+                        retryNum = 0;
+                    } catch (Exception e) {
+                        retryNum++;
+                        // 每次重试间隔递增retryNum * 30s
+                        long sleepTime = retryNum * 30000L;
+                        LOG.error(
+                                "deploy session error, retryNum:{}, and sleep {}ms",
+                                retryNum,
+                                sleepTime);
+                        try {
+                            Thread.sleep(sleepTime);
+                        } catch (InterruptedException ex) {
+                            LOG.info("", ex);
+                        }
+
+                        if (retryNum >= DEPLOY_MAX_RETRY) {
+                            LOG.error(
+                                    "!!!!!deploy session retry max then {}, exit schedule thread.",
+                                    DEPLOY_MAX_RETRY);
+                            throw e;
+                        }
+                    }
                 },
                 DEPLOY_CHECK_INTERVAL,
                 DEPLOY_CHECK_INTERVAL,

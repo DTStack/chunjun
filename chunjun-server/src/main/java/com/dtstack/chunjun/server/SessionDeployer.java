@@ -99,12 +99,13 @@ public class SessionDeployer {
                             .deploySessionCluster(clusterSpecification)
                             .getClusterClient();
             LOG.info("start session with cluster id :" + clusterClient.getClusterId().toString());
-        } catch (Throwable e) {
-            LOG.error("Couldn't deploy Yarn session cluster, ", e);
-            throw new RuntimeException(e);
-        } finally {
             // 重新开始session check
             sessionStatus.setStatus(ESessionStatus.HEALTHY);
+        } catch (Throwable e) {
+            LOG.error("Couldn't deploy Yarn session cluster, ", e);
+            // 重新开始session check
+            sessionStatus.setStatus(ESessionStatus.UNHEALTHY);
+            throw new RuntimeException(e);
         }
     }
 

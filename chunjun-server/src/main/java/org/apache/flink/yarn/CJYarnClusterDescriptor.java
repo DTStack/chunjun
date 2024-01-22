@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 扩展YarnClusterDescriptor 提供ChunJun 包上传功能 Company: www.dtstack.com
@@ -103,6 +104,10 @@ public class CJYarnClusterDescriptor extends YarnClusterDescriptor {
         Path chunjunDistPath = new Path(path);
         Collection<Path> shipFiles = new ArrayList<>();
         shipFiles.add(chunjunDistPath);
+        shipFiles =
+                shipFiles.stream()
+                        .filter(filePath -> !filePath.toString().contains("/server/"))
+                        .collect(Collectors.toList());
 
         fileUploader.registerMultipleLocalResources(
                 shipFiles, Path.CUR_DIR, LocalResourceType.FILE);

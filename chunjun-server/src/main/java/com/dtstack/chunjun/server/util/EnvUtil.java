@@ -2,7 +2,6 @@ package com.dtstack.chunjun.server.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.Map;
 
 /**

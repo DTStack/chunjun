@@ -116,6 +116,7 @@ import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -834,8 +835,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 
         String cjDistPathStr = configuration.get(ChunJunServerOptions.CHUNJUN_DIST_PATH);
         Path cjDistPath = new Path(cjDistPathStr);
-        Collection<Path> cjDistPaths = new ArrayList<>();
-        cjDistPaths.add(cjDistPath);
+        Collection<Path> cjDistPaths = getCJUploadPath(cjDistPath);
 
         List<String> cjDistUploadPath =
                 fileUploader.registerMultipleLocalResources(
@@ -1314,6 +1314,34 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
         // since deployment was successful, remove the hook
         ShutdownHookUtil.removeShutdownHook(deploymentFailureHook, getClass().getSimpleName(), LOG);
         return report;
+    }
+
+    /**
+     * chunjun server 包含在chunjun 目录下，不需要上传
+     *
+     * @param path
+     * @return
+     */
+    public List<Path> getCJUploadPath(Path path) {
+        File cjDir = new File(path.toUri().getPath());
+        if (cjDir.exists() && cjDir.isDirectory()) {
+            List<Path> paths = new ArrayList<>();
+            Arrays.stream(cjDir.listFiles())
+                    .filter(
+                            file ->
+                                    !(file.toURI().getPath().contains("/server/")
+                                            || file.toURI().getPath().contains("/logs/")
+                                            || file.toURI().getPath().contains("/conf/")
+                                            || file.toURI().getPath().contains("/run/")
+                                            || file.toURI().getPath().contains("/bin/")
+                                            || file.toURI().getPath().contains("nohup")))
+                    .forEach(ele -> paths.add(new Path(ele.getPath())));
+
+            return paths;
+        } else {
+            throw new RuntimeException(
+                    "chunjun server not found or not a dir path " + path.toUri().getPath());
+        }
     }
 
     private void removeLocalhostBindHostSetting(

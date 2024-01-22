@@ -315,9 +315,9 @@
 						</goals>
 						<configuration>
 							<target>
-								<copy file="${basedir}/target/${project.artifactId}-${project.version}.jar"
+								<move file="${basedir}/target/${project.artifactId}-${project.version}.jar"
 									  tofile="${basedir}/target/${project.artifactId}.jar"/>
-								<copy todir="${basedir}/../client/"
+								<move todir="${basedir}/../client/"
 									  file="${basedir}/target/${project.artifactId}.jar"/>
 								<delete>
 									<fileset dir="${basedir}/../client"

@@ -108,6 +108,8 @@ public class YarnSessionClient implements IClient {
 
     @Override
     public String getJobStatics(String jobId) {
+        // TODO 获取数据同步的同步指标
+        // 同步数量
         return null;
     }
 
