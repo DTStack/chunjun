@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.s3.source;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.RestoreConfig;
 import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.connector.s3.converter.S3SqlConverter;
@@ -70,6 +71,7 @@ public class S3DynamicTableSource implements ScanTableSource {
         }
         s3Config.setColumn(columnList);
         S3InputFormatBuilder builder = new S3InputFormatBuilder(new S3InputFormat());
+        builder.setRestoreConf(new RestoreConfig());
         builder.setRowConverter(
                 new S3SqlConverter(InternalTypeInfo.of(logicalType).toRowType(), s3Config));
         builder.setS3Conf(s3Config);

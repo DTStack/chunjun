@@ -77,4 +77,13 @@ public class S3Config extends CommonConfig implements Serializable {
      * Default is false.
      */
     private boolean safetySwitch = false;
+
+    /** 压缩方式 */
+    private String compress;
+
+    /** 是否写一个还是多个对象 */
+    private boolean writeSingleObject = true;
+
+    /** 生成的文件名后缀 */
+    private String suffix;
 }

@@ -20,6 +20,7 @@ package com.dtstack.chunjun.connector.s3.source;
 
 import com.dtstack.chunjun.config.RestoreConfig;
 import com.dtstack.chunjun.connector.s3.config.S3Config;
+import com.dtstack.chunjun.connector.s3.enums.CompressType;
 import com.dtstack.chunjun.connector.s3.util.ReaderUtil;
 import com.dtstack.chunjun.connector.s3.util.S3SimpleObject;
 import com.dtstack.chunjun.connector.s3.util.S3Util;
@@ -40,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -50,6 +52,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 
 @Slf4j
 public class S3InputFormat extends BaseRichInputFormat {
@@ -195,9 +198,15 @@ public class S3InputFormat extends BaseRichInputFormat {
                     // the file has not been read
                     S3Object o = amazonS3.getObject(rangeObjectRequest);
                     S3ObjectInputStream s3is = o.getObjectContent();
+                    InputStream inputStream = s3is;
+                    if (StringUtils.isNotEmpty(s3Config.getCompress())) {
+                        if (CompressType.GZIP.name().equalsIgnoreCase(s3Config.getCompress())) {
+                            inputStream = new GZIPInputStream(s3is);
+                        }
+                    }
                     readerUtil =
                             new ReaderUtil(
-                                    new InputStreamReader(s3is, s3Config.getEncoding()),
+                                    new InputStreamReader(inputStream, s3Config.getEncoding()),
                                     s3Config.getFieldDelimiter(),
                                     0L,
                                     s3Config.isSafetySwitch());
