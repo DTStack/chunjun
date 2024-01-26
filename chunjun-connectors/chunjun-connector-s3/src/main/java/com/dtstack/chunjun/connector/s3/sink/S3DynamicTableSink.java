@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.s3.sink;
 
 import com.dtstack.chunjun.config.FieldConfig;
+import com.dtstack.chunjun.config.SpeedConfig;
 import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.connector.s3.converter.S3SqlConverter;
@@ -66,11 +67,14 @@ public class S3DynamicTableSink implements DynamicTableSink {
         }
         s3Config.setColumn(columnList);
         S3OutputFormatBuilder builder = new S3OutputFormatBuilder(new S3OutputFormat());
+        builder.setSpeedConf(new SpeedConfig());
         builder.setS3Conf(s3Config);
         builder.setRowConverter(
                 new S3SqlConverter(InternalTypeInfo.of(logicalType).toRowType(), s3Config));
 
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()), 1);
+        int sinkParallelism = s3Config.getParallelism() == null ? 1 : s3Config.getParallelism();
+        return SinkFunctionProvider.of(
+                new DtOutputFormatSinkFunction<>(builder.finish()), sinkParallelism);
     }
 
     @Override
