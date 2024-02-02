@@ -157,9 +157,8 @@ public abstract class JdbcDynamicTableFactory
         JdbcConfig jdbcConfig = new JdbcConfig();
         SinkConnectionConfig conf = new SinkConnectionConfig();
         jdbcConfig.setConnection(Collections.singletonList(conf));
-
         conf.setJdbcUrl(readableConfig.get(URL));
-        conf.setTable(Collections.singletonList(readableConfig.get(TABLE_NAME)));
+        conf.setTable(Arrays.asList(readableConfig.get(TABLE_NAME)));
         conf.setSchema(readableConfig.get(SCHEMA));
         conf.setAllReplace(readableConfig.get(SINK_ALL_REPLACE));
 
