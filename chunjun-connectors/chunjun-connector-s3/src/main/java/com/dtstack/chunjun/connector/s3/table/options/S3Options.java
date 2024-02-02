@@ -68,4 +68,31 @@ public class S3Options {
                     .defaultValue(false)
                     .withDescription(
                             "whether the first line is a header line, if so, the first line is not read");
+
+    public static final ConfigOption<String> ENDPOINT =
+            key("endpoint").stringType().noDefaultValue().withDescription("endpoint");
+
+    public static final ConfigOption<String> COMPRESS =
+            key("compress")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("s3 file compression type");
+
+    public static final ConfigOption<Boolean> WRITE_SINGLE_OBJECT =
+            key("writeSingleObject")
+                    .booleanType()
+                    .defaultValue(true)
+                    .withDescription("whether to write a single or multiple objects");
+
+    public static final ConfigOption<Boolean> USE_V2 =
+            key("useV2")
+                    .booleanType()
+                    .defaultValue(true)
+                    .withDescription("Get the api version of the number of files in a directory");
+
+    public static final ConfigOption<String> SUFFIX =
+            key("suffix").stringType().noDefaultValue().withDescription("s3 file suffix");
+
+    public static final ConfigOption<String> WRITE_MODE =
+            key("writeMode").stringType().defaultValue("overwrite").withDescription("writeMode");
 }

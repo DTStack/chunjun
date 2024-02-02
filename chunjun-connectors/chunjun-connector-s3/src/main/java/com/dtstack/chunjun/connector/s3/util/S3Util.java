@@ -32,6 +32,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
@@ -194,6 +195,13 @@ public class S3Util {
 
     public static void deleteObject(AmazonS3 s3Client, String bucketName, String object) {
         s3Client.deleteObject(bucketName, object);
+    }
+
+    public static void deleteObjects(AmazonS3 s3Client, String bucketName, String[] keys) {
+        if (keys.length > 0) {
+            DeleteObjectsRequest request = new DeleteObjectsRequest(bucketName).withKeys(keys);
+            s3Client.deleteObjects(request);
+        }
     }
 
     public static void closeS3(AmazonS3 amazonS3) {

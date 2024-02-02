@@ -22,6 +22,7 @@ import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.connector.s3.sink.S3DynamicTableSink;
 import com.dtstack.chunjun.connector.s3.source.S3DynamicTableSource;
 import com.dtstack.chunjun.connector.s3.table.options.S3Options;
+import com.dtstack.chunjun.table.options.SinkOptions;
 import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.configuration.ConfigOption;
@@ -58,7 +59,8 @@ public class S3DynamicTableFactory implements DynamicTableSourceFactory, Dynamic
         s3Config.setEncoding(options.get(S3Options.ENCODING));
         s3Config.setRegion(options.get(S3Options.REGION));
         s3Config.setFirstLineHeader(options.get(S3Options.IS_FIRST_LINE_HEADER));
-
+        s3Config.setEndpoint(options.get(S3Options.ENDPOINT));
+        s3Config.setCompress(options.get(S3Options.COMPRESS));
         return new S3DynamicTableSource(context.getCatalogTable().getResolvedSchema(), s3Config);
     }
 
@@ -85,6 +87,13 @@ public class S3DynamicTableFactory implements DynamicTableSourceFactory, Dynamic
         options.add(S3Options.IS_FIRST_LINE_HEADER);
         options.add(S3Options.OBJECTS);
         options.add(S3Options.OBJECT);
+        options.add(S3Options.ENDPOINT);
+        options.add(S3Options.COMPRESS);
+        options.add(S3Options.WRITE_SINGLE_OBJECT);
+        options.add(S3Options.USE_V2);
+        options.add(S3Options.SUFFIX);
+        options.add(SinkOptions.SINK_PARALLELISM);
+        options.add(S3Options.WRITE_MODE);
         return options;
     }
 
@@ -105,6 +114,13 @@ public class S3DynamicTableFactory implements DynamicTableSourceFactory, Dynamic
         s3Config.setEncoding(options.get(S3Options.ENCODING));
         s3Config.setRegion(options.get(S3Options.REGION));
         s3Config.setFirstLineHeader(options.get(S3Options.IS_FIRST_LINE_HEADER));
+        s3Config.setEndpoint(options.get(S3Options.ENDPOINT));
+        s3Config.setCompress(options.get(S3Options.COMPRESS));
+        s3Config.setWriteSingleObject(options.get(S3Options.WRITE_SINGLE_OBJECT));
+        s3Config.setUseV2(options.get(S3Options.USE_V2));
+        s3Config.setSuffix(options.get(S3Options.SUFFIX));
+        s3Config.setParallelism(options.get(SinkOptions.SINK_PARALLELISM));
+        s3Config.setWriteMode(options.get(S3Options.WRITE_MODE));
 
         return new S3DynamicTableSink(context.getCatalogTable().getResolvedSchema(), s3Config);
     }
