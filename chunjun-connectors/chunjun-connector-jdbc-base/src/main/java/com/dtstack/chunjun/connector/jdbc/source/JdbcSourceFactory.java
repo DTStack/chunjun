@@ -89,7 +89,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         if (StringUtils.isBlank(jdbcConfig.getIncreColumn())) jdbcConfig.setPolling(false);
         jdbcConfig.setColumn(syncConfig.getReader().getFieldList());
 
-        Properties properties = syncConfig.getWriter().getProperties("properties", null);
+        Properties properties = syncConfig.getReader().getProperties("properties", null);
         jdbcConfig.setProperties(properties);
 
         setDefaultSplitStrategy(jdbcConfig);

@@ -39,7 +39,7 @@ public class BaseFileConfigTest {
         baseFileConf.setNextCheckRows(5000L);
 
         String expected =
-                "BaseFileConfig(fromLine=1, path=path, fileName=fileName, writeMode=writeMode, compress=compress, encoding=UTF-8, maxFileSize=1024, nextCheckRows=5000, suffix=null)";
+                "BaseFileConfig(fromLine=1, path=path, fileName=fileName, writeMode=writeMode, compress=compress, encoding=UTF-8, maxFileSize=1024, nextCheckRows=5000, suffix=null, jobIdentifier=)";
 
         assertEquals(expected, baseFileConf.toString());
     }
