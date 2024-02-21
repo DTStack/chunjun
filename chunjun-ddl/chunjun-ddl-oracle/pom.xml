@@ -43,6 +43,13 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-ddl-mysql</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>org.apache.calcite</groupId>
 			<artifactId>calcite-core</artifactId>
 		</dependency>
