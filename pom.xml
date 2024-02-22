@@ -42,6 +42,7 @@
 		<module>chunjun-assembly</module>
 		<module>chunjun-e2e</module>
 		<module>chunjun-local-test</module>
+		<module>chunjun-server</module>
 	</modules>
 
 	<properties>
