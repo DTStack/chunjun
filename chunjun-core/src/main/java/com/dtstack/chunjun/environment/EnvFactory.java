@@ -23,6 +23,7 @@ import com.dtstack.chunjun.options.Options;
 import com.dtstack.chunjun.util.PropertiesUtil;
 
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.CoreOptions;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -50,11 +51,15 @@ public class EnvFactory {
             flinkConf = GlobalConfiguration.loadConfiguration(options.getFlinkConfDir());
         }
         StreamExecutionEnvironment env;
-        if (StringUtils.equalsIgnoreCase(ClusterMode.local.name(), options.getMode())) {
+        if (StringUtils.equalsIgnoreCase(ClusterMode.localTest.name(), options.getMode())) {
             flinkConf.addAll(cfg);
             env = new MyLocalStreamEnvironment(flinkConf);
         } else {
             env = StreamExecutionEnvironment.getExecutionEnvironment(cfg);
+            // 如果没有配置默认的并行度，那么ChunJun 默认设置并行度为1
+            if (!cfg.contains(CoreOptions.DEFAULT_PARALLELISM)) {
+                env.setParallelism(1);
+            }
         }
         env.getConfig().disableClosureCleaner();
         env.getConfig().setGlobalJobParameters(cfg);
