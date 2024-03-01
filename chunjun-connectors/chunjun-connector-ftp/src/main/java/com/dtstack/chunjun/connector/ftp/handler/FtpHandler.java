@@ -46,6 +46,7 @@ public class FtpHandler implements DTFtpHandler {
     private FTPClient ftpClient = null;
     private String controlEncoding;
     private FtpConfig ftpConfig;
+    private boolean isEncodePath = true;
 
     public FTPClient getFtpClient() {
         return ftpClient;
@@ -57,6 +58,8 @@ public class FtpHandler implements DTFtpHandler {
         controlEncoding = ftpConfig.getControlEncoding();
         ftpClient = new FTPClient();
         try {
+            // 设置编码: 解决中文路径问题, 需要在连接前设置编码
+            ftpClient.setControlEncoding(controlEncoding);
             // 连接
             ftpClient.connect(ftpConfig.getHost(), ftpConfig.getPort());
             // 登录
@@ -87,11 +90,17 @@ public class FtpHandler implements DTFtpHandler {
                 log.error(message);
                 throw new RuntimeException(message);
             }
-            ftpClient.setControlEncoding(ftpConfig.getControlEncoding());
             ftpClient.setListHiddenFiles(ftpConfig.isListHiddenFiles());
             if (StringUtils.isNotEmpty(ftpConfig.getCompressType())) {
                 // 设置文件传输类型为二进制
                 ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+            }
+            // 开启服务器对UTF-8的支持，解决读取中文路径或者中文文件名失败的问题
+            if (FTPReply.isPositiveCompletion(ftpClient.sendCommand("OPTS UTF8", "ON"))) {
+                log.info("ftp server support UTF-8");
+                isEncodePath = false;
+            } else {
+                log.warn("ftp server not support UTF-8");
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -440,7 +449,10 @@ public class FtpHandler implements DTFtpHandler {
     }
 
     private String encodePath(String path) throws UnsupportedEncodingException {
-        return new String(path.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING);
+        if (isEncodePath) {
+            return new String(path.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING);
+        }
+        return new String(path.getBytes(controlEncoding));
     }
 
     public void reconnectFtp() {

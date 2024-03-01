@@ -18,22 +18,35 @@
 
 package com.dtstack.chunjun.connector.ftp.client.excel;
 
+import com.dtstack.chunjun.util.DateUtil;
+
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.read.listener.ReadListener;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class ExcelReadListener implements ReadListener<Map<Integer, String>> {
+public class ExcelReadListener implements ReadListener<Map<Integer, Object>> {
 
     private final BlockingQueue<Row> queue = new LinkedBlockingQueue<>(4096);
 
     @Override
-    public void invoke(Map<Integer, String> data, AnalysisContext context) {
+    public void invoke(Map<Integer, Object> data, AnalysisContext context) {
         String[] piece = new String[data.size()];
-        for (Map.Entry<Integer, String> entry : data.entrySet()) {
-            piece[entry.getKey()] = entry.getValue() == null ? "" : entry.getValue();
+        for (Map.Entry<Integer, Object> entry : data.entrySet()) {
+            String value = "";
+            if (entry.getValue() != null) {
+                if (entry.getValue() instanceof LocalDateTime) {
+                    value =
+                            DateUtil.timestampToString(
+                                    DateUtil.localDateTimetoDate((LocalDateTime) entry.getValue()));
+                } else {
+                    value = String.valueOf(entry.getValue());
+                }
+            }
+            piece[entry.getKey()] = value;
         }
         Row row =
                 new Row(

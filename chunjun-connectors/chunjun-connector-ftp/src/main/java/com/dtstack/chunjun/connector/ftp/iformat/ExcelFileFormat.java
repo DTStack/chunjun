@@ -40,6 +40,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static com.alibaba.excel.enums.ReadDefaultReturnEnum.ACTUAL_DATA;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 @Slf4j
@@ -62,13 +63,17 @@ public class ExcelFileFormat implements IFileReadFormat {
         ExcelReadListener listener = new ExcelReadListener();
         this.queue = listener.getQueue();
         this.ec = new ExcelSubExceptionCarrier();
-
         ExcelReaderBuilder builder = EasyExcel.read(inputStream, listener);
         if (!config.isFirstLineHeader()) {
             builder.headRowNumber(0);
         }
         builder.ignoreEmptyRow(true);
         builder.autoCloseStream(true);
+        // @since 3.2.0
+        // STRING:会返回一个Map<Integer,String>的数组，返回值就是你在excel里面不点击单元格看到的内容
+        // ACTUAL_DATA：会返回一个Map<Integer,Object>的数组，返回实际上存储的数据，会帮自动转换类型，Object类型为BigDecimal、Boolean、String、LocalDateTime、null，中的一个，
+        // READ_CELL_DATA: 会返回一个Map<Integer,ReadCellData<?>>的数组,其中?类型参照ACTUAL_DATA的
+        builder.readDefaultReturn(ACTUAL_DATA);
         ExcelReader reader = builder.build();
 
         this.sheetNum = reader.excelExecutor().sheetList().size();
