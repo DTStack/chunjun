@@ -19,13 +19,23 @@
 package com.dtstack.chunjun.connector.ftp.converter;
 
 import com.dtstack.chunjun.converter.AbstractRowConverter;
+import com.dtstack.chunjun.converter.IDeserializationConverter;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SerializationSchema;
+import org.apache.flink.table.data.DecimalData;
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.StringData;
+import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 
-public class FtpSqlConverter extends AbstractRowConverter<String, String, String, LogicalType> {
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.Time;
+
+public class FtpSqlConverter extends AbstractRowConverter<String[], String, String, LogicalType> {
 
     private static final long serialVersionUID = 4127516611259169686L;
 
@@ -41,10 +51,59 @@ public class FtpSqlConverter extends AbstractRowConverter<String, String, String
         this.valueSerialization = valueSerialization;
     }
 
+    public FtpSqlConverter(RowType rowType) {
+        super(rowType);
+        for (int i = 0; i < rowType.getFieldCount(); i++) {
+            toInternalConverters.add(
+                    wrapIntoNullableInternalConverter(
+                            createInternalConverter(rowType.getTypeAt(i))));
+        }
+    }
+
     @Override
-    public RowData toInternal(String input) throws Exception {
-        valueDeserialization.open(new DummyInitializationContext());
-        return valueDeserialization.deserialize(input.getBytes());
+    protected IDeserializationConverter createInternalConverter(LogicalType type) {
+        switch (type.getTypeRoot()) {
+            case NULL:
+                return val -> null;
+            case INTEGER:
+                return val -> Integer.valueOf((String) val);
+            case BIGINT:
+                return val -> Long.valueOf((String) val);
+            case FLOAT:
+                return val -> Float.valueOf((String) val);
+            case DOUBLE:
+                return val -> Double.valueOf((String) val);
+            case DECIMAL:
+                DecimalType decimalType = (DecimalType) type;
+                final int precision = decimalType.getPrecision();
+                final int scale = decimalType.getScale();
+                return val -> {
+                    BigDecimal decimal = new BigDecimal(String.valueOf(val));
+                    return DecimalData.fromBigDecimal(decimal, precision, scale);
+                };
+            case CHAR:
+            case VARCHAR:
+                return val -> StringData.fromString((String) val);
+            case DATE:
+                return val ->
+                        (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
+            case TIME_WITHOUT_TIME_ZONE:
+                return val ->
+                        (int)
+                                ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
+            default:
+                throw new UnsupportedOperationException(type.toString());
+        }
+    }
+
+    @Override
+    public RowData toInternal(String[] input) throws Exception {
+        GenericRowData rowData = new GenericRowData(input.length);
+        for (int i = 0; i < fieldTypes.length; i++) {
+            rowData.setField(i, toInternalConverters.get(i).deserialize(input[i]));
+        }
+        return rowData;
     }
 
     @Override

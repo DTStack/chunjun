@@ -173,7 +173,8 @@ public class FtpInputFormat extends BaseRichInputFormat {
             }
 
             if (rowConverter instanceof FtpSqlConverter) {
-                rowData = rowConverter.toInternal(String.join(",", fields));
+                // 解决数据里包含特殊符号(逗号、换行符)
+                rowData = rowConverter.toInternal(fields);
             } else if (rowConverter instanceof FtpSyncConverter) {
 
                 List<FieldConfig> columns = ftpConfig.getColumn();
