@@ -60,6 +60,7 @@ public class ChunjunRowDataConvertMap implements MapFunction<RowData, RowData> {
             case "INT24":
             case "INT UNSIGNED":
                 return data.getInt(index);
+            case "LONG":
             case "BIGINT":
             case "BIGINT UNSIGNED":
                 return data.getLong(index);
