@@ -173,6 +173,24 @@ public class FtpInputFormat extends BaseRichInputFormat {
             }
 
             if (rowConverter instanceof FtpSqlConverter) {
+                // 处理字段配置了对应的列索引
+                if (ftpConfig.getColumnIndex() != null) {
+                    List<FieldConfig> columns = ftpConfig.getColumn();
+                    String[] fieldsData = new String[columns.size()];
+                    for (int i = 0; i < CollectionUtils.size(columns); i++) {
+                        FieldConfig fieldConfig = columns.get(i);
+                        if (fieldConfig.getIndex() >= fields.length) {
+                            String errorMessage =
+                                    String.format(
+                                            "The column index is greater than the data size."
+                                                    + " The current column index is [%s], but the data size is [%s]. Data loss may occur.",
+                                            fieldConfig.getIndex(), fields.length);
+                            throw new IllegalArgumentException(errorMessage);
+                        }
+                        fieldsData[i] = fields[fieldConfig.getIndex()];
+                    }
+                    fields = fieldsData;
+                }
                 // 解决数据里包含特殊符号(逗号、换行符)
                 rowData = rowConverter.toInternal(fields);
             } else if (rowConverter instanceof FtpSyncConverter) {
@@ -278,6 +296,7 @@ public class FtpInputFormat extends BaseRichInputFormat {
         iFormatConfig.setFetchMaxSize(ftpConfig.getMaxFetchSize());
         iFormatConfig.setParallelism(ftpConfig.getParallelism());
         iFormatConfig.setColumnDelimiter(ftpConfig.getColumnDelimiter());
+        iFormatConfig.setSheetNo(ftpConfig.getSheetNo());
 
         return iFormatConfig;
     }

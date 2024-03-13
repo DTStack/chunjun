@@ -21,6 +21,7 @@ package com.dtstack.chunjun.connector.ftp.extend.ftp;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -45,4 +46,6 @@ public class IFormatConfig implements Serializable {
 
     /* 行分隔符 */
     private String columnDelimiter;
+
+    public List<Integer> sheetNo;
 }

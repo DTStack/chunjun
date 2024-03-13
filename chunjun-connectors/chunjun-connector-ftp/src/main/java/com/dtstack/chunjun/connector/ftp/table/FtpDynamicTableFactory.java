@@ -50,9 +50,11 @@ import org.apache.flink.table.factories.SerializationFormatFactory;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class FtpDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
@@ -99,6 +101,20 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         if (config.get(FtpOptions.FIRST_LINE_HEADER) != null) {
             ftpConfig.setFirstLineHeader(config.get(FtpOptions.FIRST_LINE_HEADER));
         }
+        if (StringUtils.isNotBlank(config.get(FtpOptions.SHEET_NO))) {
+            List<Integer> sheetNo =
+                    Arrays.stream(config.get(FtpOptions.SHEET_NO).split(","))
+                            .map(Integer::parseInt)
+                            .collect(Collectors.toList());
+            ftpConfig.setSheetNo(sheetNo);
+        }
+        if (StringUtils.isNotBlank(config.get(FtpOptions.COLUMN_INDEX))) {
+            List<Integer> columnIndex =
+                    Arrays.stream(config.get(FtpOptions.COLUMN_INDEX).split(","))
+                            .map(Integer::parseInt)
+                            .collect(Collectors.toList());
+            ftpConfig.setColumnIndex(columnIndex);
+        }
         return ftpConfig;
     }
 
@@ -118,13 +134,24 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
 
         List<Column> columns = resolvedSchema.getColumns();
         FtpConfig ftpConfig = getFtpConfByOptions(config);
+        if (ftpConfig.getColumnIndex() != null
+                && columns.size() != ftpConfig.getColumnIndex().size()) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "The number of fields (%s) is inconsistent with the number of indexes (%s).",
+                            columns.size(), ftpConfig.getColumnIndex().size()));
+        }
         List<FieldConfig> columnList = new ArrayList<>(columns.size());
         for (Column column : columns) {
             FieldConfig field = new FieldConfig();
             field.setName(column.getName());
             field.setType(
                     TypeConfig.fromString(column.getDataType().getLogicalType().asSummaryString()));
-            field.setIndex(columns.indexOf(column));
+            int index =
+                    ftpConfig.getColumnIndex() != null
+                            ? ftpConfig.getColumnIndex().get(columns.indexOf(column))
+                            : columns.indexOf(column);
+            field.setIndex(index);
             columnList.add(field);
         }
         ftpConfig.setColumn(columnList);
@@ -199,6 +226,8 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         options.add(FtpOptions.COMPRESS_TYPE);
         options.add(BaseFileOptions.NEXT_CHECK_ROWS);
         options.add(BaseFileOptions.WRITE_MODE);
+        options.add(FtpOptions.SHEET_NO);
+        options.add(FtpOptions.COLUMN_INDEX);
         return options;
     }
 }
