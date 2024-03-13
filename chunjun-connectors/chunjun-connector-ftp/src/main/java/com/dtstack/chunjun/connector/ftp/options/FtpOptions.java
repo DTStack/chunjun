@@ -96,4 +96,14 @@ public class FtpOptions extends BaseFileOptions {
                     .stringType()
                     .noDefaultValue()
                     .withDescription("compress type");
+    public static final ConfigOption<String> SHEET_NO =
+            ConfigOptions.key("sheet-no")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("sheet no, Multiple numbers separated by commas(,)");
+    public static final ConfigOption<String> COLUMN_INDEX =
+            ConfigOptions.key("column-index")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("column index, Multiple numbers separated by commas(,)");
 }
