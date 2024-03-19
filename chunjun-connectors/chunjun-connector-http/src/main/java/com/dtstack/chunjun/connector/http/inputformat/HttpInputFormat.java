@@ -82,6 +82,7 @@ public class HttpInputFormat extends BaseRichInputFormat {
     protected RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         ResponseValue value = myHttpClient.takeEvent();
         if (null == value) {
+            reachEnd = httpRestConfig.getLimitRequestTime().equals(httpRestConfig.getRequestTime());
             return null;
         }
         if (value.isNormal()) {
