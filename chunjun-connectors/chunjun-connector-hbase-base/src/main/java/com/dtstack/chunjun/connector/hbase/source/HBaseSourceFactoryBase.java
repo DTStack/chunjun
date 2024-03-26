@@ -114,7 +114,6 @@ public class HBaseSourceFactoryBase extends SourceFactory {
             rowConverter = new HBaseSyncConverter(hBaseConfig, rowType);
             scanBuilder = ScanBuilder.forSync(fieldConfList);
         } else {
-            String nullStringLiteral = hBaseConfig.getNullStringLiteral();
             Set<String> columnSet = new LinkedHashSet<>();
             for (FieldConfig fieldConfig : fieldConfList) {
                 String fieldName = fieldConfig.getName();
@@ -129,7 +128,7 @@ public class HBaseSourceFactoryBase extends SourceFactory {
             HBaseTableSchema hBaseTableSchema =
                     buildHBaseTableSchema(hBaseConfig.getTable(), fieldConfList);
             syncConfig.getReader().setFieldNameList(new ArrayList<>(columnSet));
-            rowConverter = new HBaseSqlConverter(hBaseTableSchema, nullStringLiteral);
+            rowConverter = new HBaseSqlConverter(hBaseTableSchema, hBaseConfig);
             scanBuilder = ScanBuilder.forSql(hBaseTableSchema);
         }
 

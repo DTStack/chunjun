@@ -343,7 +343,7 @@ public class HBaseFlatRowConverter
                         "version column index out of range: " + versionColumnIndex);
             }
             if (record.isNullAt(versionColumnIndex)) {
-                throw new IllegalArgumentException("null verison column!");
+                throw new IllegalArgumentException("null version column!");
             }
 
             timeStampValue = ((ColumnRowData) record).getField(versionColumnIndex).getData();

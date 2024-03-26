@@ -37,6 +37,7 @@ import org.apache.hadoop.hbase.client.BufferedMutator;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.RegionLocator;
+import org.apache.hadoop.hbase.security.User;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.security.UserGroupInformation;
 
@@ -58,6 +59,7 @@ public class HBaseHelper {
     private static final String KEY_HBASE_SECURITY_AUTHENTICATION = "hbase.security.authentication";
     private static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
     private static final String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
+    private static final String KEY_HADOOP_USER_NAME = "hadoop.user.name";
 
     public static Connection getHbaseConnection(
             HBaseConfig hBaseConfig, String jobId, String taskNumber) {
@@ -75,6 +77,14 @@ public class HBaseHelper {
 
         try {
             Configuration hConfiguration = getConfig(hbaseConfigMap);
+            Object hadoopUser = hbaseConfigMap.get(KEY_HADOOP_USER_NAME);
+            // 如果配置的 hadoop 用户不为空，那么设置配置中的用户。
+            if (hadoopUser != null && StringUtils.isNotEmpty(hadoopUser.toString())) {
+                UserGroupInformation userGroupInformation =
+                        UserGroupInformation.createRemoteUser(hadoopUser.toString());
+                return ConnectionFactory.createConnection(
+                        hConfiguration, User.create(userGroupInformation));
+            }
             return ConnectionFactory.createConnection(hConfiguration);
         } catch (IOException e) {
             log.error("Get connection fail with config:{}", hbaseConfigMap);

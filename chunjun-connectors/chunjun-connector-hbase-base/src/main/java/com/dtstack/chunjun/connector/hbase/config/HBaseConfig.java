@@ -58,6 +58,9 @@ public class HBaseConfig extends CommonConfig {
     private boolean isBinaryRowkey;
     private String table;
     private int scanCacheSize = 1000;
+    private int scanBatchSize = -1;
+    private int maxVersion = Integer.MAX_VALUE;
+    private String mode = "normal";
 
     // writer
     private String nullMode = "SKIP";
@@ -66,6 +69,7 @@ public class HBaseConfig extends CommonConfig {
     private long writeBufferSize;
     private String rowkeyExpress;
     private Integer versionColumnIndex;
+    private String versionColumnName;
     private String versionColumnValue;
     private Long ttl;
 }

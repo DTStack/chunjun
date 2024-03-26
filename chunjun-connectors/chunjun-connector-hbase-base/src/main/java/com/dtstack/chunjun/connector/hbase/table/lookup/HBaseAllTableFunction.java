@@ -57,7 +57,6 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
 
     private final HBaseTableSchema hbaseTableSchema;
     private transient HBaseSerde serde;
-    private final String nullStringLiteral;
     private final HBaseConfig hBaseConfig;
 
     public HBaseAllTableFunction(
@@ -65,12 +64,11 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
         super(null, null, lookupConfig, null);
         this.hbaseTableSchema = hbaseTableSchema;
         this.hBaseConfig = hBaseConfig;
-        this.nullStringLiteral = hBaseConfig.getNullStringLiteral();
     }
 
     @Override
     public void open(FunctionContext context) throws Exception {
-        this.serde = new HBaseSerde(hbaseTableSchema, nullStringLiteral);
+        this.serde = new HBaseSerde(hbaseTableSchema, hBaseConfig);
         super.open(context);
     }
 

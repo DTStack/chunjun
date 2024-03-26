@@ -30,6 +30,7 @@ import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
+import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
 import org.apache.hadoop.hbase.HConstants;
@@ -41,11 +42,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.dtstack.chunjun.connector.hbase.config.HBaseConfigConstants.MULTI_VERSION_FIXED_COLUMN;
+import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.END_ROW_KEY;
+import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.IS_BINARY_ROW_KEY;
+import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.MAX_VERSION;
+import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.MODE;
+import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.NULL_MODE;
 import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.NULL_STRING_LITERAL;
+import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.ROWKEY_EXPRESS;
+import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.SCAN_BATCH_SIZE;
+import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.SCAN_CACHE_SIZE;
 import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.SINK_BUFFER_FLUSH_INTERVAL;
 import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
 import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.SINK_BUFFER_FLUSH_MAX_SIZE;
+import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.START_ROW_KEY;
 import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.TABLE_NAME;
+import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.VERSION_COLUMN_NAME;
+import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.VERSION_COLUMN_VALUE;
 import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.ZOOKEEPER_QUORUM;
 import static com.dtstack.chunjun.connector.hbase.table.HBaseOptions.ZOOKEEPER_ZNODE_PARENT;
 import static com.dtstack.chunjun.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
@@ -102,6 +115,18 @@ public abstract class HBaseDynamicTableFactoryBase
         set.add(PRINCIPAL);
         set.add(KEYTAB);
         set.add(KRB5_CONF);
+
+        set.add(START_ROW_KEY);
+        set.add(END_ROW_KEY);
+        set.add(IS_BINARY_ROW_KEY);
+        set.add(SCAN_CACHE_SIZE);
+        set.add(VERSION_COLUMN_NAME);
+        set.add(VERSION_COLUMN_VALUE);
+        set.add(ROWKEY_EXPRESS);
+        set.add(SCAN_BATCH_SIZE);
+        set.add(MODE);
+        set.add(MAX_VERSION);
+        set.add(NULL_MODE);
         return set;
     }
 
@@ -113,19 +138,21 @@ public abstract class HBaseDynamicTableFactoryBase
         helper.validateExcept("properties.");
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        validatePrimaryKey(physicalSchema);
         Map<String, String> options = context.getCatalogTable().getOptions();
         HBaseConfig conf = getHbaseConf(config, options);
         LookupConfig lookupConfig =
                 getLookupConf(config, context.getObjectIdentifier().getObjectName());
-        HBaseTableSchema hbaseSchema = HBaseTableSchema.fromTableSchema(physicalSchema);
-        String nullStringLiteral = helper.getOptions().get(NULL_STRING_LITERAL);
-        return new HBaseDynamicTableSource(
-                conf, physicalSchema, lookupConfig, hbaseSchema, nullStringLiteral);
+        HBaseTableSchema hbaseSchema =
+                validatePrimaryKey(
+                        context.getPhysicalRowDataType(), context.getPrimaryKeyIndexes(), conf);
+        return new HBaseDynamicTableSource(conf, physicalSchema, lookupConfig, hbaseSchema);
     }
 
-    private static void validatePrimaryKey(TableSchema schema) {
-        HBaseTableSchema hbaseSchema = HBaseTableSchema.fromTableSchema(schema);
+    private static HBaseTableSchema validatePrimaryKey(TableSchema schema, HBaseConfig conf) {
+        HBaseTableSchema hbaseSchema = HBaseTableSchema.fromTableSchema(schema, conf);
+        if (conf.getMode().equalsIgnoreCase(MULTI_VERSION_FIXED_COLUMN)) {
+            return hbaseSchema;
+        }
         if (!hbaseSchema.getRowKeyName().isPresent()) {
             throw new IllegalArgumentException(
                     "HBase table requires to define a row key field. A row key field is defined as an atomic type, column families and qualifiers are defined as ROW type.");
@@ -145,6 +172,45 @@ public abstract class HBaseDynamicTableFactoryBase
                                 }
                             });
         }
+        return hbaseSchema;
+    }
+
+    /**
+     * Checks that the HBase table have row key defined. A row key is defined as an atomic type, and
+     * column families and qualifiers are defined as ROW type. There shouldn't be multiple atomic
+     * type columns in the schema. The PRIMARY KEY constraint is optional, if exist, the primary key
+     * constraint must be defined on the single row key field.
+     */
+    public static HBaseTableSchema validatePrimaryKey(
+            DataType dataType, int[] primaryKeyIndexes, HBaseConfig conf) {
+        HBaseTableSchema hbaseSchema = HBaseTableSchema.fromDataType(dataType, conf);
+        if (conf.getMode().equalsIgnoreCase(MULTI_VERSION_FIXED_COLUMN)) {
+            return hbaseSchema;
+        }
+        if (!hbaseSchema.getRowKeyName().isPresent()) {
+            throw new IllegalArgumentException(
+                    "HBase table requires to define a row key field. "
+                            + "A row key field is defined as an atomic type, "
+                            + "column families and qualifiers are defined as ROW type.");
+        }
+        if (primaryKeyIndexes.length == 0) {
+            return hbaseSchema;
+        }
+        if (primaryKeyIndexes.length > 1) {
+            throw new IllegalArgumentException(
+                    "HBase table doesn't support a primary Key on multiple columns. "
+                            + "The primary key of HBase table must be defined on row key field.");
+        }
+        if (!hbaseSchema
+                .getRowKeyName()
+                .get()
+                .equals(DataType.getFieldNames(dataType).get(primaryKeyIndexes[0]))) {
+            throw new IllegalArgumentException(
+                    "Primary key of HBase table must be defined on the row key field. "
+                            + "A row key field is defined as an atomic type, "
+                            + "column families and qualifiers are defined as ROW type.");
+        }
+        return hbaseSchema;
     }
 
     private LookupConfig getLookupConf(ReadableConfig readableConfig, String tableName) {
@@ -168,6 +234,17 @@ public abstract class HBaseDynamicTableFactoryBase
         conf.setTable(hTableName);
         String nullStringLiteral = config.get(NULL_STRING_LITERAL);
         conf.setNullStringLiteral(nullStringLiteral);
+        conf.setStartRowkey(config.get(START_ROW_KEY));
+        conf.setEndRowkey(config.get(END_ROW_KEY));
+        conf.setBinaryRowkey(config.get(IS_BINARY_ROW_KEY));
+        conf.setScanCacheSize(config.get(SCAN_CACHE_SIZE));
+        conf.setVersionColumnName(config.get(VERSION_COLUMN_NAME));
+        conf.setVersionColumnValue(config.get(VERSION_COLUMN_VALUE));
+        conf.setRowkeyExpress(config.get(ROWKEY_EXPRESS));
+        conf.setScanBatchSize(config.get(SCAN_BATCH_SIZE));
+        conf.setMode(config.get(MODE));
+        conf.setMaxVersion(config.get(MAX_VERSION));
+        conf.setNullMode(config.get(NULL_MODE));
         return conf;
     }
 
@@ -209,7 +286,6 @@ public abstract class HBaseDynamicTableFactoryBase
         helper.validateExcept("properties.");
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        HBaseTableSchema hbaseSchema = HBaseTableSchema.fromTableSchema(physicalSchema);
         Map<String, String> options = context.getCatalogTable().getOptions();
 
         HBaseConfig conf = getHbaseConf(config, options);
@@ -219,10 +295,10 @@ public abstract class HBaseDynamicTableFactoryBase
         conf.setFlushIntervalMills(millis);
         long bufferFlushMaxSizeInBytes = config.get(SINK_BUFFER_FLUSH_MAX_SIZE).getBytes();
         conf.setWriteBufferSize(bufferFlushMaxSizeInBytes);
-
-        conf.setRowkeyExpress(generateRowKey(hbaseSchema));
         String nullStringLiteral = helper.getOptions().get(NULL_STRING_LITERAL);
-        return new HBaseDynamicTableSink(conf, physicalSchema, hbaseSchema, nullStringLiteral);
+        conf.setNullStringLiteral(nullStringLiteral);
+        HBaseTableSchema hbaseSchema = HBaseTableSchema.fromTableSchema(physicalSchema, conf);
+        return new HBaseDynamicTableSink(conf, physicalSchema, hbaseSchema);
     }
 
     private String generateRowKey(HBaseTableSchema hbaseSchema) {

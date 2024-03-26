@@ -18,6 +18,8 @@
 
 package com.dtstack.chunjun.connector.hbase;
 
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
+
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.types.DataType;
@@ -89,7 +91,8 @@ public class HBaseTableSchemaTest {
                         .field("stu", DataTypes.ROW(DataTypes.FIELD("id", DataTypes.INT())))
                         .build();
 
-        HBaseTableSchema fromTableSchema = HBaseTableSchema.fromTableSchema(tableSchema);
+        HBaseTableSchema fromTableSchema =
+                HBaseTableSchema.fromTableSchema(tableSchema, new HBaseConfig());
         Assert.assertEquals("stu", fromTableSchema.getFamilyNames()[0]);
         Assert.assertEquals(
                 DataTypes.INT(), fromTableSchema.getRowKeyDataType().orElse(DataTypes.NULL()));

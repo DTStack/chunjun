@@ -36,4 +36,6 @@ public class HBaseConfigConstants {
     public static final long DEFAULT_WRITE_BUFFER_SIZE = 8 * 1024 * 1024L;
 
     public static final boolean DEFAULT_WAL_FLAG = false;
+
+    public static final String MULTI_VERSION_FIXED_COLUMN = "multiVersionFixedColumn";
 }

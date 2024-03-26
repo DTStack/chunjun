@@ -46,6 +46,10 @@
 					<artifactId>log4j-1.2-api</artifactId>
 					<groupId>org.apache.logging.log4j</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>hbase-client</artifactId>
+					<groupId>org.apache.hbase</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 

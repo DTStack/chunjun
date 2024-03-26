@@ -81,7 +81,7 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-        this.serde = new HBaseSerde(hbaseTableSchema, hBaseConfig.getNullStringLiteral());
+        this.serde = new HBaseSerde(hbaseTableSchema, hBaseConfig);
         this.executorService =
                 new ThreadPoolExecutor(
                         DEFAULT_POOL_SIZE,

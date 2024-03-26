@@ -22,11 +22,14 @@ import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.hbase.util.HBaseHelper;
 import com.dtstack.chunjun.connector.hbase.util.ScanBuilder;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
+import com.dtstack.chunjun.util.ExceptionUtil;
 
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
@@ -41,8 +44,16 @@ import org.apache.hadoop.hbase.util.Pair;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.dtstack.chunjun.connector.hbase.config.HBaseConfigConstants.MULTI_VERSION_FIXED_COLUMN;
 
 /** The InputFormat Implementation used for HbaseReader */
 @Slf4j
@@ -59,11 +70,22 @@ public class HBaseInputFormat extends BaseRichInputFormat {
     protected boolean isBinaryRowkey;
     /** 客户端每次 rpc fetch 的行数 */
     protected int scanCacheSize = 1000;
+    /** 客户端每次 rpc 从服务器端读取的列数 */
+    protected int scanBatchSize = -1;
+
+    protected int maxVersion = Integer.MAX_VALUE;
+    /** 读取HBase的模式，支持normal模式和multiVersionFixedColumn模式。 */
+    protected String mode = "normal";
 
     private transient Connection connection;
     private transient Scan scan;
     private transient ResultScanner resultScanner;
     private transient Result next;
+    private transient Cell currentCell;
+    /** 是否读取结束 */
+    private transient AtomicBoolean hasNext;
+
+    private transient BlockingQueue<Cell> queue;
 
     private final ScanBuilder scanBuilder;
 
@@ -222,6 +244,8 @@ public class HBaseInputFormat extends BaseRichInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
+        this.queue = new LinkedBlockingQueue<>(4096);
+        this.hasNext = new AtomicBoolean(true);
         HBaseInputSplit hbaseInputSplit = (HBaseInputSplit) inputSplit;
         byte[] startRow = Bytes.toBytesBinary(hbaseInputSplit.getStartkey());
         byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
@@ -236,17 +260,63 @@ public class HBaseInputFormat extends BaseRichInputFormat {
         scan.setStartRow(startRow);
         scan.setStopRow(stopRow);
         scan.setCaching(scanCacheSize);
+        scan.setBatch(scanBatchSize);
+        if (mode.equalsIgnoreCase(MULTI_VERSION_FIXED_COLUMN)) {
+            scan.setMaxVersions(maxVersion);
+        }
         resultScanner = table.getScanner(scan);
+        if (mode.equalsIgnoreCase(MULTI_VERSION_FIXED_COLUMN)) {
+            Iterator<Result> iterator = resultScanner.iterator();
+            try {
+                while (iterator.hasNext()) {
+                    Result result = iterator.next();
+                    while (result.advance()) {
+                        currentCell = result.current();
+                        queue.put(currentCell);
+                    }
+                }
+                hasNext.set(false);
+            } catch (InterruptedException e) {
+                hasNext.set(false);
+                log.error(
+                        "put cell data : {} , interrupted error:{}",
+                        currentCell.toString(),
+                        ExceptionUtil.getErrorMessage(e));
+                throw new ChunJunRuntimeException(
+                        "because the current thread was interrupted, adding data to the queue failed",
+                        e);
+            } catch (Exception e) {
+                hasNext.set(false);
+                log.error("read data failed , error:{}", ExceptionUtil.getErrorMessage(e));
+                throw new ChunJunRuntimeException("read data failed", e);
+            }
+        }
     }
 
     @Override
     public boolean reachedEnd() throws IOException {
+        if (mode.equalsIgnoreCase(MULTI_VERSION_FIXED_COLUMN)) {
+            return !hasNext.get() && queue.isEmpty();
+        }
         next = resultScanner.next();
         return next == null;
     }
 
     @Override
     public RowData nextRecordInternal(RowData rawRow) {
+        if (mode.equalsIgnoreCase(MULTI_VERSION_FIXED_COLUMN)) {
+            RowData row;
+            try {
+                Cell data = queue.poll(5, TimeUnit.SECONDS);
+                if (Objects.isNull(data)) {
+                    return null;
+                }
+                row = rowConverter.toInternal(data);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            return row;
+        }
         try {
             return rowConverter.toInternal(next);
         } catch (Exception e) {
