@@ -79,6 +79,18 @@ public class HBaseInputFormatBuilder extends BaseRichInputFormatBuilder<HBaseInp
         format.scanCacheSize = scanCacheSize;
     }
 
+    public void setScanBatchSize(int scanBatchSize) {
+        format.scanBatchSize = scanBatchSize;
+    }
+
+    public void setMode(String mode) {
+        format.mode = mode;
+    }
+
+    public void setMaxVersion(int maxVersion) {
+        format.maxVersion = maxVersion;
+    }
+
     @Override
     protected void checkFormat() {
         Preconditions.checkArgument(

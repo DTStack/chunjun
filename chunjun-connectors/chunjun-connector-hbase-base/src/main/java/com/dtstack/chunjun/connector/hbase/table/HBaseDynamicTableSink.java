@@ -33,17 +33,12 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
     private final HBaseConfig config;
     private final TableSchema tableSchema;
     private final HBaseTableSchema hbaseSchema;
-    protected final String nullStringLiteral;
 
     public HBaseDynamicTableSink(
-            HBaseConfig config,
-            TableSchema tableSchema,
-            HBaseTableSchema hbaseSchema,
-            String nullStringLiteral) {
+            HBaseConfig config, TableSchema tableSchema, HBaseTableSchema hbaseSchema) {
         this.config = config;
         this.tableSchema = tableSchema;
         this.hbaseSchema = hbaseSchema;
-        this.nullStringLiteral = nullStringLiteral;
     }
 
     @Override
@@ -58,7 +53,7 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
         builder.setHbaseConfig(config.getHbaseConfig());
         builder.setTableName(config.getTable());
         builder.setWriteBufferSize(config.getWriteBufferSize());
-        HBaseSqlConverter hbaseSqlConverter = new HBaseSqlConverter(hbaseSchema, nullStringLiteral);
+        HBaseSqlConverter hbaseSqlConverter = new HBaseSqlConverter(hbaseSchema, config);
         builder.setRowConverter(hbaseSqlConverter);
         builder.setConfig(config);
         return SinkFunctionProvider.of(
@@ -67,7 +62,7 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
 
     @Override
     public DynamicTableSink copy() {
-        return new HBaseDynamicTableSink(config, tableSchema, hbaseSchema, nullStringLiteral);
+        return new HBaseDynamicTableSink(config, tableSchema, hbaseSchema);
     }
 
     @Override

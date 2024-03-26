@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.hbase.converter;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.StringData;
@@ -42,11 +43,11 @@ public class HBaseSerdeTest {
         tableSchema = new HBaseTableSchema();
         tableSchema.setRowKey("stu:id", Integer.class);
         tableSchema.addColumn("stu", "name", String.class);
-        serde = new HBaseSerde(tableSchema, "NULL");
+        serde = new HBaseSerde(tableSchema, new HBaseConfig());
     }
 
     @Test
-    public void testCreatePutMutation() {
+    public void testCreatePutMutation() throws Exception {
         GenericRowData data = new GenericRowData(1);
         data.setField(0, StringData.fromString("hbase_test"));
         GenericRowData rowData = new GenericRowData(2);

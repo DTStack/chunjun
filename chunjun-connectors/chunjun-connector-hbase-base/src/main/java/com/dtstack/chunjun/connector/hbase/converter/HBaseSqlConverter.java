@@ -19,50 +19,82 @@
 package com.dtstack.chunjun.connector.hbase.converter;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 
 import org.apache.flink.table.data.DecimalData;
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.math.BigDecimal;
 
+import static com.dtstack.chunjun.connector.hbase.config.HBaseConfigConstants.MULTI_VERSION_FIXED_COLUMN;
 import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getPrecision;
 
 public class HBaseSqlConverter
-        extends AbstractRowConverter<Result, RowData, Mutation, LogicalType> {
+        extends AbstractRowConverter<Object, RowData, Mutation, LogicalType> {
     private static final long serialVersionUID = -8935215591844851238L;
 
     private static final int MIN_TIMESTAMP_PRECISION = 0;
     private static final int MAX_TIMESTAMP_PRECISION = 3;
     private static final int MIN_TIME_PRECISION = 0;
     private static final int MAX_TIME_PRECISION = 3;
-    private final HBaseTableSchema schema;
-    private final String nullStringLiteral;
+    private HBaseTableSchema schema;
+    private HBaseConfig hBaseConfig;
     private transient HBaseSerde serde;
 
-    public HBaseSqlConverter(HBaseTableSchema schema, String nullStringLiteral) {
+    public HBaseSqlConverter(HBaseTableSchema schema, HBaseConfig hBaseConfig) {
         this.schema = schema;
-        this.nullStringLiteral = nullStringLiteral;
+        this.hBaseConfig = hBaseConfig;
+    }
+
+    public HBaseSqlConverter(RowType rowType, HBaseConfig hBaseConfig) {
+        super(rowType);
+        this.hBaseConfig = hBaseConfig;
+        for (int i = 0; i < rowType.getFieldCount(); i++) {
+            toInternalConverters.add(
+                    wrapIntoNullableInternalConverter(
+                            createInternalConverter(rowType.getTypeAt(i))));
+        }
     }
 
     @Override
-    public RowData toInternal(Result input) {
+    public RowData toInternal(Object input) throws Exception {
 
-        if (serde == null) {
-            this.serde = new HBaseSerde(schema, nullStringLiteral);
+        if (hBaseConfig.getMode().equalsIgnoreCase(MULTI_VERSION_FIXED_COLUMN)) {
+            Cell current = (Cell) input;
+            GenericRowData rowData = new GenericRowData(this.rowType.getFieldCount());
+            String family = new String(CellUtil.cloneFamily(current));
+            String qualifier = new String(CellUtil.cloneQualifier(current));
+            String familyAndQualifier = family + ":" + qualifier;
+            rowData.setField(
+                    0, toInternalConverters.get(0).deserialize(CellUtil.cloneRow(current)));
+            rowData.setField(
+                    1, toInternalConverters.get(1).deserialize(familyAndQualifier.getBytes()));
+            rowData.setField(2, current.getTimestamp());
+            rowData.setField(
+                    3, StringData.fromString(Bytes.toStringBinary(CellUtil.cloneValue(current))));
+            return rowData;
         }
 
-        return serde.convertToReusedRow(input);
+        if (serde == null) {
+            this.serde = new HBaseSerde(schema, hBaseConfig);
+        }
+
+        return serde.convertToReusedRow((Result) input);
     }
 
     @Override
@@ -137,9 +169,9 @@ public class HBaseSqlConverter
     }
 
     @Override
-    public Mutation toExternal(RowData rowData, Mutation output) {
+    public Mutation toExternal(RowData rowData, Mutation output) throws Exception {
         if (serde == null) {
-            this.serde = new HBaseSerde(schema, nullStringLiteral);
+            this.serde = new HBaseSerde(schema, hBaseConfig);
         }
         RowKind kind = rowData.getRowKind();
         if (kind == RowKind.INSERT || kind == RowKind.UPDATE_AFTER) {

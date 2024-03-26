@@ -31,35 +31,37 @@ import com.dtstack.chunjun.lookup.config.LookupConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.connector.Projection;
 import org.apache.flink.table.connector.source.DynamicTableSource;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
+import org.apache.flink.table.types.DataType;
+
+import static com.dtstack.chunjun.connector.hbase.config.HBaseConfigConstants.MULTI_VERSION_FIXED_COLUMN;
 
 public class HBaseDynamicTableSource extends BaseHBaseDynamicTableSource {
 
     private final HBaseConfig hBaseConfig;
     private final TableSchema tableSchema;
     private final LookupConfig lookupConfig;
-    private final HBaseTableSchema hbaseSchema;
-    protected final String nullStringLiteral;
+    private HBaseTableSchema hbaseSchema;
 
     public HBaseDynamicTableSource(
             HBaseConfig conf,
             TableSchema tableSchema,
             LookupConfig lookupConfig,
-            HBaseTableSchema hbaseSchema,
-            String nullStringLiteral) {
+            HBaseTableSchema hbaseSchema) {
         super(tableSchema, hbaseSchema, conf, lookupConfig);
         this.hBaseConfig = conf;
         this.tableSchema = tableSchema;
         this.lookupConfig = lookupConfig;
         this.hbaseSchema = hbaseSchema;
         this.hbaseSchema.setTableName(hBaseConfig.getTable());
-        this.nullStringLiteral = nullStringLiteral;
     }
 
     @Override
     public DynamicTableSource copy() {
         return new HBaseDynamicTableSource(
-                this.hBaseConfig, tableSchema, lookupConfig, hbaseSchema, nullStringLiteral);
+                this.hBaseConfig, tableSchema, lookupConfig, hbaseSchema);
     }
 
     @Override
@@ -75,20 +77,43 @@ public class HBaseDynamicTableSource extends BaseHBaseDynamicTableSource {
         builder.setColumnMetaInfos(hBaseConfig.getColumnMetaInfos());
         builder.setConfig(hBaseConfig);
         builder.setHbaseConfig(hBaseConfig.getHbaseConfig());
+        builder.setStartRowKey(hBaseConfig.getStartRowkey());
+        builder.setEndRowKey(hBaseConfig.getEndRowkey());
+        builder.setIsBinaryRowkey(hBaseConfig.isBinaryRowkey());
+        builder.setScanCacheSize(hBaseConfig.getScanCacheSize());
+        builder.setScanBatchSize(hBaseConfig.getScanBatchSize());
+        builder.setMode(hBaseConfig.getMode());
+        builder.setMaxVersion(hBaseConfig.getMaxVersion());
         // 投影下推后, hbaseSchema 会被过滤无用的字段，而 tableSchema 不变, 后面根据 hbaseSchema 生成 hbase scan
-        AbstractRowConverter rowConverter = new HBaseSqlConverter(hbaseSchema, nullStringLiteral);
+        AbstractRowConverter rowConverter = new HBaseSqlConverter(hbaseSchema, hBaseConfig);
+        if (hBaseConfig.getMode().equalsIgnoreCase(MULTI_VERSION_FIXED_COLUMN)) {
+            rowConverter =
+                    new HBaseSqlConverter(
+                            InternalTypeInfo.of(
+                                            tableSchema.toPhysicalRowDataType().getLogicalType())
+                                    .toRowType(),
+                            hBaseConfig);
+        }
         builder.setRowConverter(rowConverter);
         return builder;
     }
 
     @Override
     protected AbstractLruTableFunction getAbstractLruTableFunction() {
-        AbstractRowConverter rowConverter = new HBaseSqlConverter(hbaseSchema, nullStringLiteral);
+        AbstractRowConverter rowConverter = new HBaseSqlConverter(hbaseSchema, hBaseConfig);
         return new HBaseLruTableFunction(lookupConfig, hbaseSchema, hBaseConfig, rowConverter);
     }
 
     @Override
     protected AbstractAllTableFunction getAbstractAllTableFunction() {
         return new HBaseAllTableFunction(lookupConfig, hbaseSchema, hBaseConfig);
+    }
+
+    @Override
+    public void applyProjection(int[][] projectedFields, DataType producedDataType) {
+        this.hbaseSchema =
+                HBaseTableSchema.fromDataType(
+                        Projection.of(projectedFields).project(hbaseSchema.convertToDataType()),
+                        hBaseConfig);
     }
 }
