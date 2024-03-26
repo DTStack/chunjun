@@ -18,18 +18,26 @@
 
 package com.dtstack.chunjun.connector.hbase.converter;
 
+import com.dtstack.chunjun.connector.hbase.FunctionParser;
+import com.dtstack.chunjun.connector.hbase.FunctionTree;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
+import com.dtstack.chunjun.connector.hbase.config.HBaseConfig;
+import com.dtstack.chunjun.constants.ConstantValue;
+import com.dtstack.chunjun.util.DateUtil;
 
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
+import org.apache.flink.table.data.binary.BinaryStringData;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeFamily;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Put;
@@ -42,12 +50,21 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import static com.dtstack.chunjun.connector.hbase.config.HBaseConfigConstants.DEFAULT_NULL_MODE;
 import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getPrecision;
 import static org.apache.flink.util.Preconditions.checkArgument;
 
 /** Utilities for HBase serialization and deserialization. */
+@Slf4j
 public class HBaseSerde implements Serializable {
 
     private static final long serialVersionUID = -4326665856298124101L;
@@ -80,7 +97,23 @@ public class HBaseSerde implements Serializable {
     protected final FieldDecoder[][] qualifierDecoders;
     private final GenericRowData rowWithRowKey;
 
-    public HBaseSerde(HBaseTableSchema hbaseSchema, final String nullStringLiteral) {
+    private final String versionColumnName;
+
+    private final String versionColumnValue;
+
+    private final SimpleDateFormat timeSecondFormat =
+            getSimpleDateFormat(ConstantValue.TIME_SECOND_SUFFIX);
+    private final SimpleDateFormat timeMillisecondFormat =
+            getSimpleDateFormat(ConstantValue.TIME_MILLISECOND_SUFFIX);
+    private final HBaseConfig hBaseConfig;
+    private List<Integer> rowKeyColumnIndex;
+    private List<String> rowKeyColumns;
+    private final List<String> columnNames = new ArrayList<>();
+    private FunctionTree functionTree;
+    private final String nullMode;
+
+    public HBaseSerde(HBaseTableSchema hbaseSchema, HBaseConfig hBaseConfig) {
+        final String nullStringLiteral = hBaseConfig.getNullStringLiteral();
         this.families = hbaseSchema.getFamilyKeys();
         this.rowkeyIndex = hbaseSchema.getRowKeyIndex();
         LogicalType rowkeyType =
@@ -120,8 +153,17 @@ public class HBaseSerde implements Serializable {
                             .map(t -> createNullableFieldDecoder(t, nullStringBytes))
                             .toArray(FieldDecoder[]::new);
             this.reusedFamilyRows[f] = new GenericRowData(dataTypes.length);
+            String[] qualifierNames = hbaseSchema.getQualifierNames(familyNames[f]);
+            for (String qualifierName : qualifierNames) {
+                columnNames.add(familyNames[f] + ":" + qualifierName);
+            }
         }
         this.rowWithRowKey = new GenericRowData(1);
+        this.hBaseConfig = hBaseConfig;
+        initRowKeyConfig();
+        this.versionColumnName = hBaseConfig.getVersionColumnName();
+        this.versionColumnValue = hBaseConfig.getVersionColumnValue();
+        this.nullMode = hBaseConfig.getNullMode();
     }
 
     /**
@@ -129,15 +171,26 @@ public class HBaseSerde implements Serializable {
      *
      * @return The appropriate instance of Put for this use case.
      */
-    public @Nullable Put createPutMutation(RowData row) {
+    public @Nullable Put createPutMutation(RowData row) throws Exception {
         checkArgument(keyEncoder != null, "row key is not set.");
-        byte[] rowkey = keyEncoder.encode(row, rowkeyIndex);
+        byte[] rowkey;
+        if (StringUtils.isNotBlank(hBaseConfig.getRowkeyExpress())) {
+            rowkey = getRowkey(row);
+        } else {
+            rowkey = keyEncoder.encode(row, rowkeyIndex);
+        }
         if (rowkey.length == 0) {
             // drop dirty records, rowkey shouldn't be zero length
             return null;
         }
+        Long version = getVersion(row);
         // upsert
-        Put put = new Put(rowkey);
+        Put put;
+        if (version == null) {
+            put = new Put(rowkey);
+        } else {
+            put = new Put(rowkey, version);
+        }
         for (int i = 0; i < fieldLength; i++) {
             if (i != rowkeyIndex) {
                 int f = i > rowkeyIndex ? i - 1 : i;
@@ -149,6 +202,10 @@ public class HBaseSerde implements Serializable {
                     byte[] qualifier = qualifiers[f][q];
                     // serialize value
                     byte[] value = qualifierEncoders[f][q].encode(familyRow, q);
+                    if (nullMode.equalsIgnoreCase(DEFAULT_NULL_MODE)
+                            && Arrays.equals(value, EMPTY_BYTES)) {
+                        continue;
+                    }
                     put.addColumn(familyKey, qualifier, value);
                 }
             }
@@ -524,5 +581,139 @@ public class HBaseSerde implements Serializable {
 
     public Object getRowKey(byte[] rowKey) {
         return keyDecoder.decode(rowKey);
+    }
+
+    public Long getVersion(RowData record) {
+        if (StringUtils.isBlank(versionColumnName) && StringUtils.isBlank(versionColumnValue)) {
+            return null;
+        }
+
+        Object timeStampValue = versionColumnValue;
+        if (StringUtils.isNotBlank(versionColumnName)) {
+            // 指定列作为版本,long/doubleColumn直接record.aslong,
+            // 其它类型尝试用yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss SSS去format
+            String[] cfAndQualifier = versionColumnName.split(":");
+            byte[] columnFamiliesName;
+            byte[] columnName;
+            if (cfAndQualifier.length == 2
+                    && StringUtils.isNotBlank(cfAndQualifier[0])
+                    && StringUtils.isNotBlank(cfAndQualifier[1])) {
+                columnFamiliesName = Bytes.toBytes(cfAndQualifier[0]);
+                columnName = Bytes.toBytes(cfAndQualifier[1]);
+            } else {
+                throw new IllegalArgumentException(
+                        "version-column-name 参数配置格式应该是：列族:列名. 您配置的列错误：" + versionColumnName);
+            }
+            boolean isExist = false;
+            for (int i = 0; i < fieldLength; i++) {
+                if (i != rowkeyIndex) {
+                    int f = i > rowkeyIndex ? i - 1 : i;
+                    // get family key
+                    byte[] familyKey = families[f];
+                    RowData familyRow = record.getRow(i, qualifiers[f].length);
+                    for (int q = 0; q < this.qualifiers[f].length; q++) {
+                        // get quantifier key
+                        byte[] qualifier = qualifiers[f][q];
+                        // serialize value
+                        byte[] value = qualifierEncoders[f][q].encode(familyRow, q);
+                        if (Bytes.equals(columnFamiliesName, familyKey)
+                                && Bytes.equals(columnName, qualifier)) {
+                            isExist = true;
+                            timeStampValue = qualifierDecoders[f][q].decode(value);
+                        }
+                    }
+                }
+            }
+            if (!isExist) {
+                throw new IllegalArgumentException(
+                        "version column name not exist in record: " + versionColumnName);
+            }
+        }
+
+        if (timeStampValue instanceof Long) {
+            return (Long) timeStampValue;
+        } else if (timeStampValue instanceof Double) {
+            return ((Double) timeStampValue).longValue();
+        } else if (timeStampValue instanceof String || timeStampValue instanceof BinaryStringData) {
+            try {
+                return Long.valueOf(timeStampValue.toString());
+            } catch (Exception e) {
+                // ignore
+            }
+            Date date;
+            try {
+                date = timeMillisecondFormat.parse(timeStampValue.toString());
+            } catch (ParseException e) {
+                try {
+                    date = timeSecondFormat.parse(timeStampValue.toString());
+                } catch (ParseException e1) {
+                    log.info(
+                            String.format(
+                                    "您指定第[%s]列作为hbase写入版本,但在尝试用yyyy-MM-dd HH:mm:ss 和 yyyy-MM-dd HH:mm:ss SSS 去解析为Date时均出错,请检查并修改",
+                                    versionColumnName));
+                    throw new RuntimeException(e1);
+                }
+            }
+            return date.getTime();
+        } else if (timeStampValue instanceof Date) {
+            return ((Date) timeStampValue).getTime();
+        } else if (timeStampValue instanceof TimestampData) {
+            String timeStampStr = ((TimestampData) timeStampValue).toString();
+            return DateUtil.getTimestampFromStr(timeStampStr).getTime();
+        } else {
+            throw new RuntimeException("version 类型不兼容: " + timeStampValue.getClass());
+        }
+    }
+
+    private static SimpleDateFormat getSimpleDateFormat(String sign) {
+        SimpleDateFormat format;
+        if (ConstantValue.TIME_SECOND_SUFFIX.equals(sign)) {
+            format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        } else {
+            format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss SSS");
+        }
+        return format;
+    }
+
+    private byte[] getRowkey(RowData record) throws Exception {
+        Map<String, Object> nameValueMap = new HashMap<>((rowKeyColumnIndex.size() << 2) / 3);
+        for (int i = 0; i < fieldLength; i++) {
+            if (i != rowkeyIndex) {
+                int f = i > rowkeyIndex ? i - 1 : i;
+                // get family key
+                byte[] familyKey = families[f];
+                RowData familyRow = record.getRow(i, qualifiers[f].length);
+                for (int q = 0; q < this.qualifiers[f].length; q++) {
+                    // get quantifier key
+                    byte[] qualifier = qualifiers[f][q];
+                    // serialize value
+                    byte[] value = qualifierEncoders[f][q].encode(familyRow, q);
+                    String cfAndQualifier =
+                            Bytes.toString(familyKey) + ":" + Bytes.toString(qualifier);
+                    if (columnNames.contains(cfAndQualifier)) {
+                        nameValueMap.put(cfAndQualifier, qualifierDecoders[f][q].decode(value));
+                    }
+                }
+            }
+        }
+
+        String rowKeyStr = functionTree.evaluate(nameValueMap);
+        return rowKeyStr.getBytes(StandardCharsets.UTF_8);
+    }
+
+    private void initRowKeyConfig() {
+        if (StringUtils.isNotBlank(hBaseConfig.getRowkeyExpress())) {
+            this.functionTree = FunctionParser.parse(hBaseConfig.getRowkeyExpress());
+            this.rowKeyColumns = FunctionParser.parseRowKeyCol(hBaseConfig.getRowkeyExpress());
+            this.rowKeyColumnIndex = new ArrayList<>(rowKeyColumns.size());
+            for (String rowKeyColumn : rowKeyColumns) {
+                int index = columnNames.indexOf(rowKeyColumn);
+                if (index == -1) {
+                    throw new RuntimeException(
+                            "Can not get row key column from columns:" + rowKeyColumn);
+                }
+                rowKeyColumnIndex.add(index);
+            }
+        }
     }
 }

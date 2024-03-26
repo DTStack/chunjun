@@ -66,4 +66,62 @@ public class HBaseOptions extends BaseFileOptions {
                     .defaultValue(Duration.ofSeconds(1L))
                     .withDescription(
                             "Writing option, the interval to flush any buffered rows. This can improve performance for writing data to HBase database, but may increase the latency. Can be set to '0' to disable it. Note, both 'sink.buffer-flush.max-size' and 'sink.buffer-flush.max-rows' can be set to '0' with the flush interval set allowing for complete async processing of buffered actions.");
+    public static final ConfigOption<String> START_ROW_KEY =
+            ConfigOptions.key("start-row-key")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("start row key");
+    public static final ConfigOption<String> END_ROW_KEY =
+            ConfigOptions.key("end-row-key")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("end row key");
+    public static final ConfigOption<Boolean> IS_BINARY_ROW_KEY =
+            ConfigOptions.key("is-binary-row-key")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription("is binary row key");
+    public static final ConfigOption<Integer> SCAN_CACHE_SIZE =
+            ConfigOptions.key("scan-cache-size")
+                    .intType()
+                    .defaultValue(1000)
+                    .withDescription("scan cache size");
+    public static final ConfigOption<String> VERSION_COLUMN_NAME =
+            ConfigOptions.key("version-column-name")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("version column name");
+    public static final ConfigOption<String> VERSION_COLUMN_VALUE =
+            ConfigOptions.key("version-column-value")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("version column value");
+    public static final ConfigOption<String> ROWKEY_EXPRESS =
+            ConfigOptions.key("rowkey-express")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("rowkey express");
+    public static final ConfigOption<Integer> SCAN_BATCH_SIZE =
+            ConfigOptions.key("scan-batch-size")
+                    .intType()
+                    .defaultValue(-1)
+                    .withDescription("scan batch size");
+
+    public static final ConfigOption<Integer> MAX_VERSION =
+            ConfigOptions.key("max-version")
+                    .intType()
+                    .defaultValue(Integer.MAX_VALUE)
+                    .withDescription("max version");
+
+    public static final ConfigOption<String> MODE =
+            ConfigOptions.key("mode")
+                    .stringType()
+                    .defaultValue("normal")
+                    .withDescription("Support normal and multiVersionFixedColumn mode");
+
+    public static final ConfigOption<String> NULL_MODE =
+            ConfigOptions.key("null-mode")
+                    .stringType()
+                    .defaultValue("SKIP")
+                    .withDescription("Write mode when field value is empty");
 }
