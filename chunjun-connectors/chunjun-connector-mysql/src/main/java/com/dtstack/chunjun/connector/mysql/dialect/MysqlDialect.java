@@ -21,11 +21,19 @@ package com.dtstack.chunjun.connector.mysql.dialect;
 import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.conf.TableIdentify;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.mysql.converter.MysqlRawTypeConverter;
+import com.dtstack.chunjun.connector.mysql.converter.MysqlSqlConverter;
+import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeMapper;
 
 import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 
+import io.vertx.core.json.JsonArray;
+
+import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
@@ -64,6 +72,12 @@ public class MysqlDialect implements JdbcDialect {
     @Override
     public boolean supportUpsert() {
         return true;
+    }
+
+    @Override
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
+            getRowConverter(RowType rowType) {
+        return new MysqlSqlConverter(rowType);
     }
 
     /**
