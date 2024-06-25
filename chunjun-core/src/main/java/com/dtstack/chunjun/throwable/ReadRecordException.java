@@ -18,8 +18,10 @@
 
 package com.dtstack.chunjun.throwable;
 
+import java.io.IOException;
+
 /** The Exception describing errors when read a record */
-public class ReadRecordException extends Exception {
+public class ReadRecordException extends IOException {
 
     private static final long serialVersionUID = 453087894656079820L;
     private final int colIndex;
