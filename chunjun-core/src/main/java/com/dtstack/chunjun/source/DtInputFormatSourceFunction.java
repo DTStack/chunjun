@@ -18,6 +18,9 @@
 
 package com.dtstack.chunjun.source;
 
+import com.dtstack.chunjun.constants.Metrics;
+import com.dtstack.chunjun.dirty.manager.DirtyManager;
+import com.dtstack.chunjun.metrics.AccumulatorCollector;
 import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.util.ExceptionUtil;
@@ -112,19 +115,28 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
             if (isRunning && format instanceof RichInputFormat) {
                 ((RichInputFormat) format).openInputFormat();
             }
-
             OUT nextElement = serializer.createInstance();
             while (isRunning) {
                 format.open(splitIterator.next());
-
+                AccumulatorCollector accumulatorCollector =
+                        ((BaseRichInputFormat) format).getAccumulatorCollector();
+                DirtyManager dirtyManager = ((BaseRichInputFormat) format).getDirtyManager();
                 // for each element we also check if cancel
                 // was called by checking the isRunning flag
 
                 while (isRunning && !format.reachedEnd()) {
                     synchronized (ctx.getCheckpointLock()) {
-                        nextElement = format.nextRecord(nextElement);
-                        if (nextElement != null) {
-                            ctx.collect(nextElement);
+                        try {
+                            nextElement = format.nextRecord(nextElement);
+                            if (nextElement != null) {
+                                ctx.collect(nextElement);
+                            }
+                        } catch (Exception e) {
+                            // 脏数据总数应是所有slot的脏数据总数，而不是单个的
+                            long globalErrors =
+                                    accumulatorCollector.getAccumulatorValue(
+                                            Metrics.NUM_ERRORS, false);
+                            dirtyManager.collect(nextElement, e, null, globalErrors);
                         }
                     }
                 }
