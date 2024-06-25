@@ -73,7 +73,9 @@ jobs:
       - name: add dependencies
         run: |
           wget http://nexus.dev.dtstack.cn/nexus/content/repositories/dtstack-release/com/esen/jdbc/gbase/8.3.81.53/gbase-8.3.81.53.jar
+          wget https://cdn.gbase.cn/products/27/czrl6z38BvTfEQS4uyQcS/gbasedbtjdbc_3.5.1.jar
           ./mvnw install:install-file -DgroupId=com.esen.jdbc -DartifactId=gbase -Dversion=8.3.81.53 -Dpackaging=jar -Dfile=./gbase-8.3.81.53.jar
+          ./mvnw install:install-file -DgroupId=com.gbasedbt.jdbc.Driver -DartifactId=gbasedbt -Dversion=3.5.1_1_d0c87a -Dpackaging=jar -Dfile=./gbasedbtjdbc_3.5.1.jar
       - name: build project
         run: |
           ./mvnw clean package -Dmaven.test.skip --no-snapshot-updates
