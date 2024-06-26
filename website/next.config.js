@@ -18,7 +18,7 @@ if (isProd) {
     loader: 'imgix',
     domains: ['github.com'],
     basePath: '/chunjun',
-    path: 'https://zaoei.github.io/chunjun'
+    path: 'https://dtstack.github.io/chunjun'
   };
   nextConfig.basePath = '/chunjun';
 } else {
