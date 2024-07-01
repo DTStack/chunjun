@@ -28,7 +28,9 @@ import com.dtstack.chunjun.connector.sqlserver.dialect.SqlserverDialect;
 import com.dtstack.chunjun.connector.sqlserver.sink.SqlserverOutputFormat;
 import com.dtstack.chunjun.connector.sqlserver.source.SqlserverInputFormat;
 
+import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
+import org.apache.flink.table.factories.FactoryUtil;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,6 +40,8 @@ public class SqlserverDynamicTableFactory extends JdbcDynamicTableFactory {
 
     private static final String IDENTIFIER = "sqlserver-x";
 
+    private JdbcConfig jdbcConfig;
+
     @Override
     public String factoryIdentifier() {
         return IDENTIFIER;
@@ -45,6 +49,11 @@ public class SqlserverDynamicTableFactory extends JdbcDynamicTableFactory {
 
     @Override
     protected JdbcDialect getDialect() {
+        if (jdbcConfig != null) {
+            return new SqlserverDialect(
+                    jdbcConfig.isWithNoLock(),
+                    jdbcConfig.getJdbcUrl().startsWith("jdbc:jtds:sqlserver"));
+        }
         return new SqlserverDialect();
     }
 
@@ -60,9 +69,22 @@ public class SqlserverDynamicTableFactory extends JdbcDynamicTableFactory {
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
+        this.jdbcConfig = getSourceConnectionConfig(helper.getOptions());
         Map<String, String> prop = context.getCatalogTable().getOptions();
         prop.put("druid.validation-query", "SELECT 1");
         return super.createDynamicTableSource(context);
+    }
+
+    @Override
+    public DynamicTableSink createDynamicTableSink(Context context) {
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
+        this.jdbcConfig =
+                getSinkConnectionConfig(
+                        helper.getOptions(), context.getCatalogTable().getResolvedSchema());
+        return super.createDynamicTableSink(context);
     }
 
     /** table字段有可能是[schema].[table]格式 需要转换为对应的schema 和 table 字段* */
