@@ -392,20 +392,7 @@ public class JdbcUtil {
      */
     public static int getNanos(long startLocation) {
         String timeStr = String.valueOf(startLocation);
-        int nanos;
-        if (timeStr.length() == SECOND_LENGTH) {
-            nanos = 0;
-        } else if (timeStr.length() == MILLIS_LENGTH) {
-            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH, MILLIS_LENGTH)) * 1000000;
-        } else if (timeStr.length() == MICRO_LENGTH) {
-            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH, MICRO_LENGTH)) * 1000;
-        } else if (timeStr.length() == NANOS_LENGTH) {
-            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH, NANOS_LENGTH));
-        } else {
-            throw new IllegalArgumentException("Unknown time unit:startLocation=" + startLocation);
-        }
-
-        return nanos;
+        return Integer.parseInt(timeStr.substring(SECOND_LENGTH)) * 1000000;
     }
 
     /**
@@ -415,21 +402,7 @@ public class JdbcUtil {
      * @return
      */
     public static long getMillis(long startLocation) {
-        String timeStr = String.valueOf(startLocation);
-        long millisSecond;
-        if (timeStr.length() == SECOND_LENGTH) {
-            millisSecond = startLocation * 1000;
-        } else if (timeStr.length() == MILLIS_LENGTH) {
-            millisSecond = startLocation;
-        } else if (timeStr.length() == MICRO_LENGTH) {
-            millisSecond = startLocation / 1000;
-        } else if (timeStr.length() == NANOS_LENGTH) {
-            millisSecond = startLocation / 1000000;
-        } else {
-            throw new IllegalArgumentException("Unknown time unit:startLocation=" + startLocation);
-        }
-
-        return millisSecond;
+        return startLocation;
     }
 
     /**
