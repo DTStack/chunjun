@@ -43,7 +43,9 @@ public class HBaseSerdeTest {
         tableSchema = new HBaseTableSchema();
         tableSchema.setRowKey("stu:id", Integer.class);
         tableSchema.addColumn("stu", "name", String.class);
-        serde = new HBaseSerde(tableSchema, new HBaseConfig());
+        HBaseConfig hBaseConfig = new HBaseConfig();
+        hBaseConfig.setNullStringLiteral("null");
+        serde = new HBaseSerde(tableSchema, hBaseConfig);
     }
 
     @Test
