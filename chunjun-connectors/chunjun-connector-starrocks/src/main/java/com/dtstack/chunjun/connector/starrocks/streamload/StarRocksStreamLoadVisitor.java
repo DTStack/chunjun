@@ -250,6 +250,10 @@ public class StarRocksStreamLoadVisitor implements Serializable {
     }
 
     private byte[] joinRows(List<byte[]> rows, int totalBytes) {
+        if (totalBytes < 0) {
+            throw new RuntimeException(
+                    "The ByteBuffer limit has been exceeded, json assembly may fail");
+        }
         ByteBuffer bos = ByteBuffer.allocate(totalBytes + (rows.isEmpty() ? 2 : 1 - rows.size()));
         bos.put("[".getBytes(StandardCharsets.UTF_8));
         byte[] jsonDelimiter = ",".getBytes(StandardCharsets.UTF_8);

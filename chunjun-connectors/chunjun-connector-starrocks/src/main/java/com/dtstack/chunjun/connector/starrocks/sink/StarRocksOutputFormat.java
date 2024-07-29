@@ -21,11 +21,13 @@ package com.dtstack.chunjun.connector.starrocks.sink;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.starrocks.config.StarRocksConfig;
 import com.dtstack.chunjun.connector.starrocks.connection.StarRocksJdbcConnectionProvider;
+import com.dtstack.chunjun.connector.starrocks.options.ConstantValue;
 import com.dtstack.chunjun.connector.starrocks.streamload.StarRocksQueryVisitor;
 import com.dtstack.chunjun.connector.starrocks.streamload.StarRocksSinkBufferEntity;
 import com.dtstack.chunjun.connector.starrocks.streamload.StarRocksStreamLoadFailedException;
 import com.dtstack.chunjun.connector.starrocks.streamload.StreamLoadManager;
 import com.dtstack.chunjun.constants.Metrics;
+import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.GsonUtil;
@@ -142,13 +144,18 @@ public class StarRocksOutputFormat extends BaseRichOutputFormat {
         checkTimerWriteException();
         int size = 0;
         rows.add(rowData);
-        if (rows.size() >= batchSize) {
+        if (rowData instanceof ColumnRowData) {
+            batchMaxByteSize += ((ColumnRowData) rowData).getByteSize();
+        } else {
+            batchMaxByteSize += rowSizeCalculator.getObjectSize(rowData);
+        }
+        if (rows.size() >= starRocksConfig.getBatchSize()
+                || batchMaxByteSize >= ConstantValue.SINK_BATCH_MAX_BYTES_DEFAULT) {
             writeRecordInternal();
             size = batchSize;
         }
 
         updateDuration();
-        bytesWriteCounter.add(rowSizeCalculator.getObjectSize(rowData));
         if (checkpointEnabled) {
             snapshotWriteCounter.add(size);
         }
@@ -160,6 +167,7 @@ public class StarRocksOutputFormat extends BaseRichOutputFormat {
             try {
                 writeMultipleRecordsInternal();
                 numWriteCounter.add(rows.size());
+                bytesWriteCounter.add(batchMaxByteSize);
             } catch (Exception e) {
                 if (e instanceof StarRocksStreamLoadFailedException) {
                     StarRocksStreamLoadFailedException exception =
@@ -178,6 +186,7 @@ public class StarRocksOutputFormat extends BaseRichOutputFormat {
             } finally {
                 // Data is either recorded dirty data or written normally
                 rows.clear();
+                batchMaxByteSize = 0;
             }
         }
     }
