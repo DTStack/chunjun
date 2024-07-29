@@ -132,8 +132,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     /** 最新读取的数据 */
     protected RowData lastRow = null;
 
-    /** 存储用于批量写入的数据 */
+    /** 存储用于批量写入的数据行数 */
     protected transient List<RowData> rows;
+    /** 存储用于批量写入的数据字节数 */
+    protected transient long batchMaxByteSize;
     /** 数据类型转换器 */
     protected AbstractRowConverter rowConverter;
     /** 是否需要初始化脏数据和累加器，目前只有hive插件该参数设置为false */
