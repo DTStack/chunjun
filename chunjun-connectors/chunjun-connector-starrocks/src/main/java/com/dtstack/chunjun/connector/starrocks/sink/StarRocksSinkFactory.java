@@ -36,8 +36,6 @@ import org.apache.flink.table.types.logical.RowType;
 
 import java.util.stream.Collectors;
 
-import static com.dtstack.chunjun.connector.starrocks.options.ConstantValue.SINK_BATCH_MAX_ROWS_DEFAULT;
-
 public class StarRocksSinkFactory extends SinkFactory {
 
     private final StarRocksConfig starRocksConfig;
@@ -49,8 +47,7 @@ public class StarRocksSinkFactory extends SinkFactory {
                         JsonUtil.toJson(syncConfig.getWriter().getParameter()),
                         StarRocksConfig.class);
 
-        int batchSize =
-                (int) syncConfig.getWriter().getLongVal("batchSize", SINK_BATCH_MAX_ROWS_DEFAULT);
+        int batchSize = (int) syncConfig.getWriter().getLongVal("batchSize", 1024);
         starRocksConfig.setBatchSize(batchSize);
         super.initCommonConf(starRocksConfig);
     }
