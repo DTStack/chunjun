@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
@@ -197,6 +198,15 @@ public class StarRocksOutputFormat extends BaseRichOutputFormat {
         return String.format(
                 "write to starRocks failed.\n errMsg:%s\n failedResponse:%s",
                 message, JSON.toJSONString(failedResponse));
+    }
+
+    @Override
+    public synchronized void close() throws IOException {
+        super.close();
+        // 解决当异步执行streamLoad时，flushException不为空，则认为整个任务应该抛出异常
+        if (streamLoadManager != null && streamLoadManager.getFlushException() != null) {
+            throw new RuntimeException(streamLoadManager.getFlushException());
+        }
     }
 
     @Override

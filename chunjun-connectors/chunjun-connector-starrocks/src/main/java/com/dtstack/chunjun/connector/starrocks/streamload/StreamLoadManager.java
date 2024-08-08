@@ -332,4 +332,8 @@ public class StreamLoadManager {
         return starrocksQueryVisitor.hasPartitions(
                 starRocksConfig.getDatabase(), starRocksConfig.getTable());
     }
+
+    public Throwable getFlushException() {
+        return flushException;
+    }
 }
