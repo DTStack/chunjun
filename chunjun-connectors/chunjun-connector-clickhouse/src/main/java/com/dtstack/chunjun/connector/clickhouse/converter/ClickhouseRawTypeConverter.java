@@ -96,6 +96,13 @@ public class ClickhouseRawTypeConverter {
             case "FIXEDSTRING":
             case "NESTED":
                 return DataTypes.STRING();
+            case "MAP(STRING,UINT8)":
+            case "MAP(STRING,INT8)":
+            case "MAP(STRING,UINT16)":
+            case "MAP(STRING,INT16)":
+            case "MAP(STRING,UINT32)":
+            case "MAP(STRING,INT32)":
+                return DataTypes.MAP(DataTypes.STRING(), DataTypes.INT());
             case "DATE":
                 return DataTypes.DATE();
             case "TIME":
