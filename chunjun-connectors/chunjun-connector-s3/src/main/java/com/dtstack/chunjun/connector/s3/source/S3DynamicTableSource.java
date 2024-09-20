@@ -66,7 +66,13 @@ public class S3DynamicTableSource implements ScanTableSource {
             field.setName(column.getName());
             field.setType(
                     TypeConfig.fromString(column.getDataType().getLogicalType().asSummaryString()));
-            field.setIndex(i);
+            int index =
+                    s3Config.getExcelFormatConfig().getColumnIndex() != null
+                            ? s3Config.getExcelFormatConfig()
+                                    .getColumnIndex()
+                                    .get(columns.indexOf(column))
+                            : columns.indexOf(column);
+            field.setIndex(index);
             columnList.add(field);
         }
         s3Config.setColumn(columnList);

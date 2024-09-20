@@ -30,6 +30,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
@@ -46,12 +47,14 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Slf4j
 public class S3Util {
@@ -75,6 +78,10 @@ public class S3Util {
                 } else {
                     builder = builder.withRegion(clientRegion.getName());
                 }
+                // 禁用 Bucket 名称注入到 endpoint 前缀
+                if (s3Config.isDisableBucketNameInEndpoint()) {
+                    builder = builder.withPathStyleAccessEnabled(true);
+                }
 
                 return builder.build();
             } else {
@@ -89,6 +96,11 @@ public class S3Util {
                 }
                 AmazonS3Client client = new AmazonS3Client(cred, ccfg);
                 client.setEndpoint(s3Config.getEndpoint());
+                // 禁用 Bucket 名称注入到 endpoint 前缀
+                if (s3Config.isDisableBucketNameInEndpoint()) {
+                    client.setS3ClientOptions(
+                            S3ClientOptions.builder().setPathStyleAccess(true).build());
+                }
                 return client;
             }
         } else {
@@ -103,18 +115,29 @@ public class S3Util {
     }
 
     public static List<String> listObjectsKeyByPrefix(
-            AmazonS3 s3Client, String bucketName, String prefix, int fetchSize) {
+            AmazonS3 s3Client, String bucketName, String prefix, int fetchSize, String regex) {
         List<String> objects = new ArrayList<>(fetchSize);
         ListObjectsV2Request req =
                 new ListObjectsV2Request().withBucketName(bucketName).withMaxKeys(fetchSize);
         if (StringUtils.isNotBlank(prefix)) {
             req.setPrefix(prefix);
         }
+        // 定义正则表达式
+        Pattern pattern = null;
+        if (StringUtils.isNotBlank(regex)) {
+            pattern = Pattern.compile(regex);
+        }
+
         ListObjectsV2Result result;
         do {
             result = s3Client.listObjectsV2(req);
 
             for (S3ObjectSummary objectSummary : result.getObjectSummaries()) {
+                // 如果对象键与正则表达式匹配，则进行相应处理
+                if (pattern != null
+                        && !pattern.matcher(FilenameUtils.getName(objectSummary.getKey())).find()) {
+                    continue;
+                }
                 objects.add(objectSummary.getKey());
             }
             String token = result.getNextContinuationToken();

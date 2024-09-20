@@ -19,6 +19,8 @@
 package com.dtstack.chunjun.connector.s3.config;
 
 import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.format.excel.config.ExcelFormatConfig;
+import com.dtstack.chunjun.format.tika.config.TikaReadConfig;
 
 import com.amazonaws.regions.Regions;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -86,4 +88,23 @@ public class S3Config extends CommonConfig implements Serializable {
 
     /** 生成的文件名后缀 */
     private String suffix;
+
+    /** 对象匹配规则 */
+    private String objectsRegex;
+
+    /** 是否使用文本限定符 */
+    private boolean useTextQualifier = true;
+
+    /** 是否开启每条记录生成一个对应的文件 */
+    private boolean enableWriteSingleRecordAsFile = false;
+
+    /** 保留原始文件名 */
+    private boolean keepOriginalFilename = false;
+
+    /** 禁用 Bucket 名称注入到 endpoint 前缀 */
+    private boolean disableBucketNameInEndpoint = false;
+
+    private TikaReadConfig tikaReadConfig = new TikaReadConfig();
+
+    private ExcelFormatConfig excelFormatConfig = new ExcelFormatConfig();
 }

@@ -27,6 +27,7 @@ import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
+import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.table.data.RowData;
@@ -34,14 +35,19 @@ import org.apache.flink.table.data.RowData;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PartETag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.dtstack.chunjun.format.tika.config.TikaReadConfig.ORIGINAL_FILENAME;
 
 /** The OutputFormat Implementation which write data to Amazon S3. */
 @Slf4j
@@ -137,7 +143,8 @@ public class S3OutputFormat extends BaseRichOutputFormat {
                                 amazonS3,
                                 s3Config.getBucket(),
                                 s3Config.getObject(),
-                                s3Config.getFetchSize());
+                                s3Config.getFetchSize(),
+                                s3Config.getObjectsRegex());
             } else {
                 subObjects =
                         S3Util.listObjectsByv1(
@@ -166,11 +173,17 @@ public class S3OutputFormat extends BaseRichOutputFormat {
             sw = new StringWriter();
         }
         this.writerUtil = new WriterUtil(sw, s3Config.getFieldDelimiter());
+        if (!s3Config.isUseTextQualifier()) {
+            writerUtil.setUseTextQualifier(false);
+        }
         this.currentPartNumber = this.currentPartNumber + 1;
     }
 
     /** Create file multipart upload ID */
     private void createActionFinishedTag() {
+        if (s3Config.isEnableWriteSingleRecordAsFile()) {
+            return;
+        }
         if (!StringUtils.isNotBlank(currentUploadId)) {
             this.currentUploadId =
                     S3Util.initiateMultipartUploadAndGetId(
@@ -193,8 +206,11 @@ public class S3OutputFormat extends BaseRichOutputFormat {
     }
 
     protected void flushDataInternal() {
+        if (sw == null) {
+            return;
+        }
         StringBuffer sb = sw.getBuffer();
-        if (sb.length() > MIN_SIZE || willClose) {
+        if (sb.length() > MIN_SIZE || willClose || s3Config.isEnableWriteSingleRecordAsFile()) {
             byte[] byteArray;
             try {
                 byteArray = sb.toString().getBytes(s3Config.getEncoding());
@@ -202,17 +218,23 @@ public class S3OutputFormat extends BaseRichOutputFormat {
                 throw new ChunJunRuntimeException(e);
             }
             log.info("Upload part size：" + byteArray.length);
-            PartETag partETag =
-                    S3Util.uploadPart(
-                            amazonS3,
-                            s3Config.getBucket(),
-                            s3Config.getObject(),
-                            this.currentUploadId,
-                            this.currentPartNumber,
-                            byteArray);
 
-            MyPartETag myPartETag = new MyPartETag(partETag);
-            myPartETags.add(myPartETag);
+            if (s3Config.isEnableWriteSingleRecordAsFile()) {
+                S3Util.putStringObject(
+                        amazonS3, s3Config.getBucket(), s3Config.getObject(), sb.toString());
+            } else {
+                PartETag partETag =
+                        S3Util.uploadPart(
+                                amazonS3,
+                                s3Config.getBucket(),
+                                s3Config.getObject(),
+                                this.currentUploadId,
+                                this.currentPartNumber,
+                                byteArray);
+
+                MyPartETag myPartETag = new MyPartETag(partETag);
+                myPartETags.add(myPartETag);
+            }
 
             log.debug(
                     "task-{} upload etag:[{}]",
@@ -225,6 +247,9 @@ public class S3OutputFormat extends BaseRichOutputFormat {
     }
 
     private void completeMultipartUploadFile() {
+        if (s3Config.isEnableWriteSingleRecordAsFile()) {
+            return;
+        }
         if (this.currentPartNumber > 10000) {
             throw new IllegalArgumentException("part can not bigger than 10000");
         }
@@ -282,7 +307,11 @@ public class S3OutputFormat extends BaseRichOutputFormat {
             // convert row to string
             stringRecord = (String[]) rowConverter.toExternal(rowData, stringRecord);
             try {
-                for (int i = 0; i < columnNameList.size(); ++i) {
+                int columnSize = columnNameList.size();
+                if (s3Config.isEnableWriteSingleRecordAsFile()) {
+                    columnSize = 1;
+                }
+                for (int i = 0; i < columnSize; ++i) {
 
                     String column = stringRecord[i];
 
@@ -292,6 +321,25 @@ public class S3OutputFormat extends BaseRichOutputFormat {
                     writerUtil.write(column);
                 }
                 writerUtil.endRecord();
+
+                if (s3Config.isEnableWriteSingleRecordAsFile()) {
+                    Map<String, String> metadataMap =
+                            GsonUtil.GSON.fromJson(stringRecord[1], Map.class);
+                    String key = FilenameUtils.getPath(s3Config.getObject());
+                    // 是否保留原始文件名
+                    if (s3Config.isKeepOriginalFilename()) {
+                        key += metadataMap.get(ORIGINAL_FILENAME) + getExtension();
+                    } else {
+                        key +=
+                                jobId
+                                        + "_"
+                                        + taskNumber
+                                        + "_"
+                                        + UUID.randomUUID().toString()
+                                        + getExtension();
+                    }
+                    s3Config.setObject(key);
+                }
                 flushDataInternal();
             } catch (Exception ex) {
                 String msg = "RowData2string error RowData(" + rowData + ")";

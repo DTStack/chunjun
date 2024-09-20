@@ -84,6 +84,6 @@ public class S3DynamicTableSink implements DynamicTableSink {
 
     @Override
     public String asSummaryString() {
-        return "StreamDynamicTableSink";
+        return S3DynamicTableSink.class.getName();
     }
 }

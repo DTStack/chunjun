@@ -22,65 +22,27 @@
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
-		<artifactId>chunjun-connectors</artifactId>
+		<artifactId>chunjun-formats</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
 		<version>${revision}</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>chunjun-connector-s3</artifactId>
-	<name>ChunJun : Connector : S3</name>
+	<artifactId>chunjun-format-protobuf</artifactId>
+	<name>ChunJun : Formats : Protobuf</name>
 
 	<properties>
-		<connector.dir>s3</connector.dir>
+		<format.dir>protobuf</format.dir>
 	</properties>
+
 	<dependencies>
 		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-s3</artifactId>
-			<version>1.12.261</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>commons-codec</artifactId>
-					<groupId>commons-codec</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>commons-logging</artifactId>
-					<groupId>commons-logging</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>httpclient</artifactId>
-					<groupId>org.apache.httpcomponents</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jackson-databind</artifactId>
-					<groupId>com.fasterxml.jackson.core</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jackson-dataformat-cbor</artifactId>
-					<groupId>com.fasterxml.jackson.dataformat</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>dk.brics.automaton</groupId>
-			<artifactId>automaton</artifactId>
-			<version>1.11-8</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-format-tika</artifactId>
-			<version>${project.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-format-excel</artifactId>
-			<version>${project.version}</version>
-			<scope>provided</scope>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>3.20.1-rc-1</version>
 		</dependency>
 	</dependencies>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -93,4 +55,5 @@
 			</plugin>
 		</plugins>
 	</build>
+
 </project>

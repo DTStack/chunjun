@@ -22,11 +22,17 @@ import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.connector.s3.sink.S3DynamicTableSink;
 import com.dtstack.chunjun.connector.s3.source.S3DynamicTableSource;
 import com.dtstack.chunjun.connector.s3.table.options.S3Options;
+import com.dtstack.chunjun.format.excel.config.ExcelFormatConfig;
+import com.dtstack.chunjun.format.excel.options.ExcelFormatOptions;
+import com.dtstack.chunjun.format.tika.config.TikaReadConfig;
+import com.dtstack.chunjun.format.tika.options.TikaOptions;
 import com.dtstack.chunjun.table.options.SinkOptions;
 import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.table.catalog.Column;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
@@ -34,9 +40,14 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class S3DynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
     private static final String IDENTIFIER = "s3-x";
@@ -61,7 +72,46 @@ public class S3DynamicTableFactory implements DynamicTableSourceFactory, Dynamic
         s3Config.setFirstLineHeader(options.get(S3Options.IS_FIRST_LINE_HEADER));
         s3Config.setEndpoint(options.get(S3Options.ENDPOINT));
         s3Config.setCompress(options.get(S3Options.COMPRESS));
-        return new S3DynamicTableSource(context.getCatalogTable().getResolvedSchema(), s3Config);
+        s3Config.setObjectsRegex(options.get(S3Options.OBJECTS_REGEX));
+        s3Config.setDisableBucketNameInEndpoint(
+                options.get(S3Options.DISABLE_BUCKET_NAME_IN_ENDPOINT));
+        TikaReadConfig tikaReadConfig = new TikaReadConfig();
+        tikaReadConfig.setUseExtract(options.get(TikaOptions.USE_EXTRACT));
+        tikaReadConfig.setOverlapRatio(options.get(TikaOptions.OVERLAP_RATIO));
+        tikaReadConfig.setChunkSize(options.get(TikaOptions.CHUNK_SIZE));
+        s3Config.setTikaReadConfig(tikaReadConfig);
+        ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+        List<Column> columns = resolvedSchema.getColumns();
+        ExcelFormatConfig excelFormatConfig = new ExcelFormatConfig();
+        excelFormatConfig.setUseExcelFormat(options.get(ExcelFormatOptions.USE_EXCEL_FORMAT));
+        excelFormatConfig.setFirstLineHeader(options.get(S3Options.IS_FIRST_LINE_HEADER));
+        if (StringUtils.isNotBlank(options.get(ExcelFormatOptions.SHEET_NO))) {
+            List<Integer> sheetNo =
+                    Arrays.stream(options.get(ExcelFormatOptions.SHEET_NO).split(","))
+                            .map(Integer::parseInt)
+                            .collect(Collectors.toList());
+            excelFormatConfig.setSheetNo(sheetNo);
+        }
+        if (StringUtils.isNotBlank(options.get(ExcelFormatOptions.COLUMN_INDEX))) {
+            List<Integer> columnIndex =
+                    Arrays.stream(options.get(ExcelFormatOptions.COLUMN_INDEX).split(","))
+                            .map(Integer::parseInt)
+                            .collect(Collectors.toList());
+            excelFormatConfig.setColumnIndex(columnIndex);
+        }
+        final String[] fields = new String[columns.size()];
+        IntStream.range(0, fields.length).forEach(i -> fields[i] = columns.get(i).getName());
+        excelFormatConfig.setFields(fields);
+        s3Config.setExcelFormatConfig(excelFormatConfig);
+        if (s3Config.getExcelFormatConfig().getColumnIndex() != null
+                && columns.size() != s3Config.getExcelFormatConfig().getColumnIndex().size()) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "The number of fields (%s) is inconsistent with the number of indexes (%s).",
+                            columns.size(),
+                            s3Config.getExcelFormatConfig().getColumnIndex().size()));
+        }
+        return new S3DynamicTableSource(resolvedSchema, s3Config);
     }
 
     @Override
@@ -94,6 +144,17 @@ public class S3DynamicTableFactory implements DynamicTableSourceFactory, Dynamic
         options.add(S3Options.SUFFIX);
         options.add(SinkOptions.SINK_PARALLELISM);
         options.add(S3Options.WRITE_MODE);
+        options.add(S3Options.OBJECTS_REGEX);
+        options.add(S3Options.USE_TEXT_QUALIFIER);
+        options.add(S3Options.ENABLE_WRITE_SINGLE_RECORD_AS_FILE);
+        options.add(S3Options.KEEP_ORIGINAL_FILENAME);
+        options.add(S3Options.DISABLE_BUCKET_NAME_IN_ENDPOINT);
+        options.add(TikaOptions.USE_EXTRACT);
+        options.add(TikaOptions.CHUNK_SIZE);
+        options.add(TikaOptions.OVERLAP_RATIO);
+        options.add(ExcelFormatOptions.SHEET_NO);
+        options.add(ExcelFormatOptions.COLUMN_INDEX);
+        options.add(ExcelFormatOptions.USE_EXCEL_FORMAT);
         return options;
     }
 
@@ -121,6 +182,12 @@ public class S3DynamicTableFactory implements DynamicTableSourceFactory, Dynamic
         s3Config.setSuffix(options.get(S3Options.SUFFIX));
         s3Config.setParallelism(options.get(SinkOptions.SINK_PARALLELISM));
         s3Config.setWriteMode(options.get(S3Options.WRITE_MODE));
+        s3Config.setUseTextQualifier(options.get(S3Options.USE_TEXT_QUALIFIER));
+        s3Config.setEnableWriteSingleRecordAsFile(
+                options.get(S3Options.ENABLE_WRITE_SINGLE_RECORD_AS_FILE));
+        s3Config.setKeepOriginalFilename(options.get(S3Options.KEEP_ORIGINAL_FILENAME));
+        s3Config.setDisableBucketNameInEndpoint(
+                options.get(S3Options.DISABLE_BUCKET_NAME_IN_ENDPOINT));
 
         return new S3DynamicTableSink(context.getCatalogTable().getResolvedSchema(), s3Config);
     }
