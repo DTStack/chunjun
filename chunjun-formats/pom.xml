@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>chunjun</artifactId>
+        <groupId>com.dtstack.chunjun</groupId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>chunjun-formats</artifactId>
+	<name>ChunJun : Formats</name>
+    <packaging>pom</packaging>
+
+	<properties>
+		<format.base.dir>formats</format.base.dir>
+		<format.dir>formats</format.dir>
+	</properties>
+
+	<modules>
+		<module>chunjun-format-protobuf</module>
+		<module>chunjun-format-tika</module>
+        <module>chunjun-format-excel</module>
+    </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.dtstack.chunjun</groupId>
+            <artifactId>chunjun-core</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+				<exclusion>
+					<groupId>org.apache.flink</groupId>
+					<artifactId>flink-shaded-guava</artifactId>
+				</exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<executions>
+						<execution>
+							<phase>package</phase>
+							<goals>
+								<goal>shade</goal>
+							</goals>
+							<configuration>
+								<artifactSet>
+									<excludes>
+										<exclude>org.slf4j:slf4j-api</exclude>
+										<exclude>log4j:log4j</exclude>
+										<exclude>ch.qos.logback:*</exclude>
+									</excludes>
+								</artifactSet>
+								<filters>
+									<filter>
+										<artifact>*:*</artifact>
+										<excludes>
+											<exclude>META-INF/*.SF</exclude>
+											<exclude>META-INF/*.DSA</exclude>
+											<exclude>META-INF/*.RSA</exclude>
+										</excludes>
+									</filter>
+								</filters>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<executions>
+						<execution>
+							<id>copy-resources</id>
+							<!-- here the phase you need -->
+							<phase>package</phase>
+							<goals>
+								<goal>run</goal>
+							</goals>
+							<configuration>
+								<target>
+									<copy todir="${basedir}/../../${dist.dir}/${format.base.dir}/${format.dir}/"
+										  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
+									<move file="${basedir}/../../${dist.dir}/${format.base.dir}/${format.dir}/${project.artifactId}-${project.version}.jar"
+										  tofile="${basedir}/../../${dist.dir}/${format.base.dir}/${format.dir}/${project.artifactId}.jar"/>
+									<delete>
+										<fileset dir="${basedir}/../../${dist.dir}/${format.base.dir}/${format.dir}/"
+												 includes="${project.artifactId}-*.jar"
+												 excludes="${project.artifactId}.jar"/>
+									</delete>
+								</target>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

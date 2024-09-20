@@ -18,12 +18,17 @@
 
 package com.dtstack.chunjun.connector.s3.source;
 
+import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.config.RestoreConfig;
 import com.dtstack.chunjun.connector.s3.config.S3Config;
 import com.dtstack.chunjun.connector.s3.enums.CompressType;
 import com.dtstack.chunjun.connector.s3.util.ReaderUtil;
 import com.dtstack.chunjun.connector.s3.util.S3SimpleObject;
 import com.dtstack.chunjun.connector.s3.util.S3Util;
+import com.dtstack.chunjun.format.excel.common.ExcelData;
+import com.dtstack.chunjun.format.excel.source.ExcelInputFormat;
+import com.dtstack.chunjun.format.tika.common.TikaData;
+import com.dtstack.chunjun.format.tika.source.TikaInputFormat;
 import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -38,6 +43,8 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -70,6 +77,12 @@ public class S3InputFormat extends BaseRichInputFormat {
     private transient ReaderUtil readerUtil = null;
 
     private RestoreConfig restoreConf;
+
+    private transient TikaData tikaData;
+    private TikaInputFormat tikaInputFormat;
+
+    private transient ExcelData excelData;
+    private ExcelInputFormat excelInputFormat;
 
     @Override
     public void openInputFormat() throws IOException {
@@ -137,7 +150,31 @@ public class S3InputFormat extends BaseRichInputFormat {
     protected RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         String[] fields;
         try {
-            fields = readerUtil.getValues();
+            if (s3Config.getTikaReadConfig().isUseExtract() && tikaData != null) {
+                fields = tikaData.getData();
+            } else if (s3Config.getExcelFormatConfig().isUseExcelFormat() && excelData != null) {
+                fields = excelData.getData();
+            } else {
+                fields = readerUtil.getValues();
+            }
+            // 处理字段配置了对应的列索引
+            if (s3Config.getExcelFormatConfig().getColumnIndex() != null) {
+                List<FieldConfig> columns = s3Config.getColumn();
+                String[] fieldsData = new String[columns.size()];
+                for (int i = 0; i < CollectionUtils.size(columns); i++) {
+                    FieldConfig fieldConfig = columns.get(i);
+                    if (fieldConfig.getIndex() >= fields.length) {
+                        String errorMessage =
+                                String.format(
+                                        "The column index is greater than the data size."
+                                                + " The current column index is [%s], but the data size is [%s]. Data loss may occur.",
+                                        fieldConfig.getIndex(), fields.length);
+                        throw new IllegalArgumentException(errorMessage);
+                    }
+                    fieldsData[i] = fields[fieldConfig.getIndex()];
+                }
+                fields = fieldsData;
+            }
             rowData = rowConverter.toInternal(fields);
         } catch (IOException e) {
             throw new ChunJunRuntimeException(e);
@@ -164,7 +201,80 @@ public class S3InputFormat extends BaseRichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
+        if (s3Config.getTikaReadConfig().isUseExtract()) {
+            tikaData = getTikaData();
+            return tikaData == null || tikaData.getData() == null;
+        } else if (s3Config.getExcelFormatConfig().isUseExcelFormat()) {
+            excelData = getExcelData();
+            return excelData == null || excelData.getData() == null;
+        }
         return reachedEndWithoutCheckState();
+    }
+
+    public ExcelData getExcelData() {
+        if (excelInputFormat == null) {
+            nextExcelDataStream();
+        }
+        if (excelInputFormat != null) {
+            if (!excelInputFormat.hasNext()) {
+                excelInputFormat.close();
+                excelInputFormat = null;
+                return getExcelData();
+            }
+            String[] record = excelInputFormat.nextRecord();
+            return new ExcelData(record);
+        } else {
+            return null;
+        }
+    }
+
+    private void nextExcelDataStream() {
+        if (splits.hasNext()) {
+            currentObject = splits.next();
+            GetObjectRequest rangeObjectRequest =
+                    new GetObjectRequest(s3Config.getBucket(), currentObject);
+            log.info("Current read file {}", currentObject);
+            S3Object o = amazonS3.getObject(rangeObjectRequest);
+            S3ObjectInputStream s3is = o.getObjectContent();
+            excelInputFormat = new ExcelInputFormat();
+            excelInputFormat.open(s3is, s3Config.getExcelFormatConfig());
+        } else {
+            excelInputFormat = null;
+        }
+    }
+
+    public TikaData getTikaData() {
+        if (tikaInputFormat == null) {
+            nextTikaDataStream();
+        }
+        if (tikaInputFormat != null) {
+            if (!tikaInputFormat.hasNext()) {
+                tikaInputFormat.close();
+                tikaInputFormat = null;
+                return getTikaData();
+            }
+            String[] record = tikaInputFormat.nextRecord();
+            return new TikaData(record);
+        } else {
+            return null;
+        }
+    }
+
+    private void nextTikaDataStream() {
+        if (splits.hasNext()) {
+            currentObject = splits.next();
+            GetObjectRequest rangeObjectRequest =
+                    new GetObjectRequest(s3Config.getBucket(), currentObject);
+            log.info("Current read file {}", currentObject);
+            S3Object o = amazonS3.getObject(rangeObjectRequest);
+            S3ObjectInputStream s3is = o.getObjectContent();
+            tikaInputFormat =
+                    new TikaInputFormat(
+                            s3Config.getTikaReadConfig(), s3Config.getFieldNameList().size());
+            tikaInputFormat.open(s3is, FilenameUtils.getName(currentObject));
+        } else {
+            tikaInputFormat = null;
+        }
     }
 
     public boolean reachedEndWithoutCheckState() throws IOException {
@@ -259,7 +369,11 @@ public class S3InputFormat extends BaseRichInputFormat {
                     if (s3Config.isUseV2()) {
                         subObjects =
                                 S3Util.listObjectsKeyByPrefix(
-                                        amazonS3, bucket, prefix, s3Config.getFetchSize());
+                                        amazonS3,
+                                        bucket,
+                                        prefix,
+                                        s3Config.getFetchSize(),
+                                        s3Config.getObjectsRegex());
                     } else {
                         subObjects =
                                 S3Util.listObjectsByv1(

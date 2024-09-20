@@ -95,4 +95,31 @@ public class S3Options {
 
     public static final ConfigOption<String> WRITE_MODE =
             key("writeMode").stringType().defaultValue("overwrite").withDescription("writeMode");
+
+    public static final ConfigOption<String> OBJECTS_REGEX =
+            key("objectsRegex").stringType().noDefaultValue().withDescription("objects regex rule");
+
+    public static final ConfigOption<Boolean> USE_TEXT_QUALIFIER =
+            key("useTextQualifier")
+                    .booleanType()
+                    .defaultValue(true)
+                    .withDescription("use text qualifier");
+
+    public static final ConfigOption<Boolean> ENABLE_WRITE_SINGLE_RECORD_AS_FILE =
+            key("enableWriteSingleRecordAsFile")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription("enable write single record as each file");
+
+    public static final ConfigOption<Boolean> KEEP_ORIGINAL_FILENAME =
+            key("keepOriginalFilename")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription("keep original filename");
+
+    public static final ConfigOption<Boolean> DISABLE_BUCKET_NAME_IN_ENDPOINT =
+            key("disableBucketNameInEndpoint")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription("disable Bucket Name In Endpoint");
 }
