@@ -118,7 +118,7 @@ public class KingbaseDialect implements JdbcDialect {
                 Arrays.stream(fieldNames).map(f -> ":" + f).collect(Collectors.joining(", "));
         return "INSERT INTO "
                 + buildTableInfoWithSchema(schema, tableName)
-                + " t1 "
+                + " as t1 "
                 + "("
                 + columns
                 + ")"
