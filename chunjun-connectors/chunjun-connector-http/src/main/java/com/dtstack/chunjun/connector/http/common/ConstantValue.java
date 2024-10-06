@@ -35,6 +35,7 @@ public class ConstantValue {
     public static final String TEXT_DECODE = "text";
 
     public static final String DEFAULT_DECODE = "json";
+    public static final String OFFLINE_JSON_DECODE = "offline-json";
 
     public static final String PREFIX = "${";
     public static final String SUFFIX = "}";
