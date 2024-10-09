@@ -45,7 +45,12 @@ public class GsonUtil {
     public static Type gsonMapTypeToken = new TypeToken<HashMap<String, Object>>() {}.getType();
 
     private static Gson getGson() {
-        GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+        GSON =
+                new GsonBuilder()
+                        .serializeNulls()
+                        .disableHtmlEscaping()
+                        .setPrettyPrinting()
+                        .create();
 
         return setTypeAdapter(GSON);
     }
