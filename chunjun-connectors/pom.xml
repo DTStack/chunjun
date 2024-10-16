@@ -54,6 +54,7 @@
 		<module>chunjun-connector-sqlserver</module>
 		<module>chunjun-connector-db2</module>
 		<module>chunjun-connector-postgresql</module>
+		<module>chunjun-connector-opengauss</module>
 		<module>chunjun-connector-greenplum</module>
 		<module>chunjun-connector-dm</module>
 		<module>chunjun-connector-gbase</module>
