@@ -58,6 +58,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     protected List<String> preCommitFilePathList = new ArrayList<>();
     protected long nextNumForCheckDataSize;
     protected long lastWriteTime = System.currentTimeMillis();
+    protected long lastWriteSize;
 
     @Override
     public void initializeGlobal(int parallelism) {
@@ -155,6 +156,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         if (rowsOfCurrentBlock != 0) {
             flushDataInternal();
             sumRowsOfBlock += rowsOfCurrentBlock;
+            lastWriteSize = bytesWriteCounter.getLocalValue();
             log.info(
                     "flush file:{}, rowsOfCurrentBlock = {}, sumRowsOfBlock = {}",
                     currentFileName,
