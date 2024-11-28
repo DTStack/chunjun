@@ -25,6 +25,7 @@ import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.enums.ColumnType;
+import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.metrics.BigIntegerAccumulator;
 import com.dtstack.chunjun.metrics.StringAccumulator;
 import com.dtstack.chunjun.restore.FormatState;
@@ -105,7 +106,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         String querySQL = null;
         try {
             dbConn = getConnection();
-            dbConn.setAutoCommit(false);
+            if (Semantic.getByName(config.getSemantic()) == Semantic.EXACTLY_ONCE) {
+                dbConn.setAutoCommit(false);
+            }
 
             querySQL = buildQuerySql(currentJdbcInputSplit);
             jdbcConfig.setQuerySql(querySQL);
