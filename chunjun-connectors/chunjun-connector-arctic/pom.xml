@@ -32,10 +32,12 @@
 	<name>ChunJun : Connector : Arctic</name>
 
 	<properties>
-		<hadoop.version>2.7.5</hadoop.version>
-		<iceberg.version>0.13.2</iceberg.version>
-		<arctic.version>0.4.0</arctic.version>
+		<iceberg.version>1.1.0</iceberg.version>
+		<arctic.version>0.5.0-SNAPSHOT</arctic.version>
 		<connector.dir>arctic</connector.dir>
+		<hive.version>3.1.2</hive.version>
+		<parquet.version>1.12.2</parquet.version>
+		<hadoop.version>2.7.5</hadoop.version>
 	</properties>
 
 	<dependencies>
@@ -67,7 +69,7 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
-			<version>${hadoop.version}</version>
+			<version>${hadoop2.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-cli</artifactId>
@@ -92,8 +94,123 @@
 
 		<dependency>
 			<groupId>com.netease.arctic</groupId>
-			<artifactId>arctic-flink-1.12</artifactId>
+			<artifactId>arctic-flink-1.15</artifactId>
 			<version>${arctic.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>parquet-hadoop-bundle</artifactId>
+					<groupId>org.apache.parquet</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.iceberg</groupId>
+			<artifactId>iceberg-flink-1.15</artifactId>
+			<version>${iceberg.version}</version>
+		</dependency>
+
+		<!-- kino added -->
+		<dependency>
+			<groupId>org.apache.parquet</groupId>
+			<artifactId>parquet-avro</artifactId>
+			<version>${parquet.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.parquet</groupId>
+			<artifactId>parquet-hadoop-bundle</artifactId>
+			<version>1.8.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.hive</groupId>
+			<artifactId>hive-exec</artifactId>
+			<version>${hive.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>calcite-core</artifactId>
+					<groupId>org.apache.calcite</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>calcite-avatica</artifactId>
+					<groupId>org.apache.calcite</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>derby</artifactId>
+					<groupId>org.apache.derby</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.xerial.snappy</groupId>
+					<artifactId>snappy-java</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-log4j12</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>guava</artifactId>
+					<groupId>com.google.guava</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-logging</artifactId>
+					<groupId>commons-logging</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-lang</artifactId>
+					<groupId>commons-lang</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-cli</artifactId>
+					<groupId>commons-cli</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-io</artifactId>
+					<groupId>commons-io</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>junit</artifactId>
+					<groupId>junit</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-codec</artifactId>
+					<groupId>commons-codec</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-httpclient</artifactId>
+					<groupId>commons-httpclient</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-yarn-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-yarn-common</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-yarn-server-applicationhistoryservice</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-yarn-server-common</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-yarn-server-resourcemanager</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.parquet</groupId>
+					<artifactId>parquet-column</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 
@@ -141,6 +258,14 @@
 								<relocation>
 									<pattern>org.apache.avro</pattern>
 									<shadedPattern>org.apache.flink.avro.shaded.org.apache.avro</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>org.apache.iceberg</pattern>
+									<shadedPattern>shade.iceberg.org.apache.iceberg</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>org.apache.parquet.schema</pattern>
+									<shadedPattern>shade.parquet.org.apache.parquet.schema</shadedPattern>
 								</relocation>
 							</relocations>
 						</configuration>
