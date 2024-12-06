@@ -114,11 +114,6 @@ public class HttpDynamicTableSource implements ScanTableSource {
 
     @Override
     public ChangelogMode getChangelogMode() {
-        return ChangelogMode.newBuilder()
-                .addContainedKind(RowKind.INSERT)
-                .addContainedKind(RowKind.UPDATE_BEFORE)
-                .addContainedKind(RowKind.UPDATE_AFTER)
-                .addContainedKind(RowKind.DELETE)
-                .build();
+        return ChangelogMode.newBuilder().addContainedKind(RowKind.INSERT).build();
     }
 }
