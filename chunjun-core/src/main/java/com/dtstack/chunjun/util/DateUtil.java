@@ -48,6 +48,9 @@ public class DateUtil {
 
     private static final String TIME_ZONE = "GMT+8";
 
+    private static final boolean isUseLocalTimeZone =
+            Boolean.parseBoolean(System.getProperty("USE_LOCAL_TIMEZONE"));
+
     private static final String STANDARD_DATETIME_FORMAT = "standardDatetimeFormatter";
 
     private static final String STANDARD_DATETIME_FORMAT_FOR_MILLISECOND =
@@ -97,7 +100,12 @@ public class DateUtil {
     public static ThreadLocal<Map<String, SimpleDateFormat>> datetimeFormatter =
             ThreadLocal.withInitial(
                     () -> {
-                        TimeZone timeZone = TimeZone.getTimeZone(TIME_ZONE);
+                        TimeZone timeZone;
+                        if (isUseLocalTimeZone) {
+                            timeZone = TimeZone.getDefault();
+                        } else {
+                            timeZone = TimeZone.getTimeZone(TIME_ZONE);
+                        }
 
                         Map<String, SimpleDateFormat> formatterMap = new HashMap<>();
                         SimpleDateFormat standardDatetimeFormatter =
