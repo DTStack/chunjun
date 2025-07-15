@@ -68,6 +68,8 @@ public class DorisRawTypeMapper {
             case "JSON":
             case "ENUM":
             case "SET":
+            case "LARGEINT":
+            case "ARRAY":
                 return DataTypes.STRING();
             case "DATE":
                 return DataTypes.DATE();
