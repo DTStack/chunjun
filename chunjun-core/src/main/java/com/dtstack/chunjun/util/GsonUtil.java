@@ -72,51 +72,62 @@ public class GsonUtil {
                                         return new TypeAdapter() {
                                             @Override
                                             public Object read(JsonReader in) throws IOException {
-                                                JsonToken token = in.peek();
-                                                // 判断字符串的实际类型
-                                                switch (token) {
-                                                    case BEGIN_ARRAY:
-                                                        List<Object> list = new ArrayList<>();
-                                                        in.beginArray();
-                                                        while (in.hasNext()) {
-                                                            list.add(read(in));
-                                                        }
-                                                        in.endArray();
-                                                        return list;
+                                                // Either List or Map
+                                                Object current;
+                                                JsonToken peeked = in.peek();
+                                            
+                                                current = tryBeginNesting(in, peeked);
+                                                if (current == null) {
+                                                    return readTerminal(in, peeked);
+                                                }
 
-                                                    case BEGIN_OBJECT:
-                                                        Map<String, Object> map =
-                                                                new LinkedTreeMap<>();
-                                                        in.beginObject();
-                                                        while (in.hasNext()) {
-                                                            map.put(in.nextName(), read(in));
+                                                Deque<Object> stack = new ArrayDeque<>();
+
+                                                while (true) {
+                                                    while (in.hasNext()) {
+                                                        String name = null;
+                                                        // Name is only used for JSON object members
+                                                        if (current instanceof Map) {
+                                                            name = in.nextName();
                                                         }
-                                                        in.endObject();
-                                                        return map;
-                                                    case STRING:
-                                                        return in.nextString();
-                                                    case NUMBER:
-                                                        String s = in.nextString();
-                                                        if (s.contains(".")) {
-                                                            return Double.valueOf(s);
+
+                                                        peeked = in.peek();
+                                                        Object value = tryBeginNesting(in, peeked);
+                                                        boolean isNesting = value != null;
+
+                                                        if (value == null) {
+                                                            value = readTerminal(in, peeked);
+                                                        }
+
+                                                        if (current instanceof List) {
+                                                            @SuppressWarnings("unchecked")
+                                                            List<Object> list = (List<Object>) current;
+                                                            list.add(value);
                                                         } else {
-                                                            try {
-                                                                return Integer.valueOf(s);
-                                                            } catch (Exception e) {
-                                                                try {
-                                                                    return Long.valueOf(s);
-                                                                } catch (Exception e1) {
-                                                                    return new BigInteger(s);
-                                                                }
-                                                            }
+                                                            @SuppressWarnings("unchecked")
+                                                            Map<String, Object> map = (Map<String, Object>) current;
+                                                            map.put(name, value);
                                                         }
-                                                    case BOOLEAN:
-                                                        return in.nextBoolean();
-                                                    case NULL:
-                                                        in.nextNull();
-                                                        return null;
-                                                    default:
-                                                        throw new IllegalStateException();
+
+                                                        if (isNesting) {
+                                                            stack.addLast(current);
+                                                            current = value;
+                                                        }
+                                                    }
+
+                                                    // End current element
+                                                    if (current instanceof List) {
+                                                        in.endArray();
+                                                    } else {
+                                                        in.endObject();
+                                                    }
+
+                                                    if (stack.isEmpty()) {
+                                                        return current;
+                                                    } else {
+                                                        // Continue with enclosing element
+                                                        current = stack.removeLast();
+                                                    }
                                                 }
                                             }
 
