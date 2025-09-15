@@ -47,7 +47,6 @@ import com.dtstack.chunjun.util.DateUtil;
 import com.dtstack.chunjun.util.MapUtil;
 
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.CollectionUtil;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -71,20 +70,28 @@ import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.kafka.option.KafkaOptions.DEFAULT_CODEC;
 
+/**
+ * @author chuixue
+ * @create 2021-06-07 15:51
+ * @description
+ */
 public class KafkaSyncConverter
         extends AbstractRowConverter<ConsumerRecord<byte[], byte[]>, Object, byte[], String> {
 
     /** source kafka msg decode */
-    private final IDecode decode;
+    protected final IDecode decode;
+    /** sink json Decoder */
+    protected final JsonDecoder jsonDecoder;
     /** kafka Conf */
-    private final KafkaConfig kafkaConfig;
+    protected final KafkaConfig kafkaConfig;
     /** kafka sink out fields */
-    private List<String> outList;
+    protected List<String> outList;
 
-    public KafkaSyncConverter(RowType rowType, KafkaConfig kafkaConfig, List<String> keyTypeList) {
-        super(rowType, kafkaConfig);
+    public KafkaSyncConverter(KafkaConfig kafkaConfig, List<String> keyTypeList) {
+        super(null, kafkaConfig);
         this.kafkaConfig = kafkaConfig;
         this.outList = keyTypeList;
+        this.jsonDecoder = new JsonDecoder(kafkaConfig.isAddMessage());
         if (DEFAULT_CODEC.defaultValue().equals(kafkaConfig.getCodec())) {
             this.decode = new JsonDecoder(kafkaConfig.isAddMessage());
         } else {
@@ -92,9 +99,10 @@ public class KafkaSyncConverter
         }
     }
 
-    public KafkaSyncConverter(RowType rowType, KafkaConfig kafkaConfig) {
-        super(rowType, kafkaConfig);
+    public KafkaSyncConverter(KafkaConfig kafkaConfig) {
+        super(null, kafkaConfig);
         this.commonConfig = this.kafkaConfig = kafkaConfig;
+        this.jsonDecoder = new JsonDecoder(kafkaConfig.isAddMessage());
         if (DEFAULT_CODEC.defaultValue().equals(kafkaConfig.getCodec())) {
             this.decode = new JsonDecoder(kafkaConfig.isAddMessage());
         } else {
@@ -162,11 +170,11 @@ public class KafkaSyncConverter
                 result = new ColumnRowData(fieldConfList.size());
             }
             for (int i = 0; i < fieldConfList.size(); i++) {
-                FieldConfig fieldConfig = fieldConfList.get(i);
-                Object value = map.get(fieldConfig.getName());
+                FieldConfig fieldConf = fieldConfList.get(i);
+                Object value = map.get(fieldConf.getName());
                 AbstractBaseColumn baseColumn =
                         (AbstractBaseColumn) toInternalConverters.get(i).deserialize(value);
-                result.addField(assembleFieldProps(fieldConfig, baseColumn));
+                result.addField(assembleFieldProps(fieldConf, baseColumn));
             }
         }
         return result;
@@ -174,6 +182,11 @@ public class KafkaSyncConverter
 
     @Override
     public byte[] toExternal(RowData rowData, byte[] output) throws Exception {
+        Map<String, Object> map = getExternalMap(rowData);
+        return MapUtil.writeValueAsString(map).getBytes(StandardCharsets.UTF_8);
+    }
+
+    protected Map<String, Object> getExternalMap(RowData rowData) {
         Map<String, Object> map;
         int arity = rowData.getArity();
         ColumnRowData row = (ColumnRowData) rowData;
@@ -187,10 +200,23 @@ public class KafkaSyncConverter
                 Object value;
                 if (object instanceof TimestampColumn) {
                     value = ((TimestampColumn) object).asTimestampStr();
+                } else if (row.getField(i).getData() == null) {
+                    value = null;
                 } else {
-                    value = org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i));
+                    value = row.getField(i).asString();
                 }
                 map.put(kafkaConfig.getTableFields().get(i), value);
+            }
+
+            // get partition key value
+            if (!CollectionUtil.isNullOrEmpty(outList)) {
+                Map<String, Object> keyPartitionMap = new LinkedHashMap<>((arity << 2) / 3);
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+                    if (outList.contains(entry.getKey())) {
+                        keyPartitionMap.put(entry.getKey(), entry.getValue());
+                    }
+                }
+                map = keyPartitionMap;
             }
         } else {
             String[] headers = row.getHeaders();
@@ -199,10 +225,37 @@ public class KafkaSyncConverter
                 map = new HashMap<>(headers.length >> 1);
                 for (String header : headers) {
                     AbstractBaseColumn val = row.getField(header);
-                    if (null == val) {
+                    if (null == val || val instanceof NullColumn) {
                         map.put(header, null);
                     } else {
-                        map.put(header, val.getData());
+                        // Timestamp需要转为yyyy-MM-dd hh:mm:ss.SSSSSS格式
+                        if (val instanceof TimestampColumn) {
+                            map.put(header, timeStampTostringBynacosPrecision(val.asTimestamp()));
+                        } else if (val instanceof MapColumn) {
+                            Object data = val.getData();
+                            if (data instanceof Map) {
+                                Map<String, Object> maps = (Map<String, Object>) data;
+                                LinkedHashMap<String, Object> datas = new LinkedHashMap<>();
+                                maps.forEach(
+                                        (k, v) -> {
+                                            if (v instanceof Timestamp) {
+                                                datas.put(
+                                                        k,
+                                                        timeStampTostringBynacosPrecision(
+                                                                (Timestamp) v));
+                                            } else {
+                                                datas.put(k, v);
+                                            }
+                                        });
+                                map.put(header, datas);
+                            } else {
+                                throw new RuntimeException(
+                                        "MapColumn data is not Map,map column data type is  "
+                                                + data.getClass());
+                            }
+                        } else {
+                            map.put(header, val.getData());
+                        }
                     }
                 }
                 if (Arrays.stream(headers)
@@ -227,19 +280,7 @@ public class KafkaSyncConverter
                 map = decode.decode(String.join(",", values));
             }
         }
-
-        // get partition key value
-        if (!CollectionUtil.isNullOrEmpty(outList)) {
-            Map<String, Object> keyPartitionMap = new LinkedHashMap<>((arity << 2) / 3);
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                if (outList.contains(entry.getKey())) {
-                    keyPartitionMap.put(entry.getKey(), entry.getValue());
-                }
-            }
-            map = keyPartitionMap;
-        }
-
-        return MapUtil.writeValueAsString(map).getBytes(StandardCharsets.UTF_8);
+        return map;
     }
 
     @Override
@@ -298,6 +339,14 @@ public class KafkaSyncConverter
                 };
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
+        }
+    }
+
+    public String timeStampTostringBynacosPrecision(Timestamp t) {
+        if (t.getNanos() == 0) {
+            return new TimestampColumn(t, 0).asTimestampStr();
+        } else {
+            return t.toString();
         }
     }
 }

@@ -1,0 +1,50 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "schema": "wujuan",
+            "username": "zhiqiang",
+            "password": "lizhiqiang",
+            "cat": "insert,delete,update",
+            "jdbcUrl": "jdbc:mysql://localhost:3306/wujuan?useSSL=false",
+            "host": "localhost",
+            "port": 3306,
+
+            "table": [],
+            "splitUpdate": true,
+            "pavingData": true
+          },
+          "name": "binlogreader"
+        },
+        "writer": {
+          "parameter": {
+            "producerSettings": {
+              "zookeeper.connect": "",
+              "bootstrap.servers": "localhost:9092"
+            },
+            "dataCompelOrder": false,
+            "partitionStrategy" : "hash-by-key",
+            "topic": "wujuan4"
+          },
+          "name": "kafkawriter",
+          "type": 26
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": true,
+        "isStream": true
+      },
+      "errorLimit": {},
+      "speed": {
+        "readerChannel": 1,
+        "writerChannel": 1,
+        "bytes": -1048576,
+        "channel": 1
+      }
+    }
+  }
+}

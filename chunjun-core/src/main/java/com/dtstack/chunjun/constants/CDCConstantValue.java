@@ -31,4 +31,5 @@ public class CDCConstantValue {
     public static final String AFTER = "after";
     public static final String SCN = "scn";
     public static final String LSN = "lsn";
+    public static final String PRIMARY_KEY = "primary_key";
 }
