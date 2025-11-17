@@ -35,6 +35,7 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashSet;
 import java.util.List;
@@ -69,7 +70,12 @@ public class HttpDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         options.add(HttpOptions.DELAY);
         options.add(HttpOptions.DATA_SUBJECT);
         options.add(HttpOptions.CYCLES);
-
+        options.add(HttpOptions.RETURNEDDATATYPE);
+        options.add(HttpOptions.JSONPATH);
+        options.add(HttpOptions.PAGEPARAMNAME);
+        options.add(HttpOptions.STEP);
+        options.add(HttpOptions.STARTINDEX);
+        options.add(HttpOptions.ENDINDEX);
         return options;
     }
 
@@ -141,6 +147,24 @@ public class HttpDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         httpRestConfig.setRequestMode(config.get(HttpOptions.METHOD));
         httpRestConfig.setDataSubject(config.get(HttpOptions.DATA_SUBJECT));
         httpRestConfig.setCycles(config.get(HttpOptions.CYCLES));
+
+        httpRestConfig.setReturnedDataType(config.get(HttpOptions.RETURNEDDATATYPE));
+        httpRestConfig.setJsonPath(config.get(HttpOptions.JSONPATH));
+
+        if (StringUtils.isNotBlank(config.get(HttpOptions.PAGEPARAMNAME))) {
+            httpRestConfig.setPageParamName(config.get(HttpOptions.PAGEPARAMNAME));
+            httpRestConfig.setStep(config.get(HttpOptions.STEP));
+            httpRestConfig.setStartIndex(config.get(HttpOptions.STARTINDEX));
+            httpRestConfig.setEndIndex(config.get(HttpOptions.ENDINDEX));
+
+            Integer limitRequestTime =
+                    (config.get(HttpOptions.ENDINDEX) - config.get(HttpOptions.STARTINDEX))
+                                    / config.get(HttpOptions.STEP)
+                            + 1;
+            httpRestConfig.setLimitRequestTime(limitRequestTime);
+            httpRestConfig.setCycles(limitRequestTime);
+        }
+
         httpRestConfig.setParam(
                 gson.fromJson(
                         config.get(HttpOptions.PARAMS),
