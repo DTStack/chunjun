@@ -31,6 +31,7 @@
 	<name>ChunJun</name>
 
 	<modules>
+		<module>chunjun-catalog</module>
 		<module>chunjun-core</module>
 		<module>chunjun-connectors</module>
 		<module>chunjun-clients</module>

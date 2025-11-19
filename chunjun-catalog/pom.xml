@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>chunjun</artifactId>
+		<groupId>com.dtstack.chunjun</groupId>
+		<version>${revision}</version>
+	</parent>
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>chunjun-catalog</artifactId>
+	<name>ChunJun : Catalog</name>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>chunjun-catalog-iceberg</module>
+		<module>chunjun-catalog-paimon</module>
+	</modules>
+
+	<properties>
+		<catalog.base.dir>catalog</catalog.base.dir>
+		<maven.compiler.source>8</maven.compiler.source>
+		<maven.compiler.target>8</maven.compiler.target>
+		<slf4j.version>1.7.30</slf4j.version>
+		<shading.prefix>chunjun.catalog.shaded</shading.prefix>
+		<dist.dir>chunjun-dist</dist.dir>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-core</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-classic</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>1.20</version>
+		</dependency>
+	</dependencies>
+	<dependencyManagement>
+	</dependencyManagement>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<executions>
+						<execution>
+							<id>copy-resources</id>
+							<!-- here the phase you need -->
+							<phase>package</phase>
+							<goals>
+								<goal>run</goal>
+							</goals>
+							<configuration>
+								<target>
+									<copy todir="${basedir}/../../${dist.dir}/${catalog.base.dir}/${catalog.dir}/"
+										  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
+									<move file="${basedir}/../../${dist.dir}/${catalog.base.dir}/${catalog.dir}/${project.artifactId}-${project.version}.jar"
+										  tofile="${basedir}/../../${dist.dir}/${catalog.base.dir}/${catalog.dir}/${project.artifactId}.jar"/>
+									<delete>
+										<fileset dir="${basedir}/../../${dist.dir}/${catalog.base.dir}/${catalog.dir}/"
+												 includes="${project.artifactId}-*.jar"
+												 excludes="${project.artifactId}.jar"/>
+									</delete>
+								</target>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+</project>
