@@ -51,69 +51,76 @@
 			<artifactId>chunjun-connector-stream</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connector-binlog</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+		<!--rdb test start-->
+<!--		<dependency>-->
+<!--			<groupId>com.dtstack.chunjun</groupId>-->
+<!--			<artifactId>chunjun-connector-mysql</artifactId>-->
+<!--			<version>${project.version}</version>-->
+<!--		</dependency>-->
+		<!--rdb test end-->
 
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connector-iceberg</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connector-mongodb</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+		<!--hdfs test start-->
+<!--		<dependency>-->
+<!--			<groupId>com.dtstack.chunjun</groupId>-->
+<!--			<artifactId>chunjun-connector-hdfs</artifactId>-->
+<!--			<version>${project.version}</version>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<artifactId>hadoop-mapreduce-client-core</artifactId>-->
+<!--			<exclusions>-->
+<!--				<exclusion>-->
+<!--					<artifactId>commons-cli</artifactId>-->
+<!--					<groupId>commons-cli</groupId>-->
+<!--				</exclusion>-->
+<!--				<exclusion>-->
+<!--					<artifactId>snappy-java</artifactId>-->
+<!--					<groupId>org.xerial.snappy</groupId>-->
+<!--				</exclusion>-->
+<!--			</exclusions>-->
+<!--			<groupId>org.apache.hadoop</groupId>-->
+<!--			<version>2.7.5</version>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<artifactId>hadoop-common</artifactId>-->
+<!--			<exclusions>-->
+<!--				<exclusion>-->
+<!--					<artifactId>gson</artifactId>-->
+<!--					<groupId>com.google.code.gson</groupId>-->
+<!--				</exclusion>-->
+<!--				<exclusion>-->
+<!--					<artifactId>commons-cli</artifactId>-->
+<!--					<groupId>commons-cli</groupId>-->
+<!--				</exclusion>-->
+<!--				<exclusion>-->
+<!--					<artifactId>snappy-java</artifactId>-->
+<!--					<groupId>org.xerial.snappy</groupId>-->
+<!--				</exclusion>-->
+<!--			</exclusions>-->
+<!--			<groupId>org.apache.hadoop</groupId>-->
+<!--			<version>2.7.5</version>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<artifactId>hadoop-hdfs</artifactId>-->
+<!--			<exclusions>-->
+<!--				<exclusion>-->
+<!--					<artifactId>commons-cli</artifactId>-->
+<!--					<groupId>commons-cli</groupId>-->
+<!--				</exclusion>-->
+<!--				<exclusion>-->
+<!--					<artifactId>netty-all</artifactId>-->
+<!--					<groupId>io.netty</groupId>-->
+<!--				</exclusion>-->
+<!--			</exclusions>-->
+<!--			<groupId>org.apache.hadoop</groupId>-->
+<!--			<version>2.7.5</version>-->
+<!--		</dependency>-->
+		<!--hdfs test end-->
 
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connector-emqx</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connector-jdbc-base</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connector-mysql</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connector-kafka</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connector-kingbase</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<!-- -->
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connector-ftp</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-json</artifactId>
 			<version>${flink.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connector-oceanbase</artifactId>
-			<version>master</version>
 		</dependency>
 
 		<dependency>
