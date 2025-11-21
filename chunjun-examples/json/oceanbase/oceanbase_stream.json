@@ -1,0 +1,54 @@
+{
+  "job":{
+    "content":[
+      {
+        "reader":{
+          "parameter":{
+            "password":"******",
+            "customSql":"",
+            "column":[
+              {
+                "name":"id",
+                "type":"int"
+              },
+              {
+                "name":"name",
+                "type":"varchar2"
+              }
+            ],
+            "connection":[
+              {
+                "jdbcUrl":[
+                  "jdbc:oceanbase://127.0.0.1:30691"
+                ],
+                "table":[
+                  "test.users"
+                ]
+              }
+            ],
+            "oceanBaseMode" : "MYSQL",
+            "username":"root"
+          },
+          "name":"oceanbasereader"
+        },
+        "writer": {
+          "name": "streamwriter",
+          "parameter": {
+            "print": true
+          }
+        }
+      }
+    ],
+    "setting":{
+      "restore":{
+      },
+      "errorLimit":{},
+      "speed":{
+        "readerChannel":1,
+        "writerChannel":1,
+        "bytes":-1048576,
+        "channel":1
+      }
+    }
+  }
+}
