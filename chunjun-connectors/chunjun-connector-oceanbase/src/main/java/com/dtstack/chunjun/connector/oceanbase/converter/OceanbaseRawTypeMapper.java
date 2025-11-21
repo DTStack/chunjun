@@ -50,6 +50,7 @@ public class OceanbaseRawTypeMapper {
             case "DECIMAL":
             case "DECIMAL UNSIGNED":
             case "NUMERIC":
+            case "NUMBER":
                 return DataTypes.DECIMAL(38, 18);
             case "DOUBLE":
             case "DOUBLE UNSIGNED":
@@ -81,6 +82,7 @@ public class OceanbaseRawTypeMapper {
             case "LONGTEXT":
             case "ENUM":
             case "SET":
+            case "VARCHAR2":
                 return DataTypes.STRING();
             default:
                 throw new UnsupportedTypeException(type);
