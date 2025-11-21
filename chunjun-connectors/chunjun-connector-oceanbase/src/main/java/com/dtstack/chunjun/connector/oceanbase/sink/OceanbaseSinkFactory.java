@@ -18,11 +18,31 @@
 package com.dtstack.chunjun.connector.oceanbase.sink;
 
 import com.dtstack.chunjun.config.SyncConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.chunjun.connector.oceanbase.dialect.OceanbaseDialect;
+import com.dtstack.chunjun.connector.oceanbase.config.OceanBaseConf;
+import com.dtstack.chunjun.connector.oceanbase.config.OceanBaseMode;
+import com.dtstack.chunjun.connector.oceanbase.dialect.OceanbaseMysqlModeDialect;
+import com.dtstack.chunjun.connector.oceanbase.dialect.OceanbaseOracleModeDialect;
 
 public class OceanbaseSinkFactory extends JdbcSinkFactory {
+
+    private OceanBaseConf oceanBaseConf;
+
     public OceanbaseSinkFactory(SyncConfig syncConfig) {
-        super(syncConfig, new OceanbaseDialect());
+        super(syncConfig, new OceanbaseMysqlModeDialect());
+        this.oceanBaseConf = (OceanBaseConf) this.jdbcConfig;
+        if (oceanBaseConf != null) {
+            OceanBaseMode mode = OceanBaseMode.valueOf(oceanBaseConf.getOceanBaseMode());
+            // 若是for oracle模式
+            if (mode == OceanBaseMode.ORACLE) {
+                this.jdbcDialect = new OceanbaseOracleModeDialect();
+            }
+        }
+    }
+
+    @Override
+    protected Class<? extends JdbcConfig> getConfClass() {
+        return OceanBaseConf.class;
     }
 }
