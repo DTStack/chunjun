@@ -77,7 +77,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
     public void flushDataInternal() {
         log.info(
                 "Close current text stream, write data size:[{}]",
-                SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
+                SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue() - lastWriteSize));
 
         try {
             if (stream != null) {
