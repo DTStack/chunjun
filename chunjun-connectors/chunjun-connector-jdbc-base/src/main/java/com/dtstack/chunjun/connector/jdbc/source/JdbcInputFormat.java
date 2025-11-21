@@ -394,25 +394,32 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         try {
             long startTime = System.currentTimeMillis();
 
-            String querySplitRangeSql = SqlUtil.buildQuerySplitRangeSql(jdbcConf, jdbcDialect);
-            LOG.info(String.format("Query SplitRange sql is '%s'", querySplitRangeSql));
-
-            conn = getConnection();
-            st = conn.createStatement(resultSetType, resultSetConcurrency);
-            st.setQueryTimeout(jdbcConf.getQueryTimeOut());
-            rs = st.executeQuery(querySplitRangeSql);
-            if (rs.next()) {
+            if (jdbcConf.getSplitPkStart() != null && jdbcConf.getSplitPkEnd() != null) {
                 splitPkRange =
                         Pair.of(
-                                String.valueOf(rs.getObject("min_value")),
-                                String.valueOf(rs.getObject("max_value")));
+                                String.valueOf(jdbcConf.getSplitPkStart()),
+                                String.valueOf(jdbcConf.getSplitPkEnd()));
+
+            } else {
+                String querySplitRangeSql = SqlUtil.buildQuerySplitRangeSql(jdbcConf, jdbcDialect);
+                LOG.info(String.format("Query SplitRange sql is '%s'", querySplitRangeSql));
+
+                conn = getConnection();
+                st = conn.createStatement(resultSetType, resultSetConcurrency);
+                st.setQueryTimeout(jdbcConf.getQueryTimeOut());
+                rs = st.executeQuery(querySplitRangeSql);
+                if (rs.next()) {
+                    splitPkRange =
+                            Pair.of(
+                                    String.valueOf(rs.getObject("min_value")),
+                                    String.valueOf(rs.getObject("max_value")));
+                }
+
+                LOG.info(
+                        String.format(
+                                "Takes [%s] milliseconds to get the SplitRange value [%s]",
+                                System.currentTimeMillis() - startTime, splitPkRange));
             }
-
-            LOG.info(
-                    String.format(
-                            "Takes [%s] milliseconds to get the SplitRange value [%s]",
-                            System.currentTimeMillis() - startTime, splitPkRange));
-
             return splitPkRange;
         } catch (Throwable e) {
             throw new ChunJunRuntimeException(
@@ -806,7 +813,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     /** 使用自定义的指标输出器把增量指标打到普罗米修斯 */
     @Override
     protected boolean useCustomReporter() {
-        return jdbcConf.isIncrement() && jdbcConf.getInitReporter();
+        // 配置了 reporter 就可以输入指标到外部系统, 如果不是增量, 增量指标也不会被输出
+        return jdbcConf.getInitReporter();
     }
 
     /** 为了保证增量数据的准确性，指标输出失败时使任务失败 */
