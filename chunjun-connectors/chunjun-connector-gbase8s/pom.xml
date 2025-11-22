@@ -41,6 +41,8 @@
 			<artifactId>chunjun-connector-jdbc-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<!-- 建议从(https://cdn.gbase.cn/products/27/czrl6z38BvTfEQS4uyQcS/gbasedbtjdbc_3.5.1.jar)下载此驱动jar包，并install本地-->
 		<dependency>
 			<groupId>com.gbasedbt.jdbc.Driver</groupId>
 			<artifactId>gbasedbt</artifactId>

@@ -58,7 +58,7 @@
 		<module>chunjun-connector-greenplum</module>
 		<module>chunjun-connector-dm</module>
 		<module>chunjun-connector-gbase</module>
-		<module>chunjun-connector-gbase8s</module>
+<!--		<module>chunjun-connector-gbase8s</module>-->
 <!--		<module>chunjun-connector-gbasehk</module>-->
 		<module>chunjun-connector-clickhouse</module>
 		<module>chunjun-connector-saphana</module>
