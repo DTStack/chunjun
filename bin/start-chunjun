@@ -33,7 +33,7 @@ else
   fi
 fi
 
-JAR_DIR=$CHUNJUN_HOME/lib/*
+JAR_DIR=$CHUNJUN_HOME/client/*
 CLASS_NAME=com.dtstack.chunjun.client.Launcher
 
 echo "ChunJun starting ..."

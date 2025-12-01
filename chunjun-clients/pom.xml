@@ -45,6 +45,18 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-base</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-files</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-core</artifactId>
 			<version>${project.version}</version>
