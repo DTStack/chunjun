@@ -58,6 +58,19 @@ public class DorisConfig extends JdbcConfig {
 
     private Properties loadProperties;
 
+    private int poolSize = 4;
+
+    // MB
+    private int memorySizePerPool = 64;
+    // partial_update 为 true，以开启部分更新特性，默认为行模式部分更新
+    private boolean partialUpdate = false;
+
+    private boolean keepOrder = false;
+
+    private boolean strictMode = false;
+
+    private boolean enableDelete = false;
+
     public String serializeToString() {
         try {
             String optionsJson = GsonUtil.GSON.toJson(this);

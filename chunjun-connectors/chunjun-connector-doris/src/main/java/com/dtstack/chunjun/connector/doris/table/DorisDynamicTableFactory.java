@@ -26,6 +26,7 @@ import com.dtstack.chunjun.connector.doris.sink.DorisDynamicTableSink;
 import com.dtstack.chunjun.connector.doris.source.DorisInputFormat;
 import com.dtstack.chunjun.connector.doris.source.DorisInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
+import com.dtstack.chunjun.connector.jdbc.config.SinkConnectionConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcDynamicTableSource;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
@@ -43,6 +44,7 @@ import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,8 +56,10 @@ import java.util.stream.Stream;
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.DRUID_PREFIX;
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.VERTX_PREFIX;
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.getLibConfMap;
+import static com.dtstack.chunjun.connector.jdbc.options.JdbcSinkOptions.SINK_ALL_REPLACE;
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcSinkOptions.SINK_POST_SQL;
 import static com.dtstack.chunjun.connector.jdbc.options.JdbcSinkOptions.SINK_PRE_SQL;
+import static com.dtstack.chunjun.table.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
 
 /** declare doris table factory info. */
 public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
@@ -84,8 +88,8 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
         // 3.封装参数
         ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
 
-        DorisConfig ftpConfig = getConfByOptions(config);
-        return new DorisDynamicTableSink(resolvedSchema, ftpConfig);
+        DorisConfig dorisConfig = getConfByOptions(config);
+        return new DorisDynamicTableSink(resolvedSchema, dorisConfig);
     }
 
     @Override
@@ -179,12 +183,22 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
             dorisConfig.setPassword(config.get(DorisOptions.PASSWORD));
         }
 
+        dorisConfig.setEnableDelete(config.get(DorisOptions.SINK_ENABLE_DELETE));
+
+        SinkConnectionConfig conf = new SinkConnectionConfig();
+        conf.setJdbcUrl(url);
+        conf.setTable(Arrays.asList(tableName));
+        conf.setSchema(schema);
+        conf.setAllReplace(config.get(SINK_ALL_REPLACE));
+
         LoadConfig loadConfig = getLoadConfig(config);
         dorisConfig.setLoadConfig(loadConfig);
         dorisConfig.setLoadProperties(new Properties());
         dorisConfig.setMaxRetries(config.get(DorisOptions.MAX_RETRIES));
         dorisConfig.setMode(config.get(DorisOptions.WRITE_MODE));
         dorisConfig.setBatchSize(config.get(DorisOptions.BATCH_SIZE));
+        dorisConfig.setFlushIntervalMills(config.get(SINK_BUFFER_FLUSH_INTERVAL));
+        dorisConfig.setConnection(Collections.singletonList(conf));
 
         return dorisConfig;
     }
@@ -194,6 +208,7 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
                 .requestTabletSize(config.get(DorisOptions.REQUEST_TABLET_SIZE))
                 .requestConnectTimeoutMs(config.get(DorisOptions.REQUEST_CONNECT_TIMEOUT_MS))
                 .requestReadTimeoutMs(config.get(DorisOptions.REQUEST_READ_TIMEOUT_MS))
+                .httpCheckTimeoutMs(config.get(DorisOptions.HTTP_CHECK_TIMEOUT_MS))
                 .requestQueryTimeoutS(config.get(DorisOptions.REQUEST_QUERY_TIMEOUT_SEC))
                 .requestRetries(config.get(DorisOptions.REQUEST_RETRIES))
                 .requestBatchSize(config.get(DorisOptions.REQUEST_BATCH_SIZE))
@@ -242,7 +257,8 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
                                 DorisOptions.LINE_DELIMITER,
                                 DorisOptions.MAX_RETRIES,
                                 DorisOptions.WRITE_MODE,
-                                DorisOptions.BATCH_SIZE)
+                                DorisOptions.BATCH_SIZE,
+                                DorisOptions.SINK_ENABLE_DELETE)
                         .collect(Collectors.toSet());
 
         options.addAll(optionalOptions);

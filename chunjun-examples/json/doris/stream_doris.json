@@ -1,0 +1,59 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader":{
+        "parameter":{
+          "column":[
+            {
+              "name":"int_data",
+              "type":"int"
+            },
+            {
+              "name":"string_data",
+              "type":"string"
+            }
+          ],
+          "sliceRecordCount":[
+            "1000000"
+          ]
+        },
+        "name":"streamreader"
+      },
+      "writer" : {
+        "parameter" : {
+          "column" : [ {
+            "customConverterType" : "INT",
+            "name" : "id",
+            "isPart" : false,
+            "type" : "INT",
+            "key" : "id"
+          }, {
+            "customConverterType" : "VARCHAR",
+            "name" : "name",
+            "isPart" : false,
+            "type" : "VARCHAR",
+            "key" : "name"
+          } ],
+          "database" : "test_1121",
+          "table" : "test_002",
+          "username" : "root",
+          "loadOptions":{"requestConnectTimeoutMs": "20000"},
+          "feNodes" : [ "172.16.124.70:18030" ]
+        },
+        "name" : "doriswriter"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+      },
+      "errorLimit" : {
+      },
+      "speed" : {
+        "readerChannel" : 1,
+        "writerChannel" : 1,
+        "bytes" : 0,
+        "channel" : 1
+      }
+    }
+  }
+}

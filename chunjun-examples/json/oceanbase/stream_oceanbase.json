@@ -1,0 +1,73 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader": {
+        "name": "streamreader",
+        "parameter": {
+          "column": [
+            {
+              "name": "id",
+              "type": "id"
+            },
+            {
+              "name": "name",
+              "type": "string"
+            }
+          ],
+          "sliceRecordCount": [
+            1000
+          ]
+        }
+      },
+      "writer" : {
+        "parameter" : {
+          "oceanBaseMode" : "MYSQL",
+          "schema" : "test",
+          "session" : [ ],
+          "column" : [ {
+            "customConverterType" : "INT",
+            "name" : "id",
+            "isPart" : false,
+            "type" : "INT",
+            "key" : "id"
+          }, {
+            "customConverterType" : "VARCHAR",
+            "name" : "name",
+            "isPart" : false,
+            "type" : "VARCHAR",
+            "key" : "name"
+          } ],
+          "executePreSqlNoData" : false,
+          "writeMode" : "insert",
+          "password" : "******",
+          "executePostSqlNoData" : false,
+          "connection" : [ {
+            "schema" : "test",
+            "jdbcUrl" :     "jdbc:oceanbase://127.0.0.1:30691",
+            "table" : [ "users" ]
+          } ],
+          "username" : "root"
+        },
+        "name" : "oceanbasewriter"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "maxRowNumForCheckpoint" : 0,
+        "isRestore" : true,
+        "restoreColumnName" : "id",
+        "restoreColumnIndex" : 0
+      },
+      "errorLimit" : {
+        "record" : 10,
+        "percentage" : 100.0
+      },
+      "speed" : {
+        "readerChannel" : 1,
+        "writerChannel" : 1,
+        "bytes" : 0,
+        "channel" : 1
+      }
+    }
+  }
+}

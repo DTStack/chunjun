@@ -41,6 +41,11 @@ public class LoadConfig implements Serializable {
 
     private Integer requestQueryTimeoutS;
 
+    private Integer socketTimeOutMs;
+
+    /** Timeout duration of the HTTP connection when checking the connectivity with StarRocks */
+    private Integer httpCheckTimeoutMs;
+
     private Integer requestRetries;
 
     private Integer requestBatchSize;

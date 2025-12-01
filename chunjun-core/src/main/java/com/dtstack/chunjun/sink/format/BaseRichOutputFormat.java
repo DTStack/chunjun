@@ -134,6 +134,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     /** 存储用于批量写入的数据行数 */
     protected transient List<RowData> rows;
+
+    /** 批量提交字节数 */
+    protected long rowsBytes;
+
     /** 存储用于批量写入的数据字节数 */
     protected transient long batchMaxByteSize;
     /** 数据类型转换器 */
@@ -305,6 +309,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
                 writeSingleRecord(rowData, numWriteCounter);
                 size = 1;
             } else {
+                rowsBytes += rowSizeCalculator.getObjectSize(rowData);
                 rows.add(rowData);
                 if (rows.size() >= batchSize) {
                     writeRecordInternal();
@@ -313,7 +318,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
             }
         }
         updateDuration();
-        bytesWriteCounter.add(rowSizeCalculator.getObjectSize(rowData));
         if (checkpointEnabled) {
             snapshotWriteCounter.add(size);
         }
@@ -489,6 +493,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         try {
             writeSingleRecordInternal(rowData);
             numWriteCounter.add(1L);
+            bytesWriteCounter.add(rowSizeCalculator.getObjectSize(rowData));
         } catch (WriteRecordException e) {
             long globalErrors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
 
@@ -508,12 +513,14 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
             try {
                 writeMultipleRecordsInternal();
                 numWriteCounter.add(rows.size());
+                bytesWriteCounter.add(rowsBytes);
             } catch (Exception e) {
                 // 批量写异常转为单条写
                 rows.forEach(item -> writeSingleRecord(item, numWriteCounter));
             } finally {
                 // Data is either recorded dirty data or written normally
                 rows.clear();
+                rowsBytes = 0;
             }
         }
     }

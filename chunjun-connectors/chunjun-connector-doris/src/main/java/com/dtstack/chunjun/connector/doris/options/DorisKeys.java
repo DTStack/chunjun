@@ -48,6 +48,8 @@ public final class DorisKeys {
 
     public static final String REQUEST_CONNECT_TIMEOUT_MS_KEY = "requestConnectTimeoutMs";
 
+    public static final String SOCKET_TIMEOUT_MS_KEY = "socketTimeOutMs";
+
     public static final String REQUEST_READ_TIMEOUT_MS_KEY = "requestReadTimeoutMs";
 
     public static final String REQUEST_QUERY_TIMEOUT_S_KEY = "requestQueryTimeoutS";
@@ -86,7 +88,13 @@ public final class DorisKeys {
 
     public static final Integer DORIS_REQUEST_READ_TIMEOUT_MS_DEFAULT = 30 * 1000;
 
+    // stream load
+    public static final Integer HTTP_CHECK_TIMEOUT_DEFAULT = 10 * 1000;
+
     public static final Integer DORIS_REQUEST_QUERY_TIMEOUT_S_DEFAULT = 3600;
+
+    // default checkpoint timeout is 5min
+    public static final Integer DORIS_SOCKET_TIMEOUT_MS_DEFAULT = 4 * 60 * 1000;
 
     public static final String DORIS_TABLET_SIZE = "doris.request.tablet.size";
 

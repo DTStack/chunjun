@@ -53,6 +53,7 @@ public class DorisRawTypeMapper {
             case "DECIMAL UNSIGNED":
             case "NUMERIC":
             case "DECIMALV2":
+            case "DECIMALV3":
                 return type.toDecimalDataType();
             case "REAL":
             case "DOUBLE":
@@ -72,6 +73,7 @@ public class DorisRawTypeMapper {
             case "ARRAY":
                 return DataTypes.STRING();
             case "DATE":
+            case "DATEV2":
                 return DataTypes.DATE();
             case "TIME":
                 return DataTypes.TIME();
@@ -79,6 +81,7 @@ public class DorisRawTypeMapper {
                 return DataTypes.INTERVAL(DataTypes.YEAR());
             case "TIMESTAMP":
             case "DATETIME":
+            case "DATETIMEV2":
                 return DataTypes.TIMESTAMP(0);
             case "TINYBLOB":
             case "BLOB":

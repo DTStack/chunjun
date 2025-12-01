@@ -25,6 +25,7 @@ import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
+import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.ByteColumn;
@@ -38,8 +39,6 @@ import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.DecimalType;
-import org.apache.flink.table.types.logical.LocalZonedTimestampType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
@@ -48,18 +47,18 @@ import org.apache.flink.table.types.logical.TimestampType;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
-public class DorisHttpSqlConverter
+public class DorisHttpSyncConverter
         extends AbstractRowConverter<RowData, RowData, Map<String, Object>, LogicalType> {
 
     private final boolean enableDelete;
     private final List<String> columnList;
     public static final String DATETIME_FORMAT_SHORT = "yyyy-MM-dd HH:mm:ss";
 
-    public DorisHttpSqlConverter(RowType rowType, CommonConfig conf) {
+    public DorisHttpSyncConverter(RowType rowType, CommonConfig conf) {
         super(rowType, conf);
         this.columnList = rowType.getFieldNames();
         for (int i = 0; i < rowType.getFieldCount(); i++) {
@@ -102,7 +101,6 @@ public class DorisHttpSqlConverter
         if (enableDelete) {
             output.put(DorisSinkOP.COLUMN_KEY, DorisSinkOP.parse(rowData.getRowKind()));
         }
-
         return output;
     }
 
@@ -149,7 +147,9 @@ public class DorisHttpSqlConverter
         switch (type.getTypeRoot()) {
             case BOOLEAN:
                 return (rowData, index, map) ->
-                        map.put(columnList.get(index), rowData.getBoolean(index) ? 1 : 0);
+                        map.put(
+                                columnList.get(index),
+                                ((ColumnRowData) rowData).getField(index).asBoolean() ? 1 : 0);
             case TINYINT:
                 return (rowData, index, map) ->
                         map.put(columnList.get(index), rowData.getByte(index));
@@ -169,39 +169,43 @@ public class DorisHttpSqlConverter
                 return (rowData, index, map) ->
                         map.put(columnList.get(index), rowData.getDouble(index));
             case DECIMAL:
-                final int decimalPrecision = ((DecimalType) type).getPrecision();
-                final int decimalScale = ((DecimalType) type).getScale();
                 return (rowData, index, map) ->
                         map.put(
                                 columnList.get(index),
-                                rowData.getDecimal(index, decimalPrecision, decimalScale)
-                                        .toBigDecimal());
+                                ((ColumnRowData) rowData).getField(index).asBigDecimal());
             case CHAR:
             case VARCHAR:
                 return (rowData, index, map) ->
-                        map.put(columnList.get(index), rowData.getString(index).toString());
-
+                        map.put(
+                                columnList.get(index),
+                                ((ColumnRowData) rowData).getField(index).asString());
             case DATE:
                 return (rowData, index, map) ->
                         map.put(
                                 columnList.get(index),
-                                Date.valueOf(LocalDate.ofEpochDay(rowData.getInt(index)))
-                                        .toString());
+                                ((ColumnRowData) rowData).getField(index).asSqlDate().toString());
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return (rowData, index, map) -> {
-                    final int timestampPrecision = ((TimestampType) type).getPrecision();
-                    map.put(
-                            columnList.get(index),
-                            rowData.getTimestamp(index, timestampPrecision)
-                                    .toTimestamp()
-                                    .toString());
-                };
             case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
+                final int timestampPrecision = ((TimestampType) type).getPrecision();
+                final String formatStr;
+                if (timestampPrecision > 0) {
+                    formatStr =
+                            addStrForNum(
+                                    DATETIME_FORMAT_SHORT + ".",
+                                    DATETIME_FORMAT_SHORT.length() + 1 + timestampPrecision,
+                                    "S");
+                } else {
+                    formatStr = DATETIME_FORMAT_SHORT;
+                }
                 return (rowData, index, map) -> {
-                    final int localP = ((LocalZonedTimestampType) type).getPrecision();
+                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(formatStr);
                     map.put(
                             columnList.get(index),
-                            rowData.getTimestamp(index, localP).toTimestamp().toString());
+                            dateTimeFormatter.format(
+                                    ((ColumnRowData) rowData)
+                                            .getField(index)
+                                            .asTimestamp()
+                                            .toLocalDateTime()));
                 };
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
