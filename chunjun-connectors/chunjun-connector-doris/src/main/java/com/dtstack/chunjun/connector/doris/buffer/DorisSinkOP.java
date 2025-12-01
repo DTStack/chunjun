@@ -16,23 +16,23 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.doris.sink;
+package com.dtstack.chunjun.connector.doris.buffer;
 
-import com.dtstack.chunjun.connector.doris.options.DorisConfig;
-import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
-public class DorisHttpOutputFormatBuilder
-        extends BaseRichOutputFormatBuilder<DorisHttpOutputFormat> {
+import org.apache.flink.types.RowKind;
 
-    public DorisHttpOutputFormatBuilder() {
-        super(new DorisHttpOutputFormat());
+/** StarRocks sink operator. */
+public class DorisSinkOP {
+    public static final String COLUMN_KEY = "__DORIS_DELETE_SIGN__";
+
+    public static String parse(RowKind kind) {
+        if (RowKind.INSERT.equals(kind) || RowKind.UPDATE_AFTER.equals(kind)) {
+            return "0";
+        }
+        if (RowKind.DELETE.equals(kind) || RowKind.UPDATE_BEFORE.equals(kind)) {
+            return "1";
+        }
+        throw new ChunJunRuntimeException("Unsupported row kind.");
     }
-
-    public void setDorisOptions(DorisConfig options) {
-        super.setConfig(options);
-        format.setDorisConf(options);
-    }
-
-    @Override
-    protected void checkFormat() {}
 }

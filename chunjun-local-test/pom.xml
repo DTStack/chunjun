@@ -51,6 +51,13 @@
 			<artifactId>chunjun-connector-stream</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-doris</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<!--rdb test start-->
 <!--		<dependency>-->
 <!--			<groupId>com.dtstack.chunjun</groupId>-->
