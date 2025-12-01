@@ -64,6 +64,7 @@ import static com.dtstack.chunjun.constants.CDCConstantValue.BEFORE_;
 import static com.dtstack.chunjun.constants.CDCConstantValue.DATABASE;
 import static com.dtstack.chunjun.constants.CDCConstantValue.LSN;
 import static com.dtstack.chunjun.constants.CDCConstantValue.OP_TIME;
+import static com.dtstack.chunjun.constants.CDCConstantValue.PRIMARY_KEY;
 import static com.dtstack.chunjun.constants.CDCConstantValue.SCHEMA;
 import static com.dtstack.chunjun.constants.CDCConstantValue.TABLE;
 import static com.dtstack.chunjun.constants.CDCConstantValue.TS;
@@ -262,6 +263,14 @@ public class BinlogSyncConverter extends AbstractCDCRawTypeMapper<BinlogEventRow
             List<CanalEntry.Column> beforeList = rowData.getBeforeColumnsList();
             List<CanalEntry.Column> afterList = rowData.getAfterColumnsList();
 
+            String beforePrimaryKeys = extractPrimaryKeys(beforeList);
+            String afterPrimaryKeys = extractPrimaryKeys(afterList);
+
+            columnRowData.addHeader(PRIMARY_KEY);
+            columnRowData.addField(
+                    new StringColumn(
+                            beforePrimaryKeys != null ? beforePrimaryKeys : afterPrimaryKeys));
+
             List<AbstractBaseColumn> beforeColumnList = new ArrayList<>(beforeList.size());
             List<String> beforeHeaderList = new ArrayList<>(beforeList.size());
             List<AbstractBaseColumn> afterColumnList = new ArrayList<>(afterList.size());
@@ -312,6 +321,13 @@ public class BinlogSyncConverter extends AbstractCDCRawTypeMapper<BinlogEventRow
             result.add(columnRowData);
         }
         return result;
+    }
+
+    private String extractPrimaryKeys(List<CanalEntry.Column> beforeList) {
+        return beforeList.stream()
+                .filter(c -> c.getIsKey())
+                .map(CanalEntry.Column::getName)
+                .collect(Collectors.joining(","));
     }
 
     /**

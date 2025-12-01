@@ -22,20 +22,19 @@ import com.dtstack.chunjun.connector.kafka.adapter.StartupModeAdapter;
 import com.dtstack.chunjun.connector.kafka.conf.KafkaConfig;
 import com.dtstack.chunjun.connector.kafka.converter.KafkaRawTypeMapping;
 import com.dtstack.chunjun.connector.kafka.converter.KafkaSyncConverter;
+import com.dtstack.chunjun.connector.kafka.converter.KafkaSyncKeyConverter;
 import com.dtstack.chunjun.connector.kafka.enums.StartupMode;
 import com.dtstack.chunjun.connector.kafka.partitioner.CustomerFlinkPartition;
 import com.dtstack.chunjun.connector.kafka.serialization.RowSerializationSchema;
 import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.GsonUtil;
-import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.CollectionUtil;
 import org.apache.flink.util.Preconditions;
 
@@ -46,8 +45,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Properties;
 
+/**
+ * Date: 2021/04/07 Company: www.dtstack.com
+ *
+ * @author tudou
+ */
 public class KafkaSinkFactory extends SinkFactory {
-
     protected KafkaConfig kafkaConfig;
 
     public KafkaSinkFactory(SyncConfig config) {
@@ -65,6 +68,11 @@ public class KafkaSinkFactory extends SinkFactory {
             kafkaConfig.setTopic(kafkaConfig.getTopics().get(0));
         }
         super.initCommonConf(kafkaConfig);
+        if (StringUtils.isNotBlank(kafkaConfig.getTopic())
+                && StringUtils.isNotBlank(kafkaConfig.getTableIdToTopicMapping())) {
+            throw new IllegalArgumentException(
+                    "topic and tableIdToTopicMapping can not be set at the same time");
+        }
     }
 
     @Override
@@ -89,8 +97,6 @@ public class KafkaSinkFactory extends SinkFactory {
         }
 
         RowSerializationSchema rowSerializationSchema;
-        RowType rowType =
-                TableUtil.createRowType(kafkaConfig.getColumn(), KafkaRawTypeMapping::apply);
         if (!CollectionUtil.isNullOrEmpty(kafkaConfig.getPartitionAssignColumns())) {
             Preconditions.checkState(
                     !CollectionUtil.isNullOrEmpty(kafkaConfig.getTableFields()),
@@ -108,21 +114,21 @@ public class KafkaSinkFactory extends SinkFactory {
                     new RowSerializationSchema(
                             kafkaConfig,
                             new CustomerFlinkPartition<>(),
-                            new KafkaSyncConverter(
-                                    rowType, kafkaConfig, kafkaConfig.getPartitionAssignColumns()),
-                            new KafkaSyncConverter(rowType, kafkaConfig));
+                            new KafkaSyncKeyConverter(
+                                    kafkaConfig, kafkaConfig.getPartitionAssignColumns()),
+                            new KafkaSyncConverter(kafkaConfig));
         } else {
             rowSerializationSchema =
                     new RowSerializationSchema(
                             kafkaConfig,
                             new CustomerFlinkPartition<>(),
-                            null,
-                            new KafkaSyncConverter(rowType, kafkaConfig));
+                            new KafkaSyncKeyConverter(kafkaConfig),
+                            new KafkaSyncConverter(kafkaConfig));
         }
 
         KafkaProducer kafkaProducer =
                 new KafkaProducer(
-                        kafkaConfig.getTopic(),
+                        StringUtils.isEmpty(kafkaConfig.getTopic()) ? "" : kafkaConfig.getTopic(),
                         rowSerializationSchema,
                         props,
                         FlinkKafkaProducer.Semantic.AT_LEAST_ONCE,
