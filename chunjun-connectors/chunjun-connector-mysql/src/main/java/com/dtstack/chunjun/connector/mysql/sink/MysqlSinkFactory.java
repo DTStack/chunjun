@@ -22,14 +22,12 @@ import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
 
 public class MysqlSinkFactory extends JdbcSinkFactory {
 
     public MysqlSinkFactory(SyncConfig syncConfig) {
         super(syncConfig, new MysqlDialect());
-        JdbcUtil.putExtParam(jdbcConfig);
     }
 
     @Override

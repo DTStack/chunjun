@@ -20,6 +20,7 @@ package com.dtstack.chunjun.connector.mysql.dialect;
 
 import com.dtstack.chunjun.config.TypeConfig;
 import com.dtstack.chunjun.connector.jdbc.conf.TableIdentify;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.mysql.converter.MysqlRawTypeConverter;
@@ -37,6 +38,7 @@ import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -165,5 +167,29 @@ public class MysqlDialect implements JdbcDialect {
             typeConfig.setScale(scale);
             return typeConfig;
         });
+    }
+
+    @Override
+    public void putWriterExtParam(JdbcConfig jdbcConf) {
+        Properties properties = jdbcConf.getProperties();
+        if (properties == null) {
+            properties = new Properties();
+        }
+        properties.putIfAbsent("useCursorFetch", "true");
+        properties.putIfAbsent("rewriteBatchedStatements", "true");
+        properties.put("tinyInt1isBit", "false");
+        jdbcConf.setProperties(properties);
+    }
+
+    @Override
+    public void putReaderExtParam(JdbcConfig jdbcConf) {
+        Properties properties = jdbcConf.getProperties();
+        if (properties == null) {
+            properties = new Properties();
+        }
+        properties.putIfAbsent("useCursorFetch", "true");
+        properties.putIfAbsent("rewriteBatchedStatements", "true");
+        properties.put("tinyInt1isBit", "false");
+        jdbcConf.setProperties(properties);
     }
 }

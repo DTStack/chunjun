@@ -18,18 +18,13 @@
 
 package com.dtstack.chunjun.connector.mysql.table;
 
-import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.table.JdbcDynamicTableFactory;
-import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
-
-import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.catalog.ResolvedSchema;
 
 public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
 
@@ -52,21 +47,6 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
     @Override
     protected int getDefaultFetchSize() {
         return DEFAULT_FETCH_SIZE;
-    }
-
-    @Override
-    protected JdbcConfig getSourceConnectionConfig(ReadableConfig readableConfig) {
-        JdbcConfig jdbcConfig = super.getSourceConnectionConfig(readableConfig);
-        JdbcUtil.putExtParam(jdbcConfig);
-        return jdbcConfig;
-    }
-
-    @Override
-    protected JdbcConfig getSinkConnectionConfig(
-            ReadableConfig readableConfig, ResolvedSchema schema) {
-        JdbcConfig jdbcConfig = super.getSinkConnectionConfig(readableConfig, schema);
-        JdbcUtil.putExtParam(jdbcConfig);
-        return jdbcConfig;
     }
 
     @Override
