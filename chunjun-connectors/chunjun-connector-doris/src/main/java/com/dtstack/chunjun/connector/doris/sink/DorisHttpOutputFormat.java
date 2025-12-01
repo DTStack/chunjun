@@ -18,49 +18,64 @@
 
 package com.dtstack.chunjun.connector.doris.sink;
 
+import com.dtstack.chunjun.connector.doris.buffer.BufferFlusher;
+import com.dtstack.chunjun.connector.doris.buffer.BufferPools;
+import com.dtstack.chunjun.connector.doris.buffer.IBufferPool;
+import com.dtstack.chunjun.connector.doris.buffer.RetryableStreamLoadWriter;
+import com.dtstack.chunjun.connector.doris.buffer.StreamLoadWriter;
 import com.dtstack.chunjun.connector.doris.options.DorisConfig;
-import com.dtstack.chunjun.connector.doris.rest.Carrier;
-import com.dtstack.chunjun.connector.doris.rest.DorisLoadClient;
-import com.dtstack.chunjun.connector.doris.rest.DorisStreamLoad;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
-import com.dtstack.chunjun.throwable.WriteRecordException;
+import com.dtstack.chunjun.throwable.NoRestartException;
 
+import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.table.data.RowData;
 
+import com.alibaba.fastjson.JSON;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUEST_RETRIES_DEFAULT;
 
 /** use DorisStreamLoad to write data into doris */
 @Slf4j
 public class DorisHttpOutputFormat extends BaseRichOutputFormat {
     private static final long serialVersionUID = 992571748616683426L;
-    private DorisConfig options;
-    private DorisLoadClient client;
-    /** cache carriers * */
-    private final Map<String, Carrier> carrierMap = new HashMap<>();
+    @Setter private DorisConfig dorisConf;
 
-    private List<String> columns;
-
-    public void setOptions(DorisConfig options) {
-        this.options = options;
-    }
-
-    public void setColumns(List<String> columns) {
-        this.columns = columns;
-    }
+    private IBufferPool pools;
+    private BufferFlusher writer;
+    private volatile AtomicReference<Throwable> flushException;
 
     @Override
     public void open(int taskNumber, int numTasks) throws IOException {
-        DorisStreamLoad dorisStreamLoad = new DorisStreamLoad(options);
-        dorisStreamLoad.replaceBackend();
-        client = new DorisLoadClient(dorisStreamLoad, options.isNameMapped(), options);
         super.open(taskNumber, numTasks);
+        this.flushException = new AtomicReference<>();
+
+        this.writer = new RetryableStreamLoadWriter(new StreamLoadWriter(dorisConf), getRetrys());
+        this.pools =
+                new BufferPools(
+                        dorisConf.getPoolSize(),
+                        dorisConf.getMemorySizePerPool() * 1024 * 1024,
+                        writer,
+                        throwable -> flushException.set(throwable),
+                        dorisConf.isKeepOrder(),
+                        new Consumer<Long>() {
+                            @Override
+                            public synchronized void accept(Long num) {
+                                numWriteCounter.add(num);
+                            }
+                        },
+                        new Consumer<Long>() {
+                            @Override
+                            public synchronized void accept(Long size) {
+                                bytesWriteCounter.add(size);
+                            }
+                        });
     }
 
     @Override
@@ -69,58 +84,67 @@ public class DorisHttpOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void closeInternal() {}
+    protected void closeInternal() {
+        try {
+            pools.shutdown();
+            pools = null;
+            writer.close();
+            writer = null;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        checkFlushException();
+    }
+
+    // 重写此方法，否则numWriteCounter bytesWriteCounter指标重复计算
+    @Override
+    protected void writeSingleRecord(RowData rowData, LongCounter numWriteCounter) {
+        writeSingleRecordInternal(rowData);
+    }
 
     @Override
-    protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
+    protected void writeSingleRecordInternal(RowData rowData) {
+        checkFlushException();
         try {
-            client.process(rowData, columns, rowConverter);
+            Object map = rowConverter.toExternal(rowData, new HashMap<>(columnNameList.size()));
+            String json = JSON.toJSONString(map);
+            pools.write(json);
         } catch (Exception e) {
-            throw new WriteRecordException("", e, 0, rowData);
+            throw new RuntimeException(e);
         }
     }
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        int size = rows.size();
-        for (int i = 0; i < size; i++) {
-            client.process(rows.get(i), i, carrierMap, columns, rowConverter);
-        }
-        if (!carrierMap.isEmpty()) {
-            Set<String> keys = carrierMap.keySet();
-            for (String key : keys) {
-                try {
-                    Carrier carrier = carrierMap.get(key);
-                    client.flush(carrier);
-                    Set<Integer> indexes = carrier.getRowDataIndexes();
-                    List<RowData> removeList = new ArrayList<>(indexes.size());
-                    // Add the amount of data written successfully.
-                    numWriteCounter.add(indexes.size());
-                    for (int index : indexes) {
-                        removeList.add(rows.get(index));
-                    }
-                    // Remove RowData from rows after a successful write
-                    // to prevent multiple writes.
-                    rows.removeAll(removeList);
-                } finally {
-                    carrierMap.remove(key);
-                }
-            }
-        }
+        throw new RuntimeException(
+                "DorisHttpOutputFormat does not support writeMultipleRecordsInternal");
     }
 
     @Override
-    protected synchronized void writeRecordInternal() {
-        if (flushEnable.get()) {
-            try {
-                writeMultipleRecordsInternal();
-            } catch (Exception e) {
-                // 批量写异常转为单条写
-                rows.forEach(item -> writeSingleRecord(item, numWriteCounter));
-            } finally {
-                // Data is either recorded dirty data or written normally
-                rows.clear();
+    protected synchronized void writeRecordInternal() {}
+
+    private int getRetrys() {
+
+        if (dorisConf.getLoadConfig().getRequestRetries() == null) {
+            return DORIS_REQUEST_RETRIES_DEFAULT;
+        } else {
+            return dorisConf.getLoadConfig().getRequestRetries();
+        }
+    }
+
+    private void checkFlushException() {
+        Throwable throwable = flushException.get();
+        if (throwable != null) {
+            StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+            for (StackTraceElement stackTraceElement : stack) {
+                log.info(
+                        stackTraceElement.getClassName()
+                                + "."
+                                + stackTraceElement.getMethodName()
+                                + " line:"
+                                + stackTraceElement.getLineNumber());
             }
+            throw new NoRestartException("Writing records to Doris failed.", throwable);
         }
     }
 }

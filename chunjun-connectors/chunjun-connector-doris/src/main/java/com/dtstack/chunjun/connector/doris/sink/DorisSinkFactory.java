@@ -21,6 +21,7 @@ package com.dtstack.chunjun.connector.doris.sink;
 import com.dtstack.chunjun.config.OperatorConfig;
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.config.TypeConfig;
+import com.dtstack.chunjun.connector.doris.converter.DorisHttpSyncConverter;
 import com.dtstack.chunjun.connector.doris.converter.DorisRawTypeMapper;
 import com.dtstack.chunjun.connector.doris.options.DorisConfig;
 import com.dtstack.chunjun.connector.doris.options.LoadConfig;
@@ -52,6 +53,7 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Properties;
 
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.BATCH_SIZE_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DESERIALIZE_ARROW_ASYNC_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DESERIALIZE_QUEUE_SIZE_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_BATCH_SIZE_DEFAULT;
@@ -62,7 +64,9 @@ import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUES
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUEST_QUERY_TIMEOUT_S_DEFAULT;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUEST_READ_TIMEOUT_MS_DEFAULT;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUEST_RETRIES_DEFAULT;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_SOCKET_TIMEOUT_MS_DEFAULT;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.EXEC_MEM_LIMIT_KEY;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.HTTP_CHECK_TIMEOUT_DEFAULT;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.LOAD_OPTIONS_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_BATCH_SIZE_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_CONNECT_TIMEOUT_MS_KEY;
@@ -70,6 +74,7 @@ import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_QUER
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_READ_TIMEOUT_MS_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_RETRIES_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_TABLET_SIZE_KEY;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.SOCKET_TIMEOUT_MS_KEY;
 
 public class DorisSinkFactory extends SinkFactory {
     private final DorisConfig options;
@@ -96,59 +101,101 @@ public class DorisSinkFactory extends SinkFactory {
         LoadConfig loadConfig =
                 LoadConfig.builder()
                         .requestTabletSize(
-                                (int)
-                                        properties.getOrDefault(
-                                                REQUEST_TABLET_SIZE_KEY, Integer.MAX_VALUE))
+                                Integer.parseInt(
+                                        properties
+                                                .getOrDefault(
+                                                        REQUEST_TABLET_SIZE_KEY, Integer.MAX_VALUE)
+                                                .toString()))
                         .requestConnectTimeoutMs(
-                                (int)
-                                        properties.getOrDefault(
-                                                REQUEST_CONNECT_TIMEOUT_MS_KEY,
-                                                DORIS_REQUEST_CONNECT_TIMEOUT_MS_DEFAULT))
+                                Integer.parseInt(
+                                        properties
+                                                .getOrDefault(
+                                                        REQUEST_CONNECT_TIMEOUT_MS_KEY,
+                                                        DORIS_REQUEST_CONNECT_TIMEOUT_MS_DEFAULT)
+                                                .toString()))
+                        .socketTimeOutMs(
+                                Integer.parseInt(
+                                        properties
+                                                .getOrDefault(
+                                                        SOCKET_TIMEOUT_MS_KEY,
+                                                        DORIS_SOCKET_TIMEOUT_MS_DEFAULT)
+                                                .toString()))
                         .requestReadTimeoutMs(
-                                (int)
-                                        properties.getOrDefault(
-                                                REQUEST_READ_TIMEOUT_MS_KEY,
-                                                DORIS_REQUEST_READ_TIMEOUT_MS_DEFAULT))
+                                Integer.parseInt(
+                                        properties
+                                                .getOrDefault(
+                                                        REQUEST_READ_TIMEOUT_MS_KEY,
+                                                        DORIS_REQUEST_READ_TIMEOUT_MS_DEFAULT)
+                                                .toString()))
+                        .httpCheckTimeoutMs(
+                                Integer.parseInt(
+                                        properties
+                                                .getOrDefault(
+                                                        REQUEST_READ_TIMEOUT_MS_KEY,
+                                                        HTTP_CHECK_TIMEOUT_DEFAULT)
+                                                .toString()))
                         .requestQueryTimeoutS(
-                                (int)
-                                        properties.getOrDefault(
-                                                REQUEST_QUERY_TIMEOUT_S_KEY,
-                                                DORIS_REQUEST_QUERY_TIMEOUT_S_DEFAULT))
+                                Integer.parseInt(
+                                        properties
+                                                .getOrDefault(
+                                                        REQUEST_QUERY_TIMEOUT_S_KEY,
+                                                        DORIS_REQUEST_QUERY_TIMEOUT_S_DEFAULT)
+                                                .toString()))
                         .requestRetries(
-                                (int)
-                                        properties.getOrDefault(
-                                                REQUEST_RETRIES_KEY, DORIS_REQUEST_RETRIES_DEFAULT))
+                                Integer.parseInt(
+                                        properties
+                                                .getOrDefault(
+                                                        REQUEST_RETRIES_KEY,
+                                                        DORIS_REQUEST_RETRIES_DEFAULT)
+                                                .toString()))
                         .requestBatchSize(
-                                (int)
-                                        properties.getOrDefault(
-                                                REQUEST_BATCH_SIZE_KEY, DORIS_BATCH_SIZE_DEFAULT))
+                                Integer.parseInt(
+                                        properties
+                                                .getOrDefault(
+                                                        REQUEST_BATCH_SIZE_KEY,
+                                                        DORIS_BATCH_SIZE_DEFAULT)
+                                                .toString()))
                         .execMemLimit(
-                                (long)
-                                        properties.getOrDefault(
-                                                EXEC_MEM_LIMIT_KEY, DORIS_EXEC_MEM_LIMIT_DEFAULT))
+                                Long.parseLong(
+                                        properties
+                                                .getOrDefault(
+                                                        EXEC_MEM_LIMIT_KEY,
+                                                        DORIS_EXEC_MEM_LIMIT_DEFAULT)
+                                                .toString()))
                         .deserializeQueueSize(
-                                (int)
-                                        properties.getOrDefault(
-                                                DESERIALIZE_QUEUE_SIZE_KEY,
-                                                DORIS_DESERIALIZE_QUEUE_SIZE_DEFAULT))
+                                Integer.parseInt(
+                                        properties
+                                                .getOrDefault(
+                                                        DESERIALIZE_QUEUE_SIZE_KEY,
+                                                        DORIS_DESERIALIZE_QUEUE_SIZE_DEFAULT)
+                                                .toString()))
                         .deserializeArrowAsync(
-                                (boolean)
-                                        properties.getOrDefault(
-                                                DESERIALIZE_ARROW_ASYNC_KEY,
-                                                DORIS_DESERIALIZE_ARROW_ASYNC_DEFAULT))
+                                Boolean.parseBoolean(
+                                        properties
+                                                .getOrDefault(
+                                                        DESERIALIZE_ARROW_ASYNC_KEY,
+                                                        DORIS_DESERIALIZE_ARROW_ASYNC_DEFAULT)
+                                                .toString()))
                         .build();
 
         options.setColumn(syncConfig.getWriter().getFieldList());
         options.setLoadProperties(properties);
         options.setLoadConfig(loadConfig);
+        options.setBatchSize(parameter.getIntVal(BATCH_SIZE_KEY, DORIS_BATCH_SIZE_DEFAULT));
         super.initCommonConf(options);
     }
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         if (options.getFeNodes() != null) {
+            options.setBatchSize(1); // batchSize 设置为 1，刷新依靠缓冲池溢出机制
             DorisHttpOutputFormatBuilder builder = new DorisHttpOutputFormatBuilder();
             builder.setDorisOptions(options);
+            builder.setRowConverter(
+                    new DorisHttpSyncConverter(
+                            TableUtil.createRowType(options.getColumn(), getRawTypeMapper()),
+                            options),
+                    useAbstractBaseColumn);
             return createOutput(dataSet, builder.finish());
         }
 

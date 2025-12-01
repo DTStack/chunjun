@@ -44,6 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DorisDynamicTableSink extends JdbcDynamicTableSink {
 
@@ -84,10 +85,10 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
 
     private DorisHttpOutputFormatBuilder httpBuilder(RowType rowType, DorisConfig dorisConfig) {
         DorisHttpOutputFormatBuilder builder = new DorisHttpOutputFormatBuilder();
-        builder.setColumns(tableSchema.getColumnNames());
-        builder.setConfig(dorisConfig);
+        dorisConfig.setBatchSize(1); // batchSize 设置为 1，刷新依靠缓冲池溢出机制
         builder.setDorisOptions(dorisConfig);
-        builder.setRowConverter(new DorisHttpSqlConverter(rowType));
+        dorisConfig.setColumn(getFieldConfigFromSchema());
+        builder.setRowConverter(new DorisHttpSqlConverter(rowType, dorisConfig));
         return builder;
     }
 
@@ -133,6 +134,24 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
     @Override
     public DynamicTableSink copy() {
         return new DorisDynamicTableSink(physicalSchema, dorisConfig);
+    }
+
+    private List<FieldConfig> getFieldConfigFromSchema() {
+
+        return physicalSchema.getColumns().stream()
+                .map(
+                        tableColumn -> {
+                            FieldConfig fieldConfig = new FieldConfig();
+                            fieldConfig.setName(tableColumn.getName());
+                            fieldConfig.setType(
+                                    TypeConfig.fromString(
+                                            tableColumn
+                                                    .getDataType()
+                                                    .getLogicalType()
+                                                    .asSummaryString()));
+                            return fieldConfig;
+                        })
+                .collect(Collectors.toList());
     }
 
     @Override
