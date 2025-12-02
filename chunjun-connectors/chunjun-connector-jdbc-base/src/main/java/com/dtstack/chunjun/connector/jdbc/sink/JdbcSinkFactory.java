@@ -96,6 +96,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
+        jdbcDialect.putWriterExtParam(jdbcConfig);
         JdbcOutputFormatBuilder builder = getBuilder();
         initColumnInfo();
         builder.setJdbcConf(jdbcConfig);

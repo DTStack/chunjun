@@ -185,6 +185,7 @@ public abstract class JdbcDynamicTableFactory
 
         jdbcConfig.setUniqueKey(keyFields);
         resetTableInfo(jdbcConfig);
+        getDialect().putWriterExtParam(jdbcConfig);
         return jdbcConfig;
     }
 
@@ -257,6 +258,7 @@ public abstract class JdbcDynamicTableFactory
         if (StringUtils.isBlank(jdbcConfig.getCustomSql())) {
             resetTableInfo(jdbcConfig);
         }
+        getDialect().putReaderExtParam(jdbcConfig);
         return jdbcConfig;
     }
 

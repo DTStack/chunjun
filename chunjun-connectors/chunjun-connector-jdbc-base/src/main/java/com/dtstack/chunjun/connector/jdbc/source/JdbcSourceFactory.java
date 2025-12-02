@@ -105,6 +105,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
     @Override
     public DataStream<RowData> createSource() {
+        jdbcDialect.putReaderExtParam(jdbcConfig);
         initColumnInfo();
         initRestoreConfig();
         initPollingConfig();

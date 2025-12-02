@@ -20,7 +20,6 @@ package com.dtstack.chunjun.connector.sybase.source;
 
 import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
-import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.sybase.dialect.SybaseDialect;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -36,6 +35,5 @@ public class SybaseSourceFactory extends JdbcSourceFactory {
                 && jdbcConfig.getFetchSize() == 0) {
             jdbcConfig.setFetchSize(1000);
         }
-        JdbcUtil.putExtParam(jdbcConfig);
     }
 }

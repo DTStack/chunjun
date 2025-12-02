@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.postgresql.dialect;
 
 import com.dtstack.chunjun.config.CommonConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
@@ -36,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 public class PostgresqlDialect implements JdbcDialect {
@@ -159,5 +161,15 @@ public class PostgresqlDialect implements JdbcDialect {
 
         return String.format(
                 COPY_SQL_TEMPL, tableLocation, fieldsExpression, fieldDelimiter, nullVal);
+    }
+
+    @Override
+    public void putWriterExtParam(JdbcConfig jdbcConf) {
+        Properties properties = jdbcConf.getProperties();
+        if (properties == null) {
+            properties = new Properties();
+        }
+        properties.putIfAbsent("reWriteBatchedInserts", "true");
+        jdbcConf.setProperties(properties);
     }
 }

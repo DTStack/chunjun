@@ -75,7 +75,7 @@ public class OracleRawTypeMapper {
                     if (type.getType().contains("TIME ZONE")) {
                         return DataTypes.TIMESTAMP_WITH_LOCAL_TIME_ZONE();
                     } else {
-                        return DataTypes.TIMESTAMP();
+                        return type.toTimestampDataType(0);
                     }
                 }
                 throw new UnsupportedTypeException(type);
