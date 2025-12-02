@@ -118,8 +118,7 @@ public class KafkaSourceFactory extends SourceFactory {
         RowType rowType =
                 TableUtil.createRowType(kafkaConfig.getColumn(), KafkaRawTypeMapping::apply);
         DynamicKafkaDeserializationSchema deserializationSchema =
-                new RowDeserializationSchema(
-                        kafkaConfig, new KafkaSyncConverter(rowType, kafkaConfig));
+                new RowDeserializationSchema(kafkaConfig, new KafkaSyncConverter(kafkaConfig));
         KafkaConsumerWrapper consumer =
                 new KafkaConsumerWrapper(topics, deserializationSchema, props);
         switch (kafkaConfig.getMode()) {
