@@ -26,9 +26,7 @@ import com.dtstack.chunjun.metrics.AccumulatorCollector;
 import com.dtstack.chunjun.metrics.BaseMetric;
 import com.dtstack.chunjun.metrics.RowSizeCalculator;
 import com.dtstack.chunjun.restore.FormatState;
-import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.JsonUtil;
-import com.dtstack.chunjun.util.ReflectionUtils;
 
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
@@ -52,8 +50,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -365,21 +361,9 @@ public class DynamicKafkaSerializationSchema
         numWriteCounter = runtimeContext.getLongCounter(Metrics.NUM_WRITES);
         snapshotWriteCounter = runtimeContext.getLongCounter(Metrics.SNAPSHOT_WRITES);
         bytesWriteCounter = runtimeContext.getLongCounter(Metrics.WRITE_BYTES);
-        try {
-            durationCounter =
-                    (LongMaximum)
-                            Objects.requireNonNull(
-                                            ReflectionUtils.getDeclaredMethod(
-                                                    runtimeContext,
-                                                    "getAccumulator",
-                                                    String.class,
-                                                    Class.class))
-                                    .invoke(
-                                            runtimeContext,
-                                            Metrics.WRITE_DURATION,
-                                            LongMaximum.class);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new ChunJunRuntimeException(e);
+        durationCounter = new LongMaximum(0);
+        if (runtimeContext.getAccumulator(Metrics.WRITE_DURATION) == null) {
+            runtimeContext.addAccumulator(Metrics.WRITE_DURATION, durationCounter);
         }
 
         outputMetric = new BaseMetric(runtimeContext);

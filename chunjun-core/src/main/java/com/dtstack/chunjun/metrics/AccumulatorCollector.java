@@ -64,7 +64,7 @@ public class AccumulatorCollector {
         valueAccumulatorMap = new HashMap<>(metricNames.size());
         for (String metricName : metricNames) {
             valueAccumulatorMap.put(
-                    metricName, new ValueAccumulator(context.getLongCounter(metricName), 0));
+                    metricName, new ValueAccumulator(context.getAccumulator(metricName), 0));
         }
 
         scheduledExecutorService =
@@ -179,6 +179,6 @@ public class AccumulatorCollector {
         if (valueAccumulator == null) {
             return 0;
         }
-        return valueAccumulator.getLocal().getLocalValue();
+        return (long) valueAccumulator.getLocal().getLocalValue();
     }
 }
