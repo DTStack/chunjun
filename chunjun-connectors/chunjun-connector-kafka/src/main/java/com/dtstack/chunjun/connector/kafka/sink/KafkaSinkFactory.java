@@ -29,12 +29,14 @@ import com.dtstack.chunjun.connector.kafka.serialization.RowSerializationSchema;
 import com.dtstack.chunjun.converter.RawTypeMapper;
 import com.dtstack.chunjun.sink.SinkFactory;
 import com.dtstack.chunjun.util.GsonUtil;
+import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.CollectionUtil;
 import org.apache.flink.util.Preconditions;
 
@@ -96,6 +98,9 @@ public class KafkaSinkFactory extends SinkFactory {
                     "when kafka sink dataCompelOrder set true , Parallelism must 1.");
         }
 
+        RowType rowType =
+                TableUtil.createRowType(kafkaConfig.getColumn(), KafkaRawTypeMapping::apply);
+
         RowSerializationSchema rowSerializationSchema;
         if (!CollectionUtil.isNullOrEmpty(kafkaConfig.getPartitionAssignColumns())) {
             Preconditions.checkState(
@@ -115,15 +120,15 @@ public class KafkaSinkFactory extends SinkFactory {
                             kafkaConfig,
                             new CustomerFlinkPartition<>(),
                             new KafkaSyncKeyConverter(
-                                    kafkaConfig, kafkaConfig.getPartitionAssignColumns()),
-                            new KafkaSyncConverter(kafkaConfig));
+                                    kafkaConfig, rowType, kafkaConfig.getPartitionAssignColumns()),
+                            new KafkaSyncConverter(kafkaConfig, rowType));
         } else {
             rowSerializationSchema =
                     new RowSerializationSchema(
                             kafkaConfig,
                             new CustomerFlinkPartition<>(),
-                            new KafkaSyncKeyConverter(kafkaConfig),
-                            new KafkaSyncConverter(kafkaConfig));
+                            new KafkaSyncKeyConverter(kafkaConfig, rowType),
+                            new KafkaSyncConverter(kafkaConfig, rowType));
         }
 
         KafkaProducer kafkaProducer =

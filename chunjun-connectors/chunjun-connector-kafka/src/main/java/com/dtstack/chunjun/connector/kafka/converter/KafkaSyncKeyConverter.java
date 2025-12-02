@@ -25,6 +25,7 @@ import com.dtstack.chunjun.element.column.MapColumn;
 import com.dtstack.chunjun.util.MapUtil;
 
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.CollectionUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -41,15 +42,15 @@ import java.util.Map;
  */
 public class KafkaSyncKeyConverter extends KafkaSyncConverter {
 
-    private final PartitionStrategy partitionStrategy;
+    private PartitionStrategy partitionStrategy;
 
-    public KafkaSyncKeyConverter(KafkaConfig kafkaConf, List<String> keyTypeList) {
-        super(kafkaConf, keyTypeList);
+    public KafkaSyncKeyConverter(KafkaConfig kafkaConf, RowType rowType, List<String> keyTypeList) {
+        super(kafkaConf, rowType, keyTypeList);
         this.partitionStrategy = PartitionStrategy.fromValue(kafkaConf.getPartitionStrategy());
     }
 
-    public KafkaSyncKeyConverter(KafkaConfig kafkaConf) {
-        this(kafkaConf, null);
+    public KafkaSyncKeyConverter(KafkaConfig kafkaConf, RowType rowType) {
+        this(kafkaConf, rowType, null);
     }
 
     @Override
