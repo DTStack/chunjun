@@ -83,6 +83,17 @@ public class HttpRestConfig extends CommonConfig {
     /** 请求的超时时间 单位毫秒 */
     private long timeOut = 10000;
 
+    private String returnedDataType;
+    private String jsonPath;
+
+    private String pageParamName;
+    private Integer endIndex;
+    private Integer startIndex;
+    private Integer Step;
+
+    private Integer limitRequestTime = 1;
+    private Integer requestTime = 0;
+
     public String getFieldTypes() {
         return fieldTypes;
     }
