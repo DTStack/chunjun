@@ -20,6 +20,7 @@ package com.dtstack.chunjun.connector.kafka.conf;
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.config.FieldConfig;
 import com.dtstack.chunjun.connector.kafka.enums.StartupMode;
+import com.dtstack.chunjun.connector.kafka.sink.PartitionStrategy;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -45,6 +46,9 @@ public class KafkaConfig extends CommonConfig {
     private String topic;
     /** kafka topics */
     private List<String> topics;
+
+    /** cdc数据根据database.schema.table进行映射，输出到对应的topic* */
+    private String tableIdToTopicMapping;
     /** 默认需要一个groupId */
     private String groupId = UUID.randomUUID().toString().replace("-", "");
     /** kafka启动模式 */
@@ -64,6 +68,9 @@ public class KafkaConfig extends CommonConfig {
     /** kafka sink分区字段 */
     private List<String> partitionAssignColumns;
 
+    // cdc 用于根据主键进行分区
+    private String partitionStrategy = PartitionStrategy.ALL_TO_ZERO.toString();
+
     private String deserialization = "default";
 
     /** deserialization的配置信息，每个deserialization的配置信息是不一样的 * */
@@ -82,7 +89,7 @@ public class KafkaConfig extends CommonConfig {
 
     public String getOffset() {
         if (offset == null) {
-            return null;
+            return offset;
         }
         return offset.toLowerCase(Locale.ENGLISH);
     }

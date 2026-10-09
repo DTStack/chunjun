@@ -46,9 +46,9 @@ fi
 # 1.In yarn-session case, JAR_DIR can not be found
 # 2.In other cases, JAR_DIR can be found
 if [ $CHUNJUN_DEPLOY_MODE -eq 1 ]; then
-  JAR_DIR=$CHUNJUN_HOME/lib/chunjun-clients.jar:$CHUNJUN_HOME/lib/*
+  JAR_DIR=$CHUNJUN_HOME/client/chunjun-clients.jar:$CHUNJUN_HOME/lib/*
 else
-  JAR_DIR=$CHUNJUN_HOME/../lib/chunjun-clients.jar:$CHUNJUN_HOME/../lib/*
+  JAR_DIR=$CHUNJUN_HOME/../client/chunjun-clients.jar:$CHUNJUN_HOME/../client/*
 fi
 
 CLASS_NAME=com.dtstack.chunjun.client.Launcher

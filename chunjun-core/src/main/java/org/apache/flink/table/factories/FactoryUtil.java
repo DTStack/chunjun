@@ -546,6 +546,12 @@ public final class FactoryUtil {
                         classLoader,
                         ConstantValue.CONNECTOR_DIR_NAME);
             }
+        } else if (factoryClass.isAssignableFrom(CatalogFactory.class)) {
+            com.dtstack.chunjun.util.FactoryHelper factoryHelper = factoryHelperThreadLocal.get();
+            if (factoryHelper != null) {
+                factoryHelper.registerCachedFile(
+                        unconvertedFactoryIdentifier, classLoader, ConstantValue.CATALOG_DIR_NAME);
+            }
         } else {
             com.dtstack.chunjun.util.FactoryHelper factoryHelper = factoryHelperThreadLocal.get();
             if (factoryHelper != null) {

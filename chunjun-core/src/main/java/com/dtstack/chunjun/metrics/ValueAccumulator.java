@@ -17,7 +17,7 @@
  */
 package com.dtstack.chunjun.metrics;
 
-import org.apache.flink.api.common.accumulators.LongCounter;
+import org.apache.flink.api.common.accumulators.Accumulator;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,6 +27,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ValueAccumulator {
-    private final LongCounter local;
+    private final Accumulator local;
     private long global;
 }

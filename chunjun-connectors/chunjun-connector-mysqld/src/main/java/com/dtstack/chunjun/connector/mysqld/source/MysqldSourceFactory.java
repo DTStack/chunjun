@@ -24,7 +24,6 @@ import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.distribute.DistributedJdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.distribute.DistributedJdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.distribute.DistributedJdbcSourceFactory;
-import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
 import com.dtstack.chunjun.connector.mysqld.utils.MySqlDataSource;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -57,7 +56,6 @@ public class MysqldSourceFactory extends DistributedJdbcSourceFactory {
 
     public MysqldSourceFactory(SyncConfig syncConfig, StreamExecutionEnvironment env) {
         super(syncConfig, env, new MysqlDialect());
-        JdbcUtil.putExtParam(jdbcConfig);
     }
 
     @Override

@@ -20,6 +20,7 @@ package com.dtstack.chunjun.connector.sqlserver.dialect;
 
 import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.config.TypeConfig;
+import com.dtstack.chunjun.connector.jdbc.config.JdbcConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -55,6 +56,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -332,5 +334,17 @@ public class SqlserverDialect implements JdbcDialect {
             typeConfig.setScale(typePsTuple.f2);
             return typeConfig;
         });
+    }
+
+    @Override
+    public void putWriterExtParam(JdbcConfig jdbcConf) {
+        Properties properties = jdbcConf.getProperties();
+        if (properties == null) {
+            properties = new Properties();
+        }
+        properties.putIfAbsent("enablePrepareOnFirstPreparedStatementCall", "true");
+        properties.putIfAbsent("disableStatementPooling", "false");
+        properties.putIfAbsent("statementPoolingCacheSize", "50");
+        jdbcConf.setProperties(properties);
     }
 }

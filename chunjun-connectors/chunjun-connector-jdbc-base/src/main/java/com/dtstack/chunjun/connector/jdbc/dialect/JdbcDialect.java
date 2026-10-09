@@ -525,4 +525,18 @@ public interface JdbcDialect extends Serializable {
     default TableIdentify getTableIdentify(String confSchema, String confTable) {
         return new TableIdentify(null, confSchema, confTable, this::quoteIdentifier, false);
     }
+
+    /**
+     * Add additional parameters to jdbc properties,for reader only.
+     *
+     * @param jdbcConf jdbc datasource configuration
+     */
+    default void putReaderExtParam(JdbcConfig jdbcConf) {}
+
+    /**
+     * Add additional parameters to jdbc properties,for writer only.
+     *
+     * @param jdbcConf jdbc datasource configuration
+     */
+    default void putWriterExtParam(JdbcConfig jdbcConf) {}
 }

@@ -40,6 +40,7 @@ public class ClickhouseRawTypeConverter {
     public static DataType apply(TypeConfig type) {
         switch (type.getType().toUpperCase(Locale.ENGLISH)) {
             case "BOOLEAN":
+            case "BOOL":
                 return DataTypes.BOOLEAN();
             case "TINYINT":
             case "INT8":

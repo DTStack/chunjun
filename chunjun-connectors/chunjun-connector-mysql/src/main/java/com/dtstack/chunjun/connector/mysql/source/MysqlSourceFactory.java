@@ -22,7 +22,6 @@ import com.dtstack.chunjun.config.SyncConfig;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
-import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -42,7 +41,6 @@ public class MysqlSourceFactory extends JdbcSourceFactory {
                 && jdbcConfig.getFetchSize() == 0) {
             jdbcConfig.setFetchSize(1000);
         }
-        JdbcUtil.putExtParam(jdbcConfig);
     }
 
     @Override

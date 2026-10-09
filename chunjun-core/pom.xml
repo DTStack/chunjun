@@ -191,6 +191,18 @@
 			<artifactId>flink-table-planner-loader</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-base</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-files</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
 		<!-- flink sql -->
 
 		<!--flink与Hadoop mapReduce兼容包-->

@@ -28,7 +28,7 @@ target/
 
 # Intellij Idea files
 .idea/*
-!.idea/vcs.xml
+.idea/vcs.xml
 *.iml
 
 # mac system

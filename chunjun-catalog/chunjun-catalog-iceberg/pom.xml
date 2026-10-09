@@ -16,16 +16,16 @@
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<iceberg.version>1.5.2</iceberg.version>
 	</properties>
 
 	<description>iceberg</description>
 
 	<dependencies>
-		<!-- https://mvnrepository.com/artifact/org.apache.iceberg/iceberg-core -->
 		<dependency>
 			<groupId>org.apache.iceberg</groupId>
-			<artifactId>iceberg-core</artifactId>
-			<version>1.10.0</version>
+			<artifactId>iceberg-flink-runtime-1.16</artifactId>
+			<version>${iceberg.version}</version>
 		</dependency>
 	</dependencies>
 
