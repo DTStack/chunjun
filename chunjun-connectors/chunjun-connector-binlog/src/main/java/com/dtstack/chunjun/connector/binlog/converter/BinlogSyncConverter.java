@@ -378,7 +378,7 @@ public class BinlogSyncConverter extends AbstractCDCRawTypeMapper<BinlogEventRow
         switch (substring.toUpperCase(Locale.ENGLISH)) {
             case "BIT":
                 return (IDeserializationConverter<String, AbstractBaseColumn>)
-                        val -> new BooleanColumn(Boolean.parseBoolean(val));
+                        val -> new BooleanColumn("1".equals(val) || Boolean.parseBoolean(val));
             case "TINYINT":
             case "SMALLINT":
             case "MEDIUMINT":
@@ -434,7 +434,7 @@ public class BinlogSyncConverter extends AbstractCDCRawTypeMapper<BinlogEventRow
     private Map<String, Object> processColumnList(List<CanalEntry.Column> columnList) {
         Map<String, Object> map = Maps.newLinkedHashMapWithExpectedSize(columnList.size());
         for (CanalEntry.Column column : columnList) {
-            map.put(column.getName(), column.getValue());
+            map.put(column.getName(), column.getIsNull() ? null : column.getValue());
         }
         return map;
     }
