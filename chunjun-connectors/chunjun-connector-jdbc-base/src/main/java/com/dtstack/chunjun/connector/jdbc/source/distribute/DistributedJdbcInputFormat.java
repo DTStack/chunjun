@@ -47,6 +47,8 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
     public void openInternal(InputSplit inputSplit) {
         this.inputSplit = (DistributedJdbcInputSplit) inputSplit;
         this.sourceList = this.inputSplit.getSourceList();
+        this.sourceIndex = 0;
+        this.noDataSource = false;
         if (CollectionUtils.isEmpty(this.sourceList)) {
             noDataSource = true;
             return;
