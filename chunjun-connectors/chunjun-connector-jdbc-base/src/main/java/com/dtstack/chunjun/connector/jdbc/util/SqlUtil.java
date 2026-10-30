@@ -26,9 +26,106 @@ import com.dtstack.chunjun.constants.ConstantValue;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SqlUtil {
+
+    private static final Pattern DOLLAR_QUOTE =
+            Pattern.compile("\\$(?:[A-Za-z_][A-Za-z_0-9]*)?\\$");
+
+    /** Prepare a single custom query for embedding in a derived table. */
+    public static String prepareCustomSql(String sql) {
+        if (StringUtils.isBlank(sql)) {
+            return sql;
+        }
+        List<Integer> terminators = new ArrayList<>();
+        int offset = 0;
+        while (offset < sql.length()) {
+            char current = sql.charAt(offset);
+            char next = offset + 1 < sql.length() ? sql.charAt(offset + 1) : 0;
+            if (Character.isWhitespace(current)) {
+                offset++;
+            } else if ((current == '-' && next == '-')
+                    || (current == '#' && (next == 0 || Character.isWhitespace(next)))) {
+                while (offset < sql.length()
+                        && sql.charAt(offset) != '\n'
+                        && sql.charAt(offset) != '\r') {
+                    offset++;
+                }
+            } else if (current == '/' && next == '*') {
+                int depth = 1;
+                offset += 2;
+                while (offset + 1 < sql.length() && depth > 0) {
+                    if (sql.charAt(offset) == '/' && sql.charAt(offset + 1) == '*') {
+                        depth++;
+                        offset += 2;
+                    } else if (sql.charAt(offset) == '*' && sql.charAt(offset + 1) == '/') {
+                        depth--;
+                        offset += 2;
+                    } else {
+                        offset++;
+                    }
+                }
+                if (depth != 0) {
+                    return sql + '\n';
+                }
+            } else if (current == '\'' || current == '"' || current == '`' || current == '[') {
+                char closing = current == '[' ? ']' : current;
+                int end = quotedEnd(sql, offset + 1, closing);
+                if (end < 0) {
+                    return sql + '\n';
+                }
+                terminators.clear();
+                offset = end;
+            } else if (current == '$') {
+                Matcher matcher = DOLLAR_QUOTE.matcher(sql).region(offset, sql.length());
+                if (matcher.lookingAt()) {
+                    String delimiter = matcher.group();
+                    int end = sql.indexOf(delimiter, matcher.end());
+                    if (end < 0) {
+                        return sql + '\n';
+                    }
+                    terminators.clear();
+                    offset = end + delimiter.length();
+                } else {
+                    terminators.clear();
+                    offset++;
+                }
+            } else {
+                if (current == ';') {
+                    terminators.add(offset);
+                } else {
+                    terminators.clear();
+                }
+                offset++;
+            }
+        }
+        StringBuilder normalized = new StringBuilder(sql);
+        for (int i = terminators.size() - 1; i >= 0; i--) {
+            normalized.deleteCharAt(terminators.get(i));
+        }
+        // A line comment at EOF must not consume the derived table's closing parenthesis.
+        return normalized.append('\n').toString();
+    }
+
+    private static int quotedEnd(String sql, int offset, char closing) {
+        while (offset < sql.length()) {
+            char current = sql.charAt(offset++);
+            if (current == closing) {
+                if (offset < sql.length() && sql.charAt(offset) == closing) {
+                    offset++;
+                } else {
+                    return offset;
+                }
+            } else if (current == '\\' && (closing == '\'' || closing == '"')) {
+                offset++;
+            }
+        }
+        return -1;
+    }
 
     public static String buildQuerySplitRangeSql(JdbcConfig jdbcConfig, JdbcDialect jdbcDialect) {
         // 构建where条件
@@ -46,7 +143,7 @@ public class SqlUtil {
                             jdbcDialect.quoteIdentifier(jdbcConfig.getSplitPk()),
                             JdbcUtil.TEMPORARY_TABLE_NAME,
                             jdbcDialect.quoteIdentifier(jdbcConfig.getSplitPk()),
-                            jdbcConfig.getCustomSql(),
+                            prepareCustomSql(jdbcConfig.getCustomSql()),
                             JdbcUtil.TEMPORARY_TABLE_NAME,
                             whereFilter);
 

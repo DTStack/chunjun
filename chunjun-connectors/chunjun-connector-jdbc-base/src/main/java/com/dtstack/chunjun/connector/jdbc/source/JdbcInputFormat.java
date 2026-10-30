@@ -342,7 +342,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                                 "select max(%s.%s) as max_value from ( %s ) %s",
                                 JdbcUtil.TEMPORARY_TABLE_NAME,
                                 jdbcDialect.quoteIdentifier(jdbcConfig.getIncreColumn()),
-                                jdbcConfig.getCustomSql(),
+                                SqlUtil.prepareCustomSql(jdbcConfig.getCustomSql()),
                                 JdbcUtil.TEMPORARY_TABLE_NAME);
             } else {
                 queryMaxValueSql =

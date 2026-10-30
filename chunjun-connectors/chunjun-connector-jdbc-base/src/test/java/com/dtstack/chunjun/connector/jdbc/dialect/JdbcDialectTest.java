@@ -113,7 +113,7 @@ public class JdbcDialectTest {
         when(jdbcDialect.getSelectFromStatement(schema, table, customSql, conditionFields, where))
                 .thenCallRealMethod();
         expect =
-                "SELECT * FROM (select id,name from \"schema\".\"table\") chunjun_tmp WHERE id > 10";
+                "SELECT * FROM (select id,name from \"schema\".\"table\"\n) chunjun_tmp WHERE id > 10";
         Assert.assertEquals(
                 expect,
                 jdbcDialect.getSelectFromStatement(
@@ -122,7 +122,8 @@ public class JdbcDialectTest {
         // custom
         when(jdbcDialect.getSelectFromStatement(schema, table, customSql, conditionFields, null))
                 .thenCallRealMethod();
-        expect = "SELECT * FROM (select id,name from \"schema\".\"table\") chunjun_tmp WHERE  1=1 ";
+        expect =
+                "SELECT * FROM (select id,name from \"schema\".\"table\"\n) chunjun_tmp WHERE  1=1 ";
         Assert.assertEquals(
                 expect,
                 jdbcDialect.getSelectFromStatement(
@@ -156,7 +157,7 @@ public class JdbcDialectTest {
                         schema, table, customSql, fields, conditionFields, where))
                 .thenCallRealMethod();
         expect =
-                "SELECT * FROM (select id,name from \"schema\".\"table\") chunjun_tmp WHERE id > 10";
+                "SELECT * FROM (select id,name from \"schema\".\"table\"\n) chunjun_tmp WHERE id > 10";
         Assert.assertEquals(
                 expect,
                 jdbcDialect.getSelectFromStatement(
@@ -166,7 +167,8 @@ public class JdbcDialectTest {
         when(jdbcDialect.getSelectFromStatement(
                         schema, table, customSql, fields, conditionFields, null))
                 .thenCallRealMethod();
-        expect = "SELECT * FROM (select id,name from \"schema\".\"table\") chunjun_tmp WHERE  1=1 ";
+        expect =
+                "SELECT * FROM (select id,name from \"schema\".\"table\"\n) chunjun_tmp WHERE  1=1 ";
         Assert.assertEquals(
                 expect,
                 jdbcDialect.getSelectFromStatement(

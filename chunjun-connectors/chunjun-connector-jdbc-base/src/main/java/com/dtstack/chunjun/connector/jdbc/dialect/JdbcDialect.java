@@ -27,6 +27,7 @@ import com.dtstack.chunjun.connector.jdbc.converter.JdbcSyncConverter;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
+import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.DateTypeUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.NumericTypeUtil;
@@ -338,7 +339,7 @@ public interface JdbcDialect extends Serializable {
         sql.append("SELECT ");
         if (StringUtils.isNotBlank(customSql)) {
             sql.append("* FROM (")
-                    .append(customSql)
+                    .append(SqlUtil.prepareCustomSql(customSql))
                     .append(") ")
                     .append(JdbcUtil.TEMPORARY_TABLE_NAME);
         } else {
@@ -376,7 +377,7 @@ public interface JdbcDialect extends Serializable {
         sql.append("SELECT ");
         if (StringUtils.isNotBlank(customSql)) {
             sql.append("* FROM (")
-                    .append(customSql)
+                    .append(SqlUtil.prepareCustomSql(customSql))
                     .append(") ")
                     .append(JdbcUtil.TEMPORARY_TABLE_NAME);
         } else {
@@ -496,7 +497,8 @@ public interface JdbcDialect extends Serializable {
     default String getMetadataQuerySql(
             List<String> selectedColumnList, String customSql, String tableInfo) {
         if (StringUtils.isNotBlank(customSql)) {
-            return String.format("select * from (%s) custom where 1=2", customSql);
+            return String.format(
+                    "select * from (%s) custom where 1=2", SqlUtil.prepareCustomSql(customSql));
         }
 
         String columnStr;

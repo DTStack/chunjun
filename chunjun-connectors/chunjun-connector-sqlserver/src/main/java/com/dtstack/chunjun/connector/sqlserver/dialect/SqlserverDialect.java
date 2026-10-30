@@ -25,6 +25,7 @@ import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
+import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.DateTypeUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.NumericTypeUtil;
@@ -144,7 +145,7 @@ public class SqlserverDialect implements JdbcDialect {
         sql.append("SELECT ");
         if (StringUtils.isNotBlank(customSql)) {
             sql.append("* FROM (")
-                    .append(customSql)
+                    .append(SqlUtil.prepareCustomSql(customSql))
                     .append(") ")
                     .append(JdbcUtil.TEMPORARY_TABLE_NAME);
         } else {

@@ -22,6 +22,7 @@ import com.dtstack.chunjun.config.CommonConfig;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
+import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
 import com.dtstack.chunjun.connector.opengauss.converter.OpengaussRawTypeMapper;
 import com.dtstack.chunjun.connector.opengauss.converter.OpengaussSyncConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -123,7 +124,7 @@ public class OpengaussDialect implements JdbcDialect {
         sql.append("SELECT ");
         if (StringUtils.isNotBlank(customSql)) {
             sql.append("* FROM (")
-                    .append(customSql)
+                    .append(SqlUtil.prepareCustomSql(customSql))
                     .append(") ")
                     .append(JdbcUtil.TEMPORARY_TABLE_NAME);
         } else {
